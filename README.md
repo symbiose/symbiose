@@ -1,21 +1,21 @@
 Symbiose 1.0 alpha 2
 ====================
 
-This version (alpha) is unstable.
+This version (alpha) is unstable.  
 Cette version (alpha) n'est pas stable.
 
 
 Software requirements
 ---------------------
 
-Server : PHP >= 5.3
-Client : a fast and modern web browser (e.g. Mozilla Firefox)
+* Server : PHP >= 5.3
+* Client : a fast and modern web browser (e.g. Mozilla Firefox)
 
 
 Copyright
 ---------
 
-Contact: simon@kegtux.org
+Contact: simon@kegtux.org  
 Copyright (C) 2012 Simon Ser
 
     This program is free software: you can redistribute it and/or modify
