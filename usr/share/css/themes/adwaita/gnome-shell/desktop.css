@@ -1,0 +1,454 @@
+/* UBUNTU FONTS */
+
+/* Ubuntu */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: normal;
+	src: local('Ubuntu'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-R.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-R.ttf') format('truetype');
+}
+/* Ubuntu Italic */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: italic;
+	font-weight: normal;
+	src: local('Ubuntu Italic'), local('Ubuntu-Italic'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-I.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-I.ttf') format('truetype');
+}
+/* Ubuntu Bold */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: bold;
+	src: local('Ubuntu Bold'),
+		local('Ubuntu-Bold'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-B.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-B.ttf') format('truetype');
+}
+/* Ubuntu Bold Italic */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: italic;
+	font-weight: bold;
+	src: local('Ubuntu Bold Italic'), local('Ubuntu-BoldItalic'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-BI.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-BI.ttf') format('truetype');
+}
+/* Ubuntu Medium */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: 500;
+	src: local('Ubuntu Medium'), local('Ubuntu-Medium'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-M.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-M.ttf') format('truetype');
+}
+/* Ubuntu Medium Italic */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: italic;
+	font-weight: 500;
+	src: local('Ubuntu Medium Italic'), local('Ubuntu-MediumItalic'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-MI.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-MI.ttf') format('truetype');
+}
+/* Ubuntu Light */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: 300;
+	src: local('Ubuntu Light'), local('Ubuntu-Light'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-L.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-L.ttf') format('truetype');
+}
+/* Ubuntu Light Italic */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: italic;
+	font-weight: 300;
+	src: local('Ubuntu Light Italic'), local('Ubuntu-LightItalic'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-LI.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-LI.ttf') format('truetype');
+}
+
+/* Ubuntu Mono */
+@font-face {
+	font-family: 'Ubuntu Mono';
+	font-style: normal;
+	font-weight: normal;
+	src: local('Ubuntu Mono'), local('UbuntuMono-Regular'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-R.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-R.ttf') format('truetype');
+}
+/* Ubuntu Mono Bold */
+@font-face {
+	font-family: 'Ubuntu Mono';
+	font-style: normal;
+	font-weight: bold;
+	src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-B.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-B.ttf') format('truetype');
+}
+/* Ubuntu Mono Italic */
+@font-face {
+	font-family: 'Ubuntu Mono';
+	font-style: italic;
+	font-weight: normal;
+	src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-I.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-I.ttf') format('truetype');
+}
+/* Ubuntu Mono Bold Italic */
+@font-face {
+	font-family: 'Ubuntu Mono';
+	font-style: italic;
+	font-weight: bold;
+	src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-BI.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-BI.ttf') format('truetype');
+}
+
+/* UBUNTU CURSORS */
+* {
+	cursor: url("usr/share/images/themes/adwaita/cursors/default.cur"), default;
+}
+p, textarea, input[type="text"], input[type="password"],
+*::selection, *::-moz-selection, *::-webkit-selection, *::-o-selection {
+	cursor: url("usr/share/images/themes/adwaita/cursors/text.cur"), text;
+}
+a, a * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.cur"), pointer, hand;
+}
+
+.cursor-default,.cursor-default * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/default.cur"), default;
+}
+
+.cursor-text, .cursor-text * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/text.cur"), text;
+}
+
+.cursor-pointer, .cursor-pointer * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.cur"), pointer, hand;
+}
+
+.cursor-wait, .cursor-wait * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/wait.ani"), wait;
+}
+
+.ui-draggable-dragging, .ui-draggable-dragging *,
+.cursor-move, .cursor-move * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/move.cur"), move;
+}
+
+.cursor-none, .cursor-none * {
+	cursor: none;
+}
+
+img {
+	border-width: 0px;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+a, a:hover, a:active {
+	color: #04369a;
+	outline: none; /* On enleve la bordure en pointilles par defaut sur certains navigateurs lors du clic sur un lien */
+}
+
+*::selection, *::-moz-selection, *::-webkit-selection, *::-o-selection {
+	background: #498ed6;
+	color: #fff;
+}
+
+body {
+	overflow: hidden;
+}
+
+/* Ensemble de l'interface */
+{ 
+	padding: 0px;
+	margin: 0px;
+	font-size: 14px;
+	font-family: Ubuntu, Verdana, serif;
+	background-color: #27001f;
+	overflow: hidden;
+	position: absolute;
+}
+
+#header {
+	background-color: black;
+	width: 100%;
+	height: 26px;
+	color: #cbcbcb;
+	padding: 0;
+	position: absolute;
+	left: 0;
+	z-index: 2000;
+	top: 0px;
+	border-bottom: 1px solid #526070;
+}
+
+#desktop {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	color: white;
+	overflow: hidden;
+	top: 27px;
+	bottom: 0;
+}
+
+#shell-appmenu {
+	padding-top: 0;
+	padding-bottom: 0;
+	height: 26px;
+}
+#shell-appmenu.hover {
+	height: 25px;
+}
+#shell-appmenu .icon-container {
+	float: left;
+	height: 100%;
+	width: 48px;
+	overflow: hidden;
+}
+#shell-appmenu .icon-container img.icon {
+	position: relative;
+	top: -12px;
+	width: 48px;
+	height: 48px;
+	max-width:48px;
+	max-height: 48px;
+}
+#shell-appmenu .icon-container .icon-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 48px;
+	height: 100%;
+	background : -moz-linear-gradient(left, transparent 40%, black 80%);
+	background : -webkit-linear-gradient(left, transparent 40%, black 80%);
+	background : -ms-linear-gradient(left, transparent 40%, black 80%);
+	background : linear-gradient(left, transparent 40%, black 80%);
+}
+#shell-appmenu .title {
+	display: inline-block;
+	line-height: 26px;
+	position: relative;
+	left: -35px;
+}
+#shell-appmenu .loading {
+	float: right;
+	height: 26px;
+	width: 26px;
+	background: url('usr/share/images/themes/adwaita/shell/loading.gif') no-repeat center center;
+}
+
+#shell {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: none;
+	background-color: black;
+	background-color: rgba(0, 0, 0, 0.6);
+}
+
+#shell .launcher, #shell .content {
+	/* on permet à ces éléments de s'aligner verticalement */
+	display: inline-block;
+	vertical-align: middle;
+}
+#shell .content {
+	/* hauteur de la fenêtre, par rapport à laquelle les éléments vont être alignés */
+	height: 100%;
+	width: 90%;
+}
+
+#shell .launcher {
+	list-style: none;
+	margin: 0;
+	padding-left: 3px;
+	border: 1px solid #333433;
+	border-left: none;
+	-moz-border-radius: 0 7px 7px 0;
+	-webkit-border-radius: 0 7px 7px 0;
+	border-radius: 0 7px 7px 0;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+#shell .launcher li {
+	padding: 2px;
+	margin: 3px;
+}
+#shell .launcher li:hover {
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	background-color: rgba(69, 69, 69, 0.3);
+}
+#shell .launcher li.active {
+	background-image: url('usr/share/images/themes/adwaita/shell/shadow.png');
+	background-position: center bottom;
+	background-repeat: no-repeat;
+}
+#shell .launcher li img {
+	width: 48px;
+	height: 48px;
+}
+
+#gnome-shell-overlay div .window-close {
+	float: right;
+	width: 32px;
+	height: 32px;
+	position: relative;
+	top: -16px;
+	right: -16px;
+	background: url('usr/share/images/themes/adwaita/shell/close.png');
+	visibility: hidden;
+}
+#gnome-shell-overlay div:hover .window-close {
+	visibility: visible;
+}
+#gnome-shell-overlay div .window-label {
+	text-align: center;
+	width: 100%;
+	position: relative;
+	top: 100%;
+}
+#gnome-shell-overlay div .window-label span {
+	display: inline-block;
+	color: white;
+	background-color: black;
+	background-color: rgba(0, 0, 0, 0.7);
+	border: 1px solid #333333;
+	padding: 2px 5px;
+	margin-top: 5px;
+	-moz-border-radius: 11px;
+	-webkit-border-radius: 11px;
+	border-radius: 11px;
+}
+
+#shell .mode {
+	list-style: none;
+	position: absolute;
+	left: 155px;
+	padding: 0;
+	margin: 30px 0 0 0;
+}
+#shell .mode li {
+	display: inline-block;
+	color: #888a85;
+	padding: 5px;
+	font-weight: bold;
+}
+#shell .mode li:hover {
+	color: #bababa;
+}
+#shell .mode li.active {
+	color: black;
+	background-color: #c2c7cd;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+}
+
+#shell .search-entry {
+	float: right;
+	margin: 27px 20px 0 0;
+	padding: 5px 15px;
+	font-size: 1.2em;
+	color: #7f7f7f;
+	background-color: rgba(0, 0, 0, 0.1);
+	border: 2px solid rgba(255, 255, 255, 0.1);
+	-moz-border-radius: 14px;
+	-webkit-border-radius: 14px;
+	border-radius: 14px;
+	outline: none;
+}
+#shell .search-entry.active {
+	border-color: #888a85;
+	background-color: #dddddd;
+	color: #404040;
+	box-shadow: inset 0 3px 6px #696a69;
+}
+#shell .search-entry:focus {
+	font-weight: bold;
+}
+
+#shell .shortcuts {
+	display: none;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	padding-top: 120px;
+	height: 95%;
+}
+#shell .shortcuts .filters {
+	list-style: none;
+	margin: 4px 15px;
+	padding: 0;
+	float: right;
+	width: 250px;
+	height: 100%;
+}
+#shell .shortcuts .filters li {
+	margin: 15px 2px;
+	font-weight: bold;
+	font-size: 14px;
+	color: #a8a8a8;
+}
+#shell .shortcuts .filters li:hover,
+#shell .shortcuts .filters li.active {
+	color: white;
+}
+#shell .shortcuts .list ul {
+	display: block;
+	list-style: none;
+	margin: 2px;
+	padding: 0;
+	overflow: auto;
+	height: 100%;
+}
+#shell .shortcuts .list ul li {
+	display: inline-block;
+	text-align: center;
+	margin: 20px;
+	padding: 5px;
+	width: 120px;
+	height: 120px;
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+#shell .shortcuts .list ul li:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+#shell .shortcuts .list ul li.active {
+	background-image: url('usr/share/images/themes/adwaita/shell/shadow.png');
+	background-position: center bottom;
+	background-repeat: no-repeat;
+}
+#shell .shortcuts .list ul li img {
+	width: 92px;
+	height: 92px;
+}
+#shell .shortcuts .list ul li .title {
+	color: white;
+}
+
+.ui-selectable-helper {
+	border: 1px solid #498ed6;
+	background: rgba(73, 142, 214, 0.3);
+}

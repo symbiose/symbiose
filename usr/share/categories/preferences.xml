@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Préférences"/>
+	<attribute name="name" value="preferences"/>
+	<attribute name="description" value="Préférences"/>
+	<attribute name="icon" value="/usr/share/icons/categories/23/preferences.png"/>
+	<attribute name="menu" value="system"/>
+</shortcut>

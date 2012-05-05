@@ -1,0 +1,16 @@
+.list {
+	clear: both;
+	max-height: 400px;
+}
+
+.list .details {
+	font-size: small;
+}
+
+.upgrade-icon {
+	width: 48px;
+	height: 48px;
+	margin-right: 3px;
+	background: url('usr/share/images/update-manager/upgrade.png') no-repeat;
+	float: left;
+}

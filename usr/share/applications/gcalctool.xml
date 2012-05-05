@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Calculatrice"/>
+	<attribute name="description" value="Effectuer des opérations arithmétiques"/>
+	<attribute name="command" value="gcalctool"/>
+	<attribute name="icon" value="apps/calculator"/>
+	<attribute name="category" value="accessories"/>
+	<attribute name="menu" value="applications"/>
+</shortcut>

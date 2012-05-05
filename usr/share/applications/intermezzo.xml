@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Lecteur multimédia Intermezzo"/>
+	<attribute name="description" value="Lire des fichiers audio et vidéo"/>
+	<attribute name="command" value="intermezzo"/>
+	<attribute name="icon" value="applications/intermezzo"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="soundandvideo"/>
+	<attribute name="open" value="mp3,oga,mp4,m4v,ogg,ogv"/>
+</shortcut>

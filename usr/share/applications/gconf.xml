@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Paramètres système"/>
+	<attribute name="description" value="Modifier les paramètres système"/>
+	<attribute name="command" value="gconf"/>
+	<attribute name="icon" value="apps/administration"/>
+	<attribute name="category" value="preferences"/>
+	<attribute name="menu" value="system"/>
+</shortcut>

@@ -1,0 +1,285 @@
+/* UBUNTU FONTS */
+
+/* Ubuntu */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: normal;
+	src: local('Ubuntu'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-R.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-R.ttf') format('truetype');
+}
+/* Ubuntu Italic */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: italic;
+	font-weight: normal;
+	src: local('Ubuntu Italic'), local('Ubuntu-Italic'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-I.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-I.ttf') format('truetype');
+}
+/* Ubuntu Bold */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: bold;
+	src: local('Ubuntu Bold'),
+		local('Ubuntu-Bold'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-B.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-B.ttf') format('truetype');
+}
+/* Ubuntu Bold Italic */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: italic;
+	font-weight: bold;
+	src: local('Ubuntu Bold Italic'), local('Ubuntu-BoldItalic'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-BI.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-BI.ttf') format('truetype');
+}
+/* Ubuntu Medium */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: 500;
+	src: local('Ubuntu Medium'), local('Ubuntu-Medium'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-M.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-M.ttf') format('truetype');
+}
+/* Ubuntu Medium Italic */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: italic;
+	font-weight: 500;
+	src: local('Ubuntu Medium Italic'), local('Ubuntu-MediumItalic'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-MI.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-MI.ttf') format('truetype');
+}
+/* Ubuntu Light */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: 300;
+	src: local('Ubuntu Light'), local('Ubuntu-Light'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-L.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-L.ttf') format('truetype');
+}
+/* Ubuntu Light Italic */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: italic;
+	font-weight: 300;
+	src: local('Ubuntu Light Italic'), local('Ubuntu-LightItalic'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-LI.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-LI.ttf') format('truetype');
+}
+
+/* Ubuntu Mono */
+@font-face {
+	font-family: 'Ubuntu Mono';
+	font-style: normal;
+	font-weight: normal;
+	src: local('Ubuntu Mono'), local('UbuntuMono-Regular'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-R.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-R.ttf') format('truetype');
+}
+/* Ubuntu Mono Bold */
+@font-face {
+	font-family: 'Ubuntu Mono';
+	font-style: normal;
+	font-weight: bold;
+	src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-B.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-B.ttf') format('truetype');
+}
+/* Ubuntu Mono Italic */
+@font-face {
+	font-family: 'Ubuntu Mono';
+	font-style: italic;
+	font-weight: normal;
+	src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-I.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-I.ttf') format('truetype');
+}
+/* Ubuntu Mono Bold Italic */
+@font-face {
+	font-family: 'Ubuntu Mono';
+	font-style: italic;
+	font-weight: bold;
+	src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-BI.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/UbuntuMono-BI.ttf') format('truetype');
+}
+
+/* UBUNTU CURSORS */
+* {
+	cursor: url("usr/share/images/themes/adwaita/cursors/default.cur"), default;
+}
+p, textarea, input[type="text"], input[type="password"],
+*::selection, *::-moz-selection, *::-webkit-selection, *::-o-selection {
+	cursor: url("usr/share/images/themes/adwaita/cursors/text.cur"), text;
+}
+a, a * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.cur"), pointer, hand;
+}
+
+.cursor-default,.cursor-default * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/default.cur"), default;
+}
+
+.cursor-text, .cursor-text * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/text.cur"), text;
+}
+
+.cursor-pointer, .cursor-pointer * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.cur"), pointer, hand;
+}
+
+.cursor-wait, .cursor-wait * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/wait.ani"), wait;
+}
+
+.ui-draggable-dragging, .ui-draggable-dragging *,
+.cursor-move, .cursor-move * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/move.cur"), move;
+}
+
+.cursor-none, .cursor-none * {
+	cursor: none;
+}
+
+img {
+	border-width: 0px;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+a, a:hover, a:active {
+	color: #04369a;
+	outline: none; /* On enleve la bordure en pointilles par defaut sur certains navigateurs lors du clic sur un lien */
+}
+
+*::selection, *::-moz-selection, *::-webkit-selection, *::-o-selection {
+	background: #498ed6;
+	color: #fff;
+}
+
+body {
+	overflow: hidden;
+}
+
+/* Ensemble de l'interface */
+{ 
+	padding: 0px;
+	margin: 0px;
+	font-size: 14px;
+	font-family: Ubuntu, Verdana, serif;
+	background-color: #27001f;
+	overflow: hidden;
+	position: absolute;
+}
+
+#header, #footer {
+	background-color: black;
+	width: 100%;
+	height: 26px;
+	color: #cbcbcb;
+	padding: 0;
+	position: absolute;
+	left: 0;
+	z-index: 2000;
+}
+
+#header {
+	top: 0px;
+	border-bottom: 1px solid #526070;
+}
+
+#footer {
+	bottom: 0px;
+	border-top: 1px solid #526070;
+}
+
+#desktop {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	color: white;
+	overflow: hidden;
+	top: 27px;
+	bottom: 0;
+}
+
+#desktop-files, #desktop .fileiconzone {
+	width: 100%;
+	height: 100%;
+}
+
+#desktop-files {
+	top: 0px;
+	bottom: 0px;
+}
+
+/* BOUTONS DES FENETRES */
+#windows-buttons {
+	overflow: hidden;
+	height: 26px;
+	display: inline-block;
+	margin: 0;
+	padding: 0;
+}
+#windows-buttons .window-button {
+	float: left;
+	list-style-type: none;
+	width: 176px;
+	height: 22px;
+	overflow: hidden;
+	padding: 2px;
+	padding-right: 0px;
+	margin-top: 1px;
+	white-space: nowrap;
+}
+#windows-buttons .window-button img {
+	max-height:17px;
+	max-width:17px;
+	margin-right:3px;
+	
+	margin-left: 3px;
+	
+	float: left;
+}
+#windows-buttons .window-button:hover {
+	color: #dcdfe2;
+}
+#windows-buttons .window-button-active, #windows-buttons .window-button:active {
+	color: #dcdfe2;
+	background-color: #333333;
+}
+
+.desktop-button { background: url('usr/share/images/themes/ambiance/desktop-button.png'); height: 24px; width: 30px; float:left; }
+.desktop-button:hover { background-position: 0% 24px; }
+
+.ui-resizable-handle .ui-resizable-e {
+	height:2px;
+	position:relative;
+	bottom:2px;
+}
+.ui-selectable-helper {
+	border: 1px solid #498ed6;
+	background: rgba(73, 142, 214, 0.3);
+}
+
+#workspace-switcher {
+	margin-top: 3px;
+}
+.workspace-button {
+	background-color: #232323;
+	margin-right: 1px;
+	padding-left: 23px;
+	display: inline;
+}
+.workspace-button.selected {
+	background-color: #376594;
+}

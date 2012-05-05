@@ -1,0 +1,93 @@
+/* Generic context menu styles */
+.webos-contextmenu {
+	position: absolute;
+	min-width: 274px;
+	z-index: 99999;
+	background: #43423f;
+	padding: 0px;
+	margin: 0px;
+	display: none;
+	-moz-box-shadow: 5px 4px 12px black;  
+	-webkit-box-shadow: 5px 4px 12px black; 
+	box-shadow: 5px 4px 12px black;  
+}
+
+ul.webos-contextmenu li {
+	list-style: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+ul.webos-contextmenu a {
+	color: white;
+	text-decoration: none;
+	display: block;
+	line-height: 25px;
+	height: 25px;
+	background-repeat: no-repeat;
+	outline: none;
+	padding: 0px 5px;
+	padding-left: 22px;
+	padding-right:15px;
+	border: 1px solid #43423f;
+}
+
+ul.webos-contextmenu li:hover > a {
+
+	background:url("usr/share/images/themes/ambiance/menu/background.png") repeat-x;
+	background-position: 0% -25px;
+	border:1px solid #c35c33;
+}
+
+ul.webos-contextmenu li.disabled a {
+	color: #232322;
+}
+
+ul.webos-contextmenu li:hover.disabled > a {
+	border: 1px solid #43423f;
+	background: none;
+}
+
+ul.webos-contextmenu li.separator {
+	border-top: solid 1px #3e3e3b;
+}
+
+/* Permet d'afficher les sous catégories*/
+
+
+ul.webos-contextmenu li ul /* Sous-listes */
+{
+        position: absolute; /* Position absolue */
+        min-width: 274px; /* Largeur des sous-listes */
+        display:none;
+	margin: -27px 0px 0 274px;
+	background: #43423f;
+	padding-left: 0px;
+	-moz-box-shadow: 5px 4px 12px black;
+	-webkit-box-shadow: 5px 4px 12px black;
+	box-shadow: 5px 4px 12px black;
+}
+
+ul.webos-contextmenu li ul li /* Éléments de sous-listes */
+
+{
+	min-width:274px;
+	margin-left:0px;
+	padding-right:0px;
+}
+
+ul.webos-contextmenu li:hover > ul  /* Sous-listes lorsque la souris passe sur un élément de liste */
+{
+	display:block;
+}
+
+/* Gere les images icones ===> IMAGE AVEC 20PX DE LARGEUR ET 25 DE HAUTEUR MERCI<===*/
+ul.webos-contextmenu li img.icon_left {
+	float:left;
+	line-height:middle;
+}
+ul.webos-contextmenu li img.icon_right {
+	float:right;
+	height:20px;
+	margin-right:2px;
+}

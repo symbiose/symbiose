@@ -1,0 +1,95 @@
+/* ----------- Gestion des Icônes et des Zônes de Sélection ----------- v1.1 ----------- By Doppelganger & $imon ----------- Le  08/06/2011 */
+
+ul.fileiconzone {
+	margin: 5px;
+	padding-left: 0px;	
+}
+
+ul.fileiconzone.icons li.fileicon {
+
+	position:relative;
+	padding:3px 3px 3px 3px;
+	width:110px; /* permet d'éviter les bugs de width dans le JS*/
+	height:75px; /* permet d'éviter les bugs de height dans le JS*/
+	text-align:center;
+	list-style-type: none;
+
+}
+
+.window ul.fileiconzone li.fileicon {
+	z-index:3000;
+}
+
+ul.fileiconzone.icons li.fileicon .image { /* image */
+
+	opacity:0.85;
+	max-width:105px;
+	max-height:50px;
+
+}
+
+ul.fileiconzone.icons li.fileicon:hover .image { /* on sélectionne l'image */
+
+	opacity:1; /* crée un effet d'éclairage */
+
+}
+
+ul.fileiconzone.icons li.fileicon .label { /* div qui contient le nom de l'icône */
+
+	-moz-border-radius: 4px 4px 4px 4px;
+	-webkit-border-radius: 4px 4px 4px 4px;
+	border-radius: 4px 4px 4px 4px;
+	width:110px;
+	text-align:center;
+	margin-top:5px;
+	font-size:14px;
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */ 
+	text-overflow: ellipsis; /* pour le reste du monde */ 
+
+}
+
+
+ul.fileiconzone.icons li.fileicon.ui-selecting .label, ul.fileiconzone.icons li.fileicon.ui-selected .label { /*  lorque la souris clic sur l'icône (clic enfoncé) */
+
+	background: #f07746;
+	color:white;
+
+}
+
+ul.fileiconzone.list {
+	overflow-x: hidden;
+}
+
+ul.fileiconzone.list li.fileicon .image { /* image */
+
+	max-width:20px;
+	max-height:18px;
+	float:left;
+
+}
+
+ul.fileiconzone.list li.fileicon .label {
+	color:black;
+	margin-left: 21px;	
+}
+
+
+ul.fileiconzone.list li.fileicon.ui-selecting, ul.fileiconzone.list li.fileicon.ui-selected { /*  lorque la souris clic sur l'icône (clic enfoncé) */
+
+	background: #f07746;
+
+}
+ul.fileiconzone.list li.fileicon.ui-selecting .label, ul.fileiconzone.list li.fileicon.ui-selected .label { /*  lorque la souris clic sur l'icône (clic enfoncé) */
+
+	color:white;
+
+}
+
+.ui-draggable-dragging {
+	z-index: 3000;
+}
+
+.ui-selectable-helper {
+	z-index: 1500;
+}

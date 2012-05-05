@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Éditeur de texte gedit"/>
+	<attribute name="description" value="Éditer des fichiers texte"/>
+	<attribute name="command" value="gedit"/>
+	<attribute name="icon" value="apps/text-editor"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="accessories"/>
+	<attribute name="open" value=",txt,c,h,c++,java,clj,coffee,aspx,ejs,jsp,html,js,pl,pm,py,rb,diff,gfm,lua,php,css,r,rst,xml"/>
+</shortcut>

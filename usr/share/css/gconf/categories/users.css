@@ -1,0 +1,23 @@
+.userslist {
+	float: left;
+	height: 380px;
+	width: 230px;
+	margin: 5px;
+}
+
+.userslist .userpicture {
+	width: 40px;
+	height: 40px;
+	float: left;
+}
+
+.edituser {
+	margin-left: 245px;
+	overflow: visible;
+	padding: 3px;
+}
+
+.edituser .userpicture {
+	margin: 7px;
+	float: left;
+}

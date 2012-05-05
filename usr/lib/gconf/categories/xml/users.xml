@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category>
+	<define name="name" value="users"/>
+	<define name="title" value="Comptes d'utilisateurs"/>
+	<define name="icon" value="stock/people"/>
+	<define name="description" value="Gérer les comptes d'utilisateurs"/>
+</category>

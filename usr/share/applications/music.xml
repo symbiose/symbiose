@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Musique"/>
+	<attribute name="description" value="Ouvrir la musique"/>
+	<attribute name="command" value="nautilus ~/Musique"/>
+	<attribute name="icon" value="places/folder-music"/>
+	<attribute name="menu" value="places"/>
+</shortcut>

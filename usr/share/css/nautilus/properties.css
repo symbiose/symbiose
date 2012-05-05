@@ -1,0 +1,11 @@
+.content {
+	padding: 3px;
+}
+.image {
+	float: left;
+	max-width: 48px;
+}
+ul {
+	list-style-type: none;
+	padding-left: 5px;
+}

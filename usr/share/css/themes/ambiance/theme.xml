@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<attribute name="name" value="Ambiance"/>
+	<attribute name="description" value="Thème par défaut d'Ubuntu"/>
+</config>

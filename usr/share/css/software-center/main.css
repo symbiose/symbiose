@@ -1,0 +1,158 @@
+.home, .list, .package-details {
+	padding: 3px;
+	height: 100%;
+}
+
+.home {
+	background: url('usr/share/images/software-center/background.png') repeat;
+}
+.home div {
+	padding: 5px;
+	border: 1px solid #a9a5a7;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	background-color: white;
+}
+.home .menu {
+	width: 150px;
+	float: left;
+}
+.home .box {
+	margin-left: 155px;
+	overflow: visible;
+}
+.home .box .webos-button {
+	background: #e4dde2;
+	font-weight:bold;
+	color: #a2939b;
+	float: right;
+	height: 21px;
+}
+.home .box .title {
+	font-weight: bold;
+	color: #4c4c4c;
+	font-size: large;
+	line-height: 25px;
+}
+.home .menu ul, .home .box ul {
+	list-style-type: none;
+	list-style-position: inside;
+	padding: 0;
+	margin: 0;
+	min-height: 40px;
+	overflow: hidden;
+}
+.home .box ul li {
+	height: 40px;
+	width: 25%;
+	float: left;
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+.home .box ul li .icon {
+	height: 32px;
+	width: 32px;
+	float: left;
+	margin-top: 2px;
+}
+.home .box ul li .name {
+	font-weight:bold;
+	color: #4c4c4c;
+}
+.home .box ul li .category {
+	color: #857680;
+}
+
+.empty {
+	font-style: italic;
+	text-align: center;
+}
+.empty:active {
+	background-color: #ffd1d1;
+}
+
+.list h1 {
+	font-size: 19px;
+	backgound-color: #f2f1f0;
+	margin: 0;
+	padding-top: 15px;
+	padding-bottom: 15px;
+}
+.list .webos-spoiler .label {
+	font-size: medium;
+}
+.list .action-button, .list .loading {
+	float: right;
+}
+.list .icon {
+	height: 32px;
+	width: 32px;
+	float: left;
+}
+
+.package-details {
+	background-color: #f4f1f3;
+	height: 100%;
+	color: #4c4c4c;
+}
+.package-details a {
+	color: #81727c;
+}
+.package-details .header {
+	margin-bottom: 3px;
+}
+.package-details .icon {
+	float: left;
+	max-width: 100px;
+	max-height: 100px;
+	min-height: 36px;
+	min-width: 36px;
+}
+.package-details h1 {
+	margin: 2px;
+	color: #4c4c4c;
+	margin-bottom: 0px;
+}
+.package-details .detail {
+	font-size: small;
+}
+.package-details .action-box {
+	clear: both;
+	border: 1px dotted #cac0c6;
+	border-left: none;
+	border-right: none;
+	margin: 2px 12px;
+	padding: 2px;
+	background-color: white;
+	font-weight: bold;
+	height: 31px;
+}
+.package-details .action-box .state {
+	font-size: medium;
+}
+.package-details .action-box .webos-button, .package-details .action-box .loading {
+	float: right;
+}
+.package-details .separator {
+	border-top: 1px dotted #cac0c6;
+	height: 0px;
+	margin: 2px 12px;
+}
+.package-details .info-box {
+	list-style-type: none;
+}
+.package-details .info-box li strong {
+	color: #81727c;
+}
+
+.list .loading, .package-details .action-box .loading {
+	height: 25px;
+	width: 25px;
+	background: url('usr/share/images/software-center/loader_white.gif') no-repeat;
+}
+.list .active .loading {
+	background: url('usr/share/images/software-center/loader_orange.gif') no-repeat;
+}

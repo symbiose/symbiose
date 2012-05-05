@@ -1,0 +1,15 @@
+.content {
+	padding: 2px;
+}
+
+.uploads-list {
+	max-height: 150px;
+}
+
+.upload-icon {
+	float: left;
+}
+
+.upload-container {
+	clear: both;
+}

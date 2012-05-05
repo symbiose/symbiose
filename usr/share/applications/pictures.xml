@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Images"/>
+	<attribute name="description" value="Ouvrir les images"/>
+	<attribute name="command" value="nautilus Images"/>
+	<attribute name="icon" value="places/folder-pictures"/>
+	<attribute name="menu" value="places"/>
+</shortcut>

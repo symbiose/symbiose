@@ -1,0 +1,199 @@
+ul.menu .separator,
+ul.webos-menuwindowheader .separator {
+	width: 95%;
+	height: 1px;
+	color: #D1C2B6;
+	background: #D1C2B6;
+	border: 0px;
+	margin-bottom: 2px;
+	margin-top: 2px;
+	margin-left: 6px;
+}
+
+ul.menu .arrow,
+ul.webos-menuwindowheader .arrow {
+	display: block;
+	background: url("usr/share/images/themes/ambiance/menu/arrow.png") no-repeat;
+	width: 6px;
+	margin-top: 6px;
+	margin-bottom: 6px;
+	margin-right: 3px;
+	height: 7px;
+	float: right;
+}
+
+ul.menu img.icon,
+ul.webos-menuwindowheader img.icon {
+	margin-right: 1px;
+	max-width: 23px;
+	text-align: center;
+	float: left;
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+ul.menu, ul.menu ul,
+ul.menuwindowheader, ul.webos-menuwindowheader ul { /* Liste */
+	padding: 0; /* pas de marge intérieure */
+	margin: 0; /* ni extérieure */
+	list-style: none; /* on supprime le style par défaut de la liste */
+	line-height: 19px; /* on définit une hauteur pour chaque élément */
+	text-align: center;
+	/* on centre le texte qui se trouve dans la liste */
+}
+
+ul.menu *,
+ul.webos-menuwindowheader * { /* Ensemble du menu */
+	position: relative;
+	z-index: 1050;
+}
+
+ul.menu a,
+ul.webos-menuwindowheader a { /* Contenu des listes */
+	display: block;
+	/* on change le type d'élément, les liens deviennent des balises de type block */
+	padding: 0; /* aucune marge intérieure */
+	padding-top: 3px;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	text-decoration: none; /* on supprime le style par défaut des liens (la plupart du temps = souligné) */
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+
+ul.menu a {
+	color: #cccccc;
+}
+ul.webos-menuwindowheader a {
+	color: black;
+}
+
+ul.menu ul a,
+ul.webos-menuwindowheader ul a {
+	width: 100%;
+}
+ul.menu ul a {
+	background-color: white;
+	color: #313739;
+}
+ul.webos-menuwindowheader ul a {
+	background-color: white;
+	border: 1px solid white;
+	border-left: 1px solid #aaaaaa;
+	border-right: 1px solid #aaaaaa;
+}
+ul.webos-menuwindowheader ul li:first-child a {
+	border-top: 1px solid #aaaaaa;
+}
+ul.webos-menuwindowheader ul li:last-child a {
+	border-bottom: 1px solid #aaaaaa;
+}
+
+ul.menu ul li.hover > a {
+	background-color: #4a90d9;
+	color: white;
+}
+ul.webos-menuwindowheader ul li.hover > a {
+	background-color: #9dbde5;
+	border: 1px solid #4b6e99;
+	color: white;
+}
+
+ul.menu li,
+ul.webos-menuwindowheader li { /* Elements des listes */
+	float: left;
+	/* pour IE qui ne reconnaît pas "transparent" */
+	text-align: left;
+}
+
+ul.menu li ul,
+ul.webos-menuwindowheader li ul /* Sous-listes */ {
+	position: absolute; /* Position absolue */
+	width: 170px; /* Largeur des sous-listes */
+	display: none;
+}
+
+ul.menu li ul li,
+ul.webos-menuwindowheader li ul li /* Éléments de sous-listes */ {
+	width: 100%;
+}
+
+ul.menu li ul li ul {
+	margin: -24px 0 0 174px;
+}
+ul.webos-menuwindowheader li ul li ul {
+	margin: -26px 0 0 176px;
+	/* On décale les sous-sous-listes pour qu'elles ne soient pas au dessus des sous-listes */
+}
+
+ul.menu li img.icon,
+ul.webos-menuwindowheader li img.icon {
+	float: left;
+	max-height: 19px;
+	max-width: 19px;
+	margin-right: 2px;
+}
+
+ul.menu li.separator {
+	border-top: 1px solid #303030;
+}
+
+ul.menu > li > a,
+ul.webos-menuwindowheader > li > a {
+	padding-right: 4px;
+}
+ul.menu > li > a {
+	font-weight: bold;
+}
+ul.webos-menuwindowheader > li > a {
+	margin: 1px 1px 0px 1px;
+}
+ul.menu > li:hover > a {
+	color: #dcdfe2;
+}
+ul.menu > li.hover > a {
+	background-color: #333333;
+	-moz-border-radius: 4px 4px 0 0;
+	-webkit-border-radius: 4px 4px 0 0;
+	border-radius: 4px 4px 0 0;
+}
+ul.webos-menuwindowheader > li.hover > a {
+	margin: 0;
+	background-color: #a2c1e7;
+	color: white;
+	border: 1px solid #4c6f9a;
+	border-bottom: none;
+	-moz-border-radius: 3px 3px 0 0;
+	-webkit-border-radius: 3px 3px 0 0;
+	border-radius: 3px 3px 0 0;
+}
+
+ul.menu .right li ul li {
+	margin: -25px 0 0 0;
+}
+
+#powermenu li a.powerbutton {
+	padding: 0px 5px;
+	height: 25px;
+}
+
+#powermenu ul {
+	top: 25px;
+	right: 0px;
+	position: absolute;
+}
+
+#bouton-menu-top-right.hover {
+	background: url("usr/share/images/themes/ambiance/menu/background.png")
+		repeat-x;
+	background-position: 0% -25px;
+	width: 100%;
+}

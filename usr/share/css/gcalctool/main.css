@@ -1,0 +1,66 @@
+textarea {
+	border: 2px solid #c4c1bd;
+	width: 363px;
+	text-align: right;
+	padding-top: 11px;
+	padding-bottom: 11px;
+	margin-top: 5px;
+	height: 70px;
+	font-size: 18px;
+}
+
+.result textarea {
+	font-weight: bold;
+}
+
+textarea {
+	margin-left: 2px;
+}
+
+.content .gcalctool {
+	padding-left: 2px;
+}
+
+.webos-button.violet, .webos-button.pink,
+.webos-button.blue, .webos-button.gray {
+	width: 15.5%;
+	margin-bottom: 1px;
+	height: 27px;
+}
+
+.webos-button.enter {
+	width: 32%;
+	background-image: url('usr/share/images/gcalctool/green.png');
+	background-position: 0px top;
+	background-repeat: repeat-x;
+	margin-bottom: 1px;
+	height: 27px;
+}
+
+.webos-button.violet {
+	background-image: url('usr/share/images/gcalctool/violet.png');
+	background-position: 0px top;
+	background-repeat: repeat-x;
+}
+
+.webos-button.violet:hover {
+	background-position: 27px top;
+}
+
+.webos-button.pink {
+	background-image: url('usr/share/images/gcalctool/pink.png');
+	background-position: 0px top;
+	background-repeat: repeat-x;
+}
+
+.webos-button.blue {
+	background-image: url('usr/share/images/gcalctool/blue.png');
+	background-position: 0px top;
+	background-repeat: repeat-x;
+}
+
+.webos-button.gray {
+	background-image: url('usr/share/images/gcalctool/gray.png');
+	background-position: 0px top;
+	background-repeat: repeat-x;
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Terminal"/>
+	<attribute name="description" value="Utiliser la ligne de commande"/>
+	<attribute name="command" value="gnome-terminal"/>
+	<attribute name="icon" value="apps/terminal"/>
+	<attribute name="category" value="accessories"/>
+	<attribute name="menu" value="applications"/>
+</shortcut>

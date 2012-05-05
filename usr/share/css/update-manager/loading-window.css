@@ -1,0 +1,18 @@
+.update-icon, .upgrade-icon {
+	width: 48px;
+	height: 48px;
+	margin-right: 3px;
+	float: left;
+}
+
+.update-icon {
+	background: url('usr/share/images/update-manager/update.png') no-repeat;
+}
+
+.upgrade-icon {
+	background: url('usr/share/images/update-manager/upgrade.png') no-repeat;
+}
+
+.loading-content {
+	padding: 3px;
+}

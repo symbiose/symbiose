@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Bureautique"/>
+	<attribute name="name" value="office"/>
+	<attribute name="description" value="Bureautique"/>
+	<attribute name="icon" value="/usr/share/icons/categories/23/office.png"/>
+	<attribute name="menu" value="applications"/>
+</shortcut>

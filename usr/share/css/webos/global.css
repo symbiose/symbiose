@@ -1,0 +1,60 @@
+/* Ubuntu */
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: normal;
+	src: local('Ubuntu'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-R.woff') format('woff'),
+		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-R.ttf') format('truetype');
+}
+
+html, body {
+	overflow: hidden;
+}
+
+#webos-loading, #webos-unsupported {
+	overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #28001b;
+	z-index: 9000;
+	font-family: Ubuntu, Verdana, serif;
+}
+
+#webos-loading .center, #webos-unsupported .center {
+	position: relative;
+	top: 42%;
+	margin: auto;
+	text-align: center;
+}
+
+#webos-loading h1, #webos-unsupported h1 {
+	font-size: 50px;
+	color: white;
+	text-shadow: 0 0 0.2em white;
+}
+
+#webos-loading p, #webos-unsupported p {
+	color: #ffcdf1;
+}
+
+#webos-loading a, #webos-unsupported a,
+#webos-loading a:hover, #webos-unsupported a:hover,
+#webos-loading a:active, #webos-unsupported a:active,
+#webos-loading a:visited, #webos-unsupported a:visited {
+	color: #ffcdf1;
+}
+
+#webos-loading p.error, #webos-unsupported p.error {
+	color: #ff6767;
+}
+
+#webos-loading p.error a, #webos-unsupported p.error a,
+#webos-loading p.error a:hover, #webos-unsupported p.error a:hover,
+#webos-loading p.error a:active, #webos-unsupported p.error a:active,
+#webos-loading p.error a:visited, #webos-unsupported p.error a:visited {
+	color: #ff6767;
+}

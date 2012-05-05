@@ -1,0 +1,21 @@
+.systemdata {
+	text-align: center;
+}
+
+.systemdata .logo {
+	max-height: 150px;
+	max-width: 150px;
+}
+
+.systemdata h2 {
+	margin-top: 0px;
+}
+
+.systemdata li {
+	list-style-type: none;
+	list-style-position: inside;
+}
+
+.systemdata li .detail {
+	color: gray;
+}

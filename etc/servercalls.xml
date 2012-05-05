@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+	<class name="FileController">
+		<method name="getContents">
+			<argument id="0" type="file" action="read"/>
+		</method>
+		<method name="readDir">
+			<argument id="0" type="file" action="read"/>
+		</method>
+		<method name="getData">
+			<argument id="0" type="file" action="read"/>
+		</method>
+		<method name="rename">
+			<argument id="0" type="file" action="write"/>
+		</method>
+		<method name="move">
+			<argument id="0" type="file" action="read"/>
+			<argument id="1" type="file" action="write"/>
+		</method>
+		<method name="delete">
+			<argument id="0" type="file" action="write"/>
+		</method>
+		<method name="createFile">
+			<argument id="0" type="file" action="write"/>
+		</method>
+		<method name="createFolder">
+			<argument id="0" type="file" action="write"/>
+		</method>
+		<method name="setContents">
+			<argument id="0" type="file" action="write"/>
+		</method>
+		<method name="upload">
+			<argument id="0" type="file" action="write"/>
+		</method>
+		<method name="download">
+			<argument id="0" type="file" action="read"/>
+		</method>
+	</class>
+	<class name="UserInterfaceController">
+		<method name="getUI"></method>
+		<method name="getUIsList"></method>
+	</class>
+	<class name="UserController">
+		<method name="connect"></method>
+		<method name="connectAsGuest"></method>
+		<method name="getAttribute">
+			<argument id="0" type="user" action="read"/>
+		</method>
+		<method name="setAttribute">
+			<argument id="2" type="user" action="write"/>
+		</method>
+		<method name="setMultipleAttributes">
+			<argument id="1" type="user" action="write"/>
+		</method>
+		<method name="setPassword">
+			<argument id="2" type="user" action="write"/>
+		</method>
+		<method name="getAttributes">
+			<argument id="0" type="user" action="read"/>
+		</method>
+		<method name="getLoggedId"></method>
+		<method name="getList">
+			<authorization action="user.read"/>
+		</method>
+		<method name="getAuthorizations">
+			<argument id="0" type="user" action="read"/>
+		</method>
+		<method name="setAuthorizations">
+			<argument id="1" type="user" action="write"/>
+		</method>
+		<method name="remove">
+			<argument id="0" type="user" action="write"/>
+		</method>
+		<method name="create">
+			<authorization action="user.write"/>
+		</method>
+		<method name="register"></method>
+	</class>
+	<class name="ServerController">
+		<method name="getHost"></method>
+		<method name="getWebosVersion"></method>
+		<method name="getSystemData"></method>
+	</class>
+	<class name="DashboardManager">
+		<method name="get"></method>
+	</class>
+	<class name="CmdController">
+		<method name="execute"></method>
+		<method name="getPromptData"></method>
+	</class>
+	<class name="TerminalController">
+		<method name="getPromptData"></method>
+		<method name="register"></method>
+	</class>
+	<class name="ApplicationShortcutController">
+		<method name="get"></method>
+		<method name="getFilesOpeners"></method>
+		<method name="setFavorite"></method>
+		<method name="removeFavorite"></method>
+	</class>
+	<class name="PackageController">
+		<method name="getAvailable">
+			<authorization action="package.read"/>
+		</method>
+		<method name="getPackage">
+			<authorization action="package.read"/>
+		</method>
+		<method name="getFromCategory">
+			<authorization action="package.read"/>
+		</method>
+		<method name="getLastPackages">
+			<authorization action="package.read"/>
+		</method>
+		<method name="getInstalled">
+			<authorization action="package.read"/>
+		</method>
+		<method name="getLastInstalled">
+			<authorization action="package.read"/>
+		</method>
+		<method name="searchPackages">
+			<authorization action="package.read"/>
+		</method>
+		<method name="install">
+			<argument id="0" type="package" action="manage"/>
+		</method>
+		<method name="remove">
+			<argument id="0" type="package" action="manage"/>
+		</method>
+		<method name="getUpdates">
+			<authorization action="package.read"/>
+		</method>
+		<method name="updateCache">
+			<authorization action="package.read"/>
+		</method>
+		<method name="upgrade">
+			<authorization action="package.manage"/>
+		</method>
+		<method name="getRepositories">
+			<authorization action="package.read"/>
+		</method>
+		<method name="removeRepository">
+			<authorization action="package.write"/>
+		</method>
+		<method name="addRepository">
+			<authorization action="package.write"/>
+		</method>
+	</class>
+	<class name="ThemeController">
+		<method name="loadCss"></method>
+		<method name="get"></method>
+		<method name="change"></method>
+		<method name="getAvailable"></method>
+	</class>
+	<class name="NetworkController">
+		<method name="readFile"></method>
+	</class>
+</actions>

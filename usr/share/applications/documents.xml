@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Documents"/>
+	<attribute name="description" value="Ouvrir les documents"/>
+	<attribute name="command" value="nautilus ~/Documents"/>
+	<attribute name="icon" value="places/folder-documents"/>
+	<attribute name="menu" value="places"/>
+</shortcut>

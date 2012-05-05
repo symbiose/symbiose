@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Logithèque"/>
+	<attribute name="description" value="Gérer les logiciels installés"/>
+	<attribute name="command" value="software-center"/>
+	<attribute name="icon" value="applications/software-center"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="administration"/>
+</shortcut>

@@ -1,0 +1,30 @@
+.webos-terminal {
+	width: 100%;
+	height: 100%;
+	color: white;
+	background-color: black;
+	overflow: auto;
+	padding: 2px;
+}
+
+.webos-terminal * {
+	font-family: 'Ubuntu Mono', monospace;
+	font-size: 16px;
+}
+
+.webos-terminal p {
+	max-width: 100%;
+	word-wrap: break-word;
+}
+
+.webos-terminal div {
+	width: 100%;
+}
+
+.webos-terminal input[type="text"],
+.webos-terminal input[type="password"]
+{
+	background-color: black;
+	color: white;
+	border: 0 none;
+}

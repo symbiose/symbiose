@@ -1,0 +1,13 @@
+.content {
+	padding: 2px;
+	text-align: center;
+}
+h2 {
+	margin: 0;
+}
+.icon {
+	max-height: 60px;
+}
+.detail {
+	font-size: 12px;
+}

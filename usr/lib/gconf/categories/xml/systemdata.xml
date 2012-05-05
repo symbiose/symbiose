@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category>
+	<define name="name" value="systemdata"/>
+	<define name="title" value="Informations système"/>
+	<define name="icon" value="actions/cog"/>
+	<define name="description" value="Afficher les informations sur le système"/>
+</category>

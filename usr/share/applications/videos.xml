@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Vidéos"/>
+	<attribute name="description" value="Ouvrir les vidéos"/>
+	<attribute name="command" value="nautilus ~/Vidéos"/>
+	<attribute name="icon" value="places/folder-videos"/>
+	<attribute name="menu" value="places"/>
+</shortcut>
