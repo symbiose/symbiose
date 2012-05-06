@@ -196,8 +196,10 @@ function SGnomeShellPanelApplet(data) {
 					thisWindow.window('close');
 				}).appendTo(windowOverlay);
 				var windowLabel = $('<div></div>', { 'class': 'window-label' }).html('<span>'+thisWindow.window('option', 'title')+'</span>').hide().appendTo(windowOverlay);
-				var iconContainer = $('<div></div>', { 'class': 'icon' }).appendTo(windowOverlay);
-				$('<img />', { src: thisWindow.window('option', 'icon').realpath(92) }).appendTo(iconContainer);
+				if (!$.support.transition) {
+					var iconContainer = $('<div></div>', { 'class': 'icon' }).appendTo(windowOverlay);
+					$('<img />', { src: thisWindow.window('option', 'icon').realpath(92) }).appendTo(iconContainer);
+				}
 				
 				if ($.support.transition) {
 					//On applique le CSS
