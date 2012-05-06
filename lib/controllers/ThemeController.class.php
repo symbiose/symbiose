@@ -5,7 +5,7 @@ class ThemeController extends \lib\ServerCallComponent {
 	protected function loadCss($theme, $ui) {
 		$themePath = '/usr/share/css/themes/'.$theme.'/'.$ui.'/';
 		if (!$this->webos->managers()->get('File')->exists($themePath)) {
-			throw new InvalidArgumentException('Le th&egrave;me "'.$theme.'" ne supporte pas l\'interface "'.$ui.'"');
+			throw new \InvalidArgumentException('Le th&egrave;me "'.$theme.'" ne supporte pas l\'interface "'.$ui.'"');
 		}
 
 		$themeDir = $this->webos->managers()->get('File')->get($themePath);
@@ -26,7 +26,7 @@ class ThemeController extends \lib\ServerCallComponent {
 	}
 
 	protected function _getUserConfig($ui) {
-		$defaultFile = '/etc/ske1/.theme/'.$ui.'/config.xml';
+		$defaultFile = '/usr/etc/uis/'.$ui.'/config.xml';
 		$userFile = '~/.theme/'.$ui.'/config.xml';
 
 		$config = new \lib\models\Config($this->webos);
@@ -60,7 +60,7 @@ class ThemeController extends \lib\ServerCallComponent {
 
 	protected function change($component, $value, $ui) {
 		if (!$this->webos->getUser()->isConnected())
-			throw new Exception('Impossible de modifier les pr&eacute;f&eacute;rences d\'apparence, vous &ecirc;tes d&eacute;connect&eacute;');
+			throw new \Exception('Impossible de modifier les pr&eacute;f&eacute;rences d\'apparence, vous &ecirc;tes d&eacute;connect&eacute;');
 
 		$config = $this->_getUserConfig($ui);
 

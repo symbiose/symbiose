@@ -40,7 +40,7 @@ Webos.User.prototype = {
 		}).load(callback);
 	},
 	setRealname: function(value) {
-		this._data.realname = String(value);
+		this._set('realname', String(value));
 	},
 	setUsername: function(value) {
 		value = String(value).toLowerCase();
@@ -49,7 +49,7 @@ Webos.User.prototype = {
 			return false;
 		}
 		
-		this._data.username = value;
+		this._set('username', String(value));
 	},
 	setPassword: function(actualPassword, newPassword, userCallback) {
 		userCallback = Webos.Callback.toCallback(userCallback);
@@ -103,10 +103,10 @@ Webos.User.prototype = {
 		
 		var data = {};
 		var nbrChanges = 0;
-		for (var key in this._dataSyncState) {
-			if (this._dataSyncState[key] === 1) {
-				this._dataSyncState[key] = 2;
-				data[key] = this.get(key);
+		for (var key in this._unsynced) {
+			if (this._unsynced[key].state === 1) {
+				this._unsynced[key].state = 2;
+				data[key] = this._unsynced[key].value;
 				nbrChanges++;
 			}
 		}
@@ -124,11 +124,11 @@ Webos.User.prototype = {
 				user: this.id()
 			}
 		}).load(new Webos.Callback(function() {
-			for (var key in data) {
-				if (that._dataSyncState[key] === 2) {
-					that.set(key, data[key]);
-					delete that._dataSyncState[key];
-					that.notify('update', { key: key, value: data[key] });
+			for (var key in that._unsynced) {
+				if (that._unsynced[key].state === 2) {
+					that._data[key] = that._unsynced[key].value;
+					delete that._unsynced[key];
+					that.notify('update', { key: key, value: that._unsynced[key].value });
 				}
 			}
 			callback.success(that);

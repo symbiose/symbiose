@@ -2,15 +2,14 @@ Webos.Model = function WModel(data) {
 	Webos.Observable.call(this);
 	
 	this._data = {};
-	this._dataSyncState = {};
+	this._unsynced = {};
 	
 	this.hydrate(data);
-	this._dataSyncState = {};
 };
 Webos.Model.prototype = {
 	hydrate: function(data) {
 		for (var key in data) {
-			this.set(key, data[key]);
+			this._data[key] = data[key];
 		}
 	},
 	get: function(key) {
@@ -37,13 +36,15 @@ Webos.Model.prototype = {
 			return true;
 		}
 		if (typeof this[methodName] == 'function') {
-			this._dataSyncState[key] = 1;
+			this._set(key, value);
 			return this[methodName](value);
 		}
 		
-		this._dataSyncState[key] = 1;
-		this._data[key] = value;
+		this._set(key, value);
 		return true;
+	},
+	_set: function(key, value) {
+		this._unsynced[key] = { value: value, state: 1 };
 	},
 	exists: function(key) {
 		var methodName = 'get' + key.charAt(0).toUpperCase() + key.substr(1);
@@ -56,7 +57,7 @@ Webos.Model.prototype = {
 		return false;
 	},
 	sync: function(callback) {
-		this._dataSyncState = {};
+		this._unsynced = {};
 		callback.success();
 	}
 };

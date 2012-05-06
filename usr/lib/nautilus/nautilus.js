@@ -122,7 +122,6 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	},
 	readDir: function(dir, userCallback) {
-		this.options.directory = dir;
 		if (typeof this.options._components.contextmenu != 'undefined') {
 			this.options._components.contextmenu.contextMenu('destroy');
 		}
@@ -134,6 +133,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		var that = this;
 		
 		var callback = new W.Callback(function(files) {
+			that.options.directory = dir;
+			
 			var contextmenu;
 			
 			that.options._components.contextmenu = contextmenu = $.w.contextMenu(that.element);
@@ -179,7 +180,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 						case 'BrowserNotSupported':
 							W.Error.trigger('Votre navigateur ne supporte pas le glisser-d&eacute;poser. Veuillez envoyer vos fichiers via le formulaire classique');
 							break;
-						case 'TooManyFiles': // user uploaded more than 'maxfiles'
+						case 'TooManyFiles':
 							W.Error.trigger('Trop de fichiers envoy&eacute;s');
 							break;
 						case 'FileTooLarge':
@@ -255,15 +256,18 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			that._render(files);
 			
-			that._trigger('readcomplete');
+			that._trigger('readcomplete', {}, { location: that.location() });
+			that._trigger('readsuccess', {}, { location: that.location() });
 			
 			userCallback.success(that);
 		}, function(response) {
-			that._trigger('readcomplete');
+			that._trigger('readcomplete', {}, { location: that.location() });
+			that._trigger('readerror', {}, { location: that.location() });
+			
 			userCallback.error(response);
 		});
 		
-		that._trigger('readstart');
+		this._trigger('readstart', {}, { location: dir });
 		
 		W.File.listDir(dir, callback);
 	},
@@ -1145,11 +1149,13 @@ function NautilusWindow(dir, userCallback) {
 		directory: dir
 	});
 
-	this.nautilus.bind('nautilusreadstart', function() {
-		that._refreshHeader($(this).nautilus('location'));
+	this.nautilus.bind('nautilusreadstart', function(e, data) {
+		that._refreshHeader(data.location);
 		that.window.window('loading', true);
 	}).bind('nautilusreadcomplete', function() {
 		that.window.window('loading', false);
+	}).bind('nautilusreaderror', function(e, data) {
+		that._refreshHeader(data.location);
 	});
 	
 	this._refreshHeader = function(dir) {

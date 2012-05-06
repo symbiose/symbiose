@@ -58,7 +58,7 @@ var editables = {
 			}
 			
 			if (!user.set('username', username)) {
-				W.Error.trigger('Impossible de modifier le nom r&eacute;el de l\'utilisateur "'+user.get('username')+'"');
+				W.Error.trigger('Impossible de modifier l\'identifiant de l\'utilisateur "'+user.get('username')+'"');
 				return;
 			}
 			
@@ -110,7 +110,7 @@ var editables = {
 					form.submit(function() {
 						var authorizations = [];
 						for (var authorization in entries) {
-							if (entries[authorization].checkButton('checked')) {
+							if (entries[authorization].checkButton('value')) {
 								authorizations.push(authorization);
 							}
 						}

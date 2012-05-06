@@ -41,7 +41,7 @@ W.User.defineLogged(new W.Callback(function(user) {
 
 //On initialise les tableaux de bord
 SDashboard.userConfigFile = '~/.gnome-shell/dashboards.xml';
-SDashboard.defaultConfigFile = '/usr/etc/gnome-shell/dashboards.xml';
+SDashboard.defaultConfigFile = '/usr/etc/uis/gnome-shell/dashboards.xml';
 SDashboard.init();
 
 //On definit la fonction de gestion des erreurs

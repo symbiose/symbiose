@@ -54,7 +54,7 @@ function GCalcTool() {
 				calcul = calcul.replace(/\u221A\(([0-9.]+)\)/g, '(Math.sqrt($1))'); // racine carrée
 				calcul = calcul.replace(/\u221A\((.*)\)/g, '(Math.sqrt($1))'); // racine carrée
 
-				calcul = calcul.replace(/x/g, '*'); // multiplication
+				calcul = calcul.replace(/[Xx×]/g, '*'); // multiplication
 				calcul = calcul.replace(/\u00D7/g, '*'); // multiplication (même caractère que multipliaction de ubuntu)
 				calcul = calcul.replace(/\((.*)\)x\((.*)\)/g, '($1*$2)'); // multiplication
 				calcul = calcul.replace(/\((.*)\)×\((.*)\)/g, '($1*$2)'); // multiplication
@@ -156,7 +156,7 @@ function GCalcTool() {
 	
 	this.container.append(container);
 	
-	// 4, 5, 6, X, (, )
+	// 4, 5, 6, x, (, )
 	
 	var container = $.w.container();
 	
@@ -181,7 +181,7 @@ function GCalcTool() {
 	});
 	container.append(button);
 	
-	var button = $.w.button('x');
+	var button = $.w.button('×');
 	button.addClass('pink');
 	button.bind('click', function() {
 		gcalctool.insert($(this).html());
