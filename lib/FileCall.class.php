@@ -193,10 +193,17 @@ class FileCall extends Webos {
 	public function run() {
 		$file = $this->managers()->get('File')->get($this->filename);
 
+		$cacheOffset = 7 * 24 * 3600;
 		$this->getHTTPResponse()->addHeader('Content-Type: '.$file->mime());
 		$this->getHTTPResponse()->addHeader('Content-Transfer-Encoding: binary');
+		$this->getHTTPResponse()->addHeader('Cache-Control: max-age=' . $cacheOffset . ', must-revalidate');
+		$this->getHTTPResponse()->addHeader('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cacheOffset) . ' GMT');
+		$this->getHTTPResponse()->removeHeader('Pragma');
 
+		ob_start();
 		readfile($file->realpath());
+		$this->getHTTPResponse()->addHeader('Content-Length: ' . ob_get_length());
+		ob_end_flush();
 
 		//On envoie la reponse HTTP
 		$this->getHTTPResponse()->send();

@@ -23,6 +23,15 @@ class HTTPResponse {
 	}
 
 	/**
+	 * Enlever une en-tete HTTP.
+	 * @param string $header L'en-tete.
+	 */
+	public function removeHeader($header)
+	{
+		header_remove($header);
+	}
+
+	/**
 	 * Rediriger l'utilisateur vers une autre URL.
 	 * @param string $location L'URL de destination.
 	 */
