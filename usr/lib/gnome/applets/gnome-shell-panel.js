@@ -88,6 +88,10 @@ function SGnomeShellPanelApplet(data) {
 				height: (shellHeight + 5)+'px',
 				'z-index': 9999
 			}).appendTo(W.UserInterface.current.element);
+			
+			if (!$.support.transition) {
+				shellOverlay.addClass('fallback');
+			}
 		} else {
 			shellOverlay.empty().show();
 		}
@@ -178,7 +182,7 @@ function SGnomeShellPanelApplet(data) {
 					width: thisWindowPos.width+'px',
 					height: thisWindowPos.height+'px'
 				}).click(function(e) {
-					if ($(this).is(e.target)) {
+					if (!$(e.target).is('.window-close')) {
 						hideShell();
 						if (thisWindow.is('.hidden-window')) {
 							thisWindow.window('show');
@@ -192,15 +196,22 @@ function SGnomeShellPanelApplet(data) {
 					thisWindow.window('close');
 				}).appendTo(windowOverlay);
 				var windowLabel = $('<div></div>', { 'class': 'window-label' }).html('<span>'+thisWindow.window('option', 'title')+'</span>').hide().appendTo(windowOverlay);
+				var iconContainer = $('<div></div>', { 'class': 'icon' }).appendTo(windowOverlay);
+				$('<img />', { src: thisWindow.window('option', 'icon').realpath(92) }).appendTo(iconContainer);
 				
-				//On applique le CSS
-				thisWindow.transition({
-					x: translationX,
-					y: translationY,
-					scale: reduction
-				}, duration, function() {
+				if ($.support.transition) {
+					//On applique le CSS
+					thisWindow.transition({
+						x: translationX,
+						y: translationY,
+						scale: reduction
+					}, duration, function() {
+						windowLabel.fadeIn(duration);
+					});
+				} else {
+					thisWindow.fadeOut(duration);
 					windowLabel.fadeIn(duration);
-				});
+				}
 			})(i, windows[i]);
 		}
 	};
@@ -212,25 +223,31 @@ function SGnomeShellPanelApplet(data) {
 		
 		var windows = SWorkspace.getCurrent().getWindows();
 		for (var i = 0; i < windows.length; i++) {
-			var endState;
-			if (windows[i].window('is', 'hidden')) {
-				endState = {
-					x: 0,
-					y: 0,
-					scale: 1,
-					opacity: 0,
-					width: 0,
-					height: 0
-				};
+			if ($.support.transition) {
+				var endState;
+				if (windows[i].window('is', 'hidden')) {
+					endState = {
+						x: 0,
+						y: 0,
+						scale: 1,
+						opacity: 0,
+						width: 0,
+						height: 0
+					};
+				} else {
+					endState = {
+						x: 0,
+						y: 0,
+						scale: 1
+					};
+				}
+				
+				windows[i].show().transition(endState, duration);
 			} else {
-				endState = {
-					x: 0,
-					y: 0,
-					scale: 1
-				};
+				if (!windows[i].window('is', 'hidden')) {
+					windows[i].fadeIn(duration);
+				}
 			}
-			
-			windows[i].show().transition(endState, duration);
 		}
 		if (typeof shellOverlay != 'undefined') {
 			shellOverlay.fadeOut(duration, function() {
@@ -241,18 +258,22 @@ function SGnomeShellPanelApplet(data) {
 	};
 	var showWindows = function() {
 		hideShortcuts();
-		var windows = SWorkspace.getCurrent().getWindows();
-		for (var i = 0; i < windows.length; i++) {
-			windows[i].show();
+		if ($.support.transition) {
+			var windows = SWorkspace.getCurrent().getWindows();
+			for (var i = 0; i < windows.length; i++) {
+				windows[i].show();
+			}
 		}
 		if (typeof shellOverlay != 'undefined') {
 			shellOverlay.show();
 		}
 	};
 	var hideWindows = function() {
-		var windows = SWorkspace.getCurrent().getWindows();
-		for (var i = 0; i < windows.length; i++) {
-			windows[i].hide();
+		if ($.support.transition) {
+			var windows = SWorkspace.getCurrent().getWindows();
+			for (var i = 0; i < windows.length; i++) {
+				windows[i].hide();
+			}
 		}
 		if (typeof shellOverlay != 'undefined') {
 			shellOverlay.hide();
