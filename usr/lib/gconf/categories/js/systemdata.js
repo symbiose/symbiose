@@ -9,6 +9,8 @@ var distributorLogo = $.w.image('usr/share/images/distributor/logo.png', 'Logo')
 
 var distributorName = $('<h2>Webos</h2>').appendTo(content);
 
+var about = $.w.label().appendTo(content).label('content').load('usr/share/docs/webos/about.html');
+
 var systemData = $('<ul></ul>').appendTo(content);
 
 confWindow.window('loading', true);
