@@ -896,7 +896,7 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 		
 		this.options._content = $('<div></div>', { 'class': 'entry off' }).click(function() {
 			if (!that.options.disabled) {
-				that.value(!that.value());
+				that.toggle();
 			}
 		}).appendTo(this.element);
 		this.options._components.labels = $('<div></div>', { 'class': 'labels' }).appendTo(this.options._content);
@@ -949,6 +949,9 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 				this._trigger('change');
 			}
 		}
+	},
+	toggle: function() {
+		this.value(!this.value());
 	},
 	disabled: function(value) {
 		if (typeof value == 'undefined') {
