@@ -17,7 +17,8 @@ Webos.Cmd = function WCmd(cmd, callback, terminal) {
 				key: data.key,
 				fn: response.getJavascript(),
 				cmd: cmdName,
-				args: args
+				args: args,
+				terminal: terminal
 			});
 			script.run();
 			callback.success(response, script);
@@ -40,6 +41,8 @@ Webos.Cmd.execute = function(cmd, callback) {
 };
 
 Webos.Terminal = function WTerminal(userCallback) {
+	this._data = {};
+	
 	var that = this;
 	
 	this.enterCmd = function(cmd, callback) {
@@ -51,18 +54,45 @@ Webos.Terminal = function WTerminal(userCallback) {
 		return this.id;
 	};
 	
+	this.data = function(index) {
+		if (typeof index == 'undefined') {
+			return this._data;
+		} else {
+			return this._data[index];
+		}
+	};
+	this.get = function(key) {
+		return this._data[key];
+	};
+	this.relativePath = function(path, callback) {
+		callback.success(this.get('location')+'/'+path);
+	};
+	
 	this.init = function(callback) {
 		callback = W.Callback.toCallback(callback);
 		
 		new W.ServerCall({
 			'class': 'TerminalController',
-			'method': 'register',
-			'arguments': { 'terminal': that.getId() }
-		}).load(new W.Callback(function() {
+			method: 'register',
+			arguments: { terminal: that.getId() }
+		}).load(new W.Callback(function(response) {
+			that._data = response.getData();
+			
 			callback.success(that);
 		}, function(response) {
 			callback.error(response);
 		}));
+	};
+	this.refreshData = function(callback) {
+		new W.ServerCall({
+			'class': 'TerminalController',
+			method: 'getPromptData',
+			arguments: { 'terminal': this.getId() }
+		}).load(new W.Callback(function(response) {
+			that._data = response.getData();
+			
+			callback.success(that);
+		}, callback.error));
 	};
 	
 	this.id = W.Terminal.register(this);

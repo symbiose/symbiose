@@ -2,7 +2,8 @@
 var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'terminal',
 	options: {
-		callback: function() {}
+		callback: function() {},
+		_history: []
 	},
 	_create: function() {
 		this.options.callback = W.Callback.toCallback(this.options.callback);
@@ -33,8 +34,8 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 	_displayPrompt: function() { //Affiche l'invite de commande
 		var that = this;
 		
-		var callback = new W.Callback(function(response) {
-			var data = response.getData();
+		this.options._terminal.refreshData(new W.Callback(function() {
+			var data = that.options._terminal.data();
 			
 			if (data.username === false) {
 				W.Error.trigger('Vous &ecirc;tres d&eacute;connect&eacute; (il est possible que le temps d\'inactivit&eacute; soit d&eacute;pass&eacute;)');
@@ -55,13 +56,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 				.focus();
 			
 			that._trigger('ready');
-		});
-		
-		new W.ServerCall({
-			'class': 'TerminalController',
-			method: 'getPromptData',
-			arguments: { 'terminal': that.options._terminal.getId() }
-		}).load(callback);
+		}));
 	},
 	_displayResponse: function(response) { //Afficher la reponse d'une commande
 		$('<p></p>')
@@ -75,7 +70,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 	enterCmd: function(cmd) { //Entrer une commande
 		var that = this;
 		
-		if (typeof this.options._terminal == 'undefined' || typeof that._runningCmd != 'undefined') {
+		if (typeof this.options._terminal == 'undefined' || typeof that.options._runningCmd != 'undefined') {
 			this.element.bind('terminalready', function() {
 				that.enterCmd(cmd);
 			});
@@ -94,13 +89,14 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 		this._trigger('execute');
 		
 		var callback = new W.Callback(function(response) {
-			that._runningCmd = undefined;
+			that.options._runningCmd = undefined;
+			that.options._history.push(cmd);
 			that._displayResponse(response);
 		}, function(response) {
-			that._runningCmd = undefined;
+			that.options._runningCmd = undefined;
 			that._displayResponse(response);
 		});
-		this._runningCmd = this.options._terminal.enterCmd(cmd, callback);
+		that.options._runningCmd = this.options._terminal.enterCmd(cmd, callback);
 	}
 });
 $.webos.widget('terminal', terminalProperties);

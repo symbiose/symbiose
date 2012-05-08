@@ -16,11 +16,9 @@ $colors = array('blue'=>'729fcf','green'=>'8ae234','white'=>'a9a9a9','magenta'=>
 foreach ($files as $file) {
 	if (!$this->arguments->isOption('a') && preg_match('#^\.#', $file->basename()))
 		continue;
-	
+
 	$color = 'white';
-	
-	
-	
+
 	if ($file->isDir()) {
 		$color = 'blue';
 		$balise = 'strong';
@@ -33,12 +31,12 @@ foreach ($files as $file) {
 			$color = 'magenta';
 		elseif($ext == 'tar' OR $ext == 'zip')
 			$color = 'red';
-		
+
 		if ($color !== 'white')
 			$balise = 'strong';
 		else
 			$balise = 'span';
 	}
-	
-	echo '<'.$balise.' style="color:#'.$colors[$color].';">'.$file->basename().'</'.$balise.'>&emsp;';
+
+	echo '<'.$balise.' style="color: #'.$colors[$color].';">'.$file->basename().'</'.$balise.'>&emsp;';
 }

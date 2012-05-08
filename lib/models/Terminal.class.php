@@ -59,7 +59,7 @@ class Terminal extends \lib\WebosComponent {
 		$file = $this->webos->managers()->get('File')->get($location);
 
 		if (!$file->isDir())
-			throw new InvalidArgumentException('"'.$location.'" : est un fichier');
+			throw new \InvalidArgumentException('"'.$location.'" : est un fichier');
 
 		$this->location = $file->path();
 

@@ -8,12 +8,15 @@ Webos.Process = function WProcess(options) {
 	
 	this.run = function() {
 		this.running = true;
+		Webos.Process.stack.push(this);
 		
 		try {
 			this.main(this.args);
 		} catch(error) {
 			Webos.Error.catchError(error);
 		}
+		
+		Webos.Process.stack.pop();
 	};
 	
 	this.stop = function() {
@@ -30,11 +33,12 @@ Webos.Process = function WProcess(options) {
 	//var key = options.key;
 	this.cmd = options.cmd;
 	this.args = new W.Arguments();
-	if (typeof options.args != 'undefined') { //Si les arguments sont vides
+	if (typeof options.args != 'undefined') { //Si les arguments ne sont pas vides
 		this.args = options.args;
 	}
+	this.terminal = options.terminal;
 	this.running = false;
-	this.main = new Function('args', 'Webos.Process.stack.push(this);'+"\n"+options.fn+"\n"+'Webos.Process.stack.pop();');
+	this.main = new Function('args', options.fn);
 	Webos.Process.list[this.pid] = this;
 };
 

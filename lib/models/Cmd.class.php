@@ -89,11 +89,17 @@ class Cmd extends FileProcess {
 
 	public function run() {
 		parent::run();
-		$this->webos->getHTTPResponse()->setData(array(
-				'pid' => $this->webos->getProcess()->getId(),
-				'key' => $this->webos->getProcess()->getKey(),
-				'path' => $this->getPath(),
-				'cmd' => $this->cmd
-		));
+
+		$file = $this->webos->managers()->get('File')->get($this->path);
+		switch ($file->extension()) {
+			case 'js':
+				$this->webos->getHTTPResponse()->setData(array(
+					'pid' => $this->webos->getProcess()->getId(),
+					'key' => $this->webos->getProcess()->getKey(),
+					'path' => $this->getPath(),
+					'cmd' => $this->cmd
+				));
+				break;
+		}
 	}
 }

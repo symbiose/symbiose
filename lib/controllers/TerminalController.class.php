@@ -13,10 +13,10 @@ class TerminalController extends \lib\ServerCallComponent {
 	 */
 	protected function getPromptData($id) {
 		$location = $this->webos->managers()->get('Terminal')->getTerminal($id)->getLocation();
-		$this->webos->getHTTPResponse()->setData(array(
+		return array(
 			'username' => $this->webos->getUser()->getAttribute('username'),
 			'host' => $_SERVER['SERVER_NAME'],
-			'location' => $location)
+			'location' => $location
 		);
 	}
 
@@ -26,5 +26,6 @@ class TerminalController extends \lib\ServerCallComponent {
 	 */
 	protected function register($id) {
 		new \lib\models\Terminal($this->webos, $id);
+		return $this->getPromptData($id);
 	}
 }
