@@ -15,14 +15,14 @@ class UserInterfaceManager_pdo extends UserInterfaceManager {
 		$query->bindValue(':type', $interfaceType);
 		$query->execute();
 
-		while ($ui = $query->fetch(PDO :: FETCH_ASSOC)) {
+		while ($ui = $query->fetch(\PDO :: FETCH_ASSOC)) {
 			return $ui['name'];
 		}
 
 		$query->closeCursor();
 
 		//On n'a pas trouve d'interface appropriee, on lance une erreur
-		throw new RuntimeException('Aucune interface utilisateur n\'est d&eacute;finie');
+		throw new \RuntimeException('Aucune interface utilisateur n\'est d&eacute;finie');
 	}
 
 	public function getList() {
@@ -32,12 +32,24 @@ class UserInterfaceManager_pdo extends UserInterfaceManager {
 
 		$list = array();
 
-		while ($ui = $query->fetch(PDO :: FETCH_ASSOC)) {
+		while ($ui = $query->fetch(\PDO :: FETCH_ASSOC)) {
 			$list[] = $ui;
 		}
 
 		$query->closeCursor();
 
 		return $list;
+	}
+
+	public function setDefault($name, $value) {
+		$value = ((int) $value) ? 1 : 0;
+
+		$sql = 'UPDATE uis SET default = :default WHERE name = :name';
+		$query = $this->dao->prepare($sql);
+		$query->bindValue(':default', $value);
+		$query->bindValue(':name', $name);
+		$query->execute();
+
+		$query->closeCursor();
 	}
 }

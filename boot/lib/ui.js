@@ -103,7 +103,7 @@ Webos.UserInterface.load = function(name) {
 	
 	new Webos.ServerCall({
 		'class': 'UserInterfaceController',
-		'method': 'getUI',
+		'method': 'loadUI',
 		'arguments': args
 	}).load(function(response) {
 		var ui = new Webos.UserInterface(response.getData());
@@ -120,6 +120,22 @@ Webos.UserInterface.getList = function(callback) {
 		'method': 'getUIsList'
 	}).load(new Webos.Callback(function(response) {
 		callback.success(response.getData());
+	}, function(response) {
+		callback.error(response);
+	}));
+};
+Webos.UserInterface.setDefault = function(ui, value, callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	new Webos.ServerCall({
+		'class': 'UserInterfaceController',
+		method: 'setDefault',
+		arguments: {
+			ui: ui,
+			value: value
+		}
+	}).load(new Webos.Callback(function(response) {
+		callback.success();
 	}, function(response) {
 		callback.error(response);
 	}));

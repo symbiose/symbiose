@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category>
+	<define name="name" value="uis"/>
+	<define name="title" value="Interfaces"/>
+	<define name="icon" value="actions/interface"/>
+	<define name="description" value="Modifier les interfaces préférées"/>
+</category>

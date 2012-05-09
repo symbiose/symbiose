@@ -12,7 +12,7 @@ class UserInterfaceController extends \lib\ServerCallComponent {
 	 * Recuperer la structure HTML et le script JavaScript d'une interface utilisateur.
 	 * @param string $uiName Le nom de l'interface utilisateur. Si il vaut faux, l'interface par defaut sera retournee.
 	 */
-	protected function getUI($uiName = false) {
+	protected function loadUI($uiName = false) {
 		$ui = new \lib\models\UserInterface($this->webos, $uiName);
 
 		return array(
@@ -38,5 +38,14 @@ class UserInterfaceController extends \lib\ServerCallComponent {
 			$list[$index] = $data;
 		}
 		return $list;
+	}
+
+	/**
+	 * Marquer une interface comme interface par defaut.
+	 * @param string $name Le nom de l'interface.
+	 * @param int $value Vrai si l'interface doit etre definie par defaut.
+	 */
+	protected function setDefault($name, $value) {
+		$this->webos->managers()->get('UserInterface')->setDefault($name, $value);
 	}
 }

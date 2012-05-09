@@ -42,4 +42,38 @@ class UserInterfaceManager_files extends UserInterfaceManager {
 		}
 		return $list;
 	}
+
+	public function setDefault($name, $value) {
+		$value = ((int) $value) ? 1 : 0;
+
+		$file = $this->dao->get('/etc/uis.xml');
+		$xml = new \DOMDocument;
+		$xml->loadXML($file->contents());
+
+		$uis = $xml->getElementsByTagName('ui');
+
+		foreach ($uis as $ui) {
+			$list[] = array(
+				'name' => $ui->getAttribute('name'),
+				'type' => $ui->getAttribute('type'),
+				'default' => ($ui->hasAttribute('default') && (int) $ui->getAttribute('default') == 1)
+			);
+
+			if ($ui->getAttribute('name') == $name) {
+				if (!$ui->hasAttribute('default')) {
+					$default = $xml->createAttribute('default');
+					$default->appendChild($xml->createTextNode($value));
+					$ui->appendChild($default);
+				} else {
+					$ui->setAttribute('default', $value);
+				}
+
+				$file->setContents($xml->saveXML());
+
+				return;
+			}
+		}
+
+		throw new \InvalidArgumentException('L\'interface "'.$name.'" est introuvable');
+	}
 }

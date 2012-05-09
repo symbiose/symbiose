@@ -234,7 +234,7 @@ class PackageController extends \lib\ServerCallComponent {
 		$repositoriesData = array();
 
 		foreach ($repositories as $repository) {
-			if ($repository instanceof LocalRepository) {
+			if ($repository instanceof \lib\models\LocalRepository) {
 				continue;
 			}
 

@@ -19,4 +19,11 @@ abstract class UserInterfaceManager extends \lib\Manager {
 	 * @return array La liste des interfaces utilisateur.
 	 */
 	abstract public function getList();
+
+	/**
+	 * Marquer l'interface comme interface par defaut.
+	 * @param string $name Le nom de l'interface.
+	 * @param bool $value Vrai si l'interface doit etre marquee comme par defaut.
+	 */
+	abstract public function setDefault($name, $value);
 }
