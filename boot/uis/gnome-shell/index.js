@@ -95,6 +95,6 @@ Webos.Error.setErrorHandler(function(error) {
 	});
 });
 
-$(window).bind('servercallstop', function() {
+W.ServerCall.bind('stop', function() {
 	W.UserInterface.current.loaded();
 });

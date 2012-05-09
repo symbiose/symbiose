@@ -89,6 +89,6 @@ Webos.Error.setErrorHandler(function(error) {
 	errorWindow.window('open');
 });
 
-$(window).bind('servercallstop', function() {
+W.ServerCall.bind('stop', function() {
 	W.UserInterface.current.loaded();
 });

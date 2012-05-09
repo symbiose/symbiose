@@ -107,20 +107,24 @@ Webos.ServerCall.prototype = {
 };
 Webos.inherit(Webos.ServerCall, Webos.Observable);
 
+Webos.Observable.build(Webos.ServerCall);
+
 Webos.ServerCall.list = []; //Liste des appels au serveur
 Webos.ServerCall.addCallToList = function(call) {
 	call.status = 1;
 	var id = Webos.ServerCall.list.push(call) - 1;
 	if (Webos.ServerCall.getNbrPendingCalls() == 1) {
-		$(window).trigger('servercallstart');
+		Webos.ServerCall.notify('start', { list: Webos.ServerCall.list });
 	}
+	Webos.ServerCall.notify('register', { call: call });
 	return id;
 };
 Webos.ServerCall.callComplete = function(call) {
 	call.status = 2;
 	if (Webos.ServerCall.getNbrPendingCalls() == 0) {
-		$(window).trigger('servercallstop');
+		Webos.ServerCall.notify('stop', { list: [] });
 	}
+	Webos.ServerCall.notify('complete', { call: call });
 };
 Webos.ServerCall.getPendingCalls = function() {
 	var list = [];

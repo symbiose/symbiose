@@ -6,11 +6,16 @@ var icon = $('<img />', { 'class': 'icon', src: new SIcon('status/network-idle',
 
 new SIndicator(item);
 
-$(window).bind('servercallstart', function() {
+var serverCallStart = function() {
 	icon
 		.attr('src', new SIcon('status/network-transmit-receive', 24, 'ubuntu-mono-dark'))
 		.attr('title', 'Chargement de cours...');
-}).bind('servercallstop', function() {
+};
+W.ServerCall.bind('start', serverCallStart);
+if (W.ServerCall.getNbrPendingCalls() > 0) {
+	serverCallStart();
+}
+W.ServerCall.bind('stop', function() {
 	icon
 		.attr('src', new SIcon('status/network-idle', 24, 'ubuntu-mono-dark'))
 		.attr('title', 'Aucune activité réseau');
