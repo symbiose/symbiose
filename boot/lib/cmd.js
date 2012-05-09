@@ -1,39 +1,51 @@
 //Executer une commande
-Webos.Cmd = function WCmd(cmd, callback, terminal) {
-	callback = W.Callback.toCallback(callback);
+Webos.Cmd = function WCmd(options) {
+	this.cmd = options.cmd.split(' ').shift();
+	this.terminal = options.terminal;
 	
-	new W.ServerCall({
-		'class': 'CmdController',
-		'method': 'execute',
-		'arguments': { 'cmd': cmd, 'terminal': terminal.getId() }
-	}).load(new W.Callback(function(response) {
-		if (!response.isJavascriptEmpty()) { //Si il y a du code JS a executer
-			//On l'execute
-			var data = response.getData();
-			var cmdName = cmd.split(' ').shift();
-			var args = W.Arguments.parse(cmd);
-			var script = new W.Process({
-				pid: data.pid,
-				key: data.key,
-				fn: response.getJavascript(),
-				cmd: cmdName,
-				args: args,
-				terminal: terminal
-			});
-			script.run();
-			callback.success(response, script);
-		} else {
-			callback.success(response);
-		}
-	}, function(response) {
-		callback.error(response);
-	}));
+	Webos.Process.call(this, {
+		args: Webos.Arguments.parse(options.cmd)
+	});
 };
+Webos.Cmd.prototype = {
+	getTerminal: function() {
+		return this.terminal;
+	},
+	run: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		var that = this;
+		
+		new Webos.ServerCall({
+			'class': 'CmdController',
+			'method': 'execute',
+			'arguments': { 'cmd': this.cmd, 'terminal': this.terminal.getId() }
+		}).load(new Webos.Callback(function(response) {
+			if (!response.isJavascriptEmpty()) { //Si il y a du code JS a executer
+				//On l'execute
+				var data = response.getData();
+				
+				Webos.Process.call(that, {
+					pid: data.pid,
+					key: data.key,
+					fn: response.getJavascript()
+				});
+				Webos.Cmd.uber.run.call(that);
+				
+				callback.success(response, that);
+			} else {
+				callback.success(response);
+			}
+		}, function(response) {
+			callback.error(response);
+		}));
+	}
+};
+Webos.inherit(Webos.Cmd, Webos.Process);
 
 Webos.Cmd.execute = function(cmd, callback) {
-	callback = W.Callback.toCallback(callback);
+	callback = Webos.Callback.toCallback(callback);
 	
-	new W.Terminal(new W.Callback(function(terminal) {
+	new Webos.Terminal(new Webos.Callback(function(terminal) {
 		terminal.enterCmd(cmd, callback);
 	}, function(response) {
 		callback.error(response);
@@ -46,7 +58,11 @@ Webos.Terminal = function WTerminal(userCallback) {
 	var that = this;
 	
 	this.enterCmd = function(cmd, callback) {
-		this.cmd = new W.Cmd(cmd, W.Callback.toCallback(callback), this);
+		this.cmd = new Webos.Cmd({
+			cmd: cmd,
+			terminal: this
+		});
+		this.cmd.run(Webos.Callback.toCallback(callback));
 		return this.cmd;
 	};
 	
@@ -69,13 +85,13 @@ Webos.Terminal = function WTerminal(userCallback) {
 	};
 	
 	this.init = function(callback) {
-		callback = W.Callback.toCallback(callback);
+		callback = Webos.Callback.toCallback(callback);
 		
-		new W.ServerCall({
+		new Webos.ServerCall({
 			'class': 'TerminalController',
 			method: 'register',
 			arguments: { terminal: that.getId() }
-		}).load(new W.Callback(function(response) {
+		}).load(new Webos.Callback(function(response) {
 			that._data = response.getData();
 			
 			callback.success(that);
@@ -84,25 +100,25 @@ Webos.Terminal = function WTerminal(userCallback) {
 		}));
 	};
 	this.refreshData = function(callback) {
-		new W.ServerCall({
+		new Webos.ServerCall({
 			'class': 'TerminalController',
 			method: 'getPromptData',
 			arguments: { 'terminal': this.getId() }
-		}).load(new W.Callback(function(response) {
+		}).load(new Webos.Callback(function(response) {
 			that._data = response.getData();
 			
 			callback.success(that);
 		}, callback.error));
 	};
 	
-	this.id = W.Terminal.register(this);
+	this.id = Webos.Terminal.register(this);
 	
 	this.init(userCallback);
 };
 Webos.Terminal.list = [];
 Webos.Terminal.register = function(terminal) {
-	return W.Terminal.list.push(terminal) - 1;
+	return Webos.Terminal.list.push(terminal) - 1;
 };
 Webos.Terminal.get = function(id) {
-	return W.Terminal.list[id];
+	return Webos.Terminal.list[id];
 };

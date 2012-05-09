@@ -1,12 +1,25 @@
 Webos.Process = function WProcess(options) {
-	this.getPid = function() {
-		return this.pid;
-	};
-	this.getTerminal = function() {
-		return this.terminal;
-	};
+	this.pid = options.pid;
+	//var key = options.key;
+	this.args = new W.Arguments();
+	if (typeof options.args != 'undefined') { //Si les arguments ne sont pas vides
+		this.args = options.args;
+	}
 	
-	this.run = function() {
+	this.running = false;
+	this.main = new Function('args', options.fn);
+	Webos.Process.list[this.pid] = this;
+};
+Webos.Process.prototype = {
+	main: function() {},
+	getPid: function() {
+		return this.pid;
+	},
+	run: function() {
+		if (this.running) {
+			return;
+		}
+		
 		this.running = true;
 		Webos.Process.stack.push(this);
 		
@@ -17,29 +30,15 @@ Webos.Process = function WProcess(options) {
 		}
 		
 		Webos.Process.stack.pop();
-	};
-	
-	this.stop = function() {
+	},
+	stop: function() {
 		this.running = false;
 		delete Webos.Process.list[this.getPid()];
 		delete this;
-	};
-	
-	this.toString = function() {
+	},
+	toString: function() {
 		return '[WProcess #'+this.pid+']';
-	};
-	
-	this.pid = options.pid;
-	//var key = options.key;
-	this.cmd = options.cmd;
-	this.args = new W.Arguments();
-	if (typeof options.args != 'undefined') { //Si les arguments ne sont pas vides
-		this.args = options.args;
 	}
-	this.terminal = options.terminal;
-	this.running = false;
-	this.main = new Function('args', options.fn);
-	Webos.Process.list[this.pid] = this;
 };
 
 Webos.Process.list = {};
