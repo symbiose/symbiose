@@ -42,12 +42,36 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 				return;
 			}
 			
+			var historyPos = that.options._history.length, typpedCmd = '';
 			that.options._components.prompt = $.w.textEntry(data.username+'@'+data.host+':'+data.location+'$ ')
 				.appendTo(that.element)
-				.bind('keypress', function(e) {
-					if(e.keyCode == 13) {
-						var cmd = $(this).textEntry('content').val();
-						that.enterCmd(cmd);
+				.keydown(function(e) {
+					switch (e.keyCode) {
+						case 13: //Enter
+							var cmd = $(this).textEntry('value');
+							that.enterCmd(cmd);
+							break;
+						case 38: //Up
+							if (historyPos > 0) {
+								if (historyPos == that.options._history.length) {
+									typpedCmd = $(this).textEntry('value');
+								}
+								historyPos--;
+								$(this).textEntry('value', that.options._history[historyPos]);
+							}
+							break;
+						case 40: //Down
+							if (historyPos < that.options._history.length) {
+								historyPos++;
+								var cmd = '';
+								if (historyPos == that.options._history.length) {
+									cmd = typpedCmd;
+								} else {
+									cmd = that.options._history[historyPos];
+								}
+								$(this).textEntry('value', cmd);
+							}
+							break;
 					}
 				});
 			

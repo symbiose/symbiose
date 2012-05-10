@@ -726,6 +726,9 @@ var entryProperties = $.webos.extend($.webos.properties.get('container'), {
 			case 'disabled':
 				this.disabled(value);
 				break;
+			case 'value':
+				this.value(value);
+				break;
 		}
 	}
 });
