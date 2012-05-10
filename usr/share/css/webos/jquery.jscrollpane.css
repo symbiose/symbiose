@@ -1,5 +1,3 @@
-@charset "UTF-8";
-
 /*
  * CSS Styles that are needed by jScrollPane for it to operate correctly.
  *
@@ -25,7 +23,6 @@
 	right: 0;
 	width: 16px;
 	height: 100%;
-	background: red;
 }
 
 .jspHorizontalBar
@@ -35,7 +32,6 @@
 	left: 0;
 	width: 100%;
 	height: 16px;
-	background: red;
 }
 
 .jspVerticalBar *,
@@ -57,9 +53,22 @@
 
 .jspTrack
 {
-	background: #dde;
 	position: relative;
 }
+
+.jspBg {
+	float: left;
+	position: absolute;
+	width: 14px;
+	height: 100%;
+	width: 16px;
+	background: #dde;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
 
 .jspDrag
 {
@@ -67,7 +76,10 @@
 	position: relative;
 	top: 0;
 	left: 0;
-	cursor: pointer;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 .jspHorizontalBar .jspTrack,
@@ -82,12 +94,10 @@
 	background: #50506d;
 	text-indent: -20000px;
 	display: block;
-	cursor: pointer;
 }
 
 .jspArrow.jspDisabled
 {
-	cursor: default;
 	background: #80808d;
 }
 
@@ -104,6 +114,10 @@
 }
 
 .jspVerticalBar .jspArrow:focus
+{
+	outline: none;
+}
+.jspScrollable:active
 {
 	outline: none;
 }

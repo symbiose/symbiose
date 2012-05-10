@@ -7,6 +7,8 @@
 		<file path="/usr/lib/webos/theme.js"/>
 		<file path="/usr/lib/webos/jquery.transit.min.js"/>
 		<file path="/usr/lib/webos/fullscreen.js"/>
+		<file path="/usr/lib/webos/jquery.mousewheel.js"/>
+		<file path="/usr/lib/webos/jquery.jscrollpane.js"/>
 		<file path="/usr/lib/gnome-shell/notifications.js"/>
 		<file path="/usr/lib/gnome/contextmenus.js"/>
 		<file path="/usr/lib/gnome/widgets.js"/>

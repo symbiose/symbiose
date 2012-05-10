@@ -367,8 +367,11 @@ function SGnomeShellPanelApplet(data) {
 		$('#desktop #shell .mode li.windows.active').removeClass('active');
 		$('#desktop #shell .mode li.applications').addClass('active');
 		
-		$('#shell .shortcuts .list').empty();
-		var $applications = $('<ul></ul>').appendTo('#shell .shortcuts .list');
+		var $list = $('#shell .shortcuts .list');
+		$list.scrollPane({
+			autoResize: true
+		}).scrollPane('content').empty();
+		var $applications = $('<ul></ul>').appendTo($list.scrollPane('content'));
 		
 		for (var key in list) {
 			(function(key, app) {
@@ -402,6 +405,8 @@ function SGnomeShellPanelApplet(data) {
 				item.appendTo($applications);
 			})(key, list[key]);
 		}
+		
+		$list.scrollPane('reload');
 	};
 	var clickOnFirstShortcut = function() {
 		$('#shell .shortcuts .list ul:first li:first').click();

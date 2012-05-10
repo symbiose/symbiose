@@ -150,6 +150,42 @@ $.webos.container = function() {
 	return $('<div></div>').container();
 };
 
+//ScrollPane
+var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
+	_name: 'scrollpane',
+	options: {
+		autoResize: false
+	},
+	_create: function() {
+		this.reload();
+		this.options._content = this.element.data('jsp').getContentPane();
+		this._update('autoResize', this.options.autoResize);
+	},
+	_update: function(key, value) {
+		switch (key) {
+			case 'autoResize':
+				var that = this;
+				var autoResizeFn = function() {
+					that.reload();
+				};
+				if (value) {
+					$(window).resize(autoResizeFn);
+				} else {
+					$(window).unbind('resize', autoResizeFn);
+				}
+				break;
+		}
+	},
+	reload: function() {
+		this.element.jScrollPane();
+	}
+});
+$.webos.widget('scrollPane', scrollPaneProperties);
+
+$.webos.scrollPane = function() {
+	return $('<div></div>').scrollPane();
+};
+
 //Label
 var labelProperties = $.webos.extend($.webos.properties.get('container'), {
 	options: {
