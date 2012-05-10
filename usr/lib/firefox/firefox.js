@@ -39,7 +39,11 @@ function FirefoxWindow() {
 			diff = 1;
 		}
 		
-		this.historyLocation = (this.historyLocation - diff < 0) ? 0 : this.historyLocation - diff;
+		if (this.historyLocation - diff < 0) {
+			return;
+		}
+		
+		this.historyLocation -= diff;
 		
 		this.browse(this.historyLocation);
 	};
@@ -49,16 +53,23 @@ function FirefoxWindow() {
 			diff = 1;
 		}
 		
-		this.historyLocation = (this.historyLocation + diff >= this.historyLocation.length) ? this.historyLocation.length - 1 : this.historyLocation + diff;
+		if (this.historyLocation + diff >= this.history.length) {
+			return;
+		}
+		
+		this.historyLocation += diff;
+		
+		this.browse(this.historyLocation);
 	};
 	
 	this.browse = function(location) {
+		var url;
 		if (typeof location == 'string') {
-			var url = location;
+			url = location;
 			this.history.push(url);
 			this.historyLocation++;
 		} else if (typeof this.history[location] != 'undefined') {
-			var url = this.history[location];
+			url = this.history[location];
 		}
 		
 		if (typeof this._iframe != 'undefined') {
@@ -68,7 +79,7 @@ function FirefoxWindow() {
 		this._urlInput.val(url);
 		
 		if (url == 'about:startpage') {
-			url = 'http://www.duckduckgo.com/';
+			url = 'http://www.duckduckgo.com/?kd=-1&kn=-1';
 		}
 		
 		this._iframe = $('<iframe></iframe>', { src: url }).appendTo(windowsContent);
