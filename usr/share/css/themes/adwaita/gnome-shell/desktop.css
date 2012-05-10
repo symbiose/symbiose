@@ -434,13 +434,15 @@ body {
 #shell .shortcuts .filters li.active {
 	color: white;
 }
+#shell .shortcuts .list {
+	height: 100%;
+	overflow: auto;
+}
 #shell .shortcuts .list ul {
 	display: block;
 	list-style: none;
 	margin: 2px;
 	padding: 0;
-	overflow: auto;
-	height: 100%;
 }
 #shell .shortcuts .list ul li {
 	display: inline-block;
