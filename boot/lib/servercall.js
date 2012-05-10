@@ -67,7 +67,7 @@ Webos.ServerCall.prototype = {
 				try {
 					var json = jQuery.parseJSON(data); //On essaie de recuperer les donnees JSON
 				} catch (error) { //Si une erreur survient
-					callback.error(new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
+					var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
 						'success': false,
 						'channels': {
 							1: null,
@@ -75,11 +75,14 @@ Webos.ServerCall.prototype = {
 						},
 						'js': null,
 						'out': data
-					}));
+					});
+					that.response = response;
+					callback.error(response);
 					return; //On stoppe l'execution de la fonction
 				}
 				
 				var response = new W.ServerCall.Response(json); //On cree la reponse
+				that.response = response;
 				
 				if (response.isSuccess()) { //Si la requete a reussi
 					callback.success(response); //On execute le callback associe
@@ -90,7 +93,7 @@ Webos.ServerCall.prototype = {
 				Webos.ServerCall.callComplete(that);
 			},
 			error: function(jqXHR, textStatus, errorThrown) { //Une erreur est survenue
-				callback.error(new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
+				var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
 					'success': false,
 					'channels': {
 						1: null,
@@ -98,7 +101,10 @@ Webos.ServerCall.prototype = {
 					},
 					'js': null,
 					'out': textStatus+' : '+errorThrown
-				}));
+				});
+				that.response = response;
+				
+				callback.error(response);
 				
 				Webos.ServerCall.callComplete(that);
 			}
