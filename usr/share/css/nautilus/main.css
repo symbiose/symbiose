@@ -2,7 +2,7 @@
 	height: 100%;
 	overflow: auto;
 	margin: 0;
-	backgrond-color: white;
+	background-color: white;
 }
 
 .webos-nautilus ul.icons {
@@ -30,8 +30,8 @@
 	width: auto;
 	max-width: 100%;
 	overflow: hidden;
-	-o-text-overflow: ellipsis; /* pour Opera 9 */
-	text-overflow: ellipsis; /* pour le reste du monde */
+	-o-text-overflow: ellipsis;
+	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 .webos-nautilus ul.icons li input {
