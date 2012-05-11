@@ -346,7 +346,7 @@ qq.FileUploaderBasic.prototype = {
         qq.attach(window, 'beforeunload', function(e){
             if (!self._filesInProgress){return;}
             
-            var e = e || window.event;
+            e = e || window.event;
             // for ie, ff
             e.returnValue = self._options.messages.onLeave;
             // for webkit
@@ -398,7 +398,7 @@ qq.FileUploaderBasic.prototype = {
         }
     },      
     _validateFile: function(file){
-        var name, size;
+        var name, size = null;
         
         if (file.value){
             // it is a file input            

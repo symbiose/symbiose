@@ -539,17 +539,38 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			params: serverCall.data,
 			button: uploadButton[0],
 			onSubmit: function(id, fileName){
-				uploadsIds[id] = that.options.uploads.length;
-				that._uploadHasStarted(uploadsIds[id], fileName);
+				uploadsIds[id] = $.w.nautilus.progresses.add(0, 'Envoi de '+fileName);
 			},
 			onProgress: function(id, fileName, loaded, total){
-				that._uploadUpdateProgress(uploadsIds[id], fileName, Math.round(loaded / total * 100));
+				$.w.nautilus.progresses.update(uploadsIds[id], Math.round(loaded / total * 100));
 			},
 			onComplete: function(id, fileName, responseJSON){
-				that._uploadIsFinished(uploadsIds[id], fileName, 0, true);
+				var response = new W.ServerCall.Response(responseJSON);
+				var success = true;
+				if (!response.isSuccess()) {
+					W.Error.trigger('Impossible d\'envoyer le fichier "'+fileName+'"', response.getAllChannels());
+					success = false;
+				} else if (!response.getData().success) {
+					W.Error.trigger('Impossible d\'envoyer le fichier "'+fileName+'"', response.getData().msg);
+					success = false;
+				}
+				
+				var msg;
+				if (success) {
+					msg = 'Envoi termin&eacute;.';
+				} else {
+					msg = 'Erreur lors de l\'envoi.';
+				}
+				$.w.nautilus.progresses.update(uploadsIds[id], 100, msg);
+				
+				if (success) {
+					var files = that.options._files;
+					files.push(new W.File(response.getData().file));
+					that._render(files);
+				}
 			},
 			onCancel: function(id, fileName){
-				that._uploadIsFinished(uploadsIds[id], fileName, 0, false);
+				$.w.nautilus.progresses.update(uploadsIds[id], 100, 'Envoi annul&eacute;.');
 			},
 			// messages                
 			messages: {
@@ -868,8 +889,8 @@ $.w.nautilus.progresses.update = function(id, value, details) { //Mettre a jour 
 	}
 	
 	// Si la valeur est egale a cent, c'est que l'operation est terminee, on la retire
-	if ($.w.nautilus.progresses[id]._components.progressbar.progressbar('value') == 101) {
-		$.w.nautilus.progresses[id]._components.element.remove();
+	if ($.w.nautilus.progresses[id]._components.progressbar.progressbar('value') == 100) {
+		$.w.nautilus.progresses[id]._components.element.empty().remove();
 		delete $.w.nautilus.progresses[id];
 	}
 	
@@ -897,7 +918,7 @@ $.w.nautilus.progresses.update = function(id, value, details) { //Mettre a jour 
 		}, 000);
 	}
 	//Si il n'y a aucune operation en cours et que la fenetre est ouverte, on la ferme
-	if (nbrProgresses == 0 && $.w.nautilus.progresses.window.closest('html').length) {
+	if (nbrProgresses == 0 && $.w.nautilus.progresses.window.window('is', 'opened')) {
 		$.w.nautilus.progresses.window.window('close');
 	}
 };
