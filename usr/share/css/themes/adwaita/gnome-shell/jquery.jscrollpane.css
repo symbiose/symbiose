@@ -155,3 +155,7 @@
 	-webkit-border-radius: 7px;
 	border-radius: 7px;
 }
+#shell .jspDrag:hover
+{
+	background: #292929;
+}
