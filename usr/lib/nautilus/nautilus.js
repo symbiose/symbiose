@@ -509,7 +509,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		var uploadWindow = this.options._components.uploadWindow = $.w.window({
 			title: 'Envoi de fichiers vers '+that.location(),
-			width: 350,
+			width: 370,
 			resizable: false,
 			stylesheet: 'usr/share/css/nautilus/upload.css',
 			icon: new SIcon('actions/save', 24)
@@ -522,7 +522,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		var content = uploadWindow.window('content');
 		
 		$('<img />', { src: new SIcon('actions/save') }).addClass('upload-icon').appendTo(content);
-		$.w.label('S&eacute;lectionnez un fichier &agrave; envoyer :').appendTo(content);
+		$.w.label('Glissez-d&eacute;posez un fichier depuis votre ordinateur ou s&eacute;lectionnez un fichier &agrave; envoyer :').appendTo(content);
 		
 		var uploadButton = $.w.button('Envoyer un fichier').appendTo(content);
 		
