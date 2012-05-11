@@ -28,7 +28,7 @@ function SGnomeShellPanelApplet(data) {
 			$searchEntry.focus();
 		}
 	};
-	var showShell = function() {
+	var showShell = function(animate) {
 		isShellShown = true;
 		$appMenu.hide();
 		$('#desktop > .webos-nautilus').hide();
@@ -36,11 +36,11 @@ function SGnomeShellPanelApplet(data) {
 		$('#shell .content').width($('#shell').innerWidth() - $('#shell .launcher').outerWidth());
 		$menu.addClass('hover');
 		renderLauncher();
-		renderWindowsThumbnails();
+		renderWindowsThumbnails(animate);
 		SNotification.showContainer();
 		$(window).keydown(windowKeydownFn);
 	};
-	var hideShell = function() {
+	var hideShell = function(animate) {
 		isShellShown = false;
 		$appMenu.show();
 		$searchEntry.val('');
@@ -49,7 +49,7 @@ function SGnomeShellPanelApplet(data) {
 		$menu.removeClass('hover');
 		SNotification.hideContainer();
 		$(window).unbind('keydown', windowKeydownFn);
-		restoreWindows();
+		restoreWindows(animate);
 	};
 	var toggleShell = function() {
 		if (!isShellShown) {
@@ -203,7 +203,7 @@ function SGnomeShellPanelApplet(data) {
 				
 				if ($.support.transition) {
 					//On applique le CSS
-					thisWindow.transition({
+					thisWindow.stop().transition({
 						x: translationX,
 						y: translationY,
 						scale: reduction
@@ -227,6 +227,7 @@ function SGnomeShellPanelApplet(data) {
 		for (var i = 0; i < windows.length; i++) {
 			if ($.support.transition) {
 				var endState;
+				
 				if (windows[i].window('is', 'hidden')) {
 					endState = {
 						x: 0,
@@ -244,7 +245,7 @@ function SGnomeShellPanelApplet(data) {
 					};
 				}
 				
-				windows[i].show().transition(endState, duration);
+				windows[i].show().stop().transition(endState, duration);
 			} else {
 				if (!windows[i].window('is', 'hidden')) {
 					windows[i].fadeIn(duration);
@@ -604,11 +605,9 @@ function SGnomeShellPanelApplet(data) {
 		
 		if (isFirstRendering) { //Si c'est la premiere initialisation, la position du launcher est buggee
 			//Il faut cacher le shell puis le reafficher pour mettre a jour sa position
-			hideShell();
-			restoreWindows(false);
+			hideShell(false);
 			setTimeout(function() {
 				showShell();
-				renderWindowsThumbnails(false);
 			}, 20);
 		}
 	};
