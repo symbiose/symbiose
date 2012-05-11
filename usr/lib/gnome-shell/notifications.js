@@ -5,18 +5,39 @@ SNotification.element = $('<div></div>', { 'class': 'notifications-area' }).css(
 SNotification.container = $('<div></div>', { 'class': 'notification-container' }).appendTo(SNotification.element);
 SNotification.indicators = $('<ul></ul>').appendTo(SNotification.element);
 SNotification.showContainer = function() {
+	SNotification.showedStack++;
+	if (SNotification.isContainerVisible()) {
+		return;
+	}
+	SNotification.showed = true;
+	SNotification.element.stop().fadeIn('fast');
+};
+SNotification.autoShowContainer = function() {
+	if (SNotification.isContainerVisible()) {
+		return;
+	}
 	SNotification.showed = true;
 	SNotification.element.stop().fadeIn('fast');
 };
 SNotification.hideContainer = function() {
+	SNotification.showedStack = (SNotification.showedStack > 0) ? SNotification.showedStack - 1 : 0;
+	if (SNotification.showedStack > 0 || !SNotification.isContainerVisible()) {
+		return;
+	}
+	SNotification.showed = false;
+	SNotification.element.stop().fadeOut('fast');
+};
+SNotification.autoHideContainer = function() {
+	if (SNotification.showedStack > 0 || !SNotification.isContainerVisible()) {
+		return;
+	}
 	SNotification.showed = false;
 	SNotification.element.stop().fadeOut('fast');
 };
 SNotification.isContainerVisible = function() {
 	return SNotification.element.is(':visible');
 };
-SNotification.showed = false;
-SNotification.autoHide = true;
+SNotification.showedStack = 0;
 
 $(window).mousemove(function(e) {
 	if (e.pageX <= $(document).width() - 3 || e.pageY <= $(document).height() - 3) {
@@ -31,13 +52,12 @@ $(window).mousemove(function(e) {
 		return;
 	}
 	
-	SNotification.showed = true;
-	SNotification.showContainer();
+	SNotification.autoShowContainer();
 });
 SNotification.element.mouseleave(function() {
-	if (SNotification.showed && SNotification.autoHide) {
+	if (SNotification.showed) {
 		var timer = setTimeout(function() {
-			SNotification.hideContainer();
+			SNotification.autoHideContainer();
 		}, 700);
 		SNotification.element.one('mouseenter', function() {
 			clearTimeout(timer);
@@ -101,7 +121,6 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 		}
 	},
 	_show: function() {
-		SNotification.autoHide = false;
 		SNotification.showContainer();
 		
 		this.element.appendTo(SNotification.container);
@@ -125,7 +144,6 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 		this.element.animate({
 			top: '+='+this.element.outerHeight()
 		}, 'fast', function() {
-			SNotification.autoHide = true;
 			SNotification.hideContainer();
 			that._trigger('dismiss');
 			that.element.remove();
@@ -166,15 +184,14 @@ function SAppIndicator(options) {
 		SNotification.showContainer();
 		var timer = setTimeout(function() {
 			if (SNotification.showed) {
-				SNotification.autoHide = true;
 				SNotification.hideContainer();
 			}
 		}, 2000);
 		SNotification.element.one('mouseenter', function() {
 			clearTimeout(timer);
-			SNotification.autoHide = true;
+			SNotification.showed++;
 		});
-		SNotification.autoHide = false;
+		SNotification.showed--;
 	}
 	
 	indicator.css('width', '22px').mouseenter(function() {
@@ -206,7 +223,7 @@ function SAppIndicator(options) {
 				}
 				that.element.removeClass('active');
 				
-				SNotification.autoHide = true;
+				SNotification.showed++;
 			};
 			
 			that.element.toggleClass('active');
@@ -242,7 +259,7 @@ function SAppIndicator(options) {
 					});
 				});
 				
-				SNotification.autoHide = false;
+				SNotification.showed--;
 			} else {
 				hideMenuFn();
 			}
