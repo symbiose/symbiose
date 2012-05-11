@@ -111,12 +111,11 @@ function SGnomeShellPanelApplet(data) {
 				var thisWindowPos = { element: thisWindow };
 				
 				var windowWidth, windowHeight;
-				thisWindow.css('display', 'block');
+				thisWindow.stop().css('display', 'block');
 				if (thisWindow.window('is', 'hidden')) {
 					thisWindow.css({
 						top: 0,
 						left: 0,
-						opacity: 1,
 						width: 'auto',
 						height: 'auto'
 					});
@@ -203,7 +202,7 @@ function SGnomeShellPanelApplet(data) {
 				
 				if ($.support.transition) {
 					//On applique le CSS
-					thisWindow.stop().transition({
+					thisWindow.transition({
 						x: translationX,
 						y: translationY,
 						scale: reduction
