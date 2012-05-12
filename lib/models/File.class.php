@@ -171,7 +171,7 @@ class File extends FileBase {
 			$this->webos->managers()->get('File')->checkAvailableSpace($this->dirname(), $this->size());
 
 			$zip = new \ZipArchive;
-			if (!$zip->open($this->realpath($dest), ZipArchive::CREATE)) {
+			if (!$zip->open($this->realpath($dest), \ZipArchive::CREATE)) {
 				throw new \RuntimeException('Impossible de cr&eacute;er l\'archive zip');
 			}
 		}

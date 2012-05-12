@@ -203,9 +203,11 @@ class Folder extends FileBase {
 			$this->webos->managers()->get('File')->checkAvailableSpace($this->dirname(), $this->contentsSize());
 
 			$zip = new \ZipArchive;
-			if ($zip->open($this->realpath($dest), ZipArchive::CREATE) !== true) {
+			if ($zip->open($this->realpath($dest), \ZipArchive::CREATE) !== true) {
 				throw new \RuntimeException('Impossible de cr&eacute;er l\'archive zip');
 			}
+			$zipdest = preg_replace('#/{2,}#', '/', $this->basename().'/');
+			$zip->addEmptyDir($zipdest);
 		}
 
 		$zip->close();
