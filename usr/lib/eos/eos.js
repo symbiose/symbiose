@@ -1,4 +1,5 @@
 new W.ScriptFile('usr/lib/webos/file.js');
+new W.ScriptFile('usr/lib/webos/jquery.transit.min.js');
 
 function EyeOfSymbiose(image) {
 	this.window = $.w.window({
@@ -118,25 +119,17 @@ function EyeOfSymbiose(image) {
 			width: that.image.width(),
 			height: that.image.height()
 		};
-		if (this.zoom == 1) {
-			this.realSize();
-		}
 		this.zoom = value;
 		this.image
 			.width(dimentions.width)
 			.height(dimentions.height)
 			.css({
-				'-moz-transform': 'scale('+value+')',
-				'-webkit-transform': 'scale('+value+')',
-				'-o-transform': 'scale('+value+')',
-				'-ms-transform': 'scale('+value+')',
-				'transform': 'scale('+value+')',
 				'-moz-transform-origin': '0 0',
 				'-webkit-transform-origin': '0 0',
 				'-o-transform-origin': '0 0',
 				'-ms-transform-origin': '0 0',
 				'transform-origin': '0 0'
-			});
+			}).transition({ scale: value });
 	};
 	
 	this.zoomIn = function() {
@@ -153,13 +146,8 @@ function EyeOfSymbiose(image) {
 		}
 		
 		this._buttons.windowsSize.toolbarWindowHeaderItem('option', 'active', false);
-		this.zoom = 1;
+		this.zoomTo(1);
 		this.image.css({
-			'-moz-transform': 'none',
-			'-webkit-transform': 'none',
-			'-o-transform': 'none',
-			'-ms-transform': 'none',
-			'transform': 'none',
 			'width': 'auto',
 			'height': 'auto',
 			'max-width': 'none',
@@ -173,17 +161,12 @@ function EyeOfSymbiose(image) {
 		}
 		
 		this._buttons.windowsSize.toolbarWindowHeaderItem('option', 'active', true);
-		this.zoom = 1;
+		this.zoomTo(1);
 		this.image.css({
-			'-moz-transform': 'none',
-			'-webkit-transform': 'none',
-			'-o-transform': 'none',
-			'-ms-transform': 'none',
-			'transform': 'none',
 			'width': 'auto',
 			'height': 'auto',
 			'max-width': '100%',
-			'max-height': '100%'
+			'max-height': '99%'
 		});
 	};
 	
