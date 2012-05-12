@@ -1091,7 +1091,7 @@ $.webos.keyboard.pressed = function(keys) {
 	}
 	
 	if (typeof keys == 'string') {
-		keys = keys.split('+');
+		keys = keys.toLowerCase().split('+');
 	}
 	if (typeof keys != 'object') {
 		keys = [keys];
