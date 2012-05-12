@@ -242,7 +242,6 @@ var enableUserEditFn = function(user) {
 					break;
 				case 'varchar':
 				default:
-					console.log(user.get(key));
 					editButton = $.w.button(user.get(key));
 					editEntry = $.w.textEntry(editable.label).textEntry('value', user.getAttribute(key));
 			}
