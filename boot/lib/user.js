@@ -331,7 +331,7 @@ Webos.Authorizations = function WAuthorizations(authorizations, user) {
 			'method': 'setAuthorizations',
 			'arguments': {
 				'authorizations': this.authorizations.join(';'),
-				'user': this.user.getId()
+				'user': this.user.id()
 			}
 		}).load(callback);
 	};
