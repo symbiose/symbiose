@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Traitement de texte LibreOffice"/>
+	<attribute name="description" value="Mettre en forme vos documents"/>
+	<attribute name="command" value="libreoffice-writer"/>
+	<attribute name="icon" value="applications/libreoffice-writer"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="office"/>
+	<attribute name="open" value="html,htm"/>
+</shortcut>

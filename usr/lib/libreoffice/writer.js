@@ -1,45 +1,250 @@
-$('textarea.tinymce').tinymce({
-	// Location of TinyMCE script
-	script_url : '../jscripts/tiny_mce/tiny_mce.js',
+new W.ScriptFile('usr/lib/webos/file.js');
 
-	// General options
-	theme : "advanced",
-	plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,advlist",
+if (typeof window.LibreOffice == 'undefined') {
+	window.LibreOffice = {};
+}
 
-	// Theme options
-	theme_advanced_buttons1 : "save,newdocument,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect",
-	theme_advanced_buttons2 : "cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,|,insertdate,inserttime,preview,|,forecolor,backcolor",
-	theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,emotions,iespell,media,advhr,|,print,|,ltr,rtl,|,fullscreen",
-	theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,styleprops,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,template,pagebreak",
-	theme_advanced_toolbar_location : "top",
-	theme_advanced_toolbar_align : "left",
-	theme_advanced_statusbar_location : "bottom",
-	theme_advanced_resizing : true,
+LibreOffice.Writer = function LibreOfficeWriter(file, options) {
+	var that = this;
+	
+	this._window = $.w.window({
+		title: 'LibreOffice Writer',
+		icon: new SIcon('applications/libreoffice-writer'),
+		width: 550,
+		height: 400
+	});
+	
+	this._editable = $('<div></div>', { contenteditable: 'true', style: 'width: 100%; height: 100%;' }).appendTo(this._window.window('content'));
+	
+	this.supportedExtensions = ['html', 'htm'];
+	this._file = null;
+	this._refreshTitle = function() {
+		var filename;
+		if (this._file != null) {
+			filename = this._file.get('basename');
+		} else {
+			filename = 'Nouveau document';
+		}
+		this._window.window('option', 'title', filename+' - LibreOffice Writer');
+	};
+	this.open = function(file) {
+		if (jQuery.inArray(file.get('extension'), that.supportedExtensions) == -1) {
+			W.Error.trigger('Type de fichier incorrect');
+			return;
+		}
+		
+		that._window.window('loading', true);
+		file.getContents(new W.Callback(function(contents) {
+			that._file = file;
+			that._refreshTitle();
+			that._editable.html(contents);
+			that._window.window('loading', false);
+		}, function(response) {
+			that._window.window('loading', false);
+			response.triggerError('Impossible d\'ouvrir "'+file.getAttribute('path')+'"');
+		}));
+	};
+	this.save = function(callback) {
+		callback = W.Callback.toCallback(callback);
+		
+		var contents = this._editable.html();
+		var saveFn = function(file) {
+			if (jQuery.inArray(file.get('extension'), that.supportedExtensions) == -1) {
+				W.Error.trigger('Type de fichier incorrect');
+				return;
+			}
+			
+			that._window.window('loading', true);
+			file.setContents(contents, new W.Callback(function() {
+				that._file = file;
+				that._refreshTitle();
+				that._window.window('loading', false);
+				callback.success(file);
+			}, function(response) {
+				that._window.window('loading', false);
+				response.triggerError('Impossible d\'enregistrer le fichier "'+file.getAttribute('path')+'"');
+			}));
+		};
+		
+		if (typeof this._file != 'undefined' && this._file != null) {
+			saveFn(this._file);
+		} else {
+			new NautilusFileSelectorWindow({
+				parentWindow: that._window,
+				exists: false
+			}, function(path) {
+				if (typeof path != 'undefined') {
+					W.File.get(path, new W.Callback(function(file) {
+						saveFn(file);
+					}, function(response) {
+						if (!(new RegExp('\.('+that.supportedExtensions.join('|')+')$')).test(path)) {
+							path += '.html';
+						}
+						W.File.createFile(path, new W.Callback(function(file) {
+							saveFn(file);
+						}, function(response) {
+							response.triggerError('Impossible d\'enregistrer le fichier "'+path+'"');
+						}));
+					}));
+				}
+			});
+		}
+	};
+	this.saveAs = function(callback) {
+		callback = W.Callback.toCallback(callback);
+		
+		var contents = this._editable.html();
+		var saveFn = function(file) {
+			if (jQuery.inArray(file.get('extension'), that.supportedExtensions) == -1) {
+				W.Error.trigger('Type de fichier incorrect');
+				return;
+			}
+			
+			that._window.window('loading', true);
+			file.setContents(contents, new W.Callback(function() {
+				that._file = file;
+				that._refreshTitle();
+				that._window.window('loading', false);
+				callback.success(file);
+			}, function(response) {
+				that._window.window('loading', false);
+				response.triggerError('Impossible d\'enregistrer le fichier "'+file.getAttribute('path')+'"');
+			}));
+		};
+		
+		new NautilusFileSelectorWindow({
+			parentWindow: that._window,
+			exists: false
+		}, function(path) {
+			if (typeof path != 'undefined') {
+				W.File.get(path, new W.Callback(function(file) {
+					saveFn(file);
+				}, function(response) {
+					if (!(new RegExp('\.('+that.supported.join('|')+')$')).test(path)) {
+						path += '.html';
+					}
+					W.File.createFile(path, new W.Callback(function(file) {
+						saveFn(file);
+					}, function(response) {
+						response.triggerError('Impossible d\'enregistrer le fichier "'+path+'"');
+					}));
+				}));
+			}
+		});
+	};
+	this.supported = function() {
+		return (typeof $('body')[0].contentEditable != 'undefined');
+	};
+	this.command = function(command, param) {
+		document.execCommand(command, null, param);
+	};
+	
+	var headers = this._window.window('header');
+	
+	var toolbar = $.w.toolbarWindowHeader().appendTo(headers);
+	
+	this._buttons = {};
+	
+	this._buttons.newDoc = $.w.toolbarWindowHeaderItem('', new SIcon('actions/document-new', 'button'))
+		.click(function() {
+			new LibreOffice.Writer();
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.open = $.w.toolbarWindowHeaderItem('', new SIcon('actions/document-open', 'button'))
+		.click(function() {
+			new NautilusFileSelectorWindow({
+				parentWindow: that._window
+			}, function(file) {
+				if (typeof file != 'undefined') {
+					that.open(file);
+				}
+			});
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.save = $.w.toolbarWindowHeaderItem('', new SIcon('actions/document-save', 'button'))
+		.click(function() {
+			that.save();
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.undo = $.w.toolbarWindowHeaderItem('', new SIcon('actions/edit-undo', 'button'))
+		.click(function() {
+			that.command('undo');
+		})
+		.appendTo(toolbar);
 
-	// Example content CSS (should be your site CSS)
-	content_css : "css/content.css",
-
-	// Drop lists for link/image/media/template dialogs
-	template_external_list_url : "lists/template_list.js",
-	external_link_list_url : "lists/link_list.js",
-	external_image_list_url : "lists/image_list.js",
-	media_external_list_url : "lists/media_list.js",
-
-	// Replace values for the template plugin
-	template_replace_values : {
-		username : "Some User",
-		staffid : "991234"
+	this._buttons.redo = $.w.toolbarWindowHeaderItem('', new SIcon('actions/edit-redo', 'button'))
+		.click(function() {
+			that.command('redo');
+		})
+		.appendTo(toolbar);
+	
+	var toolbar = $.w.toolbarWindowHeader().appendTo(headers);
+	
+	this._buttons.bold = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-text-bold', 'button'))
+		.click(function() {
+			that.command('bold');
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.italic = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-text-italic', 'button'))
+		.click(function() {
+			that.command('italic');
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.underline = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-text-underline', 'button'))
+		.click(function() {
+			that.command('underline');
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.justifyLeft = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-justify-left', 'button'))
+		.click(function() {
+			that.command('justifyleft');
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.justifyCenter = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-justify-center', 'button'))
+		.click(function() {
+			that.command('justifycenter');
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.justifyRight = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-justify-right', 'button'))
+		.click(function() {
+			that.command('justifyright');
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.justifyFill = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-justify-fill', 'button'))
+		.click(function() {
+			that.command('justifyfull');
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.indent = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-indent-more', 'button'))
+		.click(function() {
+			that.command('indent');
+		})
+		.appendTo(toolbar);
+	
+	this._buttons.outdent = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-outdent-more', 'button'))
+		.click(function() {
+			that.command('outdent');
+		})
+		.appendTo(toolbar);
+	
+	this._window.window('open');
+	if (typeof file != 'undefined') {
+		this.open(file);
+	} else {
+		this._refreshTitle();
 	}
-});
-
-/*
-<a href="javascript:;" onclick="$('#elm1').tinymce().show();return false;">[Show]</a>
-<a href="javascript:;" onclick="$('#elm1').tinymce().hide();return false;">[Hide]</a>
-<a href="javascript:;" onclick="$('#elm1').tinymce().execCommand('Bold');return false;">[Bold]</a>
-<a href="javascript:;" onclick="alert($('#elm1').html());return false;">[Get contents]</a>
-<a href="javascript:;" onclick="alert($('#elm1').tinymce().selection.getContent());return false;">[Get selected HTML]</a>
-<a href="javascript:;" onclick="alert($('#elm1').tinymce().selection.getContent({format : 'text'}));return false;">[Get selected text]</a>
-<a href="javascript:;" onclick="alert($('#elm1').tinymce().selection.getNode().nodeName);return false;">[Get selected element]</a>
-<a href="javascript:;" onclick="$('#elm1').tinymce().execCommand('mceInsertContent',false,'<b>Hello world!!</b>');return false;">[Insert HTML]</a>
-<a href="javascript:;" onclick="$('#elm1').tinymce().execCommand('mceReplaceContent',false,'<b>{$selection}</b>');return false;">[Replace selection]</a>
-*/
+	
+	if (!this.supported()) {
+		W.Error.trigger('Votre navigateur n\'est pas support&eacute;.', 'Le support de la propri&eacute;t&eacute; HTML5 "contenteditable" est requis.');
+	}
+};
