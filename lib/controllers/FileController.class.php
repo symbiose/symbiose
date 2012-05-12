@@ -169,6 +169,9 @@ class FileController extends \lib\ServerCallComponent {
 		try {
 			$this->webos->managers()->get('File')->checkAvailableSpace($dest, $_FILES['file']['size']);
 		} catch (Exception $e) {
+			if (isset($tempName)) {
+				unlink($tempName);
+			}
 			return array('success' => false, 'msg' => $e->getMessage());
 		}
 
@@ -176,6 +179,9 @@ class FileController extends \lib\ServerCallComponent {
 		$allowedExts = array('jpg' , 'jpeg' , 'gif' , 'png', 'pdf');
 		$extension = strtolower(substr(strrchr($_FILES['file']['name'], '.'), 1));
 		if (!in_array($extension, $allowedExts)) {
+			if (isset($tempName)) {
+				unlink($tempName);
+			}
 			return array('success' => false, 'msg' => 'Type de fichier non autoris&eacute;');
 		}
 
@@ -191,6 +197,10 @@ class FileController extends \lib\ServerCallComponent {
 
 		//Copie
 		$result = copy($_FILES['file']['tmp_name'], $dest->realpath($path));
+
+		if (isset($tempName)) {
+			unlink($tempName);
+		}
 
 		if (!$result) { //Si une erreur est survenue
 			return array('success' => false, 'msg' => 'Erreur lors de la copie');
@@ -212,7 +222,9 @@ class FileController extends \lib\ServerCallComponent {
 		$file = $this->webos->managers()->get('File')->get($path);
 
 		if ($file->isDir()) {
-			$file = $file->zip('/tmp/'.sha1(time().'-'.rand()).'.zip');
+			$source = $file->zip('/tmp/'.sha1(time().'-'.rand()).'.zip');
+		} else {
+			$source = $file;
 		}
 
 		header('Content-Description: File Transfer');
@@ -222,9 +234,9 @@ class FileController extends \lib\ServerCallComponent {
 		header('Expires: 0');
 		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 		header('Pragma: public');
-		header('Content-Length: ' . filesize($file->realpath()));
+		header('Content-Length: ' . filesize($source->realpath()));
 		ob_end_clean();
-		readfile($file->realpath());
+		readfile($source->realpath());
 		exit;
 	}
 }
