@@ -103,7 +103,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				that.items().filter('.active').removeClass('active').trigger('unselect');
 				return;
 			}
-			if ($.webos.keyboard.ctrlDown()) {
+			if ($.webos.keyboard.pressed('ctrl')) {
 				item.addClass('active').trigger('select');
 			} else {
 				that.items().filter('.active').trigger('unselect').removeClass('active');
