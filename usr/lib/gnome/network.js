@@ -45,7 +45,7 @@ W.ServerCall.bind('register', function() {
 });
 W.ServerCall.bind('complete', function(data) {
 	networkData.pending--;
-	if (!data.call.response.isSuccess()) {
+	if (typeof data.call.response != 'undefined' && !data.call.response.isSuccess()) {
 		networkData.failed++;
 	}
 	refreshMenuFn();
