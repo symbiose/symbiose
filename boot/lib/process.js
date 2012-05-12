@@ -1,7 +1,6 @@
 Webos.Process = function WProcess(options) {
 	this.pid = options.pid;
 	//var key = options.key;
-	this.args = new W.Arguments();
 	if (typeof options.args != 'undefined') { //Si les arguments ne sont pas vides
 		this.args = options.args;
 	}
@@ -20,11 +19,16 @@ Webos.Process.prototype = {
 			return;
 		}
 		
+		var args = this.args;
+		if (typeof args == 'undefined') {
+			args = new Webos.Arguments();
+		}
+		
 		this.running = true;
 		Webos.Process.stack.push(this);
 		
 		try {
-			this.main(this.args);
+			this.main(args);
 		} catch(error) {
 			Webos.Error.catchError(error);
 		}

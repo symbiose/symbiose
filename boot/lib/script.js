@@ -85,8 +85,8 @@ Webos.Arguments = function WArguments(args) {
 	}
 	
 	this.args = args;
-	if (this.args.options == undefined) { this.args.options = {}; }
-	if (this.args.params == undefined) { this.args.params = []; }
+	if (typeof this.args.options == 'undefined') { this.args.options = {}; }
+	if (typeof this.args.params == 'undefined') { this.args.params = []; }
 	
 	var paramsArray = [];
 	for (var nbr in this.args.params) {
@@ -167,7 +167,7 @@ Webos.Arguments.parse = function(cmd) {
 		} else if (char == '-') { //Si c'est un tiret
 			if (cache.previous == '-') { //Si le caractere precedant etait aussi un tiret, c'est une option type --fruit=abricot
 				cache.strOptionType = 'long'; //Type de l'option
-			} else if (cache.previous == ' ' || empty(cache.previous)) { //Si c'etait un espace blanc, c'est une option type -aBv
+			} else if (cache.previous == ' ' || cache.previous == '') { //Si c'etait un espace blanc, c'est une option type -aBv
 				cache.strType = 'options'; //C'est une option
 				cache.strOptionType = 'short'; //Type de l'option
 				cache.strStage = 'index'; //On remplit l'index
