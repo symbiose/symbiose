@@ -1,16 +1,16 @@
 //Lors du clic sur un item de menu
-$('ul.menu > li, ul.webos-menuwindowheader > li').live('click', function(event) {
-	//On selectionne cet item
-	$(this).addClass('hover');
-	
+$('ul.menu > li').die('click').live('click', function(event) {
 	var $menu = $(this);
+	
+	//On selectionne cet item
+	$menu.addClass('hover');
 	
 	var hideMenuFn = function() {
 		//On cache le menu
 		var $subMenu = $menu.children('ul').first();
 		if ($subMenu.length > 0) {
 			//Effets
-			if ($menu.parent().is('ul.menu') && !$.fx.off) {
+			if (!$.fx.off) {
 				$subMenu.animate({
 					top: '+=20',
 					opacity: 0
@@ -24,19 +24,19 @@ $('ul.menu > li, ul.webos-menuwindowheader > li').live('click', function(event) 
 		//On le deselectionne
 		$menu.removeClass('hover');
 		//On cache les sous-menus parents
-		$menuParents = $menu.parents('ul.menu li, ul.webos-menuwindowheader li');
+		$menuParents = $menu.parents('ul.menu li');
 		$menuParents.removeClass('hover');
-		$menuParents.filter('ul.menu li ul li, ul.webos-menuwindowheader li ul li').hide();
+		$menuParents.filter('ul.menu li ul li').hide();
 	};
-
-	$(document).one('click', function(event) {
-		var $elementMenu = $(event.target).parents().filter($menu);
+	
+	var onDocClickFn = function(e) {
+		var $elementMenu = $(e.target).parents().filter($menu);
 		//Si on clique sur le menu
 		if ($elementMenu.length > 0) {
 			//On n'execute pas l'action par defaut pour ne pas changer de page
-			event.preventDefault();
+			e.preventDefault();
 			
-			var $thisMenu = ($(event.target).is('li')) ? $(event.target) : $(event.target).parents('li').first();
+			var $thisMenu = ($(e.target).is('li')) ? $(e.target) : $(e.target).parents('li').first();
 			
 			//Si cet item contient un sous-menu
 			if ($thisMenu.children('ul').length > 0 && $thisMenu.children('ul').html() != '') {
@@ -47,40 +47,38 @@ $('ul.menu > li, ul.webos-menuwindowheader > li').live('click', function(event) 
 		} //Sinon, on clique sur autre chose que le menu
 		
 		hideMenuFn();
-	});
+		$(this).unbind('click', onDocClickFn);
+	};
+	$(document).click(onDocClickFn);
 	
 	//Si cet item contient un sous-menu
-	if ($menu.children('ul').length > 0 && $menu.children('ul').html() != '') {
+	if ($menu.children('ul').length > 0 && $menu.children('ul').children().length > 0) {
 		//On l'affiche
 		var $subMenu = $menu.children('ul').first();
 		if ($subMenu.is(':hidden')) {
-			if ($menu.parent().is('ul.menu')) {
-				var parentPosition = $menu.parent().offset();
-				var subMenuPosition = {
-					top: parentPosition.top + $menu.outerHeight() + 18,
-					left: 0
-				};
-				$subMenu.css(subMenuPosition).show();
-				
-				var subMenuOffset = $subMenu.offset();
-				var maxX = subMenuOffset.left + ($subMenu.outerWidth() + $subMenu.outerWidth(true)) / 2;
-				
-				if(maxX > $(document).width()) { // Si le menu est trop a droite, on le decale a gauche
-					subMenuPosition.left = subMenuPosition.left - (maxX - $(document).width());
-					$subMenu.css('left', subMenuPosition.left);
-				}
-				
-				//Effets
-				if (!$.fx.off) {
-					$subMenu.css({ top: subMenuPosition.top - 20, opacity: 0 }).animate({
-						top: '+=20',
-						opacity: 1
-					}, 'fast');
-				} else {
-					$subMenu.css('opacity', 1);
-				}
+			var parentPosition = $menu.parent().offset();
+			var subMenuPosition = {
+				top: parentPosition.top + $menu.outerHeight() + 18,
+				left: 0
+			};
+			$subMenu.css(subMenuPosition).show();
+			
+			var subMenuOffset = $subMenu.offset();
+			var maxX = subMenuOffset.left + ($subMenu.outerWidth() + $subMenu.outerWidth(true)) / 2;
+			
+			if(maxX > $(document).width()) { // Si le menu est trop a droite, on le decale a gauche
+				subMenuPosition.left = subMenuPosition.left - (maxX - $(document).width());
+				$subMenu.css('left', subMenuPosition.left);
+			}
+			
+			//Effets
+			if (!$.fx.off) {
+				$subMenu.css({ top: subMenuPosition.top - 20, opacity: 0 }).animate({
+					top: '+=20',
+					opacity: 1
+				}, 'fast');
 			} else {
-				$subMenu.show();
+				$subMenu.css('opacity', 1);
 			}
 		}
 	} else { //Sinon
@@ -92,7 +90,7 @@ $('ul.menu > li, ul.webos-menuwindowheader > li').live('click', function(event) 
 });
 
 //Si on survolle un item d'un sous-menu
-$('ul.menu > li li, ul.webos-menuwindowheader > li li').live('mouseenter', function() {
+$('ul.menu > li li').die('mouseenter mouseleave').live('mouseenter', function() {
 	//On selectionne l'item du sous-menu
 	$(this).addClass('hover');
 	

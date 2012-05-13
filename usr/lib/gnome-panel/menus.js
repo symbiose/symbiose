@@ -1,5 +1,5 @@
 //Lors du clic sur un item de menu
-$('ul.menu > li, ul.webos-menuwindowheader > li').live('click', function(event) {
+$('ul.menu > li').die('click').live('click', function(event) {
 	//On selectionne cet item
 	$(this).addClass('hover');
 	
@@ -11,9 +11,9 @@ $('ul.menu > li, ul.webos-menuwindowheader > li').live('click', function(event) 
 		//On le deselectionne
 		$menu.removeClass('hover');
 		//On cache les sous-menus parents
-		$menuParents = $menu.parents('ul.menu li, ul.webos-menuwindowheader li');
+		$menuParents = $menu.parents('ul.menu li');
 		$menuParents.removeClass('hover');
-		$menuParents.filter('ul.menu li ul li, ul.webos-menuwindowheader li ul li').hide();
+		$menuParents.filter('ul.menu li ul li').hide();
 	};
 	
 	//Lorsque l'on clique sur la page
@@ -54,7 +54,7 @@ $('ul.menu > li, ul.webos-menuwindowheader > li').live('click', function(event) 
 });
 
 //Si on survolle un item d'un sous-menu
-$('ul.menu > li li, ul.webos-menuwindowheader > li li').live('mouseenter', function() {
+$('ul.menu > li li').die('mouseenter mouseleave').live('mouseenter', function() {
 	//On selectionne l'item du sous-menu
 	$(this).addClass('hover');
 	

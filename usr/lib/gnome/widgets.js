@@ -1007,11 +1007,63 @@ var menuWindowHeaderItemProperties = $.webos.extend(containerProperties, {
 		label: ''
 	},
 	_create: function() {
+		var that = this;
+		
 		this.options._components.label = $('<a></a>', { href: '#' }).html(this.options.label).appendTo(this.element);
 		this.options._content = $('<ul></ul>').appendTo(this.element);
+		this.options._components.label.bind('click mouseenter', function(e) {
+			var $menu = that.element, $menuContents = that.content();
+			
+			if ($menu.is('hover')) {
+				return;
+			}
+			
+			if (e.type == 'mouseenter' && $menu.parents('ul.webos-menuwindowheader li').length == 0) {
+				return;
+			}
+			
+			$menu.addClass('hover');
+			
+			if ($menuContents.children().length > 0) {
+				$menuContents.show();
+			}
+			
+			var onDocClickFn = function(e) {
+				//Si on clique sur le menu
+				if ($(e.target).parents().filter($menu).length > 0) {
+					if ($(e.target).parents().filter('ul.webos-menuwindowheader li').first().children('ul').children().length > 0) {
+						return;
+					}
+				}
+				//Sinon, on clique sur autre chose que le menu
+				
+				//On cache le sous-menu
+				$menuContents.hide();
+				//On le deselectionne
+				$menu.removeClass('hover');
+				$(this).unbind('click', onDocClickFn);
+			};
+			$(document).click(onDocClickFn);
+			
+			//On n'execute pas l'action par defaut pour ne pas changer de page
+			e.preventDefault();
+		}).bind('mouseleave', function() {
+			var $menu = that.element, $menuContents = that.content();
+			
+			if ($menu.parents('ul.webos-menuwindowheader li').length == 0) {
+				return;
+			}
+			
+			$menu.removeClass('hover');
+			$menuContents.hide();
+		});
 	},
-	label: function() {
-		return this.options._components.label;
+	_update: function(key, value) {
+		switch (key) {
+			case 'label':
+				this.options._components.label.html(value);
+				break;
+		}
 	}
 });
 $.webos.widget('menuWindowHeaderItem', menuWindowHeaderItemProperties);
