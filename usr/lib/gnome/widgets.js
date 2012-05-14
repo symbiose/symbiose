@@ -229,7 +229,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 		}
 		
 		this.element.fadeIn('fast', function() {
-			that.toForeground(); //On met la fenetre en avant-plan
 			that._trigger('afteropen', { type: 'afteropen' }, { window: that.element }); //On declanche l'evenement correspondant
 		});
 		
@@ -256,6 +255,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 		this._trigger('open', { type: 'open' }, { window: this.element });
 		this.options.states.opened = true;
 		this._defineDimentions(); //On stocke en memoire ses dimentions
+		this.toForeground(); //On met la fenetre en avant-plan
 	},
 	close: function() {
 		var that = this;
