@@ -1,6 +1,7 @@
 //Executer une commande
 Webos.Cmd = function WCmd(options) {
-	this.cmd = options.cmd.split(' ').shift();
+	this.cmdText = options.cmd;
+	this.cmd = this.cmdText.split(' ').shift();
 	this.terminal = options.terminal;
 	
 	Webos.Process.call(this, {
@@ -18,7 +19,7 @@ Webos.Cmd.prototype = {
 		new Webos.ServerCall({
 			'class': 'CmdController',
 			'method': 'execute',
-			'arguments': { 'cmd': this.cmd, 'terminal': this.terminal.getId() }
+			'arguments': { 'cmd': this.cmdText, 'terminal': this.terminal.getId() }
 		}).load(new Webos.Callback(function(response) {
 			if (!response.isJavascriptEmpty()) { //Si il y a du code JS a executer
 				//On l'execute
