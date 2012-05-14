@@ -20,6 +20,11 @@
 	position: absolute;
 }
 
+.jspVerticalBar,
+.jspHorizontalBar {
+	z-index: 1001;
+}
+
 .jspVerticalBar
 {
 	position: absolute;
@@ -95,7 +100,7 @@
 }
 
 .jspHorizontalBar .jspTrack,
-.jspHorizontalBar .jspDrag
+.jspHorizontalBar .jspDragContainer
 {
 	float: left;
 	height: 100%;
