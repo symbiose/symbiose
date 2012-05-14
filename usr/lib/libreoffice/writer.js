@@ -14,7 +14,8 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		height: 400
 	});
 	
-	this._editable = $('<div></div>', { contenteditable: 'true', style: 'width: 100%; height: 100%;' }).appendTo(this._window.window('content'));
+	this._container = $('<div></div>', { style: 'width: 100%; height: 100%;' }).appendTo(this._window.window('content'));
+	this._editable = $('<div></div>', { contenteditable: 'true', style: 'min-width: 100%; min-height: 100%;' }).appendTo(this._container.scrollPane('content'));
 	
 	this.supportedExtensions = ['html', 'htm'];
 	this._file = null;
@@ -39,6 +40,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			that._refreshTitle();
 			that._editable.html(contents);
 			that._window.window('loading', false);
+			that._container.scrollPane('reload');
 		}, function(response) {
 			that._window.window('loading', false);
 			response.triggerError('Impossible d\'ouvrir "'+file.getAttribute('path')+'"');
@@ -201,6 +203,12 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		})
 		.appendTo(toolbar);
 	
+	this._buttons.underline = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-text-strikethrough', 'button'))
+		.click(function() {
+			that.command('strikethrough');
+		})
+		.appendTo(toolbar);
+	
 	this._buttons.justifyLeft = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-justify-left', 'button'))
 		.click(function() {
 			that.command('justifyleft');
@@ -238,6 +246,9 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		.appendTo(toolbar);
 	
 	this._window.window('open');
+	this._container.scrollPane({
+		autoResize: true
+	});
 	if (typeof file != 'undefined') {
 		this.open(file);
 	} else {
