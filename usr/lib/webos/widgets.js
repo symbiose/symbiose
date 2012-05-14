@@ -168,10 +168,15 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 				var autoResizeFn = function() {
 					that.reload();
 				};
+				var parent = $(window), eventName = 'resize';
+				if (this.element.parents().filter('.webos-window').length > 0) {
+					parent = this.element.parents().filter('.webos-window').first();
+					eventName = 'resizestop';
+				}
 				if (value) {
-					$(window).resize(autoResizeFn);
+					parent.bind(eventName, autoResizeFn);
 				} else {
-					$(window).unbind('resize', autoResizeFn);
+					parent.unbind(eventName, autoResizeFn);
 				}
 				break;
 		}

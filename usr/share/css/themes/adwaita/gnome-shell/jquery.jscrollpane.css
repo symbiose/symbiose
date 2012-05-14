@@ -5,6 +5,10 @@
  * may not operate correctly without them.
  */
 
+.jspPane {
+	min-width: 100%;
+	min-height: 100%;
+}
 .jspContainer
 {
 	overflow: hidden;
@@ -21,7 +25,7 @@
 	position: absolute;
 	top: 0;
 	right: 0;
-	width: 16px;
+	width: 13px;
 	height: 100%;
 }
 
@@ -31,7 +35,7 @@
 	bottom: 0;
 	left: 0;
 	width: 100%;
-	height: 16px;
+	height: 13px;
 }
 
 .jspVerticalBar *,
@@ -59,27 +63,35 @@
 .jspBg {
 	float: left;
 	position: absolute;
-	width: 14px;
+	width: 100%;
 	height: 100%;
-	width: 16px;
-	background: #dde;
+	background: #d6d6d6;
 	-moz-box-sizing: border-box;
 	-ms-box-sizing: border-box;
 	-webkit-box-sizing: border-box;
 	box-sizing: border-box;
 }
 
-
-.jspDrag
-{
-	background: #bbd;
+.jspDragContainer {
 	position: relative;
 	top: 0;
 	left: 0;
+	padding: 3px;
+}
+
+.jspDrag
+{
+	background: #9b9d9e;
+	width: 100%;
+	height: 100%;
 	-moz-box-sizing: border-box;
 	-ms-box-sizing: border-box;
 	-webkit-box-sizing: border-box;
 	box-sizing: border-box;
+	
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
 }
 
 .jspHorizontalBar .jspTrack,
@@ -138,6 +150,15 @@
 
 /* SHELL */
 
+#shell .jspVerticalBar
+{
+	width: 16px;
+}
+
+#shell .jspHorizontalBar
+{
+	height: 16px;
+}
 #shell .jspBg
 {
 	background: #080808;
@@ -146,7 +167,9 @@
 	-webkit-border-radius: 7px;
 	border-radius: 7px;
 }
-
+#shell  .jspDragContainer {
+	padding: 0;
+}
 #shell .jspDrag
 {
 	background: #252525;

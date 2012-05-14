@@ -244,9 +244,11 @@
 							$('<div class="jspCap jspCapTop" />'),
 							$('<div class="jspTrack" />').append(
 								$('<div class="jspBg" />'),
-								$('<div class="jspDrag" />').append(
-									$('<div class="jspDragTop" />'),
-									$('<div class="jspDragBottom" />')
+								$('<div class="jspDragContainer" />').append(
+									$('<div class="jspDrag" />').append(
+										$('<div class="jspDragTop" />'),
+										$('<div class="jspDragBottom" />')
+									)
 								)
 							),
 							$('<div class="jspCap jspCapBottom" />')
@@ -255,7 +257,7 @@
 
 					verticalBar = container.find('>.jspVerticalBar');
 					verticalTrack = verticalBar.find('>.jspTrack');
-					verticalDrag = verticalTrack.find('>.jspDrag');
+					verticalDrag = verticalTrack.find('>.jspDragContainer');
 
 					if (settings.showArrows) {
 						arrowUp = $('<a class="jspArrow jspArrowUp" />').bind(
@@ -342,9 +344,12 @@
 						$('<div class="jspHorizontalBar" />').append(
 							$('<div class="jspCap jspCapLeft" />'),
 							$('<div class="jspTrack" />').append(
-								$('<div class="jspDrag" />').append(
-									$('<div class="jspDragLeft" />'),
-									$('<div class="jspDragRight" />')
+								$('<div class="jspBg" />'),
+								$('<div class="jspDragContainer" />').append(
+									$('<div class="jspDrag" />').append(
+										$('<div class="jspDragTop" />'),
+										$('<div class="jspDragBottom" />')
+									)
 								)
 							),
 							$('<div class="jspCap jspCapRight" />')
@@ -353,7 +358,7 @@
 
 					horizontalBar = container.find('>.jspHorizontalBar');
 					horizontalTrack = horizontalBar.find('>.jspTrack');
-					horizontalDrag = horizontalTrack.find('>.jspDrag');
+					horizontalDrag = horizontalTrack.find('>.jspDragContainer');
 
 					if (settings.showArrows) {
 						arrowLeft = $('<a class="jspArrow jspArrowLeft" />').bind(
