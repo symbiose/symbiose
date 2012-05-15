@@ -727,6 +727,9 @@ var entryProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 		}
 	},
+	label: function() {
+		return this.options._components.label;
+	},
 	_update: function(key, value) {
 		switch(key) {
 			case 'label':

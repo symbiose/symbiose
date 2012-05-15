@@ -156,7 +156,7 @@ function GTerminalWindow(callback) { //La fenetre du terminal
 	this.window.window('content').append(this.terminal);
 	
 	//Lors du redimentionnement de la fenetre
-	this.window.bind('resize', function() {
+	this.window.bind('windowresize', function() {
 		that.terminal.terminal('prompt').textEntry('content')
 			.width(that.terminal.terminal('prompt').innerWidth() - that.terminal.terminal('prompt').textEntry('label').outerWidth() - 5)
 			.focus();
