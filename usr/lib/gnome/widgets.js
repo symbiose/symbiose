@@ -318,13 +318,12 @@ var windowProperties = $.webos.extend(containerProperties, {
 		}, 'fast');
 		
 		var that = this;
-		var element = this.element;
 		
 		this.options._content.addClass('animating').animate({
 			width: maxWidth,
 			height: (maxHeight - that.options._components.header.height())
 		}, 'fast', function() {
-			element
+			that.element
 				.addClass('maximized')
 				.removeClass('animating');
 			
@@ -360,7 +359,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 				left: position.left
 			}, 'fast', function() {
 				that._defineDimentions();
-				$(this)
+				that.element
 					.removeClass('animating')
 					.removeClass('maximized');
 				
@@ -658,6 +657,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 				stop: function() {
 					that._defineDimentions();
 					that._setTitle(that.options.title);
+					that._trigger('resize', { type: 'resize' }, { window: that.element });
 				}
 			});
 		} else {
@@ -941,7 +941,7 @@ $.webos.window.hideOrShowAll = function() { //Afficher ou cacher ttes les fenetr
 $.webos.window.getActive = function() { //Recuperer la fenetre active
 	if ($.webos.window.getWindows().filter(':visible').length > 0) {
 		var visibleWindows = $.webos.window.getWindows().filter(':visible');
-		var activeWindow, activeWindowZIndex = $.webos.window.zIndexRange[0];
+		var activeWindow = $(), activeWindowZIndex = $.webos.window.zIndexRange[0];
 		visibleWindows.each(function() {
 			var thisWindowZIndex = parseInt($(this).css('z-index'));
 			if (typeof activeWindow == 'undefined' || activeWindowZIndex < thisWindowZIndex) {

@@ -154,6 +154,11 @@
 	min-width: 10px;
 }
 
+.webos-window.ui-resizable-resizing .content,
+.webos-window.animating .content {
+	overflow: hidden;
+}
+
 .webos-window .content,
 .webos-window .content * {
 	-moz-box-sizing: border-box;
