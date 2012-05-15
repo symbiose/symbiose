@@ -171,8 +171,9 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 				var parent = $(window), eventName = 'resize';
 				if (this.element.parents().filter('.webos-window').length > 0) {
 					parent = this.element.parents().filter('.webos-window').first();
-					eventName = 'resizestop';
+					eventName = 'windowresize';
 				}
+				this.options.autoResize = (value) ? true : false;
 				if (value) {
 					parent.bind(eventName, autoResizeFn);
 				} else {
@@ -182,7 +183,10 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	},
 	reload: function() {
-		this.element.jScrollPane();
+		this.element.jScrollPane({
+			verticalDragMinHeight: 20,
+			horizontalDragMinWidth: 20
+		});
 	}
 });
 $.webos.widget('scrollPane', scrollPaneProperties);
