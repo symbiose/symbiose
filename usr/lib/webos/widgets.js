@@ -154,39 +154,432 @@ $.webos.container = function() {
 var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'scrollpane',
 	options: {
-		autoResize: false
+		autoReload: false,
+		horizontalDragMinWidth: 20,
+		verticalDragMinHeight: 20,
+		animate: false,
+		mouseWheelSpeed: 30,
+		expand: false
 	},
 	_create: function() {
+		var originalScrollTop = this.element.scrollTop(), originalScrollLeft = this.element.scrollLeft();
+		
+		this.options._components.container = $('<div></div>', { 'class': 'container' });
+		this.options._content = $('<div></div>', { 'class': 'pane' });
+		this.element.wrapInner(this.options._components.container);
+		this.options._components.container.wrapInner(this.options._content);
+		this.options._components.verticalBar = $('<div class="vertical-bar" />').append(
+			$('<div class="cap cap-top" />'),
+			$('<div class="track" />').append(
+				$('<div class="background" />'),
+				$('<div class="drag-container" />').append(
+					$('<div class="drag" />').append(
+						$('<div class="drag-top" />'),
+						$('<div class="drag-bottom" />')
+					)
+				)
+			),
+			$('<div class="cap cap-bottom" />')
+		).appendTo(this.element);
+		this.options._components.horizontalBar = $('<div class="horizontal-bar" />').append(
+			$('<div class="corner" />'),
+			$('<div class="cap cap-left" />'),
+			$('<div class="track" />').append(
+				$('<div class="background" />'),
+				$('<div class="drag-container" />').append(
+					$('<div class="drag" />').append(
+						$('<div class="drag-left" />'),
+						$('<div class="drag-right" />')
+					)
+				)
+			),
+			$('<div class="cap cap-right" />')
+		).appendTo(this.element);
+		
+		this._track();
+		
+		this._update('autoReload', this.options.autoReload);
+		this._update('expand', this.options.expand);
 		this.reload();
-		this.options._content = this.element.data('jsp').getContentPane();
-		this._update('autoResize', this.options.autoResize);
+		
+		if (originalScrollTop != 0) {
+			this.scrollToY(originalScrollTop);
+		}
+		if (originalScrollLeft != 0) {
+			this.scrollToX(originalScrollLeft);
+		}
+	},
+	_track: function() {
+		var that = this;
+		
+		var cancelDrag = function() {
+			$('html').unbind('dragstart.scrollpane.widget.webos selectstart.scrollpane.widget.webos mousemove.scrollpane.widget.webos mouseup.scrollpane.widget.webos mouseleave.scrollpane.widget.webos');
+		};
+		
+		this.options._components.verticalBar.bind('mousedown.scrollpane.widget.webos', function(e) {
+			// Stop IE from allowing text selection
+			$('html').bind('dragstart.scrollpane.widget.webos selectstart.scrollpane.widget.webos', function(e) {
+				e.preventDefault();
+			});
+
+			var startY = e.pageY - that.options._components.verticalBar.find('.drag-container').position().top;
+
+			$('html').bind('mousemove.scrollpane.widget.webos', function(e) {
+				that.positionDragY(e.pageY - startY, false);
+			}).bind('mouseup.scrollpane.widget.webos mouseleave.scrollpane.widget.webos', cancelDrag);
+			e.preventDefault();
+		}).bind('click.scrollpane.widget.webos', function(e) {
+			e.preventDefault();
+		});
+		
+		this.options._components.horizontalBar.bind('mousedown.scrollpane.widget.webos', function(e) {
+			// Stop IE from allowing text selection
+			$('html').bind('dragstart.scrollpane.widget.webos selectstart.scrollpane.widget.webos', function(e) {
+				e.preventDefault();
+			});
+
+			var startX = e.pageX - that.options._components.horizontalBar.find('.drag-container').position().left;
+
+			$('html').bind('mousemove.scrollpane.widget.webos', function(e) {
+				that.positionDragX(e.pageX - startX, false);
+			}).bind('mouseup.scrollpane.widget.webos mouseleave.scrollpane.widget.webos', cancelDrag);
+			e.preventDefault();
+		}).bind('click.scrollpane.widget.webos', function(e) {
+			e.preventDefault();
+		});
+	},
+	_mousewheel: function(value) { //Support de la molette de la souris
+		var that = this;
+		var mwEvent = $.fn.mwheelIntent ? 'mwheelIntent.scrollpane.widget.webos' : 'mousewheel.scrollpane.widget.webos';
+		
+		if (value !== false) {
+			this.element.unbind(mwEvent).bind(mwEvent, function (event, delta, deltaX, deltaY) {
+				var data = that.element.data('scrollpane');
+				var dX = data.horizontalDragPosition, dY = data.verticalDragPosition;
+				that.scrollBy(deltaX * that.options.mouseWheelSpeed, - deltaY * that.options.mouseWheelSpeed, false);
+				// return true if there was no movement so rest of screen can scroll
+				return (dX == data.horizontalDragPosition && dY == data.verticalDragPosition);
+			});
+		} else {
+			this.element.unbind(mwEvent);
+		}
+	},
+	_touch: function(value) { // Support du touch
+		
+	},
+	_focusHandler: function(value) { //Support de la navigation clavier
+		
 	},
 	_update: function(key, value) {
 		switch (key) {
-			case 'autoResize':
+			case 'autoReload':
 				var that = this;
-				var autoResizeFn = function() {
-					that.reload();
-				};
-				var parent = $(window), eventName = 'resize';
+				var parent = $(window), eventName = 'resize.'+this.id()+'.scrollpane.widget.webos';
 				if (this.element.parents().filter('.webos-window').length > 0) {
 					parent = this.element.parents().filter('.webos-window').first();
-					eventName = 'windowresize';
+					eventName = 'windowresize.'+this.id()+'.scrollpane.widget.webos windowopen.'+this.id()+'.scrollpane.widget.webos';
 				}
-				this.options.autoResize = (value) ? true : false;
+				
+				this.options.autoReload = (value) ? true : false;
 				if (value) {
-					parent.bind(eventName, autoResizeFn);
+					parent.bind(eventName, function(e) {
+						if (parent.is(window) && !$(e.target).is(window)) {
+							return;
+						}
+						that.reload();
+					});
+					$(window).bind('windowopen.scrollpane.widget.webos', function(e, data) {
+						var thisWindow = that.element.parents().filter(data.window);
+						if (!that.options.autoReload || thisWindow.length > 0) {
+							$(this).unbind('windowopen.scrollpane.widget.webos');
+							parent.unbind(eventName);
+						}
+						if (thisWindow.length > 0) {
+							that._update('autoReload', true);
+							that.reload();
+						}
+					});
 				} else {
-					parent.unbind(eventName, autoResizeFn);
+					$(window).unbind(eventName);
+					
+				}
+				break;
+			case 'expand':
+				this.options.expand = (value) ? true : false;
+				if (value) {
+					this.element.css({
+						width: '100%',
+						height: '100%'
+					});
+				} else {
+					this.element.css({
+						width: '',
+						height: ''
+					});
 				}
 				break;
 		}
 	},
+	positionDragY: function(destY, animate)
+	{
+		var data = this.element.data('scrollpane');
+		
+		if (!data.isScrollableV) {
+			return;
+		}
+		if (destY < 0) {
+			destY = 0;
+		} else if (destY > data.dragMaxY) {
+			destY = data.dragMaxY;
+		}
+
+		if (typeof animate == 'undefined') {
+			animate = this.options.animate;
+		}
+		if (animate) {
+			//jsp.animate(this.options._components.verticalBar.find('.drag-container'), 'top', destY, this._positionDragY);
+		} else {
+			this.options._components.verticalBar.find('.drag-container').css('top', destY);
+			this._positionDragY(destY);
+		}
+	},
+	_positionDragY: function(destY)
+	{
+		var data = this.element.data('scrollpane');
+		
+		if (destY === undefined) {
+			destY = this.content().position().top;
+		}
+
+		this.options._components.container.scrollTop(0);
+		var verticalDragPosition = destY;
+
+		var isAtTop = (verticalDragPosition === 0),
+			isAtBottom = (verticalDragPosition == data.dragMaxY),
+			percentScrolled = destY / data.dragMaxY,
+			destTop = Math.round( - percentScrolled * (data.paneHeight - data.containerHeight));
+		
+		if (data.wasAtTop != isAtTop || data.wasAtBottom != isAtBottom) {
+			data.wasAtTop = isAtTop;
+			data.wasAtBottom = isAtBottom;
+			this.element.trigger('arrowchange', {}, [data.wasAtTop, data.wasAtBottom, data.wasAtLeft, data.wasAtRight]);
+		}		
+		
+		this.content().css('top', destTop);
+		this._trigger('scrolly', {}, [-destTop, isAtTop, isAtBottom]);
+		this._trigger('scroll');
+		
+		this.element.data('scrollpane', data);
+	},
+	positionDragX: function(destX, animate)
+	{
+		var data = this.element.data('scrollpane');
+		
+		if (!data.isScrollableH) {
+			return;
+		}
+		if (destX < 0) {
+			destX = 0;
+		} else if (destX > data.dragMaxX) {
+			destX = data.dragMaxX;
+		}
+
+		if (typeof animate == 'undefined') {
+			animate = this.options.animate;
+		}
+		if (animate) {
+			//jsp.animate(this.options._components.horizontalBar.find('.drag-container'), 'top', destX, this._positionDragX);
+		} else {
+			this.options._components.horizontalBar.find('.drag-container').css('left', destX);
+			this._positionDragX(destX);
+		}
+	},
+	_positionDragX: function(destX)
+	{
+		var data = this.element.data('scrollpane');
+		
+		if (destX === undefined) {
+			destX = this.content().position().left;
+		}
+
+		this.options._components.container.scrollTop(0);
+		var horizontalDragPosition = destX;
+
+		var isAtLeft = horizontalDragPosition === 0,
+			isAtRight = horizontalDragPosition == data.dragMaxX,
+			percentScrolled = destX / data.dragMaxX,
+			destLeft = Math.round( - percentScrolled * (data.paneWidth - data.containerWidth));
+
+		if (data.wasAtLeft != isAtLeft || data.wasAtRight != isAtRight) {
+			data.wasAtLeft = isAtLeft;
+			data.wasAtRight = isAtRight;
+			this._trigger('arrowchange', {}, [data.wasAtTop, data.wasAtBottom, data.wasAtLeft, data.wasAtRight]);
+		}
+		
+		this.content().css('left', destLeft);
+		this._trigger('scrollx', {}, [-destLeft, isAtLeft, isAtRight]);
+		this._trigger('scroll');
+		
+		this.element.data('scrollpane', data);
+	},
+	position: function(pos) {
+		if (typeof pos == 'undefined') {
+			pos = this.content().position();
+			return {
+				x: - pos.left,
+				y: - pos.top
+			};
+		} else {
+			this.scrollToX(pos.x);
+			this.scrollToY(pos.y);
+		}
+	},
+	scrollToX: function(destX, animate) {
+		var data = this.element.data('scrollpane');
+		if (data.paneWidth - data.containerWidth == 0) { //Division by 0
+			return;
+		}
+		var percentScrolled = destX / (data.paneWidth - data.containerWidth);
+		this.positionDragX(percentScrolled * data.dragMaxX, animate);
+	},
+	scrollToY: function(destY, animate) {
+		var data = this.element.data('scrollpane');
+		if (data.paneHeight - data.containerHeight == 0) { //Division by 0
+			return;
+		}
+		var percentScrolled = destY / (data.paneHeight - data.containerHeight);
+		this.positionDragY(percentScrolled * data.dragMaxY, animate);
+	},
+	scrollByX: function(deltaX, animate) {
+		var data = this.element.data('scrollpane');
+		var destX = this.position().x + Math[(deltaX < 0) ? 'floor' : 'ceil'](deltaX);
+		this.scrollToX(destX, animate);
+	},
+	scrollByY: function(deltaY, animate) {
+		var data = this.element.data('scrollpane');
+		var destY = this.position().y + Math[(deltaY < 0) ? 'floor' : 'ceil'](deltaY);
+		this.scrollToY(destY, animate);
+	},
+	scrollBy: function(deltaX, deltaY, animate) {
+		this.scrollByX(deltaX, animate);
+		this.scrollByY(deltaY, animate);
+	},
 	reload: function() {
-		this.element.jScrollPane({
-			verticalDragMinHeight: 20,
-			horizontalDragMinWidth: 20
+		var data = {};
+		this.element.data('scrollpane', data);
+		
+		this.element.css({
+			overflow: 'hidden',
+			padding: 0
 		});
+		
+		data.containerWidth = this.element.outerWidth();
+		data.containerHeight = this.element.outerHeight();
+		
+		this.element.css('overflow', 'auto');
+		data.paneWidth = this.content()[0].scrollWidth;
+		data.paneHeight = this.content()[0].scrollHeight;
+		this.element.css('overflow', 'hidden');
+		
+		data.percentInViewH = data.paneWidth / data.containerWidth;
+		data.percentInViewV = data.paneHeight / data.containerHeight,
+		data.isScrollableV = (data.percentInViewV > 1);
+		data.isScrollableH = (data.percentInViewH > 1);
+		
+		if (!(data.isScrollableH || data.isScrollableV)) {
+			this.element.removeClass('scrollable');
+			
+			this.options._components.horizontalBar.hide();
+			this.options._components.verticalBar.hide();
+			
+			this.content().css({
+				top: 0,
+				width: '100%',
+				height: '100%'
+			});
+			
+			this._mousewheel(false);
+		} else {
+			this.element.addClass('scrollable');
+			
+			this.content().css({
+				width: 'auto',
+				height: 'auto'
+			});
+			
+			if (data.isScrollableV) {
+				this.options._components.verticalBar.show();
+			} else {
+				this.options._components.verticalBar.hide();
+			}
+			if (data.isScrollableH) {
+				this.options._components.horizontalBar.show();
+			} else {
+				this.options._components.horizontalBar.hide();
+			}
+			
+			data.horizontalTrackHeight = this.options._components.horizontalBar.children('.track').outerHeight();
+			data.verticalTrackWidth = this.options._components.verticalBar.outerWidth();
+			
+			//reflow ??
+			//data.percentInViewV = containerHeight / paneHeight;
+			//data.percentInViewH = containerWidth / contentWidth;
+			
+			data.horizontalTrackWidth = data.containerWidth;
+			data.verticalTrackHeight = data.containerHeight;
+			this.element.find('>.vertical-bar>.cap:visible,>.vertical-bar>.arrow').each(function() {
+				data.verticalTrackHeight -= $(this).outerHeight();
+			});
+			this.element.find('>.horizontal-bar>.cap:visible,>.horizontal-bar>.arrow').each(function() {
+				data.horizontalTrackWidth -= $(this).outerWidth();
+			});
+			
+			this.options._components.container.width(data.containerWidth - data.verticalTrackWidth).height(data.containerHeight - data.horizontalTrackHeight);
+			this.content().css({
+				'min-width': data.containerWidth - data.verticalTrackWidth,
+				'min-height': data.containerHeight - data.horizontalTrackHeight
+			});
+			
+			if (data.isScrollableH && data.isScrollableV) {
+				data.verticalTrackHeight -= data.horizontalTrackHeight;
+				this.options._components.horizontalBar.find('>.cap:visible,>.arrow').each(function() {
+					data.horizontalTrackWidth += $(this).outerWidth();
+				});
+				data.horizontalTrackWidth -= data.verticalTrackWidth;
+				data.paneHeight -= data.verticalTrackWidth;
+				data.containerHeight -= 2 * data.verticalTrackWidth;
+				data.paneWidth -= data.horizontalTrackHeight;
+				data.containerWidth -= 2 * data.horizontalTrackHeight;
+				this.options._components.horizontalBar.find('.corner').height(data.horizontalTrackHeight).width(data.verticalTrackWidth);
+			}
+			
+			if (data.isScrollableV) {
+				this.options._components.verticalBar.find('.track').height(data.verticalTrackHeight);
+				data.verticalDragHeight = Math.ceil(1 / data.percentInViewV * data.verticalTrackHeight);
+				if (data.verticalDragHeight < this.options.verticalDragMinHeight) {
+					data.verticalDragHeight = this.options.verticalDragMinHeight;
+				}
+				this.options._components.verticalBar.find('.drag-container').height(data.verticalDragHeight);
+				data.dragMaxY = data.verticalTrackHeight - data.verticalDragHeight;
+				//this._positionDragY(data.verticalDragPosition); // To update the state for the arrow buttons
+			}
+			if (data.isScrollableH) {
+				this.options._components.horizontalBar.find('.track').width(data.horizontalTrackWidth);
+				data.horizontalDragWidth = Math.ceil(1 / data.percentInViewH * data.horizontalTrackWidth);
+				if (data.horizontalDragWidth < this.options.horizontalDragMinWidth) {
+					data.horizontalDragWidth = this.options.horizontalDragMinWidth;
+				}
+				this.options._components.horizontalBar.find('.drag-container').width(data.horizontalDragWidth);
+				data.dragMaxX = data.horizontalTrackWidth - data.horizontalDragWidth;
+				//this._positionDragX(data.horizontalDragPosition); // To update the state for the arrow buttons
+			}
+			
+			this._mousewheel(true);
+		}
+		
+		this.element.data('scrollpane', data);
+		
+		this._trigger('reload');
 	}
 });
 $.webos.widget('scrollPane', scrollPaneProperties);
