@@ -164,6 +164,13 @@ function GTerminalWindow(callback) { //La fenetre du terminal
 			.focus();
 	});
 	
+	//Lors du clic sur le terminal
+	scrollPane.scrollPane('content').click(function(e) {
+		if ($(e.target).is(this)) {
+			that._terminal.terminal('prompt').textEntry('content').focus();
+		}
+	});
+	
 	this._terminal.bind('terminalexecute terminalready', function() {
 		scrollPane.scrollPane('reload');
 	});
