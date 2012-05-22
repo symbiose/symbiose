@@ -14,8 +14,13 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 	_create: function() {
 		var that = this;
 		
+		this.element.scrollPane({
+			autoReload: true
+		});
+		this.options._components.container = this.element.scrollPane('content');
+		
 		if (this.options.display == 'icons') {
-			this.options._content = $('<ul></ul>').addClass('icons').appendTo(this.element);
+			this.options._content = $('<ul></ul>').addClass('icons').appendTo(this.options._components.container);
 			
 			that.content().mousedown(function(e) {
 				if(e.button != 0) {
@@ -90,7 +95,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 
 		if (this.options.display == 'list') {
-			this.options._content = $.w.list(['Nom', 'Taille', 'Type']).appendTo(this.element);
+			this.options._content = $.w.list(['Nom', 'Taille', 'Type']).appendTo(this.options._components.container);
 		}
 
 		this.content().click(function(event) {

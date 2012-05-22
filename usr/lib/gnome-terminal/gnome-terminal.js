@@ -139,7 +139,7 @@ $.webos.terminal = function(callback) {
  */
 function GTerminalWindow(callback) { //La fenetre du terminal
 	//On initialise la fenetre
-	this.window = $.w.window({
+	this._window = $.w.window({
 		title: 'Terminal',
 		icon: new SIcon('apps/terminal'),
 		width: 400,
@@ -149,19 +149,25 @@ function GTerminalWindow(callback) { //La fenetre du terminal
 	
 	var that = this;
 	
-	//On initialise le terminal
-	this.terminal = $.w.terminal(callback);
+	var scrollPane = $('<div></div>').appendTo(this._window.window('content')).scrollPane({
+		autoReload: true,
+		expand: true
+	});
 	
-	//On ajoute le terminal a la fenetre
-	this.window.window('content').append(this.terminal);
+	//On initialise le terminal
+	this._terminal = $.w.terminal(callback).appendTo(scrollPane.scrollPane('content'));
 	
 	//Lors du redimentionnement de la fenetre
-	this.window.bind('windowresize', function() {
-		that.terminal.terminal('prompt').textEntry('content')
-			.width(that.terminal.terminal('prompt').innerWidth() - that.terminal.terminal('prompt').textEntry('label').outerWidth() - 5)
+	this._window.bind('windowresize', function() {
+		that._terminal.terminal('prompt').textEntry('content')
+			.width(that._terminal.terminal('prompt').innerWidth() - that._terminal.terminal('prompt').textEntry('label').outerWidth() - 5)
 			.focus();
 	});
 	
+	this._terminal.bind('terminalexecute terminalready', function() {
+		scrollPane.scrollPane('reload');
+	});
+	
 	//On ouvre la fenetre
-	this.window.window('open');
+	this._window.window('open');
 }

@@ -1,31 +1,19 @@
-/*
- * CSS Styles that are needed by jScrollPane for it to operate correctly.
- *
- * Include this stylesheet in your site or copy and paste the styles below into your stylesheet - jScrollPane
- * may not operate correctly without them.
- */
-
-.jspPane {
+.webos-scrollpane {
+	position: relative;
+	overflow: hidden;
+}
+.webos-scrollpane .pane {
+	position: absolute;
 	min-width: 100%;
 	min-height: 100%;
 }
-.jspContainer
-{
-	overflow: hidden;
-	position: relative;
-}
 
-.jspPane
-{
-	position: absolute;
-}
-
-.jspVerticalBar,
-.jspHorizontalBar {
+.webos-scrollpane .vertical-bar,
+.webos-scrollpane .horizontal-bar {
 	z-index: 1001;
 }
 
-.jspVerticalBar
+.webos-scrollpane .vertical-bar
 {
 	position: absolute;
 	top: 0;
@@ -34,7 +22,7 @@
 	height: 100%;
 }
 
-.jspHorizontalBar
+.webos-scrollpane .horizontal-bar
 {
 	position: absolute;
 	bottom: 0;
@@ -43,29 +31,31 @@
 	height: 13px;
 }
 
-.jspVerticalBar *,
-.jspHorizontalBar *
+.webos-scrollpane .vertical-bar *,
+.webos-scrollpane .horizontal-bar *
 {
 	margin: 0;
 	padding: 0;
 }
 
-.jspCap
+.webos-scrollpane .cap
 {
 	display: none;
 }
 
-.jspHorizontalBar .jspCap
+.webos-scrollpane .horizontal-bar .cap
 {
 	float: left;
 }
 
-.jspTrack
+.webos-scrollpane .track
 {
 	position: relative;
+	height: 100%;
+	width: 100%;'
 }
 
-.jspBg {
+.webos-scrollpane .background {
 	float: left;
 	position: absolute;
 	width: 100%;
@@ -77,14 +67,14 @@
 	box-sizing: border-box;
 }
 
-.jspDragContainer {
+.webos-scrollpane .drag-container {
 	position: relative;
 	top: 0;
 	left: 0;
 	padding: 3px;
 }
 
-.jspDrag
+.webos-scrollpane .drag
 {
 	background: #9b9d9e;
 	width: 100%;
@@ -99,55 +89,54 @@
 	border-radius: 3px;
 }
 
-.jspHorizontalBar .jspTrack,
-.jspHorizontalBar .jspDragContainer
+.webos-scrollpane .vertical-bar .track,
+.webos-scrollpane .horizontal-bar .drag-container
 {
 	float: left;
 	height: 100%;
 }
 
-.jspArrow
+.webos-scrollpane .arrow
 {
 	background: #50506d;
 	text-indent: -20000px;
 	display: block;
 }
 
-.jspArrow.jspDisabled
+.webos-scrollpane .arrow.disabled
 {
 	background: #80808d;
 }
 
-.jspVerticalBar .jspArrow
+.webos-scrollpane .vertical-bar .arrow
 {
 	height: 16px;
 }
 
-.jspHorizontalBar .jspArrow
+.webos-scrollpane .horizontal-bar .arrow
 {
 	width: 16px;
 	float: left;
 	height: 100%;
 }
 
-.jspVerticalBar .jspArrow:focus
+.webos-scrollpane .vertical-bar .arrow:focus
 {
 	outline: none;
 }
-.jspScrollable:active
+.webos-scrollpane:active
 {
 	outline: none;
 }
 
-.jspCorner
+.webos-scrollpane .corner
 {
-	background: #eeeef4;
-	float: left;
-	height: 100%;
+	background: #d6d6d6;
+	float: right;
 }
 
 /* Yuk! CSS Hack for IE6 3 pixel bug :( */
-* html .jspCorner
+* html .webos-scrollpane .corner
 {
 	margin: 0 -3px 0 0;
 }
@@ -155,16 +144,16 @@
 
 /* SHELL */
 
-#shell .jspVerticalBar
+#shell .webos-scrollpane .vertical-bar
 {
 	width: 16px;
 }
 
-#shell .jspHorizontalBar
+#shell .webos-scrollpane .horizontal-bar
 {
 	height: 16px;
 }
-#shell .jspBg
+#shell .webos-scrollpane .background
 {
 	background: #080808;
 	border: 1px solid #2d2d2d;
@@ -172,10 +161,10 @@
 	-webkit-border-radius: 7px;
 	border-radius: 7px;
 }
-#shell  .jspDragContainer {
+#shell .webos-scrollpane .drag-container {
 	padding: 0;
 }
-#shell .jspDrag
+#shell .webos-scrollpane .drag
 {
 	background: #252525;
 	border: 1px solid #080808;
@@ -183,7 +172,7 @@
 	-webkit-border-radius: 7px;
 	border-radius: 7px;
 }
-#shell .jspDrag:hover
+#shell .webos-scrollpane .drag:hover
 {
 	background: #292929;
 }

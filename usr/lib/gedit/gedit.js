@@ -407,25 +407,27 @@ function GEditWindow(file) {
 		})
 		.appendTo(toolbar);
 	
-	var content = this._window.window('content');
+	this._content = $('<div></div>').appendTo(this._window.window('content')).scrollPane({
+		autoReload: true,
+		expand: true
+	});
 	
 	this._gedit = $.w.gedit({
 		file: file
-	}).appendTo(content);
-	
-	this._gedit.bind('geditopenfile', function() {
+	}).bind('geditopenfile', function() {
 		that._refreshTitle();
 		that._isSaved = true;
-	});
-	this._gedit.bind('geditcreateemptyfile', function() {
+	}).bind('geditcreateemptyfile', function() {
 		that._refreshTitle();
 		that._isSaved = false;
-	});
-	this._gedit.bind('geditchange', function() {
+		that._content.scrollPane('reload');
+	}).bind('geditchange', function() {
 		if (that._isSaved) {
 			that._isSaved = false;
 		}
-	});
+	}).bind('geditopenfile', function() {
+		that._content.scrollPane('reload');
+	}).appendTo(this._content.scrollPane('content'));
 	
 	var closeStackLength = 0;
 	this._window.bind('windowbeforeclose', function(event) {
@@ -461,4 +463,5 @@ function GEditWindow(file) {
 	this._refreshTitle();
 	
 	this._window.window('open');
+	this._content.scrollPane('reload');
 }

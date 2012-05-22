@@ -1,0 +1,10 @@
+.webos-gedit {
+	min-width: 100%;
+	min-height: 100%;
+}
+
+.CodeMirror-scroll {
+  min-height: 100%;
+  min-width: 100%;
+  overflow: visible;
+}

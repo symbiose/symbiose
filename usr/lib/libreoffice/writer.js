@@ -11,11 +11,19 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		title: 'LibreOffice Writer',
 		icon: new SIcon('applications/libreoffice-writer'),
 		width: 550,
-		height: 400
+		height: 400,
+		stylesheet: 'usr/share/css/libreoffice/writer.css'
 	});
 	
-	this._container = $('<div></div>', { style: 'width: 100%; height: 100%;' }).appendTo(this._window.window('content'));
-	this._editable = $('<div></div>', { contenteditable: 'true', style: 'min-width: 100%; min-height: 100%;' }).appendTo(this._container.scrollPane('content'));
+	this._container = $('<div></div>').scrollPane({
+		autoReload: true,
+		expand: true
+	}).appendTo(this._window.window('content'));
+	this._editable = $('<div></div>', { 'class': 'editor', contenteditable: 'true' })
+		.keyup(function() {
+			that._container.scrollPane('reload');
+		})
+		.appendTo(this._container.scrollPane('content'));
 	
 	this.supportedExtensions = ['html', 'htm'];
 	this._file = null;
@@ -246,9 +254,6 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		.appendTo(toolbar);
 	
 	this._window.window('open');
-	this._container.scrollPane({
-		autoResize: true
-	});
 	if (typeof file != 'undefined') {
 		this.open(file);
 	} else {
@@ -256,6 +261,6 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 	}
 	
 	if (!this.supported()) {
-		W.Error.trigger('Votre navigateur n\'est pas support&eacute;.', 'Le support de la propri&eacute;t&eacute; HTML5 "contenteditable" est requis.');
+		W.Error.trigger('Votre navigateur n\'est pas support&eacute;, vous &ecirc;tes en mode "lecture seule"', 'Le support de la propri&eacute;t&eacute; HTML5 "contenteditable" est requis pour &eacute;diter les documents.');
 	}
 };

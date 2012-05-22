@@ -369,7 +369,7 @@ function SGnomeShellPanelApplet(data) {
 		
 		var $list = $('#shell .shortcuts .list');
 		$list.scrollPane({
-			autoResize: true
+			autoReload: true
 		}).scrollPane('content').empty();
 		var $applications = $('<ul></ul>').appendTo($list.scrollPane('content'));
 		

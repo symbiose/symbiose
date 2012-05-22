@@ -1,9 +1,9 @@
+.content {
+	color: white !important;
+	background-color: black !important;
+}
+
 .webos-terminal {
-	width: 100%;
-	height: 100%;
-	color: white;
-	background-color: black;
-	overflow: auto;
 	padding: 2px;
 }
 
