@@ -27,6 +27,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 	
 	this.supportedExtensions = ['html', 'htm'];
 	this._file = null;
+	this._saved = false;
 	this._refreshTitle = function() {
 		var filename;
 		if (this._file != null) {
@@ -45,6 +46,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		that._window.window('loading', true);
 		file.getContents(new W.Callback(function(contents) {
 			that._file = file;
+			that._saved = true;
 			that._refreshTitle();
 			that._editable.html(contents);
 			that._window.window('loading', false);
@@ -53,6 +55,46 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			that._window.window('loading', false);
 			response.triggerError('Impossible d\'ouvrir "'+file.getAttribute('path')+'"');
 		}));
+	};
+	this.newFile = function(contents) {
+		if (typeof contents == 'undefined') {
+			contents = '';
+		}
+		
+		this.closeFile(new W.Callback(function() {
+			that._file = null;
+			that._saved = false;
+			that._refreshTitle();
+			that._editable.html(contents);
+			that._container.scrollPane('reload');
+		}, function() {}));
+	};
+	this.closeFile = function(callback) {
+		callback = W.Callback.toCallback(callback);
+		
+		if (this._saved || this._editable.is(':empty')) {
+			callback.success();
+			return;
+		}
+		
+		var filename = (this._file) ? this._file.get('basename') : 'Nouveau fichier';
+		var confirm = $.w.window.confirm({
+			title: 'Enregistrer les modifications',
+			label: 'Voulez-vous enregistrer les modifications du document « '+filename+' » avant de le fermer ?',
+			cancel: function() {
+				callback.success();
+			},
+			confirm: function() {
+				that.save(new W.Callback(function() {
+					callback.success();
+				}, function() {
+					callback.error();
+				}));
+			},
+			cancelLabel: 'Fermer sans enregistrer',
+			confirmLabel: 'Enregistrer'
+		});
+		confirm.window('open');
 	};
 	this.save = function(callback) {
 		callback = W.Callback.toCallback(callback);
@@ -67,16 +109,18 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			that._window.window('loading', true);
 			file.setContents(contents, new W.Callback(function() {
 				that._file = file;
+				that._saved = true;
 				that._refreshTitle();
 				that._window.window('loading', false);
 				callback.success(file);
 			}, function(response) {
 				that._window.window('loading', false);
 				response.triggerError('Impossible d\'enregistrer le fichier "'+file.getAttribute('path')+'"');
+				callback.error(file);
 			}));
 		};
 		
-		if (typeof this._file != 'undefined' && this._file != null) {
+		if (this._file) {
 			saveFn(this._file);
 		} else {
 			new NautilusFileSelectorWindow({
@@ -94,8 +138,11 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 							saveFn(file);
 						}, function(response) {
 							response.triggerError('Impossible d\'enregistrer le fichier "'+path+'"');
+							callback.error();
 						}));
 					}));
+				} else {
+					callback.error();
 				}
 			});
 		}
@@ -113,6 +160,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			that._window.window('loading', true);
 			file.setContents(contents, new W.Callback(function() {
 				that._file = file;
+				that._saved = true;
 				that._refreshTitle();
 				that._window.window('loading', false);
 				callback.success(file);
@@ -252,6 +300,16 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			that.command('outdent');
 		})
 		.appendTo(toolbar);
+	
+	var windowBeforeCloseFn = function(e) {
+		that.closeFile([function() {
+			that._window.window('close');
+		}, function() {
+			that._window.one('windowbeforeclose', windowBeforeCloseFn);
+		}]);
+		e.preventDefault();
+	};
+	this._window.one('windowbeforeclose', windowBeforeCloseFn);
 	
 	this._window.window('open');
 	if (typeof file != 'undefined') {
