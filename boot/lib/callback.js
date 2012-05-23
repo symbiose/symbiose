@@ -75,14 +75,12 @@ Webos.Callback.toCallback = function(arg, replacement) {
 	if (arg instanceof Array) {
 		if (typeof arg[0] == 'function' && typeof arg[1] == 'function') {
 			return new Webos.Callback(arg[0], arg[1]);
-		} else {
-			return new Webos.Callback();
 		}
 	}
 	
 	switch (typeof arg) {
 		case 'function':
-			return new Webos.Callback(arg);
+			return new Webos.Callback(arg, Webos.Callback.toCallback(replacement).error);
 		case 'object':
 			if (typeof arg.success == 'function' && typeof arg.error == 'function') {
 				return new Webos.Callback(arg.success, arg.error);
