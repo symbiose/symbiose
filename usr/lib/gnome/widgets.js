@@ -10,11 +10,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 	options: {
 		title: 'Fen&ecirc;tre',
 		icon: undefined,
-		_components: {},
-		_dimentions: {},
-		_position: {},
-		_scroll: [],
-		_focus: undefined,
 		closeable: true,
 		maximizable: true,
 		hideable: true,
@@ -140,6 +135,13 @@ var windowProperties = $.webos.extend(containerProperties, {
 			this.setHeight(this.options.height);
 		}
 		
+		if (this.options.top) {
+			this.options._content.css('top', this.options.top);
+		}
+		if (this.options.left) {
+			this.options._content.css('left', this.options.left);
+		}
+		
 		if (typeof this.options.workspace == 'undefined') {
 			this.options.workspace = SWorkspace.getCurrent();
 		}
@@ -232,18 +234,11 @@ var windowProperties = $.webos.extend(containerProperties, {
 			that._trigger('afteropen', { type: 'afteropen' }, { window: that.element }); //On declanche l'evenement correspondant
 		});
 		
+		this._trigger('open', { type: 'open' }, { window: this.element });
+		
 		if (this.options.maximized == true) {
-			this.maximize();
-		}
-		
-		if (this.options.top != undefined) {
-			this.options._content.css('top', this.options.top);
-		}
-		if (this.options.left != undefined) {
-			this.options._content.css('left', this.options.left);
-		}
-		
-		if (typeof this.options.top == 'undefined' && typeof this.options.left == 'undefined') { //Si on ne fournit pas la position, on centre la fenetre
+			this.maximize(false);
+		} else if (!this.options.top && !this.options.left) { //Si on ne fournit pas la position, on centre la fenetre
 			this.center(); //On la centre si l'on a pas definit sa position
 		}
 		
@@ -251,10 +246,9 @@ var windowProperties = $.webos.extend(containerProperties, {
 			this.options._components.button.fadeIn('fast');
 		}
 		
+		this._saveDimentions(); //On stocke en memoire ses dimentions
 		this.option('title', this.options.title);
-		this._trigger('open', { type: 'open' }, { window: this.element });
 		this.options.states.opened = true;
-		this._defineDimentions(); //On stocke en memoire ses dimentions
 		this.toForeground(); //On met la fenetre en avant-plan
 	},
 	close: function() {
@@ -296,7 +290,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 			});
 		}
 	},
-	maximize: function() {
+	maximize: function(animate) {
 		if (this.is('maximized')) {
 			return;
 		}
@@ -305,24 +299,31 @@ var windowProperties = $.webos.extend(containerProperties, {
 			return;
 		}
 		
-		this._defineDimentions();
+		if (this.is('opened')) {
+			this._saveDimentions();
+		}
 		
 		var maxHeight = $('#desktop').height();
 		var maxWidth = $('#desktop').width();
+		
+		var duration = 'fast';
+		if (animate == false) {
+			duration = 0;
+		}
 		
 		this.element.animate({
 			width: maxWidth,
 			height: maxHeight,
 			top: 0,
 			left: 0
-		}, 'fast');
+		}, duration);
 		
 		var that = this;
 		
 		this.options._content.addClass('animating').animate({
 			width: maxWidth,
 			height: (maxHeight - that.options._components.header.height())
-		}, 'fast', function() {
+		}, duration, function() {
 			that.element
 				.addClass('maximized')
 				.removeClass('animating');
@@ -358,7 +359,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 				top: position.top,
 				left: position.left
 			}, 'fast', function() {
-				that._defineDimentions();
+				that._saveDimentions();
 				that.element
 					.removeClass('animating')
 					.removeClass('maximized');
@@ -386,7 +387,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 			return;
 		}
 		
-		this._defineDimentions();
+		this._saveDimentions();
 		
 		var buttonBarPosition = this.options._components.button.offset();
 		
@@ -529,8 +530,23 @@ var windowProperties = $.webos.extend(containerProperties, {
 		
 		return false;
 	},
-	_defineDimentions: function() {
+	_saveDimentions: function() {
 		if (this.is('maximized')) {
+			if (!this.options._dimentions) {
+				this.options._dimentions = {
+					width: (this.options.width) ? this.options.width : 100,
+					height: (this.options.height) ? this.options.height : 100
+				};
+			}
+			if (!this.options._position) {
+				this.options._position = {
+					top: (this.options.top) ? this.options.top : ($('#desktop').height() - this.options._dimentions.height) / 2,
+					left: (this.options.left) ? this.options.left : ($('#desktop').width() - this.options._dimentions.width) / 2
+				};
+			}
+			if (!this.options._scroll) {
+				this.options._scroll = [];
+			}
 			return;
 		}
 		
@@ -655,7 +671,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 				minHeight: 150,
 				handles: 'all',
 				stop: function() {
-					that._defineDimentions();
+					that._saveDimentions();
 					that._setTitle(that.options.title);
 					that._trigger('resize', { type: 'resize' }, { window: that.element });
 				}
@@ -721,7 +737,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 				}
 				that.element.css('top', topPos);
 			}
-			that._defineDimentions();
+			that._saveDimentions();
 		});
 	},
 	workspace: function(workspace) {
