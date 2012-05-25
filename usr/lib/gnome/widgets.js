@@ -328,8 +328,8 @@ var windowProperties = $.webos.extend(containerProperties, {
 				.addClass('maximized')
 				.removeClass('animating');
 			
-			that._trigger('maximize', { type: 'maximize' }, { window: that.element });
 			that.options.states.maximized = true;
+			that._trigger('maximize', { type: 'maximize' }, { window: that.element });
 			that._trigger('resize', { type: 'resize' }, { window: that.element });
 		});
 		this.element
