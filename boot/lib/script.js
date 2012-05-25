@@ -44,7 +44,18 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 		return W.ScriptFile.cache[path];
 	}
 	
-	W.ScriptFile.cache[path] = this;
+	this.run = function() {
+		if (this._js) {
+			var js = 'try {'+this._js+"\n"+'} catch(error) { W.Error.catchError(error); }';
+			Webos.Script.runScript(js);
+		}
+	};
+	
+	this._js = null;
+	
+	Webos.ScriptFile.cache[path] = this;
+	
+	var that = this;
 	
 	this.ajax = $.ajax({
 		url: path,
@@ -52,10 +63,10 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 		async: false,
 		dataType: 'text',
 		success: function(js, textStatus, jqXHR) {
-			if (js != '' && js != null) {
-				js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
+			if (js) {
+				that._js = js;
+				that.run();
 			}
-			Webos.Script.runScript(js);
 		}
 	});
 };
