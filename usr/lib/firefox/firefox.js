@@ -1,35 +1,14 @@
-function FirefoxWindow() {
-	this.window = $.w.window({
+function FirefoxWindow(url) {
+	this._window = $.w.window({
 		title: 'Firefox',
+		icon: new SIcon('applications/firefox'),
 		width: 500,
 		height: 400,
+		maximized: true,
 		stylesheet: 'usr/share/css/firefox/main.css'
 	});
 	
 	var that = this;
-	
-	this._toolbar = $.w.toolbarWindowHeader().appendTo(this.window.window('header'));
-	$.w.toolbarWindowHeaderItem('<-')
-		.click(function() {
-			that.previous();
-		})
-		.appendTo(this._toolbar);
-	$.w.toolbarWindowHeaderItem('->')
-		.click(function() {
-			that.next();
-		})
-		.appendTo(this._toolbar);
-	
-	this._urlInput = $('<input />', { type: 'text' })
-		.keydown(function(e) {
-			if (e.keyCode == 13) {
-				that.browse($(this).val());
-				e.preventDefault();
-			}
-		})
-		.appendTo(this._toolbar);
-	
-	var windowsContent = this.window.window('content');
 	
 	this.history = [];
 	this.historyLocation = -1;
@@ -63,7 +42,7 @@ function FirefoxWindow() {
 	};
 	
 	this.browse = function(location) {
-		var url;
+		var url = '';
 		if (typeof location == 'string') {
 			url = location;
 			this.history.push(url);
@@ -71,37 +50,53 @@ function FirefoxWindow() {
 		} else if (typeof this.history[location] != 'undefined') {
 			url = this.history[location];
 		}
-		
-		if (typeof this._iframe != 'undefined') {
-			this._iframe.remove();
-		}
-		
-		this._urlInput.val(url);
-		
 		if (url == 'about:startpage') {
 			url = 'http://www.duckduckgo.com/?kd=-1&kn=-1';
 		}
 		
-		this._iframe = $('<iframe></iframe>', { src: url }).appendTo(windowsContent);
+		if (typeof this._iframe != 'undefined') {
+			this._iframe.empty().remove();
+		}
 		
-		this._iframe.load(function() {
-			/*var iframeEl = that._iframe[0];
-			if ( iframeEl.contentDocument ) { // DOM
-			    var iframeContent = $(iframeEl.contentDocument);
-			} else if ( iframeEl.contentWindow ) { // IE win
-			    var iframeContent = $(iframeEl.contentWindow.document);
+		this._urlInput.removeClass('unsynced').val(url);
+		
+		this._iframe = $('<iframe></iframe>', { src: url }).appendTo(this._window.window('content'));
+		
+		var loaded = false;
+		this._iframe.unload(function() {
+			
+		}).load(function() {
+			if (loaded) {
+				that._urlInput.addClass('unsynced');
 			}
-			
-			iframeContent.find('body').append('<a href="./servercall.php">Test !</a>');
-			
-			iframeContent.find('a').css('color','red').click(function(e) {
-				that.browse($(this).attr('href'));
-				e.preventDefault();
-			});*/
+			loaded = true;
+		}).error(function() {
+			W.Error.trigger('Impossible d\'afficher la page : une erreur du navigateur est survenue.');
 		});
 	};
 	
-	this.window.window('open');
+	this._toolbar = $.w.toolbarWindowHeader().appendTo(this._window.window('header'));
+	$.w.toolbarWindowHeaderItem('', new SIcon('actions/go-previous'))
+		.click(function() {
+			that.previous();
+		})
+		.appendTo(this._toolbar);
+	$.w.toolbarWindowHeaderItem('', new SIcon('actions/go-next'))
+		.click(function() {
+			that.next();
+		})
+		.appendTo(this._toolbar);
+	
+	this._urlInput = $('<input />', { type: 'text' })
+		.keydown(function(e) {
+			if (e.keyCode == 13) {
+				that.browse($(this).val());
+				e.preventDefault();
+			}
+		})
+		.appendTo($('<li></li>', { 'class': 'input-container' }).appendTo(this._toolbar));
+	
+	this._window.window('open');
 	
 	if (typeof url != 'undefined') {
 		this.browse(url);
