@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Navigateur Web Firefox"/>
+	<attribute name="description" value="Naviguer sur le Web"/>
+	<attribute name="command" value="firefox"/>
+	<attribute name="icon" value="applications/firefox"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="internet"/>
+	<attribute name="open" value="html,htm"/>
+</shortcut>
