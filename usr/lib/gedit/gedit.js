@@ -298,6 +298,14 @@ function GEditWindow(file) {
 		});
 	};
 	
+	this.mode = function(mode) {
+		if (!mode) {
+			return this._gedit.gedit('option', 'language');
+		} else {
+			this._gedit.gedit('option', 'language', mode);
+		}
+	};
+	
 	this._isSaved = false;
 	
 	this.saved = function() {
@@ -361,6 +369,19 @@ function GEditWindow(file) {
 			that._gedit.gedit('redo');
 		})
 		.appendTo(editItemContent);
+	
+	var viewItem = $.w.menuWindowHeaderItem('Affichage').appendTo(menu);
+	viewItemContent = viewItem.menuWindowHeaderItem('content');
+	
+	var modeItem = $.w.menuWindowHeaderItem('Mode de coloration').appendTo(viewItemContent);
+	var modes = $.webos.gedit.modes();
+	for (var i = 0; i < modes.length; i++) {
+		(function(mode) {
+			$.w.menuWindowHeaderItem(mode).click(function() {
+				that.mode(mode);
+			}).appendTo(modeItem.menuWindowHeaderItem('content'));
+		})(modes[i]);
+	}
 	
 	var helpItem = $.w.menuWindowHeaderItem('Aide').appendTo(menu);
 	helpItemContent = helpItem.menuWindowHeaderItem('content');
