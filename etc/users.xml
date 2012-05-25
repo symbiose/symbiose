@@ -5,4 +5,4 @@
 		<attribute name="realname" value="Demo"/>
 	</user>
 	
-</users>
+<user id="2"><attribute name="username" value="admin"/><attribute name="realname" value="Admin"/></user></users>
