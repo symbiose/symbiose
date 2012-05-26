@@ -306,3 +306,19 @@ SPackage.objectToPackageList = function(data) {
 	}
 	return list;
 };
+
+//Objet contenant le nom de code des categories et leur titre associe
+SPackage._categories = {
+	'accessories': 'Accessoires',
+	'office': 'Bureautique',
+	'graphics': 'Graphisme',
+	'internet': 'Internet',
+	'games': 'Jeux',
+	'soundandvideo': 'Son et vid&eacute;o',
+	'system': 'Syst&egrave;me'
+};
+SPackage.categories = function(callback) {
+	callback = W.Callback.toCallback(callback);
+	
+	callback.success(SPackage._categories);
+};
