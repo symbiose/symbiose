@@ -1261,6 +1261,7 @@ $.webos.passwordEntry = function(label) {
 var textAreaEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
 	_name: 'textarea-entry',
 	_create: function() {
+		this.element.append('<br />');
 		this.options._content = $('<textarea></textarea>');
 		this.element.append(this.options._content);
 		
