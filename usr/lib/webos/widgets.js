@@ -792,6 +792,70 @@ var listProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		this.options._components.head.children('tr').append($('<td></td>').html(value));
 	},
+	column: function(id, content) {
+		var column;
+		if (typeof id == 'undefined') {
+			column = this.addColumn();
+		} else {
+			column = this.options._components.head.children('td')[id];
+			if (typeof column == 'undefined') {
+				column = this.addColumn();
+			}
+		}
+		
+		if (typeof content != 'undefined') {
+			column.html(content);
+		}
+		
+		return column;
+	},
+	sort: function(column, invert) {
+		if (!column) {
+			column = 0;
+		}
+		
+	    var items = this.content().children();
+	    var itemsArray = $.makeArray(items);
+	    itemsArray.sort(function(a, b) {
+	    	a = $(a).text();
+	    	b = $(b).text();
+	    	for (var i = 0, aa, bb; (aa = a[i]) && (bb = b[i]); i++) {
+	    		if (aa !== bb) {
+	    			var c = Number(aa), d = Number(bb);
+	    			if (c == aa && d == bb) {
+	    				return c - d;
+	    			} else {
+	    				return (aa > bb) ? 1 : -1;
+	    			}
+	    		}
+	    	}
+	    	return a.length - b.length;
+	    });
+	    
+	    if (invert) {
+	    	itemsArray.reverse();
+	    }
+	    
+	    var that = this;
+	    
+	    var sortedItems = [];
+	    
+	    items.each(function() {
+	    	var item = $(this);
+	    	var currentIndex = item.index(), index = jQuery.inArray(this, itemsArray);
+	    	item.detach();
+	    	
+    		for (var i = index - 1; i >= 0; i--) {
+    			if (jQuery.inArray(i, sortedItems) != -1) {
+    				item.insertAfter(itemsArray[i]);
+    				sortedItems.push(index);
+    				return;
+    			}
+    		}
+    		item.prependTo(that.content());
+    		sortedItems.push(index);
+	    });
+	},
 	addButton: function(button) {
 		if (typeof this.options._components.buttonContainer == 'undefined') {
 			this.options._components.buttonContainer = $.w.buttonContainer().appendTo(this.element);
@@ -863,7 +927,7 @@ var listItemProperties = $.webos.extend($.webos.properties.get('container'), {
 		if (typeof id == 'undefined') {
 			column = this.addColumn();
 		} else {
-			column = this.content().find('td')[id];
+			column = this.content().children('td')[id];
 			if (typeof column == 'undefined') {
 				column = this.addColumn();
 			}
