@@ -605,21 +605,21 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		return this.options.directory;
 	},
 	_getFileIcon: function(file, state) {
-		var iconName = 'files/unknown';
+		var iconName = 'mimes/unknown';
 		
-		var exts = ['png', 'gif', 'jpeg', 'jpg', 'bmp', 'ico', 'js', 'mp3', 'ogv', 'tiff', 'php', 'ogg', 'mp4'];
+		var exts = ['png', 'gif', 'jpeg', 'jpg', 'bmp', 'ico', 'js', 'mp3', 'ogv', 'tiff', 'php', 'ogg', 'mp4', 'html', 'zip', 'txt'];
 		for(var i = 0; i < exts.length; i++) {
 			if (exts[i] == file.getAttribute('extension')) {
-				iconName = 'files/'+file.getAttribute('extension');
+				iconName = 'mimes/'+file.getAttribute('extension');
 				break;
 			}
 		}
 		
 		if (file.getAttribute('is_dir')) {
-			iconName = 'files/folder';
+			iconName = 'mimes/folder';
 			
 			if (state == 'dropover') {
-				iconName = 'files/folder-open';
+				iconName = 'mimes/folder-open';
 			}
 		}
 		
