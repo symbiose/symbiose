@@ -46,6 +46,9 @@ $.webos.widget = function(widget, arg1, arg2) {
 	
 	$.widget('weboswidgets.'+widget, properties);
 };
+$.webos.widget.is = function(widget, name) {
+	return $(widget).is(':weboswidgets-' + name);
+};
 var widgetProperties = {
 	_name: 'widget',
 	options: {
@@ -111,8 +114,8 @@ $.webos.extend = function(parent, child) {
 	}
 	return child;
 };
-/**
-* @todo Enlever les widgets crees par le processus.
+/*
+* TODO: Enlever les widgets crees par le processus.
 */
 $.webos.stopProcess = function(proc) {
 	var widgets = $.webos.getWidgets();
