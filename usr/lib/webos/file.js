@@ -81,22 +81,29 @@ Webos.File.prototype = {
 			}
 		}).load(callback);
 	},
-	getContents: function(userCallback) {
+	contents: function(userCallback) {
 		var that = this;
 		userCallback = Webos.Callback.toCallback(userCallback);
 		
-		var callback = new Webos.Callback(function(response) {
-			userCallback.success(response.getStandardChannel(), that);
-		}, function(response) {
-			userCallback.error(response, that);
-		});
-		new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'getContents',
-			arguments: {
-				file: that.getAttribute('path')
-			}
-		}).load(callback);
+		if (this.get('is_dir')) {
+			return Webos.File.listDir(this.get('path'), userCallback);
+		} else {
+			var callback = new Webos.Callback(function(response) {
+				userCallback.success(response.getStandardChannel(), that);
+			}, function(response) {
+				userCallback.error(response, that);
+			});
+			new Webos.ServerCall({
+				'class': 'FileController',
+				method: 'getContents',
+				arguments: {
+					file: that.getAttribute('path')
+				}
+			}).load(callback);
+		}
+	},
+	getContents: function(callback) {
+		return this.contents(callback);
 	},
 	setContents: function(contents, userCallback) {
 		var that = this;
