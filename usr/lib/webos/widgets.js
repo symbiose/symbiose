@@ -797,8 +797,8 @@ var listProperties = $.webos.extend($.webos.properties.get('container'), {
 		if (typeof id == 'undefined') {
 			column = this.addColumn();
 		} else {
-			column = this.options._components.head.children('td')[id];
-			if (typeof column == 'undefined') {
+			column = $(this.options._components.head.children('td')[id]);
+			if (column.length == 0) {
 				column = this.addColumn();
 			}
 		}
@@ -930,8 +930,8 @@ var listItemProperties = $.webos.extend($.webos.properties.get('container'), {
 		if (typeof id == 'undefined') {
 			column = this.addColumn();
 		} else {
-			column = this.content().children('td')[id];
-			if (typeof column == 'undefined') {
+			column = $(this.content().children('td')[id]);
+			if (column.length == 0) {
 				column = this.addColumn();
 			}
 		}
