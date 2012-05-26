@@ -863,8 +863,11 @@ var listProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		this.options._components.buttonContainer.append(button);
 	},
+	items: function() {
+		return this.content().children();
+	},
 	selection: function() {
-		return this.options._content.children('.active');
+		return this.items().filter('.active');
 	},
 	_update: function(key, value) {
 		switch(key) {
