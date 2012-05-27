@@ -1002,12 +1002,16 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 			selection = selection[0];
 		}
 		if (!this.options.exists) {
-			selection = that.options._components.nautilus.nautilus('location')+'/'+that.options._components.filename.textEntry('content').val();
+			var filename = that.options._components.filename.textEntry('content').val();
+			if (!filename) {
+				filename = 'file';
+			}
+			selection = that.options._components.nautilus.nautilus('location')+'/'+filename;
 		}
 		if (typeof selection == 'undefined' || selection.length == 0) {
 			return;
 		}
-		that._trigger('select', null, { selection: selection });
+		that._trigger('select', null, { selection: selection, parentDir: that.options._components.nautilus.nautilus('location') });
 	},
 	nautilus: function() {
 		return this.options._components.nautilus;
@@ -1085,13 +1089,17 @@ function NautilusFileSelectorWindow(options, userCallback) {
 	
 	var that = this;
 	
+	this._callbackCalled = false;
+	
 	this._nautilus = $.w.nautilusFileSelector({
 		select: function(event, data) {
 			that._window.window('close');
+			that._callbackCalled = true;
 			userCallback(data.selection);
 		},
 		cancel: function() {
 			that._window.window('close');
+			that._callbackCalled = true;
 			userCallback();
 		},
 		selectDirs: options.selectDirs,
@@ -1107,8 +1115,10 @@ function NautilusFileSelectorWindow(options, userCallback) {
 	
 	this._nautilus.appendTo(this._window.window('content'));
 	
-	this._window.bind('close', function() {
-		userCallback();
+	this._window.bind('windowclose', function() {
+		if (!that._callbackCalled) {
+			userCallback();
+		}
 	});
 	
 	this._refreshHeader = function(dir) {
@@ -1147,8 +1157,13 @@ function NautilusFileSelectorWindow(options, userCallback) {
 		headers.append(this._toolbar);
 	};
 	
-	this._nautilus.bind('nautilusreadstart', function() {
-		that._refreshHeader(nautilus.nautilus('location'));
+	nautilus.bind('nautilusreadstart', function(e, data) {
+		that._refreshHeader(data.location);
+		that._window.window('loading', true);
+	}).bind('nautilusreadcomplete', function() {
+		that._window.window('loading', false);
+	}).bind('nautilusreaderror', function(e, data) {
+		that._refreshHeader(data.location);
 	});
 	
 	this._refreshHeader(nautilus.nautilus('location'));
