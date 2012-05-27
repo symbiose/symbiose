@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Créateur de paquets Quickly"/>
+	<attribute name="description" value="Générer rapidement des paquets"/>
+	<attribute name="command" value="quickly"/>
+	<attribute name="icon" value="mimes/package"/>
+	<attribute name="menu" value="system"/>
+	<attribute name="category" value="administration"/>
+</shortcut>
