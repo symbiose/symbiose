@@ -1,13 +1,23 @@
 Webos.File = function WFile(data) {
+	if (!data.dirname) {
+		data.dirname = data.path.replace(/\/[^\/]*\/?$/, '');
+	}
+	if (!data.realpath) {
+		data.realpath = 'sbin/filecall.php?file='+data.path;
+	}
+	if (!data.basename) {
+		data.basename = data.path.replace(/^.*[\/\\]/g, '');
+	}
+	
 	Webos.Model.call(this, data);
 };
 Webos.File.prototype = {
-	_reloadData: function(userCallback) {
+	load: function(userCallback) {
 		var that = this;
 		userCallback = Webos.Callback.toCallback(userCallback);
 		
-		Webos.File.clearCache(that.getAttribute('path'));
-		Webos.File.get(that.getAttribute('path'), new Webos.Callback(function(file) {
+		Webos.File.clearCache(that.get('path'));
+		Webos.File.load(that.get('path'), new Webos.Callback(function(file) {
 			var updatedData = {};
 			for (var key in file.data()) {
 				if (this.get(key) !== file.data()[key]) {
@@ -28,8 +38,8 @@ Webos.File.prototype = {
 		userCallback = Webos.Callback.toCallback(userCallback);
 		
 		var callback = new Webos.Callback(function() {
-			that.data.path = that.getAttribute('dirname')+'/'+newName;
-			that._reloadData(userCallback.error);
+			that.data.path = that.get('dirname')+'/'+newName;
+			that.load(userCallback.error);
 		}, function(response) {
 			userCallback.error(response, that);
 		});
@@ -37,7 +47,7 @@ Webos.File.prototype = {
 			'class': 'FileController',
 			method: 'rename',
 			arguments: {
-				file: that.getAttribute('path'),
+				file: that.get('path'),
 				newName: newName
 			}
 		}).load(callback);
@@ -63,8 +73,8 @@ Webos.File.prototype = {
 			'class': 'FileController',
 			method: 'move',
 			arguments: {
-				file: that.getAttribute('path'),
-				dest: dest.getAttribute('path')
+				file: that.get('path'),
+				dest: dest.get('path')
 			}
 		}).load(callback);
 	},
@@ -82,51 +92,75 @@ Webos.File.prototype = {
 			'class': 'FileController',
 			method: 'delete',
 			arguments: {
-				file: that.getAttribute('path')
+				file: that.get('path')
 			}
 		}).load(callback);
 	},
-	contents: function(userCallback) {
+	contents: function(callback) {
 		var that = this;
-		userCallback = Webos.Callback.toCallback(userCallback);
+		callback = Webos.Callback.toCallback(callback);
 		
 		if (this.get('is_dir')) {
-			return Webos.File.listDir(this.get('path'), userCallback);
-		} else {
-			var callback = new Webos.Callback(function(response) {
-				userCallback.success(response.getStandardChannel(), that);
-			}, function(response) {
-				userCallback.error(response, that);
-			});
 			new Webos.ServerCall({
 				'class': 'FileController',
 				method: 'getContents',
 				arguments: {
-					file: that.getAttribute('path')
+					dir: this.get('path')
 				}
-			}).load(callback);
+			}).load(new Webos.Callback(function(response) {
+				var data = response.getData();
+				var list = [];
+				for(var key in data) {
+					var file = new Webos.File(data[key]);
+					if (Webos.File._cache[file.get('path')]) {
+						Webos.File._cache[file.get('path')].hydrate(file.data());
+						file = Webos.File._cache[file.get('path')];
+						Webos.File.notify('load', { file: file });
+					} else {
+						Webos.File._cache[file.get('path')] = file;
+					}
+					list.push(file);
+				}
+				callback.success(list);
+			}, function(response) {
+				callback.error(response);
+			}));
+		} else {
+			new Webos.ServerCall({
+				'class': 'FileController',
+				method: 'getContents',
+				arguments: {
+					file: that.get('path')
+				}
+			}).load(new Webos.Callback(function(response) {
+				callback.success(response.getStandardChannel(), that);
+			}, function(response) {
+				callback.error(response, that);
+			}));
 		}
 	},
 	getContents: function(callback) {
 		return this.contents(callback);
 	},
-	setContents: function(contents, userCallback) {
+	setContents: function(contents, callback) {
 		var that = this;
-		userCallback = Webos.Callback.toCallback(userCallback);
+		callback = Webos.Callback.toCallback(callback);
 		
-		var callback = new Webos.Callback(function(response) {
-			userCallback.success(that);
-		}, function(response) {
-			userCallback.error(response, that);
-		});
 		new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'setContents',
 			arguments: {
-				file: that.getAttribute('path'),
+				file: that.get('path'),
 				contents: contents
 			}
-		}).load(callback);
+		}).load(new Webos.Callback(function() {
+			callback.success();
+		}, function(response) {
+			callback.error(response);
+		}));
+	},
+	toString: function() {
+		return this.get('path');
 	}
 };
 Webos.inherit(Webos.File, Webos.Model);
@@ -134,13 +168,33 @@ Webos.inherit(Webos.File, Webos.Model);
 Webos.Observable.build(Webos.File);
 
 Webos.File._cache = {};
-Webos.File.get = function(path, userCallback) {
-	userCallback = Webos.Callback.toCallback(userCallback);
+Webos.File.get = function(file, data) {
+	path = String(file);
+	
+	if (Webos.File._cache[path]) {
+		return Webos.File._cache[path];
+	} else if (file instanceof Webos.File) {
+		return file;
+	} else {
+		return new Webos.File($.extend({}, data, {
+			path: path
+		}));
+	}
+};
+Webos.File.load = function(path, callback) {
+	path = String(path);
+	callback = Webos.Callback.toCallback(callback);
 	
 	if (typeof Webos.File._cache[path] != 'undefined') {
-		userCallback.success(Webos.File._cache[path]);
+		callback.success(Webos.File._cache[path]);
 	} else {
-		var callback = new Webos.Callback(function(response) {
+		new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'getData',
+			arguments: {
+				file: path
+			}
+		}).load(new Webos.Callback(function(response) {
 			var file = new Webos.File(response.getData());
 			
 			if (typeof Webos.File._cache[file.getAttribute('path')] != 'undefined') {
@@ -151,49 +205,18 @@ Webos.File.get = function(path, userCallback) {
 				Webos.File._cache[file.getAttribute('path')] = file;
 			}
 			
-			userCallback.success(file);
-		}, function(response) {
-			userCallback.error(response);
-		});
-		
-		new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'getData',
-			arguments: {
-				file: path
-			}
-		}).load(callback);
+			callback.success(file);
+		}, callback.error));
 	}
 };
-Webos.File.listDir = function(path, userCallback) {
-	userCallback = Webos.Callback.toCallback(userCallback);
+Webos.File.listDir = function(path, callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
-	var callback = new Webos.Callback(function(response) {
-		var data = response.getData();
-		var list = [];
-		for(var key in data) {
-			var file = new Webos.File(data[key]);
-			if (typeof Webos.File._cache[file.getAttribute('path')] != 'undefined') {
-				Webos.File._cache[file.getAttribute('path')].hydrate(file.data());
-				file = Webos.File._cache[file.getAttribute('path')];
-				Webos.File.notify('load', { file: file });
-			} else {
-				Webos.File._cache[file.getAttribute('path')] = file;
-			}
-			list.push(file);
-		}
-		userCallback.success(list);
-	}, function(response) {
-		userCallback.error(response);
-	});
-	
-	new Webos.ServerCall({
-		'class': 'FileController',
-		method: 'getContents',
-		arguments: {
-			dir: path
-		}
-	}).load(callback);
+	var file = Webos.File.get(path, { is_dir: true });
+
+	file.contents([function(list) {
+		callback.success(list);
+	}, callback.error]);
 };
 Webos.File.createFile = function(path, userCallback) {
 	userCallback = Webos.Callback.toCallback(userCallback);
