@@ -42,13 +42,19 @@ Webos.File.prototype = {
 			}
 		}).load(callback);
 	},
+	_remove: function() {
+		this.notify('remove');
+		Webos.File.notify('remove', { file: this });
+		
+		Webos.File.clearCache(this.get('path'));
+		delete this;
+	},
 	move: function(dest, userCallback) {
 		var that = this;
 		userCallback = Webos.Callback.toCallback(userCallback);
 		
 		var callback = new Webos.Callback(function() {
-			that.notify('remove');
-			delete that;
+			that._remove();
 			userCallback.success(dest);
 		}, function(response) {
 			userCallback.error(response, that);
@@ -67,8 +73,7 @@ Webos.File.prototype = {
 		userCallback = Webos.Callback.toCallback(userCallback);
 		
 		var callback = new Webos.Callback(function() {
-			that.notify('remove');
-			delete that;
+			that._remove();
 			userCallback.success();
 		}, function(response) {
 			userCallback.error(response, that);
@@ -126,21 +131,24 @@ Webos.File.prototype = {
 };
 Webos.inherit(Webos.File, Webos.Model);
 
-Webos.File.cache = {};
+Webos.Observable.build(Webos.File);
+
+Webos.File._cache = {};
 Webos.File.get = function(path, userCallback) {
 	userCallback = Webos.Callback.toCallback(userCallback);
 	
-	if (typeof Webos.File.cache[path] != 'undefined') {
-		userCallback.success(Webos.File.cache[path]);
+	if (typeof Webos.File._cache[path] != 'undefined') {
+		userCallback.success(Webos.File._cache[path]);
 	} else {
 		var callback = new Webos.Callback(function(response) {
 			var file = new Webos.File(response.getData());
 			
-			if (typeof Webos.File.cache[file.getAttribute('path')] != 'undefined') {
-				Webos.File.cache[file.getAttribute('path')].hydrate(file.data());
-				file = Webos.File.cache[file.getAttribute('path')];
+			if (typeof Webos.File._cache[file.getAttribute('path')] != 'undefined') {
+				Webos.File._cache[file.getAttribute('path')].hydrate(file.data());
+				file = Webos.File._cache[file.getAttribute('path')];
+				Webos.File.notify('load', { file: file });
 			} else {
-				Webos.File.cache[file.getAttribute('path')] = file;
+				Webos.File._cache[file.getAttribute('path')] = file;
 			}
 			
 			userCallback.success(file);
@@ -165,11 +173,12 @@ Webos.File.listDir = function(path, userCallback) {
 		var list = [];
 		for(var key in data) {
 			var file = new Webos.File(data[key]);
-			if (typeof Webos.File.cache[file.getAttribute('path')] != 'undefined') {
-				Webos.File.cache[file.getAttribute('path')].hydrate(file.data());
-				file = Webos.File.cache[file.getAttribute('path')];
+			if (typeof Webos.File._cache[file.getAttribute('path')] != 'undefined') {
+				Webos.File._cache[file.getAttribute('path')].hydrate(file.data());
+				file = Webos.File._cache[file.getAttribute('path')];
+				Webos.File.notify('load', { file: file });
 			} else {
-				Webos.File.cache[file.getAttribute('path')] = file;
+				Webos.File._cache[file.getAttribute('path')] = file;
 			}
 			list.push(file);
 		}
@@ -191,7 +200,8 @@ Webos.File.createFile = function(path, userCallback) {
 	
 	var callback = new Webos.Callback(function(response) {
 		var file = new Webos.File(response.getData());
-		Webos.File.cache[file.getAttribute('path')] = file;
+		Webos.File._cache[file.getAttribute('path')] = file;
+		Webos.File.notify('create', { file: file });
 		userCallback.success(file);
 	}, function(response) {
 		userCallback.error(response);
@@ -210,7 +220,8 @@ Webos.File.createFolder = function(path, userCallback) {
 	
 	var callback = new Webos.Callback(function(response) {
 		var file = new Webos.File(response.getData());
-		Webos.File.cache[file.getAttribute('path')] = file;
+		Webos.File._cache[file.getAttribute('path')] = file;
+		Webos.File.notify('create', { file: file });
 		userCallback.success(file);
 	}, function(response) {
 		userCallback.error(response);
@@ -226,9 +237,9 @@ Webos.File.createFolder = function(path, userCallback) {
 };
 Webos.File.clearCache = function(path) {
 	if (typeof path == 'undefined') {
-		Webos.File.cache = {};
+		Webos.File._cache = {};
 	} else {
-		delete Webos.File.cache[path];
+		delete Webos.File._cache[path];
 	}
 };
 Webos.File.cleanPath = function(path) {
