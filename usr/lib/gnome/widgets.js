@@ -913,6 +913,72 @@ $.webos.window.confirm = function(opts) {
 	return confirm;
 };
 
+$.webos.window.messageDialog = function(opts) {
+	if (!opts) {
+		opts = {};
+	}
+	
+	var defaults = {
+		type: 'information',
+		title: 'Message',
+		label: '',
+		details: '',
+		closeLabel: 'Fermer'
+	};
+	
+	switch (opts.type) {
+		case 'information':
+			defaults.title = 'Information';
+			break;
+		case 'error':
+			defaults.title = 'Erreur';
+			defaults.label = 'Une erreur est survenue.';
+			break;
+		case 'warning':
+			defaults.title = 'Attention';
+			break;
+	}
+	
+	var options = $.extend(defaults, opts);
+	
+	var dialog = $.webos.window.dialog({
+		title: options.title,
+		parentWindow: options.parentWindow,
+		resizable: false,
+		hideable: false,
+		width: 450
+	});
+	
+	var contents = dialog.window('content');
+	
+	var icon = new SIcon('status/info');
+	switch (options.type) {
+		case 'information':
+			icon = new SIcon('status/info');
+			break;
+		case 'error':
+			icon = new SIcon('status/error');
+			break;
+		case 'warning':
+			icon = new SIcon('status/warning');
+			break;
+	}
+	
+	$.w.image(icon).css('float', 'left').appendTo(contents);
+	$('<strong></strong>').html(options.label).appendTo(contents);
+	
+	if (options.details) {
+		$.w.label(options.details).css('clear', 'both').appendTo(contents);
+	}
+	
+	var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(contents);
+	$.w.button(options.closeLabel).click(function() {
+		dialog.window('close');
+	}).appendTo(buttonContainer);
+
+	return dialog;
+};
+
 //Nombre de caracteres qui seront en degrade si le titre d'une fenetre est trop long
 $.webos.window.windowsTitleGradientLength = 5;
 
