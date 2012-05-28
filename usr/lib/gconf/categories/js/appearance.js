@@ -82,7 +82,7 @@ var themesList = {};
 themesList[STheme.current.desktop()] = STheme.current.desktop();
 var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'interface utilisateur : ', themesList)
 	.change(function() {
-		var theme = themeSelector.selectButton('selection');
+		var theme = themeSelector.selectButton('value');
 		confWindow.window('loading', true);
 		STheme.current.changeDesktop(theme, new W.Callback(function() {
 			confWindow.window('loading', false);
@@ -97,7 +97,7 @@ var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'int
 			}).window('open');
 		}, function(response) {
 			confWindow.window('loading', false);
-			themeSelector.selectButton('selection', STheme.current.desktop());
+			themeSelector.selectButton('value', STheme.current.desktop());
 			response.triggerError('Impossible de modifier le th&egrave;me');
 		}));
 	})
@@ -111,7 +111,35 @@ STheme.getAvailable(function(themes) {
 	}
 	themeSelector
 		.selectButton('option', 'choices', themesList)
-		.selectButton('selection', STheme.current.desktop());
+		.selectButton('value', STheme.current.desktop());
+});
+
+var iconsList = {};
+iconsList[STheme.current.icons()] = STheme.current.icons();
+var iconsSelector = $.w.selectButton('Th&egrave;me des ic&ocirc;nes : ', iconsList)
+	.change(function() {
+		var icons = iconsSelector.selectButton('value');
+		confWindow.window('loading', true);
+		STheme.current.changeIcons(icons, new W.Callback(function() {
+			confWindow.window('loading', false);
+		}, function(response) {
+			confWindow.window('loading', false);
+			iconsSelector.selectButton('value', STheme.current.icons());
+			response.triggerError('Impossible de modifier le th&egrave;me');
+		}));
+	})
+	.appendTo(themeContainer);
+W.File.listDir(STheme.iconsDir, function(list) {
+	var iconsThemes = {};
+	for (var i = 0; i < list.length; i++) {
+		var file = list[i];
+		if (file.get('is_dir')) {
+			iconsThemes[file.get('basename')] = file.get('basename');
+		}
+	}
+	iconsSelector
+		.selectButton('option', 'choices', iconsThemes)
+		.selectButton('value', STheme.current.icons());
 });
 
 var animationsSelector = $.w.switchButton('Animations : ', STheme.current.animations())
