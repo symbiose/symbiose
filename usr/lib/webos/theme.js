@@ -113,11 +113,30 @@ function STheme(desktop, icons, background, animations) {
 			callback.error(response);
 		}));
 	};
+	this.changeIcons = function(icons, callback) {
+		callback = W.Callback.toCallback(callback);
+		
+		new W.ServerCall({
+			'class': 'ThemeController',
+			'method': 'change',
+			'arguments': {
+				'component': 'icons',
+				'value': icons,
+				'ui': W.UserInterface.current.name()
+			}
+		}).load(new W.Callback(function() {
+			that._data.icons = icons;
+			callback.success();
+		}, function(response) {
+			callback.error(response);
+		}));
+	};
 }
 
 STheme.current = new STheme('ambiance', 'humanity', 'default', true);
 STheme.backgroundsDir = '/usr/share/images/backgrounds/';
 STheme.defaultBackground = 'usr/share/images/backgrounds/default.png';
+STheme.iconsDir = '/usr/share/icons/themes/';
 STheme.getAvailable = function(callback) {
 	callback = W.Callback.toCallback(callback);
 	
