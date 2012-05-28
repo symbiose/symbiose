@@ -1,17 +1,19 @@
 // Permet de creer un objet contenant un callback en cas de succes et un callback en cas d'erreur
 Webos.Callback = function WCallback(successCallback, errorCallback) {
+	var that = this;
+	
 	this.callbacks = { //Callbacks
 		success: {
 			callback: function() {}, //La fonction
 			arguments: [],
-			context: window //Le contexte
+			context: null //Le contexte
 		},
 		error: {
 			callback: function(error) {
 				W.Error.trigger(error);
 			}, //La fonction
 			arguments: [],
-			context: window //Le contexte
+			context: null //Le contexte
 		}
 	};
 	
@@ -30,10 +32,10 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 		for (var i = 0; i < arguments.length; i++) {
 			args.push(arguments[i]);
 		}
-		args = args.concat(this.callbacks.success.arguments);
+		args = args.concat(that.callbacks.success.arguments);
 		
 		//On execute le callback
-		return this.callbacks.success.callback.apply(this.callbacks.success.context, args);
+		return that.callbacks.success.callback.apply(that.callbacks.success.context, args);
 	};
 	
 	this.error = function() { //Execution du callback d'erreurs
@@ -41,10 +43,10 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 		for (var i = 0; i < arguments.length; i++) {
 			args.push(arguments[i]);
 		}
-		args = args.concat(this.callbacks.error.arguments);
+		args = args.concat(that.callbacks.error.arguments);
 		
 		//On execute le callback
-		return this.callbacks.error.callback.apply(this.callbacks.error.context, args);
+		return that.callbacks.error.callback.apply(that.callbacks.error.context, args);
 	};
 	
 	this.addParam = function(value, callback) {
