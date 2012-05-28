@@ -168,7 +168,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 				exists: false
 			}, function(path) {
 				if (typeof path != 'undefined') {
-					W.File.get(path, new W.Callback(function(file) {
+					W.File.load(path, new W.Callback(function(file) {
 						saveFn(file);
 					}, function(response) {
 						if (!(new RegExp('\.('+that.supportedExtensions.join('|')+')$')).test(path)) {
@@ -215,7 +215,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			exists: false
 		}, function(path) {
 			if (typeof path != 'undefined') {
-				W.File.get(path, new W.Callback(function(file) {
+				W.File.load(path, new W.Callback(function(file) {
 					saveFn(file);
 				}, function(response) {
 					if (!(new RegExp('\.('+that.supported.join('|')+')$')).test(path)) {

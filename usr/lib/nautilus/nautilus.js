@@ -151,7 +151,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				that.createFile('Nouveau fichier');
 			}).appendTo(contextmenu);
 			$.webos.contextMenuItem('T&eacute;l&eacute;charger', true).click(function() {
-				W.File.get(dir, new W.Callback(function(file) {
+				W.File.load(dir, new W.Callback(function(file) {
 					that._download(file);
 				}));
 			}).appendTo(contextmenu);
@@ -162,7 +162,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				that.refresh();
 			}).appendTo(contextmenu);
 			$.webos.contextMenuItem('Propri&eacute;t&eacute;s', true).click(function() {
-				W.File.get(that.options.directory, new W.Callback(function(file) {
+				W.File.load(that.options.directory, new W.Callback(function(file) {
 					that._openProperties(file);
 				}));
 			}).appendTo(contextmenu);
@@ -245,7 +245,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 						return;
 					}
 					
-					W.File.get(dir, new W.Callback(function(file) {
+					W.File.load(dir, new W.Callback(function(file) {
 						if (file.getAttribute('path') == ui.draggable.data('file')().getAttribute('dirname')) {
 							return;
 						}

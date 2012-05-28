@@ -306,7 +306,7 @@ function QuicklyWindow() {
 			}]);
 		};
 		
-		W.File.get(xmlFile, [function(file) {
+		W.File.load(xmlFile, [function(file) {
 			saveXmlFn(file);
 		}, function() {
 			W.File.createFile(xmlFile, [function(file) {

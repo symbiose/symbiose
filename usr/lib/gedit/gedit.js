@@ -248,7 +248,7 @@ function GEditWindow(file) {
 				exists: false
 			}, function(path) {
 				if (typeof path != 'undefined') {
-					W.File.get(path, new W.Callback(function(file) {
+					W.File.load(path, new W.Callback(function(file) {
 						saveFn(file);
 					}, function(response) {
 						W.File.createFile(path, new W.Callback(function(file) {
@@ -285,7 +285,7 @@ function GEditWindow(file) {
 			exists: false
 		}, function(path) {
 			if (typeof path != 'undefined') {
-				W.File.get(path, new W.Callback(function(file) {
+				W.File.load(path, new W.Callback(function(file) {
 					saveFn(file);
 				}, function(response) {
 					W.File.createFile(path, new W.Callback(function(file) {
