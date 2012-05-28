@@ -1264,11 +1264,17 @@ $.webos.passwordEntry = function(label) {
 var textAreaEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
 	_name: 'textarea-entry',
 	_create: function() {
-		this.element.append('<br />');
-		this.options._content = $('<textarea></textarea>');
-		this.element.append(this.options._content);
+		this.options._components.br = $('<br />').appendTo(this.element);
+		this.options._content = $('<textarea></textarea>').appendTo(this.element);
 		
 		this.value(this.options.value);
+		this.option('label', this.options.label);
+	},
+	_update: function(key, value) {
+		switch (key) {
+			case 'label':
+				this.options._components.br.toggle((value) ? true : false);
+		}
 	}
 });
 $.webos.widget('textAreaEntry', textAreaEntryProperties);
