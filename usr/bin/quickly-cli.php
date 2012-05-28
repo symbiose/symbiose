@@ -29,6 +29,13 @@ if ($this->arguments->isOption('installed')) {
 	$config['files-path'] = '';
 }
 
+//Autorisations
+$authorisations = $this->webos->getAuthorization();
+$requiredAuthorisation = $authorisations->getArgumentAuthorizations($config['dest'], 'file', 'write');
+$authorisations->control($requiredAuthorisation);
+$requiredAuthorisation = $authorisations->getArgumentAuthorizations($config['config-file'], 'file', 'read');
+$authorisations->control($requiredAuthorisation);
+
 //Config
 echo 'Chargement de la configuration...<br />';
 $xml = new \DOMDocument;
@@ -43,7 +50,7 @@ if (!$this->webos->managers()->get('File')->exists($this->terminal->getAbsoluteL
 }
 
 //Fichiers
-function addDirToList($dir, $list, $fileManager, $terminal, $config) {
+function addDirToList($dir, $list, $fileManager, $terminal, $config, $authorisations) {
 	$dir = str_replace('./', '', $dir);
 
 	if ($dir != '.') {
@@ -51,12 +58,17 @@ function addDirToList($dir, $list, $fileManager, $terminal, $config) {
 	}
 
 	$path = $terminal->getAbsoluteLocation($config['files-path'].'/'.$dir);
+
+	//Autorisations
+	$requiredAuthorisation = $authorisations->getArgumentAuthorizations($path, 'file', 'read');
+	$authorisations->control($requiredAuthorisation);
+
 	$files = $fileManager->get($path)->contents();
 
 	foreach($files as $file) {
 		if ($file->isDir()) {
 			echo 'Ajout de "'.$dir.'/'.$file->basename().'"...<br />';
-			$list = addDirToList($dir.'/'.$file->basename(), $list, $fileManager, $terminal, $config);
+			$list = addDirToList($dir.'/'.$file->basename(), $list, $fileManager, $terminal, $config, $authorisations);
 		} else {
 			echo 'Ajout de "'.$dir.'/'.$file->basename().'"...<br />';
 			$list[] = $dir.'/'.$file->basename();
@@ -67,12 +79,18 @@ function addDirToList($dir, $list, $fileManager, $terminal, $config) {
 
 echo 'Listage des fichiers...<br />';
 if ($config['files-listing']) {
-	$list = addDirToList('.', array(), $this->webos->managers()->get('File'), $this->terminal, $config);
+	$list = addDirToList('.', array(), $this->webos->managers()->get('File'), $this->terminal, $config, $authorisations);
 } else {
 	$list = array();
 	$files = $xml->getElementsByTagName('file');
 	foreach ($files as $file) {
-		$list[] = $file->getAttribute('path');
+		$path = $file->getAttribute('path');
+
+		//Autorisations
+		$requiredAuthorisation = $authorisations->getArgumentAuthorizations($path, 'file', 'read');
+		$authorisations->control($requiredAuthorisation);
+
+		$list[] = $path;
 	}
 }
 
