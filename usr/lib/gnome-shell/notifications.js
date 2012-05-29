@@ -106,12 +106,10 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 		
 		if (SNotification.container.children().length > 0) {
 			var waitForDismissFn = function(e) {
-				if (typeof e != 'undefined') {
-					SNotification.container.unbind('notificationdismiss', waitForDismissFn);
-				}
-				if (typeof e == 'undefined' || SNotification.container.children().not(e.target).length > 0) {
+				if (!e) {
 					SNotification.container.bind('notificationdismiss', waitForDismissFn);
-				} else {
+				} else if (SNotification.container.children().not(e.target).length == 0) {
+					SNotification.container.unbind('notificationdismiss', waitForDismissFn);
 					that._show();
 				}
 			};
@@ -144,9 +142,9 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 		this.element.animate({
 			top: '+='+this.element.outerHeight()
 		}, 'fast', function() {
-			SNotification.hideContainer();
 			that._trigger('dismiss');
 			that.element.remove();
+			SNotification.hideContainer();
 		});
 	}
 });
