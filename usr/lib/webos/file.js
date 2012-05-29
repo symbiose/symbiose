@@ -1,4 +1,5 @@
 Webos.File = function WFile(data) {
+	data.path = Webos.File.cleanPath(data.path);
 	if (!data.dirname) {
 		data.dirname = data.path.replace(/\/[^\/]*\/?$/, '');
 	}
@@ -273,7 +274,7 @@ Webos.File.cleanPath = function(path) {
 };
 Webos.File.bytesToSize = function(bytes) {
 	var sizes = [ 'octets', 'Kio', 'Mio', 'Gio', 'Tio', 'Pio', 'Eio', 'Zio', 'Yio' ];
-	if (bytes == 0 || bytes == 1)
+	if (bytes <= 1)
 		return bytes+' octet';
 	var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
 	return ((i == 0) ? (bytes / Math.pow(1024, i))
