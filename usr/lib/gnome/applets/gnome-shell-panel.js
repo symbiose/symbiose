@@ -678,7 +678,7 @@ function SGnomeShellPanelApplet(data) {
 			delete cmds2Windows[process.cmd];
 		}
 	});
-	$('#desktop').bind('windowopen windowclose', function() {
+	$('#desktop').bind('windowafteropen windowclose', function() {
 		if (isShellShown) {
 			//On met a jour l'affichage des fenetres lors de leur ouverture ou fermeture
 			restoreWindows(false);
