@@ -10,37 +10,40 @@ Webos.User.prototype = {
 		return false;
 	},
 	isLogged: function() {
+		if (!Webos.User.logged) {
+			return;
+		}
+		
 		return (this.id() == Webos.User.logged);
 	},
-	authorizations: function(userCallback) {
-		userCallback = Webos.Callback.toCallback(userCallback);
+	authorizations: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
 		
 		if (typeof this._authorizations != 'undefined') {
-			userCallback.success(this._authorizations);
+			callback.success(this._authorizations);
 			return;
 		}
 		
 		var that = this;
-		
-		var callback = new Webos.Callback(function(response) {
-			var data = response.getData();
-			var auth = [];
-			for (var index in data) {
-				auth.push(data[index]);
-			}
-			that._authorizations = new Webos.Authorizations(auth, that);
-			userCallback.success(that._authorizations);
-		}, userCallback.error);
+
 		new Webos.ServerCall({
 			'class': 'UserController',
 			'method': 'getAuthorizations',
 			'arguments': {
 				'user': this.id()
 			}
-		}).load(callback);
+		}).load(new Webos.Callback(function(response) {
+			var data = response.getData();
+			var auth = [];
+			for (var index in data) {
+				auth.push(data[index]);
+			}
+			that._authorizations = new Webos.Authorizations(auth, that);
+			callback.success(that._authorizations);
+		}, callback.error));
 	},
 	setRealname: function(value) {
-		this._set('realname', String(value));
+		return this._set('realname', String(value));
 	},
 	setUsername: function(value) {
 		value = String(value).toLowerCase();
@@ -49,7 +52,7 @@ Webos.User.prototype = {
 			return false;
 		}
 		
-		this._set('username', String(value));
+		return this._set('username', String(value));
 	},
 	setPassword: function(actualPassword, newPassword, userCallback) {
 		userCallback = Webos.Callback.toCallback(userCallback);
@@ -128,7 +131,7 @@ Webos.User.prototype = {
 				if (that._unsynced[key].state === 2) {
 					that._data[key] = that._unsynced[key].value;
 					delete that._unsynced[key];
-					that.notify('update', { key: key, value: that._unsynced[key].value });
+					that.notify('update', { key: key, value: that._data[key].value });
 				}
 			}
 			callback.success(that);
@@ -137,76 +140,74 @@ Webos.User.prototype = {
 };
 Webos.inherit(Webos.User, Webos.Model);
 
+Webos.Observable.build(Webos.User);
+
 Webos.User.cache = {};
-Webos.User.logged = undefined;
-Webos.User.defineLogged = function(userCallback) {
-	var callback = new Webos.Callback(function(response) {
-		var data = response.getData();
-		if (data.user != null) {
-			Webos.User.logged = data.user;
-			userCallback.success(data.user);
+Webos.User.logged = null;
+Webos.User.get = function(callback, user) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	if (!user) {
+		if (!Webos.User.logged || !Webos.User.cache[Webos.User.logged]) {
+			Webos.User.getLogged([function(user) {
+				callback.success(user);
+			}, callback.error]);
 		} else {
-			Webos.User.logged = false;
-			userCallback.success();
+			callback.success(Webos.User.cache[Webos.User.logged]);
 		}
-	}, function(response) {
-		userCallback.error(response);
-	});
-	new Webos.ServerCall({
-		'class': 'UserController',
-		'method': 'getLoggedId'
-	}).load(callback);
-};
-Webos.User.get = function(userCallback, user) {
-	if (typeof user == 'undefined') {
-		if (typeof Webos.User.logged == 'undefined') {
-			var callback = new Webos.Callback(function(user) {
-				if (typeof user == 'undefined') {
-					userCallback.success(undefined);
-				} else {
-					Webos.User.get(userCallback);
-				}
-			}, function(response) {
-				userCallback.error(response);
-			});
-			Webos.User.defineLogged(callback);
-			return;
-		} else if (Webos.User.logged === false) { 
-			userCallback.success();
-		} else {
-			user = Webos.User.logged;
-		}
+		return;
 	}
 	
 	for (var id in Webos.User.cache) {
 		if (Webos.User.cache[id].get('username') === user) {
-			userCallback.success(Webos.User.cache[id]);
+			callback.success(Webos.User.cache[id]);
 			return;
 		}
 	}
 	
-	var callback = new Webos.Callback(function(response) {
-		var data = response.getData();
-		var user = new Webos.User(data.id, data);
-		Webos.User.cache[user.id()] = user;
-		userCallback.success(user);
-	}, function(response) {
-		userCallback.error(response);
-	});
 	new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'getAttributes',
 		'arguments': {
 			'user': user
 		}
-	}).load(callback);
-};
-Webos.User.login = function(username, password, userCallback) {
-	var callback = new Webos.Callback(function(response) {
-		userCallback.success(response);
+	}).load(new Webos.Callback(function(response) {
+		var data = response.getData();
+		var user = new Webos.User(data.id, data);
+		Webos.User.cache[user.id()] = user;
+		callback.success(user);
 	}, function(response) {
-		userCallback.error(response);
-	});
+		callback.error(response);
+	}));
+};
+Webos.User.getLogged = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	if (Webos.User.logged && Webos.User.cache[Webos.User.logged]) {
+		callback.success(Webos.User.cache[Webos.User.logged]);
+		return;
+	}
+	
+	new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'getLogged'
+	}).load(new Webos.Callback(function(response) {
+		var data = response.getData();
+		if (data.id) {
+			var user = new Webos.User(data.id, data);
+			Webos.User.cache[user.id()] = user;
+			Webos.User.logged = user.id();
+			callback.success(user);
+		} else {
+			Webos.User.logged = false;
+			callback.success();
+		}
+	}, function(response) {
+		callback.error(response);
+	}));
+};
+Webos.User.login = function(username, password, callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new Webos.ServerCall({
 		'class': 'UserController',
@@ -215,10 +216,22 @@ Webos.User.login = function(username, password, userCallback) {
 			'username': username,
 			'password': password
 		}
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		var data = response.getData();
+		var user = new Webos.User(data.id, data);
+		Webos.User.cache[user.id()] = user;
+		Webos.User.logged = user.id();
+		Webos.User.notify('login', { user: user });
+		callback.success(response);
+	}, callback.error));
 };
-Webos.User.list = function(userCallback) {
-	var callback = new Webos.Callback(function(response) {
+Webos.User.list = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'getList'
+	}).load(new Webos.Callback(function(response) {
 		var list = response.getData();
 		for (var id in list) {
 			var user = new Webos.User(id, list[id]);
@@ -230,24 +243,14 @@ Webos.User.list = function(userCallback) {
 				list[id] = user;
 			}
 		}
-		userCallback.success(list);
-	}, function(response) {
-		userCallback.error(response);
-	});
-	new Webos.ServerCall({
-		'class': 'UserController',
-		'method': 'getList'
-	}).load(callback);
+		callback.success(list);
+	}, callback.error));
 };
-Webos.User.create = function(data, auth, userCallback) {
+Webos.User.create = function(data, auth, callback) {
+	callback = Webos.Callback.toCallback(callback);
 	data = JSON.stringify(data);
 	auth = auth.get().join(';');
 	
-	var callback = new Webos.Callback(function(response) {
-		userCallback.success(response);
-	}, function(response) {
-		userCallback.error(response);
-	});
 	new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'create',
@@ -255,7 +258,9 @@ Webos.User.create = function(data, auth, userCallback) {
 			'data': data,
 			'authorizations': auth
 		}
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(response);
+	}, callback.error));
 };
 Webos.User.evalPasswordPower = function(s) {
 	var cmpx = 0;
