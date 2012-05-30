@@ -61,7 +61,7 @@
 		<method name="getAttributes">
 			<argument id="0" type="user" action="read"/>
 		</method>
-		<method name="getLoggedId"></method>
+		<method name="getLogged"></method>
 		<method name="getList">
 			<authorization action="user.read"/>
 		</method>
@@ -156,5 +156,22 @@
 	</class>
 	<class name="NetworkController">
 		<method name="readFile"></method>
+	</class>
+	<class name="ConfigController">
+		<method name="get">
+			<argument id="0" type="file" action="read"/>
+		</method>
+		<method name="getConfig">
+			<argument id="0" type="file" action="read"/>
+		</method>
+		<method name="getUserConfig">
+			<argument id="1" type="file" action="read"/>
+		</method>
+		<method name="set">
+			<argument id="0" type="file" action="write"/>
+		</method>
+		<method name="setConfig">
+			<argument id="0" type="file" action="write"/>
+		</method>
 	</class>
 </actions>
