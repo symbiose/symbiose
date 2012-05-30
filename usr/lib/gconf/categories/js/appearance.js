@@ -1,5 +1,3 @@
-new Webos.ScriptFile('usr/lib/webos/theme.js');
-
 var confWindow = args.getParam(0);
 var content = confWindow.window('content');
 
