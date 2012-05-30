@@ -1,144 +1,162 @@
-function STheme(desktop, icons, background, animations) {
-	if (background == 'default') {
-		background = STheme.defaultBackground;
-	}
+new Webos.ScriptFile('usr/lib/webos/file.js');
+new Webos.ScriptFile('usr/lib/webos/config.js');
+
+Webos.Theme = function WTheme(configFile) {
+	var data = configFile.data();
 	
-	this._data = {
-		desktop: desktop,
-		icons: icons,
-		background: background,
-		animations: (animations == true) ? true : false
+	var defaults = {
+		desktop: '',
+		icons: '',
+		background: '',
+		animations: false
 	};
+	data = $.extend({}, defaults, data);
 	
-	this.desktop = function() {
-		return this._data.desktop;
-	};
-	this.icons = function() {
-		return this._data.icons;
-	};
-	this.background = function() {
-		return this._data.background;
-	};
-	this.animations = function() {
-		return this._data.animations;
-	};
+	Webos.Model.call(this, data);
 	
-	var that = this;
-	
-	this.load = function() {
+	this._configFile = configFile;
+};
+Webos.Theme.prototype = {
+	load: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		var that = this;
+		
 		new W.ServerCall({
 			'class': 'ThemeController',
 			'method': 'loadCss',
 			'arguments': {
-				'theme': that.desktop(),
-				'ui': W.UserInterface.current.name()
+				'theme': that.get('desktop'),
+				'ui': Webos.UserInterface.current.name()
 			}
-		}).load(new W.Callback(function(response) {
-			$.fx.off = !that.animations();
+		}).load(new Webos.Callback(function(response) {
+			$.fx.off = !that.get('animations');
 			var cssFiles = response.getData().css;
 			for (var index in cssFiles) {
-				new W.Stylesheet(cssFiles[index], '#'+W.UserInterface.current.element.attr('id'));
+				new Webos.Stylesheet(cssFiles[index], '#'+W.UserInterface.current.element.attr('id'));
 			}
-			that.loadBackground();
-			STheme.current = that;
-		}));
-	};
-	
-	this.loadBackground = function() {
-		W.UserInterface.current.element
-			.css('background', 'url("'+this.background()+'") no-repeat center center fixed #27001f')
+			that._loadBackground();
+			Webos.Theme.current = that;
+			callback.success();
+		}, callback.error));
+	},
+	_loadBackground: function() {
+		var bg = Webos.File.get(this.get('background')).get('realpath');
+		Webos.UserInterface.current.element
+			.css('background', 'url("'+bg+'") no-repeat center center fixed #27001f')
 			.css('-webkit-background-size', 'cover')
 			.css('-moz-background-size', 'cover')
 			.css('-o-background-size', 'cover')
 			.css('background-size', 'cover')
-			.css('filter', 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+this.background()+'\', sizingMethod=\'scale\')')
-			.css('-ms-filter', '"progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+this.background()+'\', sizingMethod=\'scale\')"');
-	};
-	
-	this.changeBackground = function(path, callback) {
-		callback = W.Callback.toCallback(callback);
+			.css('filter', 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bg+'\', sizingMethod=\'scale\')')
+			.css('-ms-filter', '"progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bg+'\', sizingMethod=\'scale\')"');
+	},
+	background: function() {
+		var bg = this._get('background');
+		if (!bg) {
+			bg = Webos.Theme.defaultBackground();
+		}
+		return bg;
+	},
+	setDesktop: function(value) {
+		this._set('desktop', String(value));
+		return true;
+	},
+	setBackground: function(value) {
+		value = String(value);
+		if (value == Webos.Theme.defaultBackground()) {
+			value = '';
+		}
+		this._set('background', value);
+		return true;
+	},
+	setIcons: function(value) {
+		this._set('icons', String(value));
+		return true;
+	},
+	setAnimations: function(value) {
+		this._set('animations', (value) ? 1 : 0);
+		return true;
+	},
+	sync: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
 		
-		new W.ServerCall({
-			'class': 'ThemeController',
-			'method': 'change',
-			'arguments': {
-				'component': 'background',
-				'value': path,
-				'ui': W.UserInterface.current.name()
+		var that = this;
+		
+		var data = {}, nbrChanges = 0;
+		for (var key in this._unsynced) {
+			if (this._unsynced[key].state === 1) {
+				this._unsynced[key].state = 2;
+				data[key] = this._unsynced[key].value;
+				this._configFile.set(key, data[key]);
+				nbrChanges++;
 			}
-		}).load(new W.Callback(function() {
-			that._data.background = path;
-			that.loadBackground();
-			callback.success(path);
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-	this.changeAnimations = function(value, callback) {
-		callback = W.Callback.toCallback(callback);
+		}
 		
-		value = (value == true) ? 1 : 0;
+		if (nbrChanges == 0) {
+			callback.success(this);
+			return;
+		}
 		
-		new W.ServerCall({
-			'class': 'ThemeController',
-			'method': 'change',
-			'arguments': {
-				'component': 'animations',
-				'value': value,
-				'ui': W.UserInterface.current.name()
+		this._configFile.sync([function() {
+			for (var key in that._unsynced) {
+				if (that._unsynced[key].state === 2) {
+					that._data[key] = that._unsynced[key].value;
+					delete that._unsynced[key];
+					
+					switch (key) {
+						case 'background':
+							that._loadBackground();
+							break;
+						case 'animations':
+							$.fx.off = !that.get('animations');
+							break;
+					}
+					
+					that.notify('update', { key: key, value: that._data[key].value });
+				}
 			}
-		}).load(new W.Callback(function() {
-			that._data.animations = (value) ? true : false;
-			$.fx.off = !that.animations();
-			callback.success();
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-	this.changeDesktop = function(theme, callback) {
-		callback = W.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'ThemeController',
-			'method': 'change',
-			'arguments': {
-				'component': 'desktop',
-				'value': theme,
-				'ui': W.UserInterface.current.name()
-			}
-		}).load(new W.Callback(function() {
-			that._data.desktop = theme;
-			callback.success();
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-	this.changeIcons = function(icons, callback) {
-		callback = W.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'ThemeController',
-			'method': 'change',
-			'arguments': {
-				'component': 'icons',
-				'value': icons,
-				'ui': W.UserInterface.current.name()
-			}
-		}).load(new W.Callback(function() {
-			that._data.icons = icons;
-			callback.success();
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-}
+			callback.success(that);
+		}, callback.error]);
+	}
+};
+Webos.inherit(Webos.Theme, Webos.Model);
 
-STheme.current = new STheme('ambiance', 'humanity', 'default', true);
-STheme.backgroundsDir = '/usr/share/images/backgrounds/';
-STheme.defaultBackground = 'usr/share/images/backgrounds/default.png';
-STheme.iconsDir = '/usr/share/icons/themes/';
-STheme.getAvailable = function(callback) {
-	callback = W.Callback.toCallback(callback);
+
+Webos.Theme.current = null;
+Webos.Theme._defaultBackground = 'usr/share/images/backgrounds/default.png';
+Webos.Theme.defaultBackground = function() {
+	return Webos.Theme._defaultBackground;
+};
+
+Webos.Theme.get = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	var ui = Webos.UserInterface.current.name();
+	Webos.ConfigFile.loadUserConfig('~/.theme/'+ui+'/config.xml', '/usr/etc/uis/'+ui+'/config.xml', [function(config) {
+		var theme = new Webos.Theme(config);
+		callback.success(theme);
+	}, callback.error]);
+	
+	/*new W.ServerCall({
+		'class': 'ThemeController',
+		'method': 'get',
+		'arguments': {
+			'ui': W.UserInterface.current.name()
+		}
+	}).load(new Webos.Callback(function(response) {
+		var data = response.getData();
+		var config = Webos.ConfigFile.get('~/.theme/'+Webos.UserInterface.current.name()+'/config.xml', data);
+		var theme = new Webos.Theme(config);
+		callback.success(theme);
+	}, function(response) {
+		callback.error(response);
+	}));*/
+};
+
+Webos.Theme.backgroundsDir = '/usr/share/images/backgrounds/';
+Webos.Theme.iconsDir = '/usr/share/icons/themes/';
+Webos.Theme.getAvailable = function(module, callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new W.ServerCall({
 		'class': 'ThemeController',
@@ -146,25 +164,8 @@ STheme.getAvailable = function(callback) {
 		'arguments': {
 			'ui': W.UserInterface.current.name()
 		}
-	}).load(new W.Callback(function(response) {
+	}).load(new Webos.Callback(function(response) {
 		callback.success(response.getData());
-	}, function(response) {
-		callback.error(response);
-	}));
-};
-STheme.getConfig = function(callback) {
-	callback = W.Callback.toCallback(callback);
-	
-	new W.ServerCall({
-		'class': 'ThemeController',
-		'method': 'get',
-		'arguments': {
-			'ui': W.UserInterface.current.name()
-		}
-	}).load(new W.Callback(function(response) {
-		var config = response.getData();
-		var theme = new STheme(config.desktop, config.icons, config.background, config.animations);
-		callback.success(theme);
 	}, function(response) {
 		callback.error(response);
 	}));
