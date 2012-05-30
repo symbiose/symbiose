@@ -140,6 +140,9 @@ class UserController extends \lib\ServerCallComponent {
 	 * Recuperer l'utilisateur connecte.
 	 */
 	protected function getLogged() {
+		if (!$this->webos->getUser()->isConnected())
+			return array();
+
 		return $this->getAttributes();
 	}
 
