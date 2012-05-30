@@ -2,6 +2,6 @@
 <config>
 	<attribute name="desktop" value="adwaita"/>
 	<attribute name="icons" value="humanity"/>
-	<attribute name="background" value="default"/>
+	<attribute name="background" value=""/>
 	<attribute name="animations" value="1"/>
 </config>
