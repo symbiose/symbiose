@@ -48,8 +48,8 @@ class Config extends \lib\WebosComponent {
 	 * Sauvegarder une configuration.
 	 * @param string $file Le fichier de configuration.
 	 */
-	public function save($file = false) {
-		if ($file === false) {
+	public function save($file = null) {
+		if (empty($file)) {
 			$file = $this->file;
 		} else {
 			if (!$this->webos->managers()->get('File')->exists($file)) {
