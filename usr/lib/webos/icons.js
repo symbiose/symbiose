@@ -1,11 +1,11 @@
-function SIcon(name, size, theme) {
+Webos.Icon = function WIcon(name, size, theme) {
 	if (typeof name == 'undefined') {
 		name = 'apps/default';
 	}
 	
 	var nameArray = name.split('/');
-	var type = SIcon.types[0];
-	if ($.inArray(nameArray[0], SIcon.types) != -1) {
+	var type = Webos.Icon.types[0];
+	if ($.inArray(nameArray[0], Webos.Icon.types) != -1) {
 		type = nameArray[0];
 		nameArray.shift();
 		name = nameArray.join('/');
@@ -14,8 +14,8 @@ function SIcon(name, size, theme) {
 	this.name = name;
 	this.type = type;
 	
-	if (typeof SIcon.sizes[size] != 'undefined') {
-		size = SIcon.sizes[size];
+	if (typeof Webos.Icon.sizes[size] != 'undefined') {
+		size = Webos.Icon.sizes[size];
 	}
 	
 	this.size = (typeof size == 'undefined' || isNaN(parseInt(size))) ? 48 : parseInt(size);
@@ -28,12 +28,12 @@ function SIcon(name, size, theme) {
 		
 		size = (typeof size == 'undefined') ? this.size : size;
 		
-		if (typeof SIcon.cache[this.name] != 'undefined' && SIcon.cache[this.name].size >= size) {
-			return SIcon.cache[this.name].id(size, theme);
+		if (typeof Webos.Icon.cache[this.name] != 'undefined' && Webos.Icon.cache[this.name].size >= size) {
+			return Webos.Icon.cache[this.name].id(size, theme);
 		}
 		
 		if (this.type == 'themes') {
-			var theme = (typeof theme == 'undefined') ? ((typeof this.theme == 'undefined') ? STheme.current.icons() : this.theme) : size;
+			var theme = (typeof theme == 'undefined') ? ((typeof this.theme == 'undefined') ? Webos.Theme.current.get('icons') : this.theme) : size;
 			return this.type+'/'+theme+'/'+size+'/'+this.name;
 		} else {
 			return this.type+'/'+size+'/'+this.name;
@@ -45,7 +45,7 @@ function SIcon(name, size, theme) {
 		if (typeof id == 'undefined') {
 			return this.name;
 		} else {
-			return SIcon.path+'/'+id+'.png';
+			return Webos.Icon.path+'/'+id+'.png';
 		}
 	};
 	
@@ -63,7 +63,7 @@ function SIcon(name, size, theme) {
 	};
 	
 	this.is = function(icon) {
-		icon = SIcon.toIcon(icon);
+		icon = Webos.Icon.toIcon(icon);
 		
 		if (this.type == icon.type && this.name == icon.name) {
 			return true;
@@ -73,40 +73,38 @@ function SIcon(name, size, theme) {
 	};
 	
 	if (!/^[\/(~\/)]/.test(this.name)) {
-		SIcon.cache[this.id()] = this;
+		Webos.Icon.cache[this.id()] = this;
 	}
-}
+};
 
-SIcon.types = ['themes', 'applications'];
-SIcon.path = '/usr/share/icons';
-SIcon.sizes = {
+Webos.Icon.types = ['themes', 'applications'];
+Webos.Icon.path = '/usr/share/icons';
+Webos.Icon.sizes = {
 	button: 32
 };
-SIcon.setTheme = function(theme) {
-	SIcon.theme = theme;
+Webos.Icon.setTheme = function(theme) {
+	Webos.Icon.theme = theme;
 };
-SIcon.cache = {};
-SIcon.toIcon = function(arg) {
-	if (arg instanceof SIcon) {
+Webos.Icon.cache = {};
+Webos.Icon.toIcon = function(arg) {
+	if (arg instanceof Webos.Icon) {
 		return arg;
 	}
 	
 	if (arg instanceof Array) {
 		if (typeof arg[0] == 'string') {
-			return new SIcon(arg[0], (typeof arg[1] == 'string') ? arg[1] : undefined, (typeof arg[2] == 'string') ? arg[2] : undefined);
+			return new Webos.Icon(String(arg[0]), String(arg[1]), String(arg[2]));
 		}
 	}
 	
 	switch (typeof arg) {
-		case 'function':
-			return new W.Callback(arg, arg);
 		case 'object':
-			if (typeof arg.name == 'string') {
-				return new W.Callback(arg.name, arg.size, arg.theme);
+			if (arg.name) {
+				return new Webos.Icon(String(arg.name), String(arg.size), String(arg.theme));
 			}
 		case 'string':
-			return new SIcon(arg);
+			return new Webos.Icon(arg);
 		default:
-			return new SIcon();
+			return new Webos.Icon();
 	}
 };
