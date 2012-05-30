@@ -200,7 +200,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 	_update: function(key, value) {
 		switch(key) {
 			case 'icon':
-				this.options.icon = SIcon.toIcon(value);
+				this.options.icon = W.Icon.toIcon(value);
 				this.options._components.icon.attr('src', this.options.icon);
 				break;
 			case 'title':
@@ -698,7 +698,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 			}
 		});
 		
-		if (!STheme.current.animations()) {
+		if (!W.Theme.current.get('animations')) {
 			this.element.draggable({
 				addClasses: false,
 				helper: function() {
@@ -834,7 +834,7 @@ $.webos.window.about = function(opts) {
 	
 	if (typeof options.icon != 'undefined') {
 		$('<img />', { 'class': 'icon' })
-			.attr('src', SIcon.toIcon(options.icon).realpath(64))
+			.attr('src', W.Icon.toIcon(options.icon).realpath(64))
 			.appendTo(windowContent);
 	}
 	
@@ -895,7 +895,7 @@ $.webos.window.confirm = function(opts) {
 	
 	var form = $.w.entryContainer().appendTo(confirm.window('content'));
 	
-	$.w.image(new SIcon('actions/help')).css('float', 'left').appendTo(form);
+	$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
 	$('<strong></strong>').html(options.label).appendTo(form);
 	
 	var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(form);
@@ -951,16 +951,16 @@ $.webos.window.messageDialog = function(opts) {
 	
 	var contents = dialog.window('content');
 	
-	var icon = new SIcon('status/info');
+	var icon = new W.Icon('status/info');
 	switch (options.type) {
 		case 'information':
-			icon = new SIcon('status/info');
+			icon = new W.Icon('status/info');
 			break;
 		case 'error':
-			icon = new SIcon('status/error');
+			icon = new W.Icon('status/error');
 			break;
 		case 'warning':
-			icon = new SIcon('status/warning');
+			icon = new W.Icon('status/warning');
 			break;
 	}
 	
