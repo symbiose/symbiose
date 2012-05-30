@@ -17,6 +17,7 @@ class UserController extends \lib\ServerCallComponent {
 		$user = $this->webos->getUser();
 		$user->connect($username, $password);
 		$user->remember();
+		return $this->getAttributes();
 	}
 
 	/**
@@ -118,7 +119,7 @@ class UserController extends \lib\ServerCallComponent {
 	 * @param int $userId L'ID de l'utilisateur. Si vide, correspond a l'utilisateur connecte.
 	 */
 	protected function getAttributes($userId = null) {
-		if ($userId === null) {
+		if (empty($userId)) {
 			if (!$this->webos->getUser()->isConnected())
 				throw new \InvalidArgumentException('Utilisateur ind&eacute;fini');
 
@@ -132,19 +133,14 @@ class UserController extends \lib\ServerCallComponent {
 
 		$data = $list[$userId];
 		$data['id'] = $userId;
-		$this->webos->getHTTPResponse()->setData($data);
+		return $data;
 	}
 
 	/**
-	 * Recuperer l'id de l'utilisateur connecte.
+	 * Recuperer l'utilisateur connecte.
 	 */
-	protected function getLoggedId() {
-		$user = null;
-		if ($this->webos->getUser()->isConnected()) {
-			$user = $this->webos->getUser()->getId();
-		}
-
-		$this->webos->getHTTPResponse()->setData(array('user' => $user));
+	protected function getLogged() {
+		return $this->getAttributes();
 	}
 
 	/**
@@ -153,7 +149,7 @@ class UserController extends \lib\ServerCallComponent {
 	protected function getList() {
 		$list = $this->webos->managers()->get('User')->getUsersList();
 
-		$this->webos->getHTTPResponse()->setData($list);
+		return $list;
 	}
 
 	/**
@@ -217,6 +213,6 @@ class UserController extends \lib\ServerCallComponent {
 		$data = json_decode($data, true);
 		$authorizations = array('file.user.read');
 
-		$this->webos->managers()->get('User')->create($data, $authorizations);
+		//$this->webos->managers()->get('User')->create($data, $authorizations);
 	}
 }
