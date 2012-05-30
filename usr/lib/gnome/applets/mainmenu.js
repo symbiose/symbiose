@@ -13,7 +13,7 @@ function SMainMenuApplet(data) {
 	var callback = new W.Callback(function(response) {
 		var data = response.getData();
 		var menu = {
-			applications: { tag: $('<li class="applications"><a href="#" title="Acc&eacute;der &agrave; vos applications"><img src="'+new SIcon('status/distributor-logo', 24, 'ubuntu-mono-dark')+'" class="icon"/>Applications</a></li>'), content: {} },
+			applications: { tag: $('<li class="applications"><a href="#" title="Acc&eacute;der &agrave; vos applications"><img src="'+new W.Icon('status/distributor-logo', 24, 'ubuntu-mono-dark')+'" class="icon"/>Applications</a></li>'), content: {} },
 			places: { tag: $('<li class="places"><a href="#" title="Acc&eacute;der &agrave; vos fichiers">Raccourcis</a></li>'), content: {} },
 			system: { tag: $('<li class="system"><a href="#" title="Param&eacute;trer le webos">Syst&egrave;me</a></li>'), content: {} }
 		};
@@ -26,7 +26,7 @@ function SMainMenuApplet(data) {
 			}
 			
 			menu[data.categories[key].menu].content[data.categories[key].name] = {
-				tag: $('<li><a href="#" title="'+data.categories[key].description+'"><span class="arrow"></span><img src="'+new SIcon(data.categories[key].icon, 22)+'" class="icon"/>'+data.categories[key].title+'</a></li>'),
+				tag: $('<li><a href="#" title="'+data.categories[key].description+'"><span class="arrow"></span><img src="'+new W.Icon(data.categories[key].icon, 22)+'" class="icon"/>'+data.categories[key].title+'</a></li>'),
 				content: {}
 			};
 		}
@@ -39,7 +39,7 @@ function SMainMenuApplet(data) {
 					return;
 				}
 				
-				var item = $('<li><a href="'+data.applications[key].command+'" title="'+data.applications[key].description+'"><img src="'+new SIcon(data.applications[key].icon, 22)+'" class="icon"/>'+data.applications[key].title+'</a></li>').click(function() {
+				var item = $('<li><a href="'+data.applications[key].command+'" title="'+data.applications[key].description+'"><img src="'+new W.Icon(data.applications[key].icon, 22)+'" class="icon"/>'+data.applications[key].title+'</a></li>').click(function() {
 					W.Cmd.execute(data.applications[key].command, new W.Callback());
 				});
 				

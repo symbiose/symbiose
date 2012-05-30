@@ -20,7 +20,7 @@ function SNotification (options) {
 
 	this.init = function () { // méthode qui crée la notification demandée
 		$.jGrowl(options.message, {
-			imageURL: 		SIcon.toIcon(options.icon).realpath(48),
+			imageURL: 		W.Icon.toIcon(options.icon).realpath(48),
 			header: 		options.title,
 			life: 			parseInt(options.life) * 1000,
 			open: function(e,m,o) {
@@ -57,7 +57,7 @@ function SAppIndicator(options) {
 	
 	this.element = $('<li></li>').appendTo(SIndicator.container);
 	var indicator = $('<a href="#"></a>').appendTo(this.element);
-	$('<img />', { src: SIcon.toIcon(options.icon).realpath(22), 'class': 'icon' }).appendTo(indicator);
+	$('<img />', { src: W.Icon.toIcon(options.icon).realpath(22), 'class': 'icon' }).appendTo(indicator);
 	indicator.append(options.title);
 	$('<ul></ul>').html((typeof options.menu != 'undefined') ? options.menu : '').appendTo(this.element);
 	

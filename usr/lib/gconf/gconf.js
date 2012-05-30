@@ -6,7 +6,7 @@ function GConf(category) {
 	this._window = $.w.window({
 		title: 'Param&egrave;tres syst&egrave;me',
 		resizable: false,
-		icon: new SIcon('apps/administration'),
+		icon: new W.Icon('apps/administration'),
 		stylesheet: 'usr/share/css/gconf/main.css',
 		width: 740
 	});
@@ -18,7 +18,7 @@ function GConf(category) {
 		this._window.window('content').html(list);
 		
 		var generateItemFn = function(data) {
-			var icon = new SIcon(data.icon);
+			var icon = new W.Icon(data.icon);
 			
 			var item = $.w.iconsListItem(icon, data.title)
 				.attr('title', data.description)

@@ -1,7 +1,7 @@
 function FirefoxWindow(url) {
 	this._window = $.w.window({
 		title: 'Firefox',
-		icon: new SIcon('applications/firefox'),
+		icon: new W.Icon('applications/firefox'),
 		width: 500,
 		height: 400,
 		maximized: true,
@@ -76,12 +76,12 @@ function FirefoxWindow(url) {
 	};
 	
 	this._toolbar = $.w.toolbarWindowHeader().appendTo(this._window.window('header'));
-	$.w.toolbarWindowHeaderItem('', new SIcon('actions/go-previous'))
+	$.w.toolbarWindowHeaderItem('', new W.Icon('actions/go-previous'))
 		.click(function() {
 			that.previous();
 		})
 		.appendTo(this._toolbar);
-	$.w.toolbarWindowHeaderItem('', new SIcon('actions/go-next'))
+	$.w.toolbarWindowHeaderItem('', new W.Icon('actions/go-next'))
 		.click(function() {
 			that.next();
 		})

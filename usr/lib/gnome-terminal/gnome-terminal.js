@@ -141,7 +141,7 @@ function GTerminalWindow(callback) { //La fenetre du terminal
 	//On initialise la fenetre
 	this._window = $.w.window({
 		title: 'Terminal',
-		icon: new SIcon('apps/terminal'),
+		icon: new W.Icon('apps/terminal'),
 		width: 400,
 		height: 250,
 		stylesheet: 'usr/share/css/gnome-terminal/main.css'

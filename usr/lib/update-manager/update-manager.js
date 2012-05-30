@@ -13,7 +13,7 @@ function UpdateManager() {
 	
 	this.window = $.w.window({
 		title: 'Gestionnaire de mises &agrave; jour',
-		icon: new SIcon('apps/update-manager'),
+		icon: new W.Icon('apps/update-manager'),
 		width: 600,
 		stylesheet: 'usr/share/css/update-manager/main.css',
 		resizable : false

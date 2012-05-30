@@ -70,7 +70,7 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 	options: {
 		title: 'Message',
 		message: '',
-		icon: new SIcon('/usr/share/images/gnome/light.png'),
+		icon: new W.Icon('/usr/share/images/gnome/light.png'),
 		life: 7,
 		buttons: []
 	},
@@ -79,7 +79,7 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 		var that = this;
 		
 		this.options._components.header = $('<div></div>', { 'class': 'header' }).appendTo(this.element);
-		$('<img />', { src: SIcon.toIcon(this.options.icon).realpath(24), alt: '', 'class': 'icon' }).appendTo(this.options._components.header);
+		$('<img />', { src: W.Icon.toIcon(this.options.icon).realpath(24), alt: '', 'class': 'icon' }).appendTo(this.options._components.header);
 		$('<strong></strong>').html(this.options.title+' : ').appendTo(this.options._components.header);
 		this.options._components.details = $('<span></span>', { 'class': 'details' }).html(this.options.message).appendTo(this.options._components.header);
 		this.options._components.content = $('<div></div>', { 'class': 'content' }).hide().appendTo(this.element);
@@ -161,7 +161,7 @@ function SAppIndicator(options) {
 	
 	this.element = $('<li></li>').appendTo(SNotification.indicators);
 	var indicator = $('<div></div>', { 'class': 'indicator' }).appendTo(this.element);
-	$('<img />', { src: SIcon.toIcon(options.icon).realpath(22), 'class': 'icon' }).appendTo(indicator);
+	$('<img />', { src: W.Icon.toIcon(options.icon).realpath(22), 'class': 'icon' }).appendTo(indicator);
 	$('<span></span>', { 'class': 'title' }).html(options.title).appendTo(indicator);
 	var menu;
 	if (typeof options.menu != 'undefined') {

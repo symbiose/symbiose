@@ -4,7 +4,7 @@ new W.ScriptFile('usr/lib/webos/jquery.transit.min.js');
 function EyeOfSymbiose(image) {
 	this.window = $.w.window({
 		title: 'Visionneuse d\'images',
-		icon: new SIcon('applications/eos'),
+		icon: new W.Icon('applications/eos'),
 		width: 500,
 		height: 300,
 		stylesheet: 'usr/share/css/eos/main.css'
@@ -176,37 +176,37 @@ function EyeOfSymbiose(image) {
 	
 	this._buttons = {};
 	
-	this._buttons.previous = $.w.toolbarWindowHeaderItem('Pr&eacute;c&eacute;dent', new SIcon('actions/go-previous', 'button'))
+	this._buttons.previous = $.w.toolbarWindowHeaderItem('Pr&eacute;c&eacute;dent', new W.Icon('actions/go-previous', 'button'))
 		.click(function() {
 			that.previousImage();
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.next = $.w.toolbarWindowHeaderItem('Suivant', new SIcon('actions/go-next', 'button'))
+	this._buttons.next = $.w.toolbarWindowHeaderItem('Suivant', new W.Icon('actions/go-next', 'button'))
 		.click(function() {
 			that.nextImage();
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.zoomIn = $.w.toolbarWindowHeaderItem('', new SIcon('actions/zoom-in', 'button'))
+	this._buttons.zoomIn = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/zoom-in', 'button'))
 		.click(function() {
 			that.zoomIn();
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.zoomOut = $.w.toolbarWindowHeaderItem('', new SIcon('actions/zoom-out', 'button'))
+	this._buttons.zoomOut = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/zoom-out', 'button'))
 		.click(function() {
 			that.zoomOut();
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.realSize = $.w.toolbarWindowHeaderItem('', new SIcon('actions/zoom-1', 'button'))
+	this._buttons.realSize = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/zoom-1', 'button'))
 		.click(function() {
 			that.realSize();
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.windowsSize = $.w.toolbarWindowHeaderItem('', new SIcon('actions/zoom-page', 'button'))
+	this._buttons.windowsSize = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/zoom-page', 'button'))
 		.click(function() {
 			that.windowsSize();
 		})

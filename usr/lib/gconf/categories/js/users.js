@@ -15,7 +15,7 @@ var removeButton = $.w.button('Supprimer');
 usersList.list('addButton', removeButton);
 
 var editUser = $.w.container().addClass('edituser').appendTo(form);
-var editUser_picture = $('<img />', { src: new SIcon('stock/person'), 'class': 'userpicture' }).appendTo(editUser);
+var editUser_picture = $('<img />', { src: new W.Icon('stock/person'), 'class': 'userpicture' }).appendTo(editUser);
 var editUser_name = $.w.label();
 $('<h2></h2>').append(editUser_name).appendTo(editUser);
 var editUser_username = $.w.label().appendTo(editUser);
@@ -439,7 +439,7 @@ var refreshUsersListFn = function() {
 				
 				var column = item.listItem('column');
 				
-				$('<img />', { src: new SIcon('stock/person'), 'class': 'userpicture' }).appendTo(column);
+				$('<img />', { src: new W.Icon('stock/person'), 'class': 'userpicture' }).appendTo(column);
 				var realname = $('<strong></strong>').text(user.get('realname')).appendTo(column);
 				column.append('<br />');
 				var username = $('<em></em>').text(user.get('username')).appendTo(column);

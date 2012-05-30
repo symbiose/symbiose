@@ -9,7 +9,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 	
 	this._window = $.w.window({
 		title: 'LibreOffice Writer',
-		icon: new SIcon('applications/libreoffice-writer'),
+		icon: new W.Icon('applications/libreoffice-writer'),
 		width: 550,
 		height: 400,
 		stylesheet: 'usr/share/css/libreoffice/writer.css'
@@ -243,13 +243,13 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 	
 	this._buttons = {};
 	
-	this._buttons.newDoc = $.w.toolbarWindowHeaderItem('', new SIcon('actions/document-new', 'button'))
+	this._buttons.newDoc = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/document-new', 'button'))
 		.click(function() {
 			new LibreOffice.Writer();
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.open = $.w.toolbarWindowHeaderItem('', new SIcon('actions/document-open', 'button'))
+	this._buttons.open = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/document-open', 'button'))
 		.click(function() {
 			new NautilusFileSelectorWindow({
 				parentWindow: that._window
@@ -261,19 +261,19 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.save = $.w.toolbarWindowHeaderItem('', new SIcon('actions/document-save', 'button'))
+	this._buttons.save = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/document-save', 'button'))
 		.click(function() {
 			that.save();
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.undo = $.w.toolbarWindowHeaderItem('', new SIcon('actions/edit-undo', 'button'))
+	this._buttons.undo = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/edit-undo', 'button'))
 		.click(function() {
 			that.command('undo');
 		})
 		.appendTo(toolbar);
 
-	this._buttons.redo = $.w.toolbarWindowHeaderItem('', new SIcon('actions/edit-redo', 'button'))
+	this._buttons.redo = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/edit-redo', 'button'))
 		.click(function() {
 			that.command('redo');
 		})
@@ -281,61 +281,61 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 	
 	var toolbar = $.w.toolbarWindowHeader().appendTo(headers);
 	
-	this._buttons.bold = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-text-bold', 'button'))
+	this._buttons.bold = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-text-bold', 'button'))
 		.click(function() {
 			that.command('bold');
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.italic = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-text-italic', 'button'))
+	this._buttons.italic = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-text-italic', 'button'))
 		.click(function() {
 			that.command('italic');
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.underline = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-text-underline', 'button'))
+	this._buttons.underline = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-text-underline', 'button'))
 		.click(function() {
 			that.command('underline');
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.underline = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-text-strikethrough', 'button'))
+	this._buttons.underline = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-text-strikethrough', 'button'))
 		.click(function() {
 			that.command('strikethrough');
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.justifyLeft = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-justify-left', 'button'))
+	this._buttons.justifyLeft = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-justify-left', 'button'))
 		.click(function() {
 			that.command('justifyleft');
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.justifyCenter = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-justify-center', 'button'))
+	this._buttons.justifyCenter = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-justify-center', 'button'))
 		.click(function() {
 			that.command('justifycenter');
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.justifyRight = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-justify-right', 'button'))
+	this._buttons.justifyRight = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-justify-right', 'button'))
 		.click(function() {
 			that.command('justifyright');
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.justifyFill = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-justify-fill', 'button'))
+	this._buttons.justifyFill = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-justify-fill', 'button'))
 		.click(function() {
 			that.command('justifyfull');
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.indent = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-indent-more', 'button'))
+	this._buttons.indent = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-indent-more', 'button'))
 		.click(function() {
 			that.command('indent');
 		})
 		.appendTo(toolbar);
 	
-	this._buttons.outdent = $.w.toolbarWindowHeaderItem('', new SIcon('actions/format-outdent-more', 'button'))
+	this._buttons.outdent = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-outdent-more', 'button'))
 		.click(function() {
 			that.command('outdent');
 		})

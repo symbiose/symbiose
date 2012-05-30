@@ -347,7 +347,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 							
 							var form = $.w.entryContainer().appendTo(exeWindow.window('content'));
 							
-							$.w.image(new SIcon('actions/help')).css('float', 'left').appendTo(form);
+							$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
 							$('<strong></strong>').html('Voulez-vous lancer « '+file.getAttribute('basename')+' » ou afficher son contenu ?').appendTo(form);
 							form.after('<p>« '+file.getAttribute('basename')+' » est un fichier texte exécutable.</p>');
 							
@@ -517,7 +517,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			width: 370,
 			resizable: false,
 			stylesheet: 'usr/share/css/nautilus/upload.css',
-			icon: new SIcon('actions/save', 24)
+			icon: new W.Icon('actions/save', 24)
 		});
 		
 		uploadWindow.bind('windowclose', function() {
@@ -526,7 +526,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		var content = uploadWindow.window('content');
 		
-		$('<img />', { src: new SIcon('actions/save') }).addClass('upload-icon').appendTo(content);
+		$('<img />', { src: new W.Icon('actions/save') }).addClass('upload-icon').appendTo(content);
 		$.w.label('Glissez-d&eacute;posez un fichier depuis votre ordinateur ou s&eacute;lectionnez un fichier &agrave; envoyer :').appendTo(content);
 		
 		var uploadButton = $.w.button('Envoyer un fichier').appendTo(content);
@@ -654,7 +654,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			size = 22;
 		}
 		
-		return new SIcon(iconName, size);
+		return new W.Icon(iconName, size);
 	},
 	_openFile: function(file) {
 		if (file.getAttribute('is_dir')) {
@@ -1035,35 +1035,35 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 		this.options._content = $.w.list(['Raccourcis']).appendTo(this.element);
 		var listContent = this.options._content.list('content');
 		
-		$.w.listItem(['<img src="'+new SIcon('places/folder-home', 22)+'" alt=""/> Dossier personnel']).bind('listitemselect', function() {
+		$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> Dossier personnel']).bind('listitemselect', function() {
 			that.options.open('~');
 		}).appendTo(listContent);
 		
-		$.w.listItem(['<img src="'+new SIcon('places/folder-desktop', 22)+'" alt=""/> Bureau']).bind('listitemselect', function() {
+		$.w.listItem(['<img src="'+new W.Icon('places/folder-desktop', 22)+'" alt=""/> Bureau']).bind('listitemselect', function() {
 			that.options.open('~/Bureau');
 		}).appendTo(listContent);
 		
-		$.w.listItem(['<img src="'+new SIcon('places/folder-documents', 22)+'" alt=""/> Documents']).bind('listitemselect', function() {
+		$.w.listItem(['<img src="'+new W.Icon('places/folder-documents', 22)+'" alt=""/> Documents']).bind('listitemselect', function() {
 			that.options.open('~/Documents');
 		}).appendTo(listContent);
 		
-		$.w.listItem(['<img src="'+new SIcon('places/folder-pictures', 22)+'" alt=""/> Images']).bind('listitemselect', function() {
+		$.w.listItem(['<img src="'+new W.Icon('places/folder-pictures', 22)+'" alt=""/> Images']).bind('listitemselect', function() {
 			that.options.open('~/Images');
 		}).appendTo(listContent);
 		
-		$.w.listItem(['<img src="'+new SIcon('places/folder-music', 22)+'" alt=""/> Musique']).bind('listitemselect', function() {
+		$.w.listItem(['<img src="'+new W.Icon('places/folder-music', 22)+'" alt=""/> Musique']).bind('listitemselect', function() {
 			that.options.open('~/Musique');
 		}).appendTo(listContent);
 		
-		$.w.listItem(['<img src="'+new SIcon('places/folder-videos', 22)+'" alt=""/> Vidéos']).bind('listitemselect', function() {
+		$.w.listItem(['<img src="'+new W.Icon('places/folder-videos', 22)+'" alt=""/> Vidéos']).bind('listitemselect', function() {
 			that.options.open('~/Vidéos');
 		}).appendTo(listContent);
 		
-		$.w.listItem(['<img src="'+new SIcon('places/folder-downloads', 22)+'" alt=""/> Téléchargements']).bind('listitemselect', function() {
+		$.w.listItem(['<img src="'+new W.Icon('places/folder-downloads', 22)+'" alt=""/> Téléchargements']).bind('listitemselect', function() {
 			that.options.open('~/Téléchargements');
 		}).appendTo(listContent);
 		
-		$.w.listItem(['<img src="'+new SIcon('devices/harddisk', 22)+'" alt=""/> Syst&egrave;me de fichiers']).bind('listitemselect', function() {
+		$.w.listItem(['<img src="'+new W.Icon('devices/harddisk', 22)+'" alt=""/> Syst&egrave;me de fichiers']).bind('listitemselect', function() {
 			that.options.open('/');
 		}).appendTo(listContent);
 	}
@@ -1081,7 +1081,7 @@ function NautilusFileSelectorWindow(options, userCallback) {
 	this._window = $.w.window.dialog({
 		title: (typeof options.title != 'undefined') ? options.title : 'S&eacute;lection de fichiers',
 		width: 550,
-		icon: new SIcon('apps/filemanager'),
+		icon: new W.Icon('apps/filemanager'),
 		resizable: false,
 		hideable: false,
 		parentWindow: options.parentWindow
@@ -1176,7 +1176,7 @@ function NautilusWindow(dir, userCallback) {
 		title: 'Gestionnaire de fichiers',
 		width: 600,
 		height: 400,
-		icon: new SIcon('apps/filemanager'),
+		icon: new W.Icon('apps/filemanager'),
 		stylesheet: 'usr/share/css/nautilus/window.css'
 	});
 	
@@ -1271,7 +1271,7 @@ function NautilusWindow(dir, userCallback) {
 			version: '0.1',
 			description: 'Nautilus permet d\'organiser vos fichiers et vos dossiers.',
 			author: '$imon',
-			icon: new SIcon('applications/nautilus')
+			icon: new W.Icon('applications/nautilus')
 		});
 		aboutWindow.window('open');
 	};

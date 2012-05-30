@@ -1,6 +1,6 @@
 //On initialise la fenetre de deconnexion
 var rebootWindow = $.w.window({
-	icon: new SIcon('actions/reload'),
+	icon: new W.Icon('actions/reload'),
 	title: 'Red&eacute;marrer',
 	width: 350,
 	resizable: false
@@ -9,7 +9,7 @@ var rebootWindow = $.w.window({
 var rebootWindowContents = rebootWindow.window('content');
 
 //Contenu de la fenetre
-$('<img />').attr('src', new SIcon('actions/reload'))
+$('<img />').attr('src', new W.Icon('actions/reload'))
 	.css('float', 'left')
 	.appendTo(rebootWindowContents);
 

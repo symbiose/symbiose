@@ -7,7 +7,7 @@ var testWindow = $.w.window({
 var content = testWindow.window('content');
 
 //On ajoute le contenu
-var image = $.w.image(new SIcon('applications/default', 32));
+var image = $.w.image(new W.Icon('applications/default', 32));
 image.css('float', 'right');
 content.append(image);
 content.append($.w.label('Ceci est une fen&ecirc;tre de test.'));

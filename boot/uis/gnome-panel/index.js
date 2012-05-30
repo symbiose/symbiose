@@ -6,7 +6,7 @@ $(document).scroll(function() {
 });
 
 //Chargement du theme
-STheme.getConfig(new W.Callback(function(theme) {
+W.Theme.getConfig(new W.Callback(function(theme) {
 	theme.load();
 }, function(response) {
 	response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
@@ -24,9 +24,9 @@ var workspaceId = new SWorkspace().id;
 new SWorkspace();
 SWorkspace.switchTo(workspaceId);
 
-W.User.defineLogged(new W.Callback(function(user) {
+W.User.getLogged(new W.Callback(function(user) {
 	//Si l'utilisateur n'est pas connecte, on n'affiche pas son bureau
-	if (typeof user == 'undefined') {
+	if (!user) {
 		return;
 	}
 	
@@ -52,7 +52,7 @@ Webos.Error.setErrorHandler(function(error) {
 		title: 'Erreur',
 		resizable: false,
 		width: 400,
-		icon: new SIcon('status/error')
+		icon: new W.Icon('status/error')
 	});
 	
 	var message, details;
@@ -63,7 +63,7 @@ Webos.Error.setErrorHandler(function(error) {
 		message = details = error.name + ' : ' + error.message;
 	}
 	
-	var img = $('<img />', { 'src': new SIcon('status/error'), 'alt': 'erreur' }).css('float', 'left');
+	var img = $('<img />', { 'src': new W.Icon('status/error'), 'alt': 'erreur' }).css('float', 'left');
 	errorWindow.window('content').append(img);
 	
 	errorWindow.window('content').append('<strong>Une erreur est survenue.</strong><br />'+message);

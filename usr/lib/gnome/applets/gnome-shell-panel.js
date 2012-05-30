@@ -398,7 +398,7 @@ function SGnomeShellPanelApplet(data) {
 					});
 				}
 				
-				$('<img />', { src: new SIcon(app.icon, 92), alt: app.title }).appendTo(item);
+				$('<img />', { src: new W.Icon(app.icon, 92), alt: app.title }).appendTo(item);
 				$('<br />').appendTo(item);
 				$('<span></span>', { 'class': 'title' }).html(app.title).appendTo(item);
 				
@@ -575,7 +575,7 @@ function SGnomeShellPanelApplet(data) {
 						W.Cmd.execute(thisApp.command);
 					});
 				}
-				$('<img />', { src: new SIcon(thisApp.icon, 48), alt: thisApp.title, title: thisApp.title }).appendTo($item);
+				$('<img />', { src: new W.Icon(thisApp.icon, 48), alt: thisApp.title, title: thisApp.title }).appendTo($item);
 			})(i, favorites[i]);
 		}
 		for (var i = 0; i < windows.length; i++) {

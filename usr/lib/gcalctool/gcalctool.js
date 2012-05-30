@@ -86,7 +86,7 @@ function GCalcTool() {
 	
 	this.window = $.w.window({
 		title: 'Calculatrice',
-		icon: new SIcon('apps/calculator'),
+		icon: new W.Icon('apps/calculator'),
 		width: 370,
 		height: 197,
 		stylesheet: 'usr/share/css/gcalctool/main.css',

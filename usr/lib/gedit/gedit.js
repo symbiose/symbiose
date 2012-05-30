@@ -189,7 +189,7 @@ function GEditWindow(file) {
 	
 	this._window = $.w.window({
 		title: '&Eacute;diteur de texte gedit',
-		icon: new SIcon('apps/text-editor'),
+		icon: new W.Icon('apps/text-editor'),
 		width: 500,
 		height: 300,
 		stylesheet: 'usr/share/css/gedit/main.css'
@@ -216,7 +216,7 @@ function GEditWindow(file) {
 			version: '0.2',
 			description: 'gedit est un petit &eacute;diteur de texte l&eacute;ger.',
 			author: '$imon',
-			icon: new SIcon('applications/gedit')
+			icon: new W.Icon('applications/gedit')
 		});
 		aboutWindow.window('open');
 	};
@@ -396,12 +396,12 @@ function GEditWindow(file) {
 	
 	this._buttons = {};
 	
-	this._buttons.createEmptyFile = $.w.toolbarWindowHeaderItem('', new SIcon('actions/document-new', 'button'))
+	this._buttons.createEmptyFile = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/document-new', 'button'))
 		.click(function() {
 			new GEditWindow();
 		})
 		.appendTo(toolbar);
-	this._buttons.openFile = $.w.toolbarWindowHeaderItem('Ouvrir', new SIcon('actions/document-open', 'button'))
+	this._buttons.openFile = $.w.toolbarWindowHeaderItem('Ouvrir', new W.Icon('actions/document-open', 'button'))
 		.click(function() {
 			new NautilusFileSelectorWindow({
 				parentWindow: that._window
@@ -412,17 +412,17 @@ function GEditWindow(file) {
 			});
 		})
 		.appendTo(toolbar);
-	this._buttons.saveFile = $.w.toolbarWindowHeaderItem('Enregistrer', new SIcon('actions/document-save', 'button'))
+	this._buttons.saveFile = $.w.toolbarWindowHeaderItem('Enregistrer', new W.Icon('actions/document-save', 'button'))
 		.click(function() {
 			that.save();
 		})
 		.appendTo(toolbar);
-	this._buttons.undo = $.w.toolbarWindowHeaderItem('Annuler', new SIcon('actions/edit-undo', 'button'))
+	this._buttons.undo = $.w.toolbarWindowHeaderItem('Annuler', new W.Icon('actions/edit-undo', 'button'))
 		.click(function() {
 			that._gedit.gedit('undo');
 		})
 		.appendTo(toolbar);
-	this._buttons.redo = $.w.toolbarWindowHeaderItem('', new SIcon('actions/edit-redo', 'button'))
+	this._buttons.redo = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/edit-redo', 'button'))
 		.click(function() {
 			that._gedit.gedit('redo');
 		})

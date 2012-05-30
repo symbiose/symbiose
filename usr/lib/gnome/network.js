@@ -2,7 +2,7 @@ var item = $('<li></li>');
 
 var label = $('<a href="#"></a>').appendTo(item);
 
-var icon = $('<img />', { 'class': 'icon', src: new SIcon('status/network-idle', 24, 'ubuntu-mono-dark'), title: 'Aucune activité réseau' }).appendTo(label);
+var icon = $('<img />', { 'class': 'icon', src: new W.Icon('status/network-idle', 24, 'ubuntu-mono-dark'), title: 'Aucune activité réseau' }).appendTo(label);
 
 var networkData = {
 	total: W.ServerCall.getNbrPendingCalls(),
@@ -33,7 +33,7 @@ var refreshMenuFn = function() {
 
 var serverCallStart = function() {
 	icon
-		.attr('src', new SIcon('status/network-transmit-receive', 24, 'ubuntu-mono-dark'))
+		.attr('src', new W.Icon('status/network-transmit-receive', 24, 'ubuntu-mono-dark'))
 		.attr('title', 'Chargement de cours...');
 };
 W.ServerCall.bind('start', serverCallStart);
@@ -42,7 +42,7 @@ if (W.ServerCall.getNbrPendingCalls() > 0) {
 }
 W.ServerCall.bind('stop', function() {
 	icon
-		.attr('src', new SIcon('status/network-idle', 24, 'ubuntu-mono-dark'))
+		.attr('src', new W.Icon('status/network-idle', 24, 'ubuntu-mono-dark'))
 		.attr('title', 'Aucune activité réseau');
 });
 

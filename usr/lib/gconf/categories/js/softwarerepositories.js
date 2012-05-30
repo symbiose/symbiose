@@ -126,7 +126,7 @@ var confirmPackageUpdate = function() {
 			
 			loadingWindowContent = loadingWindow.window('content');
 			
-			$.w.image(new SIcon('actions/update')).css('float', 'left').appendTo(loadingWindowContent);
+			$.w.image(new W.Icon('actions/update')).css('float', 'left').appendTo(loadingWindowContent);
 			$('<strong></strong>').html('Mise &agrave; jour du cache').appendTo(loadingWindowContent);
 			$.w.label('Le cache est en cours de mise &agrave; jour, veuillez patienter quelques instants...').appendTo(loadingWindowContent);
 			

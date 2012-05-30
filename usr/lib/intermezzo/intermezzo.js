@@ -280,7 +280,7 @@ $.webos.intermezzo = function(options) {
 function IntermezzoWindow(options) {
 	this.window = $.w.window({
 		title : 'Lecteur audio et vid&eacute;o Intermezzo',
-		icon: new SIcon('applications/intermezzo')
+		icon: new W.Icon('applications/intermezzo')
 	});
 	var that = this;
 	

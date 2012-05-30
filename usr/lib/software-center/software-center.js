@@ -14,7 +14,7 @@ function SoftwareCenter(pkg) {
 	
 	this.window = $.w.window({
 		title: 'Logith&egrave;que',
-		icon: new SIcon('applications/software-center'),
+		icon: new W.Icon('applications/software-center'),
 		width: 650,
 		stylesheet: 'usr/share/css/software-center/main.css'
 	});

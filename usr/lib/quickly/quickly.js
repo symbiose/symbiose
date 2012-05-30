@@ -5,7 +5,7 @@ function QuicklyWindow() {
 	
 	this._window = $.w.window({
 		title: 'Cr&eacute;ateur de paquets Quickly',
-		icon: new SIcon('mimes/package'),
+		icon: new W.Icon('mimes/package'),
 		width: 500,
 		height: 350
 	});
@@ -323,7 +323,7 @@ function QuicklyWindow() {
 			version: '1.0',
 			description: 'Quickly permet de g&eacute;n&eacute;rer rapidement des paquets.',
 			author: '$imon',
-			icon: new SIcon('mimes/package')
+			icon: new W.Icon('mimes/package')
 		});
 		aboutWindow.window('open');
 	};
@@ -393,22 +393,22 @@ function QuicklyWindow() {
 	
 	var toolbar = $.w.toolbarWindowHeader().appendTo(headers);
 	
-	this._buttons.newPackage = $.w.toolbarWindowHeaderItem('Ajouter des fichiers', new SIcon('actions/add', 'button'))
+	this._buttons.newPackage = $.w.toolbarWindowHeaderItem('Ajouter des fichiers', new W.Icon('actions/add', 'button'))
 		.click(function() {
 			that.openAddFileDialog();
 		})
 		.appendTo(toolbar);
-	this._buttons.open = $.w.toolbarWindowHeaderItem('', new SIcon('actions/remove', 'button'))
+	this._buttons.open = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/remove', 'button'))
 		.click(function() {
 			that.removeSelectedFiles();
 		})
 		.appendTo(toolbar);
-	this._buttons.attributes = $.w.toolbarWindowHeaderItem('Attributs', new SIcon('actions/document-properties', 'button'))
+	this._buttons.attributes = $.w.toolbarWindowHeaderItem('Attributs', new W.Icon('actions/document-properties', 'button'))
 		.click(function() {
 			that.openAttributesWindow();
 		})
 		.appendTo(toolbar);
-	this._buttons.build = $.w.toolbarWindowHeaderItem('G&eacute;n&eacute;rer le paquet', new SIcon('mimes/package', 'button'))
+	this._buttons.build = $.w.toolbarWindowHeaderItem('G&eacute;n&eacute;rer le paquet', new W.Icon('mimes/package', 'button'))
 		.click(function() {
 			that.build();
 		})

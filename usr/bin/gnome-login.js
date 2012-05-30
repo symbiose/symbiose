@@ -1,6 +1,6 @@
 //On initialise la fenetre de deconnexion
 var loginWindow = $.w.window({
-	icon: new SIcon('actions/keys'),
+	icon: new W.Icon('actions/keys'),
 	title: 'Se connecter',
 	width: 350,
 	resizable: false
@@ -9,7 +9,7 @@ var loginWindow = $.w.window({
 var loginWindowContents = loginWindow.window('content');
 
 //Contenu de la fenetre
-$('<img />').attr('src', new SIcon('actions/keys'))
+$('<img />').attr('src', new W.Icon('actions/keys'))
 	.css('float', 'left')
 	.appendTo(loginWindowContents);
 

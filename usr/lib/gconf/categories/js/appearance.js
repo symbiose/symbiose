@@ -1,3 +1,5 @@
+new Webos.ScriptFile('usr/lib/webos/theme.js');
+
 var confWindow = args.getParam(0);
 var content = confWindow.window('content');
 
@@ -22,25 +24,42 @@ backgroundContainer.append('<br />');
 
 var backgroundsList = $.w.iconsList().addClass('backgroundslist').appendTo(backgroundContainer);
 
-var actualBgItem = $.w.iconsListItem(STheme.current.background()).click(function() {
-	changeBgFn(STheme.current.background(), 'Arri&egrave;re-plan actuel');
+var actualBgPath = Webos.File.get(W.Theme.current.get('background')).get('realpath');
+var actualBgItem = $.w.iconsListItem(actualBgPath).click(function() {
+	changeBgFn(W.Theme.current.get('background'), 'Arri&egrave;re-plan actuel');
 }).iconsListItem('active', true).appendTo(backgroundsList);
 
-W.File.listDir(STheme.backgroundsDir, new W.Callback(function(files) {
-	var generateItemFn = function(file) {
-		var thumbnailsDirArray = file.getAttribute('realpath').split('/');
-		delete thumbnailsDirArray[thumbnailsDirArray.length - 1];
-		var thumbnailsDir = thumbnailsDirArray.join('/')+'/thumbnails';
-		return $.w.iconsListItem(thumbnailsDir+'/'+file.getAttribute('basename')).click(function() {
-			changeBgFn(file.getAttribute('realpath'), file.getAttribute('basename'));
-		});
-	};
+W.File.listDir(W.Theme.backgroundsDir, new W.Callback(function(files) {
+	backgroundsList.empty();
+	var actualBgListed = false;
 	
 	for (var index in files) {
-		if (files[index].getAttribute('is_dir')) {
-			continue;
-		}
-		backgroundsList.append(generateItemFn(files[index]));
+		(function(file) {
+			if (files[index].getAttribute('is_dir')) {
+				return;
+			}
+			
+			var thumbnailsDirArray = file.get('realpath').split('/');
+			delete thumbnailsDirArray[thumbnailsDirArray.length - 1];
+			var thumbnailsDir = thumbnailsDirArray.join('/')+'/thumbnails';
+			var item =  $.w.iconsListItem(thumbnailsDir+'/'+file.get('basename')).click(function() {
+				changeBgFn(file.get('path'), file.get('basename'));
+			});
+			
+			if (W.Theme.current.get('background') == file.get('path')) {
+				actualBgItem = item;
+				actualBgListed = true;
+				item.iconsListItem('active', true);
+			}
+			backgroundsList.append(item);
+		})(files[index]);
+	}
+	
+	if (!actualBgListed) {
+		var path = Webos.File.get(W.Theme.current.get('background')).get('realpath');
+		actualBgItem = $.w.iconsListItem(path).click(function() {
+			changeBgFn(W.Theme.current.get('background'), 'Arri&egrave;re-plan actuel');
+		}).iconsListItem('active', true).prependTo(backgroundsList);
 	}
 }));
 
@@ -49,11 +68,18 @@ var actualBg = $.w.container().addClass('actualbackground').appendTo(backgroundC
 var bgTitle = $('<strong></strong>').html('Arri&egrave;re-plan actuel').appendTo(actualBg);
 
 var screen = $.w.container().addClass('screen').appendTo(actualBg);
-var background = $('<img />', { src: STheme.current.background() }).appendTo(screen);
+var background = $('<img />', { src: actualBgPath }).appendTo(screen);
 
-var changeBgFn = function(path, name) {
+var changeBgFn = function(bg, name) {
+	if (!W.Theme.current.set('background', bg)) {
+		W.Error.trigger('Impossible de modifier le fond d\'&eacute;cran');
+		return;
+	}
+	
 	confWindow.window('loading', true);
-	STheme.current.changeBackground(path, new W.Callback(function() {
+	
+	W.Theme.current.sync(new W.Callback(function() {
+		var path = Webos.File.get(bg).get('realpath');
 		new W.LoadImage({
 			images: path,
 			callback: function(data) {
@@ -61,7 +87,7 @@ var changeBgFn = function(path, name) {
 				if (data.IsEnd) {
 					bgTitle.html(name);
 					background.attr('src', path);
-					actualBgItem.iconsListItem('option', 'icon', path);
+					//actualBgItem.iconsListItem('option', 'icon', path);
 				} else {
 					userCallback.error(data);
 					W.Error.trigger('Impossible de charger le fond d\'&eacute;cran');
@@ -70,7 +96,7 @@ var changeBgFn = function(path, name) {
 		});
 	}, function(response) {
 		confWindow.window('loading', false);
-		response.triggerError('Impossible de changer le fond d\'&eacute;cran');
+		response.triggerError('Impossible de modifier le fond d\'&eacute;cran');
 	}));
 	
 };
@@ -79,12 +105,18 @@ var themeContainer = $.w.container().appendTo(form);
 $('<strong></strong>').html('Th&egrave;me').appendTo(themeContainer);
 
 var themesList = {};
-themesList[STheme.current.desktop()] = STheme.current.desktop();
+themesList[W.Theme.current.get('desktop')] = W.Theme.current.get('desktop');
 var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'interface utilisateur : ', themesList)
 	.change(function() {
 		var theme = themeSelector.selectButton('value');
+		
+		if (!W.Theme.current.set('desktop', theme)) {
+			W.Error.trigger('Impossible de modifier le th&egrave;me');
+			return;
+		}
+		
 		confWindow.window('loading', true);
-		STheme.current.changeDesktop(theme, new W.Callback(function() {
+		W.Theme.current.sync(new W.Callback(function() {
 			confWindow.window('loading', false);
 			$.webos.window.confirm({
 				title: 'Changement de th&egrave;me',
@@ -97,13 +129,13 @@ var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'int
 			}).window('open');
 		}, function(response) {
 			confWindow.window('loading', false);
-			themeSelector.selectButton('value', STheme.current.desktop());
+			themeSelector.selectButton('value', W.Theme.current.get('desktop'));
 			response.triggerError('Impossible de modifier le th&egrave;me');
 		}));
 	})
 	.appendTo(themeContainer);
 
-STheme.getAvailable(function(themes) {
+W.Theme.getAvailable('desktop', function(themes) {
 	var themesList = {};
 	for (var index in themes) {
 		var data = themes[index];
@@ -111,25 +143,31 @@ STheme.getAvailable(function(themes) {
 	}
 	themeSelector
 		.selectButton('option', 'choices', themesList)
-		.selectButton('value', STheme.current.desktop());
+		.selectButton('value', W.Theme.current.get('desktop'));
 });
 
 var iconsList = {};
-iconsList[STheme.current.icons()] = STheme.current.icons();
+iconsList[W.Theme.current.get('icons')] = W.Theme.current.get('icons');
 var iconsSelector = $.w.selectButton('Th&egrave;me des ic&ocirc;nes : ', iconsList)
 	.change(function() {
 		var icons = iconsSelector.selectButton('value');
+		
+		if (!W.Theme.current.set('icons', icons)) {
+			W.Error.trigger('Impossible de modifier le th&egrave;me');
+			return;
+		}
+		
 		confWindow.window('loading', true);
-		STheme.current.changeIcons(icons, new W.Callback(function() {
+		W.Theme.current.sync(new W.Callback(function() {
 			confWindow.window('loading', false);
 		}, function(response) {
 			confWindow.window('loading', false);
-			iconsSelector.selectButton('value', STheme.current.icons());
+			iconsSelector.selectButton('value', W.Theme.current.icons());
 			response.triggerError('Impossible de modifier le th&egrave;me');
 		}));
 	})
 	.appendTo(themeContainer);
-W.File.listDir(STheme.iconsDir, function(list) {
+W.File.listDir(W.Theme.iconsDir, function(list) {
 	var iconsThemes = {};
 	for (var i = 0; i < list.length; i++) {
 		var file = list[i];
@@ -139,15 +177,20 @@ W.File.listDir(STheme.iconsDir, function(list) {
 	}
 	iconsSelector
 		.selectButton('option', 'choices', iconsThemes)
-		.selectButton('value', STheme.current.icons());
+		.selectButton('value', W.Theme.current.get('icons'));
 });
 
-var animationsSelector = $.w.switchButton('Animations : ', STheme.current.animations())
+var animationsSelector = $.w.switchButton('Animations : ', W.Theme.current.get('animations'))
 	.bind('switchbuttonchange', function() {
-		var value = animationsSelector.switchButton('value');
-		console.log(value);
+		var animations = animationsSelector.switchButton('value');
+		
+		if (!W.Theme.current.set('animations', animations)) {
+			W.Error.trigger('Impossible de modifier le th&egrave;me');
+			return;
+		}
+		
 		confWindow.window('loading', true);
-		STheme.current.changeAnimations(value, new W.Callback(function() {
+		W.Theme.current.sync(new W.Callback(function() {
 			confWindow.window('loading', false);
 		}, function(response) {
 			confWindow.window('loading', false);
