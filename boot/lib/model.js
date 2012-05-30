@@ -21,11 +21,14 @@ Webos.Model.prototype = {
 			return this[methodName]();
 		}
 		if (typeof this._data[key] != 'undefined') {
-			return this._data[key];
+			return this._get(key);
 		}
 	},
 	getAttribute: function(key) {
 		return this.get(key);
+	},
+	_get: function(key) {
+		return this._data[key];
 	},
 	data: function() {
 		return this._data;
@@ -57,6 +60,8 @@ Webos.Model.prototype = {
 		return false;
 	},
 	sync: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		
 		this._unsynced = {};
 		callback.success();
 	}
