@@ -56,8 +56,15 @@ class FileController extends \lib\ServerCallComponent {
 	protected function rename($path, $newName) {
 		if (preg_match('#/#', $newName))
 			throw new \InvalidArgumentException('Impossible de renommer "'.$path.'" en "'.$newName.'" : nom de fichier incorrect');
+
 		$file = $this->webos->managers()->get('File')->get($path);
-		$file->move($file->relativePath($newName));
+		$parent = $this->webos->managers()->get('File')->get($file->dirname());
+		$newPath = $parent->relativePath($newName);
+
+		if (!$this->webos->managers()->get('File')->exists($file->dirname()))
+			throw new \InvalidArgumentException('Impossible de renommer "'.$path.'" en "'.$newName.'" : ce nom de fichier est d&eacute;j&agrave; utilis&eacute;');
+
+		$file->move($newPath);
 	}
 
 	/**

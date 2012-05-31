@@ -118,6 +118,7 @@ class Folder extends FileBase {
 	 */
 	public function move($dest) {
 		$dest = $this->relativePath($dest);
+
 		if ($this->webos->managers()->get('File')->exists($dest)) {
 			$file = $this->webos->managers()->get('File')->get($dest);
 			if ($file->isDir()) {
@@ -139,7 +140,8 @@ class Folder extends FileBase {
 			if (!$file->isDir()) {
 				$this->webos->managers()->get('File')->checkAvailableSpace($folder->path(), $file->size());
 			}
-			$file->move($this->realpath($dest).'/'.$file->basename());
+			$file->move($this->path($dest).'/'.$file->basename());
+			$file->delete();
 		}
 
 		$this->delete();
