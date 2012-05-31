@@ -45,6 +45,14 @@ class Config extends \lib\WebosComponent {
 	}
 
 	/**
+	 * Retourne le fichier courant.
+	 * @return File
+	 */
+	public function getFile() {
+		return $this->file;
+	}
+
+	/**
 	 * Sauvegarder une configuration.
 	 * @param string $file Le fichier de configuration.
 	 */
