@@ -28,21 +28,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				}
 				
 				if (that.content().is(e.target)) {
-					var diff = [0, 0];
-					
-					$(this).parents().each(function() {
-						if ($(this).css('position') != 'absolute') {
-							return;
-						}
-						var position = $(this).position();
-						if (position.left != 0) {
-							diff[0] += position.left;
-						}
-						if (position.top != 0) {
-							diff[1] += position.top;
-						}
-					});
-					
+					var offset = $(this).offset();
+					var diff = [offset.left, offset.top];
 					var pos = [e.pageX - diff[0], e.pageY - diff[1]];
 					
 					var helper = $('<div></div>')
@@ -270,7 +257,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}, function(response) {
 			var files = [];
 			
-			for (var file in this.options._files) {
+			for (var file in that.options._files) {
 				files.push(file);
 			}
 			
@@ -1187,7 +1174,7 @@ function NautilusFileSelectorWindow(options, userCallback) {
 		}
 		this._toolbar = $.w.toolbarWindowHeader().appendTo(headers);
 		
-		var location = dir.replace(/\/$/, '').split('/');
+		var location = dir.split('/');
 		
 		var createButtonFn = function createButtonFn(userDir, path) {
 			var button = $.w.toolbarWindowHeaderItem(userDir);
@@ -1265,7 +1252,7 @@ function NautilusWindow(dir, userCallback) {
 		}
 		this._toolbar = $.w.toolbarWindowHeader().appendTo(headers);
 		
-		var location = dir.replace(/\/$/, '').split('/');
+		var location = dir.split('/');
 		
 		var lastDir = location[location.length - 1];
 		if (lastDir == '') {

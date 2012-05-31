@@ -276,7 +276,7 @@ Webos.File.cleanPath = function(path) {
 		.replace(/\/+/, '/')
 		.replace('/./', '/')
 		.replace(/\/\.$/, '/')
-		.replace(/\/$/, '');
+		.replace(/(.+)\/$/, '$1');
 };
 Webos.File.bytesToSize = function(bytes) {
 	var sizes = [ 'octets', 'Kio', 'Mio', 'Gio', 'Tio', 'Pio', 'Eio', 'Zio', 'Yio' ];
