@@ -3,17 +3,24 @@ Webos.Observable = function WObservable() {
 };
 Webos.Observable.prototype = {
 	bind: function(event, fn) {
-		this._observers.push({
+		return this._observers.push({
 			fn: fn,
 			event: event
-		});
+		}) - 1;
 	},
-	unbind: function(event, fn) {
-		this._observers = this._observers.filter(function(el) {
-			if (el.fn !== fn || el.event !== event) {
-				return el;
-			}
-		});
+	unbind: function(key, fn) {
+		switch (typeof key) {
+			case 'number':
+				delete this._observers[key];
+				break;
+			case 'function':
+				this._observers = this._observers.filter(function(el) {
+					if (el.fn !== fn || el.event !== key) {
+						return el;
+					}
+				});
+				break;
+		}
 	},
 	notify: function(event, data, thisObj) {
 		data = data || {};
@@ -29,17 +36,24 @@ Webos.Observable.prototype = {
 Webos.Observable.build = function(object) {
 	object._observers = [];
 	object.bind = function(event, fn) {
-		object._observers.push({
+		return object._observers.push({
 			fn: fn,
 			event: event
-		});
+		}) - 1;
 	};
-	object.unbind = function(event, fn) {
-		object._observers = this._observers.filter(function(el) {
-			if (el.fn !== fn || el.event !== event) {
-				return el;
-			}
-		});
+	object.unbind = function(key, fn) {
+		switch (typeof key) {
+			case 'number':
+				delete object._observers[key];
+				break;
+			default:
+				object._observers = object._observers.filter(function(el) {
+					if (el.fn !== fn || el.event !== key) {
+						return el;
+					}
+				});
+				break;
+		}
 	};
 	object.notify = function(event, data, thisObj) {
 		data = data || {};
