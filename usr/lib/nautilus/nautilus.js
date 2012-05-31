@@ -131,6 +131,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			this.options._components.contextmenu.contextMenu('destroy');
 		}
 		
+		dir = W.File.cleanPath(dir);
+		
 		userCallback = W.Callback.toCallback(userCallback, new W.Callback(function() {}, function(response) {
 			response.triggerError('Impossible de trouver « '+dir+' ».');
 		}));
@@ -246,7 +248,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					}
 					
 					W.File.load(dir, new W.Callback(function(file) {
-						if (file.getAttribute('path') == ui.draggable.data('file')().getAttribute('dirname')) {
+						if (file.get('path') == ui.draggable.data('file')().getAttribute('dirname')) {
 							return;
 						}
 						
@@ -266,6 +268,14 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			userCallback.success(that);
 		}, function(response) {
+			var files = [];
+			
+			for (var file in this.options._files) {
+				files.push(file);
+			}
+			
+			that._render(files);
+			
 			that._trigger('readcomplete', {}, { location: that.location() });
 			that._trigger('readerror', {}, { location: that.location() });
 			
@@ -279,7 +289,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 	_render: function(files) {
 		var that = this;
 		
-		this.options._files = files;
+		this.options._files = {};
 		
 		if (this.options.display == 'icons') {
 			this.content().empty();
@@ -289,200 +299,318 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 		
 		for (var i = 0; i < files.length; i++) {
-			(function(i, file) {
-				var item;
-				var icon;
-				var iconPath = that._getFileIcon(file);
-				if (that.options.display == 'icons') {
-					item = $('<li></li>');
+			(function(file) {
+				var item = that._renderItem(file);
+				that._insertItem(item);
+			})(files[i]);
+		}
+		
+		var createFileCallbackId = Webos.File.bind('create', function(data) {
+			var newFile = data.file;
+			
+			if (newFile.get('dirname') != that.location()) {
+				return;
+			}
+			
+			that.options._files[newFile.get('path')] = newFile;
+			var newItem = that._renderItem(newFile);
+			that._insertItem(newItem);
+		});
+		this.element.one('nautilusreadstart', function() {
+			Webos.File.unbind(createFileCallbackId);
+		});
+	},
+	_renderItem: function(file) {
+		this.options._files[file.get('path')] = file;
+		
+		var that = this, filepath = file.get('path'), item, icon, iconPath = this._getFileIcon(file);
+		
+		if (that.options.display == 'icons') {
+			item = $('<li></li>');
+			
+			icon = $('<img />', { src: iconPath, alt: '' }).addClass('icon');
+			icon.appendTo(item);
+			
+			item.append('<br />');
+			
+			$('<span></span>').addClass('filename').text(file.get('basename')).appendTo(item);
+		} else if (that.options.display == 'list') {
+			item = $.w.listItem();
+			
+			var content = $('<span></span>');
+			item.listItem('addColumn', content);
+			
+			icon = $('<img />', { src: iconPath, alt: '' }).addClass('icon').appendTo(content);
+			
+			$('<span></span>').addClass('filename').text(file.get('basename')).appendTo(content);
+			
+			var size;
+			if (file.get('is_dir')) {
+				size = file.get('size')+' &eacute;l&eacute;ment'+((file.get('size') > 1) ? 's' : '');
+			} else {
+				size = W.File.bytesToSize(file.get('size'));
+			}
+			item.listItem('addColumn', size);
+			
+			var type;
+			if (file.get('is_dir')) {
+				type = 'Dossier';
+			} else {
+				type = 'Fichier '+file.get('extension');
+			}
+			item.listItem('addColumn', type);
+		} else {
+			return;
+		}
+		
+		item.data('file', function() {
+			return that.options._files[filepath];
+		});
+		item.data('nautilus', {
+			open: function() {
+				var file = item.data('file')();
+				if (file.get('extension') == 'js') {
+					var exeWindow = $.w.window.dialog({
+						title: 'Ouverture de fichier',
+						resizable: false,
+						hideable: false,
+						width: 550
+					});
 					
-					icon = $('<img />', { src: iconPath, alt: '' }).addClass('icon');
-					icon.appendTo(item);
+					var form = $.w.entryContainer().appendTo(exeWindow.window('content'));
 					
-					item.append('<br />');
+					$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
+					$('<strong></strong>').html('Voulez-vous lancer « '+file.get('basename')+' » ou afficher son contenu ?').appendTo(form);
+					form.after('<p>« '+file.get('basename')+' » est un fichier texte exécutable.</p>');
 					
-					$('<span></span>').addClass('filename').text(file.getAttribute('basename')).appendTo(item);
-				} else if (that.options.display == 'list') {
-					item = $.w.listItem();
+					var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(form);
+					$.w.button('Lancer dans un terminal').click(function() {
+						exeWindow.window('close');
+						W.Cmd.execute('gnome-terminal "'+file.get('path')+'"');
+					}).appendTo(buttonContainer);
+					$.w.button('Afficher').click(function() {
+						exeWindow.window('close');
+						that._openFile(file);
+					}).appendTo(buttonContainer);
+					$.w.button('Annuler').click(function() {
+						exeWindow.window('close');
+					}).appendTo(buttonContainer);
+					$.w.button('Lancer', true).appendTo(buttonContainer);
 					
-					var content = $('<span></span>');
-					item.listItem('addColumn', content);
+					form.submit(function() {
+						exeWindow.window('close');
+						W.Cmd.execute('"'+file.get('path')+'"');
+					});
 					
-					icon = $('<img />', { src: iconPath, alt: '' }).addClass('icon').appendTo(content);
-					
-					$('<span></span>').addClass('filename').text(file.getAttribute('basename')).appendTo(content);
-					
-					var size;
-					if (file.getAttribute('is_dir')) {
-						size = file.getAttribute('size')+' &eacute;l&eacute;ment'+((file.getAttribute('size') > 1) ? 's' : '');
-					} else {
-						size = W.File.bytesToSize(file.getAttribute('size'));
-					}
-					item.listItem('addColumn', size);
-					
-					var type;
-					if (file.getAttribute('is_dir')) {
-						type = 'Dossier';
-					} else {
-						type = 'Fichier '+file.getAttribute('extension');
-					}
-					item.listItem('addColumn', type);
+					exeWindow.window('open');
 				} else {
-					return;
+					that._openFile(file);
 				}
+				item.trigger('open');
+			},
+			download: function() {
+				that._download(item.data('file')());
+				item.trigger('download');
+			},
+			rename: function() {
+				var file = item.data('file')();
 				
-				item.data('file', function() {
-					return that.options._files[i];
-				});
-				item.data('nautilus', {
-					open: function() {
-						var file = item.data('file')();
-						if (file.getAttribute('extension') == 'js') {
-							var exeWindow = $.w.window.dialog({
-								title: 'Ouverture de fichier',
-								resizable: false,
-								hideable: false,
-								width: 550
-							});
-							
-							var form = $.w.entryContainer().appendTo(exeWindow.window('content'));
-							
-							$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
-							$('<strong></strong>').html('Voulez-vous lancer « '+file.getAttribute('basename')+' » ou afficher son contenu ?').appendTo(form);
-							form.after('<p>« '+file.getAttribute('basename')+' » est un fichier texte exécutable.</p>');
-							
-							var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(form);
-							$.w.button('Lancer dans un terminal').click(function() {
-								exeWindow.window('close');
-								W.Cmd.execute('gnome-terminal "'+file.getAttribute('path')+'"');
-							}).appendTo(buttonContainer);
-							$.w.button('Afficher').click(function() {
-								exeWindow.window('close');
-								that._openFile(file);
-							}).appendTo(buttonContainer);
-							$.w.button('Annuler').click(function() {
-								exeWindow.window('close');
-							}).appendTo(buttonContainer);
-							$.w.button('Lancer', true).appendTo(buttonContainer);
-							
-							form.submit(function() {
-								exeWindow.window('close');
-								W.Cmd.execute('"'+file.getAttribute('path')+'"');
-							});
-							
-							exeWindow.window('open');
-						} else {
-							that._openFile(file);
-						}
-						item.trigger('open');
-					},
-					download: function() {
-						that._download(item.data('file')());
-						item.trigger('download');
-					},
-					rename: function() {
-						that.renameFile(item, item.data('file')());
-					},
-					remove: function() {
-						item.data('file')().remove(new W.Callback(function() {
-							item.trigger('delete').remove();
-						}));
-					},
-					openProperties: function() {
-						that._openProperties(item.data('file')());
+				var renameFn = function() {
+					var name = input.val();
+					input.remove();
+					item.find('.filename').show();
+					
+					if (name == file.get('basename')) { return; }
+					
+					file.rename(name);
+				};
+				
+				var onDocClickFn = function(event) {
+					if (!input.parents().filter(event.target).length == 0) {
+						$(document).unbind('click', onDocClickFn);
+						renameFn();
+					}
+				};
+				
+				setTimeout(function() { // Delay for Mozilla
+					$(document).click(onDocClickFn);
+				}, 0);
+				
+				var input = $('<input />', { type: 'text' }).keypress(function(e) {
+					if (e.keyCode == 13) {
+						$(document).unbind('click', onDocClickFn);
+						renameFn();
+						e.preventDefault();
 					}
 				});
+				item.find('.filename').hide().after(input);
+				input.val(file.get('basename')).focus();
+			},
+			remove: function() {
+				item.data('file')().remove();
+			},
+			openProperties: function() {
+				var file = item.data('file')();
 				
-				item.dblclick(function() {
-					$(this).data('nautilus').open();
+				var propertiesWindow = $.w.window({
+					title: 'Propri&eacute;t&eacute;s de '+file.get('basename'),
+					icon: that._getFileIcon(file),
+					resizable: false,
+					stylesheet: 'usr/share/css/nautilus/properties.css'
 				});
 				
-				var contextmenu = $.w.contextMenu(item);
+				var mtime = new Date(file.get('mtime') * 1000);
+				var mtimeDate = parseInt(mtime.getDate());
+				if (mtimeDate < 10) mtimeDate = '0'+mtimeDate;
+				var mtimeMonth = (parseInt(mtime.getMonth()) + 1);
+				if (mtimeMonth < 10) mtimeMonth = '0'+mtimeMonth;
+				var mtimeYear = mtime.getFullYear();
+				var mtimeHours = parseInt(mtime.getHours());
+				if (mtimeHours < 10) mtimeHours = '0'+mtimeHours;
+				var mtimeMinutes = parseInt(mtime.getMinutes());
+				if (mtimeMinutes < 10) mtimeMinutes = '0'+mtimeMinutes;
+				var atime = new Date(file.get('atime') * 1000);
+				var atimeDate = parseInt(atime.getDate());
+				if (atimeDate < 10) atimeDate = '0'+atimeDate;
+				var atimeMonth = (parseInt(atime.getMonth()) + 1);
+				if (atimeMonth < 10) atimeMonth = '0'+atimeMonth;
+				var atimeYear = atime.getFullYear();
+				var atimeHours = parseInt(atime.getHours());
+				if (atimeHours < 10) atimeHours = '0'+atimeHours;
+				var atimeMinutes = parseInt(atime.getMinutes());
+				if (atimeMinutes < 10) atimeMinutes = '0'+atimeMinutes;
+				var data = ['Nom : '+file.get('basename'),
+				            'Type : '+((file.get('is_dir')) ? 'dossier' : 'fichier '+file.get('extension')),
+				            'Emplacement : '+file.get('dirname'),
+				            'Derni&egrave;re modification : '+mtimeDate+'/'+mtimeMonth+'/'+mtimeYear+' '+mtimeHours+':'+mtimeMinutes,
+				            'Dernier acc&egrave;s : '+atimeDate+'/'+atimeMonth+'/'+atimeYear+' '+atimeHours+':'+atimeMinutes,
+				            ((file.get('is_dir')) ? 'Contenu' : 'Taille')+' : '+((file.get('is_dir')) ? file.get('size')+' fichier'+((file.get('size') > 1) ? 's' : '') : W.File.bytesToSize(file.get('size')))];
+				propertiesWindow.window('content').append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
+				var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
+				$.w.button('Fermer').appendTo(buttons).click(function() {
+					propertiesWindow.window('close');
+				});
 				
-				$.webos.contextMenuItem('Ouvrir').click(function() {
-					var files = (that.getSelection().length == 0) ? item : that.getSelection();
-					files.each(function() {
-						$(this).data('nautilus').open();
-					});
-				}).appendTo(contextmenu);
-				$.webos.contextMenuItem('T&eacute;l&eacute;charger').click(function() {
-					var files = (that.getSelection().length == 0) ? item : that.getSelection();
-					files.each(function() {
-						$(this).data('nautilus').download();
-					});
-				}).appendTo(contextmenu);
-				$.webos.contextMenuItem('Renommer...', true).click(function() {
-					item.data('nautilus').rename();
-				}).appendTo(contextmenu);
-				$.webos.contextMenuItem('Supprimer').click(function() {
-					var files = (that.getSelection().length == 0) ? item : that.getSelection();
-					files.each(function() {
-						$(this).data('nautilus').remove();
-					});
-				}).appendTo(contextmenu);
-				$.webos.contextMenuItem('Propri&eacute;t&eacute;s', true).click(function() {
-					var files = (that.getSelection().length == 0) ? item : that.getSelection();
-					files.each(function() {
-						$(this).data('nautilus').openProperties();
-					});
-				}).appendTo(contextmenu);
-				
-				if (file.getAttribute('is_dir')) {
-					var overIcon = that._getFileIcon(file, 'dropover');
-					item.droppable({
-						accept: '*',
-						scope: 'webos',
-						hoverClass: 'ui-droppable-hover',
-						drop: function(event, ui) {
-							if (overIcon != iconPath) {
-								icon.attr('src', iconPath);
-							}
-							
-							if (typeof ui.draggable.data('file') == 'undefined') {
-								return;
-							}
-							
-							ui.draggable.data('file')().move(item.data('file')(), new W.Callback(function() {
-								ui.draggable.remove();
-							}));
-							return false;
-						},
-						over: function() {
-							if (overIcon != iconPath) {
-								icon.attr('src', overIcon);
-							}
-						},
-						out: function() {
-							if (overIcon != iconPath) {
-								icon.attr('src', iconPath);
-							}
-						}
-					});
-				}
-				item.draggable({
-					stack: '#'+that.element.attr('id')+' li',
-					distance: 3,
-					scope: 'webos',
-					revert: 'invalid',
-					helper: 'clone',
-					scroll: false,
-					zIndex: false,
-					stop: function(event, ui) {
-						$(this).css('z-index','0');
+				propertiesWindow.window('open');
+			}
+		});
+		
+		item.dblclick(function() {
+			$(this).data('nautilus').open();
+		});
+		
+		var contextmenu = $.w.contextMenu(item);
+		
+		$.webos.contextMenuItem('Ouvrir').click(function() {
+			var files = (that.getSelection().length == 0) ? item : that.getSelection();
+			files.each(function() {
+				$(this).data('nautilus').open();
+			});
+		}).appendTo(contextmenu);
+		$.webos.contextMenuItem('T&eacute;l&eacute;charger').click(function() {
+			var files = (that.getSelection().length == 0) ? item : that.getSelection();
+			files.each(function() {
+				$(this).data('nautilus').download();
+			});
+		}).appendTo(contextmenu);
+		$.webos.contextMenuItem('Renommer...', true).click(function() {
+			item.data('nautilus').rename();
+		}).appendTo(contextmenu);
+		$.webos.contextMenuItem('Supprimer').click(function() {
+			var files = (that.getSelection().length == 0) ? item : that.getSelection();
+			files.each(function() {
+				$(this).data('nautilus').remove();
+			});
+		}).appendTo(contextmenu);
+		$.webos.contextMenuItem('Propri&eacute;t&eacute;s', true).click(function() {
+			var files = (that.getSelection().length == 0) ? item : that.getSelection();
+			files.each(function() {
+				$(this).data('nautilus').openProperties();
+			});
+		}).appendTo(contextmenu);
+		
+		if (file.get('is_dir')) {
+			var overIcon = that._getFileIcon(file, 'dropover');
+			item.droppable({
+				accept: '*',
+				scope: 'webos',
+				hoverClass: 'ui-droppable-hover',
+				drop: function(event, ui) {
+					if (overIcon != iconPath) {
+						icon.attr('src', iconPath);
 					}
-				});
-				
-				if (/^\./.test(file.getAttribute('basename'))) { //C'est un fichier cache, on ne l'affiche pas
-					item.hide();
+					
+					if (typeof ui.draggable.data('file') == 'undefined') {
+						return;
+					}
+					
+					ui.draggable.data('file')().move(item.data('file')(), new W.Callback(function() {
+						ui.draggable.remove();
+					}));
+					return false;
+				},
+				over: function() {
+					if (overIcon != iconPath) {
+						icon.attr('src', overIcon);
+					}
+				},
+				out: function() {
+					if (overIcon != iconPath) {
+						icon.attr('src', iconPath);
+					}
 				}
-				
-				if (that.options.display == 'icons') {
-					that.content().append(item);
-				}
-				if (that.options.display == 'list') {
-					that.content().list('content').append(item);
-				}
-			})(i, files[i]);
+			});
+		}
+		
+		item.draggable({
+			stack: '#'+that.element.attr('id')+' li',
+			distance: 3,
+			scope: 'webos',
+			revert: 'invalid',
+			helper: 'clone',
+			scroll: false,
+			zIndex: false,
+			stop: function(event, ui) {
+				$(this).css('z-index','0');
+			}
+		});
+		
+		if (/^\./.test(file.get('basename'))) { //C'est un fichier cache, on ne l'affiche pas
+			item.hide();
+		}
+		
+		var updateCallbackId = file.bind('update', function(data) {
+			if (filepath != file.get('path')) {
+				delete that.options._files[filepath];
+				filepath = file.get('path');
+			}
+			that.options._files[filepath] = file;
+			
+			var newItem = that._renderItem(file);
+			item.replaceWith(newItem);
+			item = newItem;
+		});
+		var removeCallbackId = file.bind('remove', function() {
+			item.remove();
+		});
+		
+		var unbindFn = function() {
+			file.unbind('update', updateCallbackId);
+			file.unbind('remove', removeCallbackId);
+		};
+		
+		this.element.one('nautilusreadcomplete', function() {
+			//unbindFn();
+		});
+		
+		return item;
+	},
+	_insertItem: function(item) {
+		if (this.options.display == 'icons') {
+			this.content().append(item);
+		}
+		if (this.options.display == 'list') {
+			this.content().list('content').append(item);
 		}
 	},
 	_download: function(file) {
@@ -490,7 +618,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			'class': 'FileController',
 			method: 'download',
 			arguments: {
-				file: file.getAttribute('path')
+				file: file.get('path')
 			}
 		});
 		var form = $('<form></form>')
@@ -517,7 +645,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			width: 370,
 			resizable: false,
 			stylesheet: 'usr/share/css/nautilus/upload.css',
-			icon: new W.Icon('actions/save', 24)
+			icon: new W.Icon('actions/document-save', 24)
 		});
 		
 		uploadWindow.bind('windowclose', function() {
@@ -526,7 +654,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		var content = uploadWindow.window('content');
 		
-		$('<img />', { src: new W.Icon('actions/save') }).addClass('upload-icon').appendTo(content);
+		$('<img />', { src: new W.Icon('actions/document-save') }).addClass('upload-icon').appendTo(content);
 		$.w.label('Glissez-d&eacute;posez un fichier depuis votre ordinateur ou s&eacute;lectionnez un fichier &agrave; envoyer :').appendTo(content);
 		
 		var uploadButton = $.w.button('Envoyer un fichier').appendTo(content);
@@ -569,9 +697,9 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				$.w.nautilus.progresses.update(uploadsIds[id], 100, msg);
 				
 				if (success) {
-					var files = that.options._files;
-					files.push(new W.File(response.getData().file));
-					that._render(files);
+					var newFile = new W.File(response.getData().file);
+					var newItem = that._renderItem(newFile);
+					that._insertItem(newItem);
 				}
 			},
 			onCancel: function(id, fileName){
@@ -609,13 +737,13 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		var exts = ['png', 'gif', 'jpeg', 'jpg', 'bmp', 'ico', 'js', 'mp3', 'ogv', 'tiff', 'php', 'ogg', 'mp4', 'html', 'zip', 'txt'];
 		for(var i = 0; i < exts.length; i++) {
-			if (exts[i] == file.getAttribute('extension')) {
-				iconName = 'mimes/'+file.getAttribute('extension');
+			if (exts[i] == file.get('extension')) {
+				iconName = 'mimes/'+file.get('extension');
 				break;
 			}
 		}
 		
-		if (file.getAttribute('is_dir')) {
+		if (file.get('is_dir')) {
 			iconName = 'mimes/folder';
 			
 			if (state == 'dropover') {
@@ -623,7 +751,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 		}
 		
-		switch (file.getAttribute('path')) {
+		switch (file.get('path')) {
 			case '~':
 				iconName = 'places/folder-home';
 				break;
@@ -657,11 +785,11 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		return new W.Icon(iconName, size);
 	},
 	_openFile: function(file) {
-		if (file.getAttribute('is_dir')) {
+		if (file.get('is_dir')) {
 			if (this.options.multipleWindows) {
-				W.Cmd.execute('nautilus "'+file.getAttribute('path')+'"');
+				W.Cmd.execute('nautilus "'+file.get('path')+'"');
 			} else {
-				this.readDir(file.getAttribute('path'));
+				this.readDir(file.get('path'));
 			}
 		} else {
 			if (typeof this._applications == 'undefined') {
@@ -675,11 +803,11 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					that._openFile(file);
 				}));
 			} else {
-				if (typeof this._applications[file.getAttribute('extension')] != 'undefined') {
-					W.Cmd.execute(this._applications[file.getAttribute('extension')]+' "'+file.getAttribute('path')+'"');
+				if (typeof this._applications[file.get('extension')] != 'undefined') {
+					W.Cmd.execute(this._applications[file.get('extension')]+' "'+file.get('path')+'"');
 				} else {
 					var fileOpenerWindow = $.w.window({
-						title: 'Ouverture de '+file.getAttribute('basename'),
+						title: 'Ouverture de '+file.get('basename'),
 						width: 400,
 						resizable: false
 					});
@@ -688,10 +816,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					
 					var content = $.w.entryContainer().submit(function() {
 						fileOpenerWindow.window('close');
-						W.Cmd.execute(chosenCmd+' "'+file.getAttribute('path')+'"');
+						W.Cmd.execute(chosenCmd+' "'+file.get('path')+'"');
 					}).appendTo(fileOpenerWindow.window('content'));
 					
-					content.append('<strong>Choisissez une application pour ouvrir '+file.getAttribute('basename')+'</strong>');
+					content.append('<strong>Choisissez une application pour ouvrir '+file.get('basename')+'</strong>');
 					
 					var list = $.w.list().appendTo(content);
 					var cmds = {};
@@ -725,108 +853,39 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 		}
 	},
-	_openProperties: function(file) {
-		var propertiesWindow = $.w.window({
-			title: 'Propri&eacute;t&eacute;s de '+file.getAttribute('basename'),
-			icon: this._getFileIcon(file),
-			resizable: false,
-			stylesheet: 'usr/share/css/nautilus/properties.css'
-		});
-		
-		var mtime = new Date(file.getAttribute('mtime') * 1000);
-		var mtimeDate = parseInt(mtime.getDate());
-		if (mtimeDate < 10) mtimeDate = '0'+mtimeDate;
-		var mtimeMonth = (parseInt(mtime.getMonth()) + 1);
-		if (mtimeMonth < 10) mtimeMonth = '0'+mtimeMonth;
-		var mtimeYear = mtime.getFullYear();
-		var mtimeHours = parseInt(mtime.getHours());
-		if (mtimeHours < 10) mtimeHours = '0'+mtimeHours;
-		var mtimeMinutes = parseInt(mtime.getMinutes());
-		if (mtimeMinutes < 10) mtimeMinutes = '0'+mtimeMinutes;
-		var atime = new Date(file.getAttribute('atime') * 1000);
-		var atimeDate = parseInt(atime.getDate());
-		if (atimeDate < 10) atimeDate = '0'+atimeDate;
-		var atimeMonth = (parseInt(atime.getMonth()) + 1);
-		if (atimeMonth < 10) atimeMonth = '0'+atimeMonth;
-		var atimeYear = atime.getFullYear();
-		var atimeHours = parseInt(atime.getHours());
-		if (atimeHours < 10) atimeHours = '0'+atimeHours;
-		var atimeMinutes = parseInt(atime.getMinutes());
-		if (atimeMinutes < 10) atimeMinutes = '0'+atimeMinutes;
-		var data = ['Nom : '+file.getAttribute('basename'),
-		            'Type : '+((file.getAttribute('is_dir')) ? 'dossier' : 'fichier '+file.getAttribute('extension')),
-		            'Emplacement : '+file.getAttribute('dirname'),
-		            'Derni&egrave;re modification : '+mtimeDate+'/'+mtimeMonth+'/'+mtimeYear+' '+mtimeHours+':'+mtimeMinutes,
-		            'Dernier acc&egrave;s : '+atimeDate+'/'+atimeMonth+'/'+atimeYear+' '+atimeHours+':'+atimeMinutes,
-		            ((file.getAttribute('is_dir')) ? 'Contenu' : 'Taille')+' : '+((file.getAttribute('is_dir')) ? file.getAttribute('size')+' fichier'+((file.getAttribute('size') > 1) ? 's' : '') : W.File.bytesToSize(file.getAttribute('size')))];
-		propertiesWindow.window('content').append('<img src="'+this._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
-		var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
-		$.w.button('Fermer').appendTo(buttons).click(function() {
-			propertiesWindow.window('close');
-		});
-		
-		propertiesWindow.window('open');
-	},
 	createFile: function(name, is_dir) {
-		var that = this;
+		var originalName = name, exists = false, i = 2, ext = null, filename = name;
 		
-		var callback = new W.Callback(function(file) {
-			var refreshCallback = new W.Callback(function() {
-				that.content().find('li').each(function() {
-					if ($(this).children('.filename').text() == name) {
-						that.renameFile($(this), file);
+		if (!is_dir) {
+			var nameArray = name.split('.');
+			ext = (nameArray.length > 1) ? nameArray.pop() : null;
+			filename = nameArray.join('.');
+		}
+		
+		do {
+			for (var path in this.options._files) {
+				var file = this.options._files[path];
+				if (file.get('basename') == name) {
+					exists = true;
+					if (is_dir && ext) {
+						name = filename+' ('+i+').'+ext;
+					} else {
+						name = originalName+' ('+i+')';
 					}
-				});
-			});
-			that.refresh(refreshCallback);
-		});
+					i++;
+				} else {
+					exists = false;
+				}
+			}
+		} while (exists);
 		
 		var path = this.options.directory+'/'+name;
+		
 		if (is_dir) {
-			W.File.createFolder(path, callback);
+			W.File.createFolder(path);
 		} else {
-			W.File.createFile(path, callback);
+			W.File.createFile(path);
 		}
-	},
-	renameFile: function(item, file) {
-		var that = this;
-		
-		var renameFn = function() {
-			var name = input.val();
-			input.remove();
-			item.find('.filename').show();
-			if (name == file.getAttribute('basename')) { return; }
-			var oldname = file.getAttribute('basename');
-			file.rename(name, new W.Callback(function() {
-				item.find('.filename').text(name);
-				for (var i = 0; i < that.options._files.length; i++) {
-					if (that.options._files[i].getAttribute('basename') == oldname) {
-						that.options._files[i] = file;
-					}
-				}
-			}));
-		};
-		
-		var onDocClickFn = function(event) {
-			if (!$(event.target).is('ul.webos-nautilus li input')) {
-				$('body').unbind('click', onDocClickFn);
-				renameFn();
-			}
-		};
-		
-		setTimeout(function() { // Delay for Mozilla
-			$(document).click(onDocClickFn);
-		}, 0);
-		
-		var input = $('<input />', { type: 'text' }).keypress(function(e) {
-			if (e.keyCode == 13) {
-				$('body').unbind('click', onDocClickFn);
-				renameFn();
-				e.preventDefault();
-			}
-		});
-		item.find('.filename').hide().after(input);
-		input.val(file.getAttribute('basename')).focus();
 	},
 	getSelection: function() {
 		return this.items().filter('.active');
@@ -992,8 +1051,8 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 		if (!this.options.selectDirs) {
 			for (var i = 0; i < selection.length; i++) {
 				var file = selection[i];
-				if (file.getAttribute('is_dir')) {
-					that.options._components.nautilus.nautilus('readDir', file.getAttribute('path'));
+				if (file.get('is_dir')) {
+					that.options._components.nautilus.nautilus('readDir', file.get('path'));
 					return;
 				}
 			}
