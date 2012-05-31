@@ -15,9 +15,20 @@ class UserController extends \lib\ServerCallComponent {
 	 */
 	protected function connect($username, $password) {
 		$user = $this->webos->getUser();
+		if ($user->isConnected()) {
+			$user->forget();
+		}
 		$user->connect($username, $password);
 		$user->remember();
 		return $this->getAttributes();
+	}
+
+	/**
+	 * Deconnecter un utilisateur.
+	 */
+	protected function disconnect() {
+		$user = $this->webos->getUser();
+		$user->forget();
 	}
 
 	/**

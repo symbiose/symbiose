@@ -45,6 +45,7 @@
 	</class>
 	<class name="UserController">
 		<method name="connect"></method>
+		<method name="disconnect"></method>
 		<method name="connectAsGuest"></method>
 		<method name="getAttribute">
 			<argument id="0" type="user" action="read"/>
