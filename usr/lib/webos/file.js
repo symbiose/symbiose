@@ -13,37 +13,31 @@ Webos.File = function WFile(data) {
 	Webos.Model.call(this, data);
 };
 Webos.File.prototype = {
-	load: function(userCallback) {
+	load: function(callback) {
 		var that = this;
-		userCallback = Webos.Callback.toCallback(userCallback);
+		callback = Webos.Callback.toCallback(callback);
 		
 		Webos.File.clearCache(that.get('path'));
 		Webos.File.load(that.get('path'), new Webos.Callback(function(file) {
 			var updatedData = {};
 			for (var key in file.data()) {
-				if (this.get(key) !== file.data()[key]) {
+				if (that.get(key) !== file.data()[key]) {
 					updatedData[key] = file.data()[key];
 				}
 			}
 			that.hydrate(updatedData);
-			userCallback.success(that);
+			callback.success(that);
 			for (var key in updatedData) {
 				that.notify('update', { key: key, value: updatedData[key] });
 			}
 		}, function(response) {
-			userCallback.error(response, that);
+			callback.error(response, that);
 		}));
 	},
-	rename: function(newName, userCallback) {
+	rename: function(newName, callback) {
 		var that = this;
-		userCallback = Webos.Callback.toCallback(userCallback);
+		callback = Webos.Callback.toCallback(callback);
 		
-		var callback = new Webos.Callback(function() {
-			that.data.path = that.get('dirname')+'/'+newName;
-			that.load(userCallback.error);
-		}, function(response) {
-			userCallback.error(response, that);
-		});
 		new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'rename',
@@ -51,7 +45,18 @@ Webos.File.prototype = {
 				file: that.get('path'),
 				newName: newName
 			}
-		}).load(callback);
+		}).load([function() {
+			that.hydrate({
+				path: that.get('dirname')+'/'+newName
+			});
+			that.load([function() {
+				callback.success(that);
+			}, function(response) {
+				callback.error(response, that);
+			}]);
+		}, function(response) {
+			callback.error(response, that);
+		}]);
 	},
 	_remove: function() {
 		this.notify('remove');
@@ -270,7 +275,8 @@ Webos.File.cleanPath = function(path) {
 	return path
 		.replace(/\/+/, '/')
 		.replace('/./', '/')
-		.replace(/\/\.$/, '/');
+		.replace(/\/\.$/, '/')
+		.replace(/\/$/, '');
 };
 Webos.File.bytesToSize = function(bytes) {
 	var sizes = [ 'octets', 'Kio', 'Mio', 'Gio', 'Tio', 'Pio', 'Eio', 'Zio', 'Yio' ];
