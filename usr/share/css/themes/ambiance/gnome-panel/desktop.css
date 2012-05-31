@@ -290,3 +290,11 @@ body {
 .workspace-button.selected {
 	background-color:#ad502b;
 }
+
+.webos-nautilus ul.icons li.active span.filename {
+	background-color: #d76741;
+	color: white;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+}

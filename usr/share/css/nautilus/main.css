@@ -15,13 +15,13 @@
 	width:110px;
 	height:75px;
 	float: left;
-	text-align:center;
+	text-align: center;
 	overflow: hidden;
 }
 .webos-nautilus ul.icons li img.icon {
-	opacity:0.85;
-	max-width:105px;
-	max-height:50px;
+	opacity: 0.85;
+	max-width: 105px;
+	max-height: 50px;
 }
 .webos-nautilus ul.icons li span.filename {
 	display: inline-block;
@@ -34,7 +34,7 @@
 	white-space: nowrap;
 }
 .webos-nautilus ul.icons li input {
-	width: 100%;
+	width: 100% !important;
 }
 
 .webos-nautilus ul.icons li.active span.filename {
@@ -54,7 +54,7 @@
 }
 
 .webos-nautilus ul.icons li:hover img.icon {
-	opacity:1;
+	opacity: 1;
 }
 
 .webos-nautilus .webos-list {

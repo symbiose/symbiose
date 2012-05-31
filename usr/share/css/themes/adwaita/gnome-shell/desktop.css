@@ -479,3 +479,11 @@ body {
 	border: 1px solid #498ed6;
 	background: rgba(73, 142, 214, 0.3);
 }
+
+.webos-nautilus ul.icons li.active span.filename {
+	background-color: #4a90d9;
+	color: white;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+}
