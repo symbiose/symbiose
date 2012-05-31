@@ -257,7 +257,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}, function(response) {
 			var files = [];
 			
-			for (var file in that.options._files) {
+			for (var path in that.options._files) {
+				var file = that.options._files[path];
 				files.push(file);
 			}
 			
@@ -1184,23 +1185,25 @@ function NautilusFileSelectorWindow(options, userCallback) {
 			return button;
 		};
 		
-		var stack = '';
-		for(var i = 0; i < location.length; i++) {
-			stack += location[i]+'/';
-			var userDir = location[i];
-			if (userDir == '') {
-				userDir = '/';
+		if (dir == '/') {
+			createButtonFn('/', '/').appendTo(this._toolbar);
+		} else {
+			var stack = '';
+			for(var i = 0; i < location.length; i++) {
+				stack += location[i]+'/';
+				var userDir = location[i];
+				if (userDir == '') {
+					userDir = '/';
+				}
+				if (userDir == '~') {
+					userDir = 'Dossier personnel';
+				}
+				var button = createButtonFn(userDir, stack);
+				this._toolbar.append(button);
 			}
-			if (userDir == '~') {
-				userDir = 'Dossier personnel';
-			}
-			var button = createButtonFn(userDir, stack);
-			this._toolbar.append(button);
 		}
 		
 		this._toolbar.find('li').last().addClass('active');
-		
-		headers.append(this._toolbar);
 	};
 	
 	nautilus.bind('nautilusreadstart', function(e, data) {
@@ -1270,23 +1273,25 @@ function NautilusWindow(dir, userCallback) {
 			return button;
 		};
 		
-		var stack = '';
-		for(var i = 0; i < location.length; i++) {
-			stack += location[i]+'/';
-			var userDir = location[i];
-			if (userDir == '') {
-				userDir = '/';
+		if (dir == '/') {
+			createButtonFn('/', '/').appendTo(this._toolbar);
+		} else {
+			var stack = '';
+			for(var i = 0; i < location.length; i++) {
+				stack += location[i]+'/';
+				var userDir = location[i];
+				if (userDir == '') {
+					userDir = '/';
+				}
+				if (userDir == '~') {
+					userDir = 'Dossier personnel';
+				}
+				var button = createButtonFn(userDir, stack);
+				this._toolbar.append(button);
 			}
-			if (userDir == '~') {
-				userDir = 'Dossier personnel';
-			}
-			var button = createButtonFn(userDir, stack);
-			this._toolbar.append(button);
 		}
 		
 		this._toolbar.find('li').last().addClass('active');
-		
-		headers.append(this._toolbar);
 	};
 	
 	this.readDir = function(dir, userCallback) {
