@@ -188,6 +188,11 @@ Webos.User.getLogged = function(callback) {
 		return;
 	}
 	
+	if (Webos.User.logged === false) {
+		callback.success();
+		return;
+	}
+	
 	new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'getLogged'
@@ -202,9 +207,7 @@ Webos.User.getLogged = function(callback) {
 			Webos.User.logged = false;
 			callback.success();
 		}
-	}, function(response) {
-		callback.error(response);
-	}));
+	}, callback.error));
 };
 Webos.User.login = function(username, password, callback) {
 	callback = Webos.Callback.toCallback(callback);
@@ -222,7 +225,19 @@ Webos.User.login = function(username, password, callback) {
 		Webos.User.cache[user.id()] = user;
 		Webos.User.logged = user.id();
 		Webos.User.notify('login', { user: user });
-		callback.success(response);
+		callback.success(user);
+	}, callback.error));
+};
+Webos.User.logout = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'disconnect'
+	}).load(new Webos.Callback(function(response) {
+		Webos.User.logged = false;
+		Webos.User.notify('logout', {});
+		callback.success();
 	}, callback.error));
 };
 Webos.User.list = function(callback) {
