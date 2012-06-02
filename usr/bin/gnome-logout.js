@@ -22,7 +22,8 @@ $.w.button('Annuler')
 	});
 $.w.button('Se d&eacute;connecter')
 	.click(function() {
-		W.Cmd.execute('logout', new W.Callback(function() {
+		logoutWindow.window('loading', true);
+		Webos.User.logout(new W.Callback(function() {
 			logoutWindow.window('close');
 			W.UserInterface.load();
 		}));
