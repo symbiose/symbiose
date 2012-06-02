@@ -78,24 +78,28 @@ Webos.ConfigFile.load = function(path, callback) {
 	}
 };
 Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
-	var file = Webos.File.get(path);
-	var baseFile = Webos.File.get(basePath);
+	var file = Webos.File.get(path), baseFile = Webos.File.get(basePath);
 	callback = Webos.Callback.toCallback(callback);
 	
-	if (Webos.ConfigFile._cache[file.get('path')]) {
-		callback.success(Webos.ConfigFile._cache[file.get('path')]);
-	} else {
-		new Webos.ServerCall({
-			'class': 'ConfigController',
-			method: 'getUserConfig',
-			arguments: {
-				path: file.get('path'),
-				base: baseFile.get('path')
-			}
-		}).load(new Webos.Callback(function(response) {
-			var config = new Webos.ConfigFile(response.getData(), file);
-			Webos.ConfigFile._cache[file.get('path')] = config;
-			callback.success(config);
-		}, callback.error));
-	}
+	Webos.User.getLogged(function(user) {
+		if (user && Webos.ConfigFile._cache[file.get('path')]) {
+			callback.success(Webos.ConfigFile._cache[file.get('path')]);
+		} else if (!user && Webos.ConfigFile._cache[baseFile.get('path')]) {
+			callback.success(Webos.ConfigFile._cache[baseFile.get('path')]);
+		} else {
+			new Webos.ServerCall({
+				'class': 'ConfigController',
+				method: 'getUserConfig',
+				arguments: {
+					path: file.get('path'),
+					base: baseFile.get('path')
+				}
+			}).load(new Webos.Callback(function(response) {
+				var data = response.getData();
+				var config = new Webos.ConfigFile(data.config, (file.get('path') == data.path) ? file : basePath);
+				Webos.ConfigFile._cache[data.path] = config;
+				callback.success(config);
+			}, callback.error));
+		}
+	});
 };
