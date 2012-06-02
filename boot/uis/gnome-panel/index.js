@@ -6,7 +6,8 @@ $(document).scroll(function() {
 });
 
 //Chargement du theme
-W.Theme.getConfig(new W.Callback(function(theme) {
+W.Theme.get(new W.Callback(function(theme) {
+	W.Theme.current = theme;
 	theme.load();
 }, function(response) {
 	response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
