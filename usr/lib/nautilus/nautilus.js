@@ -3,6 +3,23 @@ new W.Stylesheet('usr/share/css/nautilus/main.css');
 new W.ScriptFile('usr/lib/jquery.filedrop.js');
 new W.ScriptFile('usr/lib/fileuploader.js');
 
+(function($) {
+	$.fn.setCursorPosition = function(pos1, pos2) {
+		this.each(function(index, elem) {
+			if (elem.setSelectionRange) {
+				elem.setSelectionRange(pos1, pos2);
+			} else if (elem.createTextRange) {
+				var range = elem.createTextRange();
+				range.collapse(true);
+				range.moveEnd('character', pos1);
+				range.moveStart('character', pos2);
+				range.select();
+			}
+		});
+		return this;
+	};
+})(jQuery);
+
 var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'nautilus',
 	options: {
@@ -432,7 +449,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					}
 				});
 				item.find('.filename').hide().after(input);
-				input.val(file.get('basename')).focus();
+				input.val(file.get('basename')).focus().setCursorPosition(0, file.get('basename').length);
 			},
 			remove: function() {
 				item.data('file')().remove();
