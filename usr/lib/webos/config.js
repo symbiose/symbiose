@@ -95,7 +95,7 @@ Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
 					base: baseFile.get('path')
 				}
 			}).load(new Webos.Callback(function(response) {
-				var loadedFile = (user) ? file : basePath;
+				var loadedFile = (user) ? file : baseFile;
 				var config = new Webos.ConfigFile(response.getData(), loadedFile);
 				Webos.ConfigFile._cache[loadedFile.get('path')] = config;
 				callback.success(config);
