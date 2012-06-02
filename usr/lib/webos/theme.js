@@ -136,21 +136,6 @@ Webos.Theme.get = function(callback) {
 		var theme = new Webos.Theme(config);
 		callback.success(theme);
 	}, callback.error]);
-	
-	/*new W.ServerCall({
-		'class': 'ThemeController',
-		'method': 'get',
-		'arguments': {
-			'ui': W.UserInterface.current.name()
-		}
-	}).load(new Webos.Callback(function(response) {
-		var data = response.getData();
-		var config = Webos.ConfigFile.get('~/.theme/'+Webos.UserInterface.current.name()+'/config.xml', data);
-		var theme = new Webos.Theme(config);
-		callback.success(theme);
-	}, function(response) {
-		callback.error(response);
-	}));*/
 };
 
 Webos.Theme.backgroundsDir = '/usr/share/images/backgrounds/';
