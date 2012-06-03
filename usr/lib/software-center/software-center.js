@@ -398,6 +398,15 @@ function SoftwareCenter(pkg) {
 		this._updateLoadingPackage(pkg);
 	};
 	
+	var getHeaderImgDirFn = function() {
+		var baseDir = 'usr/share/images/software-center/header', supportedThemes = ['ambiance', 'adwaita'];
+		if (jQuery.inArray(Webos.Theme.current.get('desktop'), supportedThemes) != -1) {
+			return baseDir+'/'+Webos.Theme.current.get('desktop');
+		} else {
+			return baseDir+'/'+supportedThemes[0];
+		}
+	};
+	
 	this._updateLoadingPackage = function(pkg) {
 		var actions = this._getActions(pkg);
 		
@@ -418,7 +427,7 @@ function SoftwareCenter(pkg) {
 		if (pkg.isRunning()) {
 			this.runningPkgs[pkg.getName()] = pkg;
 			if (typeof this._headerLoadingButton == 'undefined') {
-				this._headerLoadingButton = $.w.buttonWindowHeaderItem('En cours', 'usr/share/images/software-center/header/loading.gif')
+				this._headerLoadingButton = $.w.buttonWindowHeaderItem('En cours', getHeaderImgDirFn()+'/loading.gif')
 					.click(function() {
 						softwareCenter.displayPackageList(softwareCenter.runningPkgs);
 					})
@@ -501,20 +510,20 @@ function SoftwareCenter(pkg) {
 	this._header = $.w.buttonWindowHeader().appendTo(this.window.window('header'));
 	var headerContent = this._header.buttonWindowHeader('content');
 	
-	$.w.buttonWindowHeaderItem('Logiciels', 'usr/share/images/software-center/header/packages.png')
+	$.w.buttonWindowHeaderItem('Logiciels', getHeaderImgDirFn()+'/packages.png')
 		.buttonWindowHeaderItem('select')
 		.click(function() {
 			softwareCenter.displayHome();
 		})
 		.appendTo(headerContent);
 	
-	$.w.buttonWindowHeaderItem('Install&eacute;s', 'usr/share/images/software-center/header/installed.png')
+	$.w.buttonWindowHeaderItem('Install&eacute;s', getHeaderImgDirFn()+'/installed.png')
 		.click(function() {
 			softwareCenter.displayInstalled();
 		})
 		.appendTo(headerContent);
 	
-	$.w.buttonWindowHeaderItem('Historique', 'usr/share/images/software-center/header/history.png')
+	$.w.buttonWindowHeaderItem('Historique', getHeaderImgDirFn()+'/history.png')
 		.click(function() {
 			softwareCenter.displayHistory();
 		})
