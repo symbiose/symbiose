@@ -40,7 +40,7 @@ class ServerCallResponse extends HTTPResponse {
 		//On demarre la temporisation de sortie
 		//Permet de recuperer les donnees renvoyees par le script PHP
 		ob_implicit_flush();
-		//ob_start(array($this, 'addToStandardChannel'));
+		ob_start(array($this, 'addToStandardChannel'));
 	}
 
 	/**
