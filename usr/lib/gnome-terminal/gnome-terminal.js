@@ -1,4 +1,9 @@
-//Le terminal en lui-meme
+/**
+ * Terminal de GNOME.
+ * @version 1.1
+ * @author $imon
+ */
+
 var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'terminal',
 	options: {
