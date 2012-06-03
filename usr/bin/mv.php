@@ -15,4 +15,4 @@ $authorisations->control($requiredAuthorisation);
 $requiredAuthorisation = $authorisations->getArgumentAuthorizations($dest, 'file', 'write');
 $authorisations->control($requiredAuthorisation);
 
-$this->webos->managers()->get('File')->move($source, $dest);
+$this->webos->managers()->get('File')->get($source)->move($dest);

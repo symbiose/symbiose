@@ -9,4 +9,4 @@ $authorisations = $this->webos->getAuthorization();
 $requiredAuthorisation = $authorisations->getArgumentAuthorizations($path, 'file', 'write');
 $authorisations->control($requiredAuthorisation);
 
-$this->webos->managers()->get('File')->createDirectory($path);
+$this->webos->managers()->get('File')->createDir($path);
