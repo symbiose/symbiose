@@ -1368,6 +1368,50 @@ $.webos.passwordEntry = function(label) {
 	});
 };
 
+//NumberEntry
+var numberEntryProperties = $.webos.extend($.webos.properties.get('checkableEntry'), {
+	_name: 'password-entry',
+	options: {
+		min: null,
+		max: null,
+		step: null
+	},
+	_create: function() {
+		this.options._content = $('<input />', { type: 'number' });
+		this.element.append(this.options._content);
+		
+		this.option('min', this.options.min);
+		this.option('max', this.options.max);
+		this.option('step', this.options.step);
+	},
+	_update: function(key, value) {
+		switch (key) {
+			case 'min':
+			case 'max':
+			case 'step':
+				if (!value && value !== 0) {
+					this.options[key] = null;
+					this.input().removeAttr(key);
+				} else {
+					value = parseInt(value);
+					this.options[key] = value;
+					this.input().attr(key, value);
+				}
+				break;
+		}
+	}
+});
+$.webos.widget('numberEntry', numberEntryProperties);
+
+$.webos.numberEntry = function(label, value, min, max) {
+	return $('<div></div>').numberEntry({
+		label: label,
+		value: value,
+		min: min,
+		max: max
+	});
+};
+
 //TextAreaEntry
 var textAreaEntryProperties = $.webos.extend($.webos.properties.get('checkableEntry'), {
 	_name: 'textarea-entry',
