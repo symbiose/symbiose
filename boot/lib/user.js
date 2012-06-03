@@ -263,7 +263,6 @@ Webos.User.list = function(callback) {
 };
 Webos.User.create = function(data, auth, callback) {
 	callback = Webos.Callback.toCallback(callback);
-	data = JSON.stringify(data);
 	auth = auth.get().join(';');
 	
 	new Webos.ServerCall({
@@ -274,7 +273,41 @@ Webos.User.create = function(data, auth, callback) {
 			'authorizations': auth
 		}
 	}).load(new Webos.Callback(function(response) {
-		callback.success(response);
+		callback.success();
+	}, callback.error));
+};
+Webos.User.register = function(data, captchaData, callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'register',
+		'arguments': {
+			'data': data,
+			'captchaData': {
+				'id': captchaData.id,
+				'value': captchaData.value
+			}
+		}
+	}).load(new Webos.Callback(function(response) {
+		callback.success();
+	}, callback.error));
+};
+Webos.User._canRegister = null;
+Webos.User.canRegister = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	if (Webos.User._canRegister === true || Webos.User._canRegister === false) {
+		callback.success(Webos.User._canRegister);
+		return;
+	}
+	
+	new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'canRegister'
+	}).load(new Webos.Callback(function(response) {
+		Webos.User._canRegister = response.getData().register;
+		callback.success(Webos.User._canRegister);
 	}, callback.error));
 };
 Webos.User.evalPasswordPower = function(s) {

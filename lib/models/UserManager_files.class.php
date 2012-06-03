@@ -163,12 +163,12 @@ class UserManager_files extends UserManager {
 
 		foreach($userData as $index => $value) {
 			if (($err = $this->checkData($index, $value)) !== true) {
-				throw new InvalidArgumentException($err);
+				throw new \InvalidArgumentException($err);
 			}
 		}
 
 		if (($err = $this->checkPassword($password)) !== true) {
-			throw new InvalidArgumentException($err);
+			throw new \InvalidArgumentException($err);
 		}
 
 		$encodedPassword = $this->encodePassword($password);
@@ -199,7 +199,7 @@ class UserManager_files extends UserManager {
 
 		if ($maxUsers != -1 && $nbrUsers + 1 > $maxUsers) {
 			$s = ($nbrUsers > 1) ? 's' : '';
-			throw new RuntimeException('Le nombre maximal de comptes est atteint ('.$nbrUsers.' compte'.$s.' cr&eacute;&eacute;'.$s.')');
+			throw new \RuntimeException('Le nombre maximal de comptes est atteint ('.$nbrUsers.' compte'.$s.' cr&eacute;&eacute;'.$s.')');
 		}
 
 		$userId = $lastId + 1;

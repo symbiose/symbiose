@@ -5,7 +5,6 @@ namespace lib\controllers;
  * UserController controlle les utilisateurs.
  * @author $imon
  * @version 1.0
- *
  */
 class UserController extends \lib\ServerCallComponent {
 	/**
@@ -213,20 +212,43 @@ class UserController extends \lib\ServerCallComponent {
 	 * @param string $authorizations Les autorisations de l'utilisateur, separees par des point-virgules.
 	 */
 	protected function create($data, $authorizations) {
-		$data = json_decode($data, true);
 		$authorizations = explode(';', $authorizations);
 
 		$this->webos->managers()->get('User')->create($data, $authorizations);
 	}
 
 	/**
+	 * Determiner si l'inscription est activee.
+	 */
+	protected function canRegister() {
+		$config = new \lib\models\Config($this->webos);
+		$config->load('/etc/register.xml');
+		$canRegister = (int) $config->get('register');
+
+		return array('register' => ($canRegister) ? true : false);
+	}
+
+	/**
 	 * Inscrire un nouvel utilisateur.
 	 * @param string $data Les informations sur l'utilisateur, encodees en JSON.
 	 */
-	protected function register($data) {
-		$data = json_decode($data, true);
-		$authorizations = array('file.user.read');
+	protected function register($data, $captchaData) {
+		//Verification du captcha
+		$captcha = $this->webos()->managers()->get('Captcha')->get($captchaData['id']);
+		if (!$captcha->check($captchaData['value']))
+			throw new \InvalidArgumentException('Le code de v&eacute;rification est incorrect');
 
-		//$this->webos->managers()->get('User')->create($data, $authorizations);
+		//Chargement de la configuration
+		$config = new \lib\models\Config($this->webos);
+		$config->load('/etc/register.xml');
+		$canRegister = (int) $config->get('register');
+		$authorizations = explode(';', $config->get('authorizations'));
+
+		if (!$canRegister) {
+			throw new \RuntimeException('L\'inscription a &eacute;t&eacute; d&eacute;sactiv&eacute;e. Pour obtenir un compte, veuillez contacter l\'administrateur syst&egrave;me');
+		}
+
+		//On inscrit le membre
+		$this->webos->managers()->get('User')->create($data, $authorizations);
 	}
 }

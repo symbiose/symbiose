@@ -79,6 +79,7 @@
 			<authorization action="user.write"/>
 		</method>
 		<method name="register"></method>
+		<method name="canRegister"></method>
 	</class>
 	<class name="ServerController">
 		<method name="getHost"></method>
@@ -174,5 +175,9 @@
 		<method name="setConfig">
 			<argument id="0" type="file" action="write"/>
 		</method>
+	</class>
+	<class name="CaptchaController">
+		<method name="get"></method>
+		<method name="check"></method>
 	</class>
 </actions>
