@@ -1,3 +1,9 @@
+/**
+ * Visionneur d'images Eye Of Symbiose.
+ * @version 1.2
+ * @author $imon
+ */
+
 new W.ScriptFile('usr/lib/webos/file.js');
 new W.ScriptFile('usr/lib/webos/jquery.transit.min.js');
 
