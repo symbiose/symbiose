@@ -310,6 +310,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			})(files[i]);
 		}
 		
+		this.element.scrollPane('reload');
+		
 		var createFileCallbackId = Webos.File.bind('create', function(data) {
 			var newFile = data.file;
 			
@@ -320,6 +322,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			that.options._files[newFile.get('path')] = newFile;
 			var newItem = that._renderItem(newFile);
 			that._insertItem(newItem);
+			that.element.scrollPane('reload');
 		});
 		this.element.one('nautilusreadstart', function() {
 			Webos.File.unbind(createFileCallbackId);
@@ -455,48 +458,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				item.data('file')().remove();
 			},
 			openProperties: function() {
-				var file = item.data('file')();
-				
-				var propertiesWindow = $.w.window({
-					title: 'Propri&eacute;t&eacute;s de '+file.get('basename'),
-					icon: that._getFileIcon(file),
-					resizable: false,
-					stylesheet: 'usr/share/css/nautilus/properties.css'
-				});
-				
-				var mtime = new Date(file.get('mtime') * 1000);
-				var mtimeDate = parseInt(mtime.getDate());
-				if (mtimeDate < 10) mtimeDate = '0'+mtimeDate;
-				var mtimeMonth = (parseInt(mtime.getMonth()) + 1);
-				if (mtimeMonth < 10) mtimeMonth = '0'+mtimeMonth;
-				var mtimeYear = mtime.getFullYear();
-				var mtimeHours = parseInt(mtime.getHours());
-				if (mtimeHours < 10) mtimeHours = '0'+mtimeHours;
-				var mtimeMinutes = parseInt(mtime.getMinutes());
-				if (mtimeMinutes < 10) mtimeMinutes = '0'+mtimeMinutes;
-				var atime = new Date(file.get('atime') * 1000);
-				var atimeDate = parseInt(atime.getDate());
-				if (atimeDate < 10) atimeDate = '0'+atimeDate;
-				var atimeMonth = (parseInt(atime.getMonth()) + 1);
-				if (atimeMonth < 10) atimeMonth = '0'+atimeMonth;
-				var atimeYear = atime.getFullYear();
-				var atimeHours = parseInt(atime.getHours());
-				if (atimeHours < 10) atimeHours = '0'+atimeHours;
-				var atimeMinutes = parseInt(atime.getMinutes());
-				if (atimeMinutes < 10) atimeMinutes = '0'+atimeMinutes;
-				var data = ['Nom : '+file.get('basename'),
-				            'Type : '+((file.get('is_dir')) ? 'dossier' : 'fichier '+file.get('extension')),
-				            'Emplacement : '+file.get('dirname'),
-				            'Derni&egrave;re modification : '+mtimeDate+'/'+mtimeMonth+'/'+mtimeYear+' '+mtimeHours+':'+mtimeMinutes,
-				            'Dernier acc&egrave;s : '+atimeDate+'/'+atimeMonth+'/'+atimeYear+' '+atimeHours+':'+atimeMinutes,
-				            ((file.get('is_dir')) ? 'Contenu' : 'Taille')+' : '+((file.get('is_dir')) ? file.get('size')+' fichier'+((file.get('size') > 1) ? 's' : '') : W.File.bytesToSize(file.get('size')))];
-				propertiesWindow.window('content').append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
-				var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
-				$.w.button('Fermer').appendTo(buttons).click(function() {
-					propertiesWindow.window('close');
-				});
-				
-				propertiesWindow.window('open');
+				that._openProperties(item.data('file')());
 			}
 		});
 		
@@ -617,6 +579,48 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		if (this.options.display == 'list') {
 			this.content().list('content').append(item);
 		}
+	},
+	_openProperties: function(file) {
+		var propertiesWindow = $.w.window({
+			title: 'Propri&eacute;t&eacute;s de '+file.get('basename'),
+			icon: this._getFileIcon(file),
+			resizable: false,
+			stylesheet: 'usr/share/css/nautilus/properties.css'
+		});
+		
+		var mtime = new Date(file.get('mtime') * 1000);
+		var mtimeDate = parseInt(mtime.getDate());
+		if (mtimeDate < 10) mtimeDate = '0'+mtimeDate;
+		var mtimeMonth = (parseInt(mtime.getMonth()) + 1);
+		if (mtimeMonth < 10) mtimeMonth = '0'+mtimeMonth;
+		var mtimeYear = mtime.getFullYear();
+		var mtimeHours = parseInt(mtime.getHours());
+		if (mtimeHours < 10) mtimeHours = '0'+mtimeHours;
+		var mtimeMinutes = parseInt(mtime.getMinutes());
+		if (mtimeMinutes < 10) mtimeMinutes = '0'+mtimeMinutes;
+		var atime = new Date(file.get('atime') * 1000);
+		var atimeDate = parseInt(atime.getDate());
+		if (atimeDate < 10) atimeDate = '0'+atimeDate;
+		var atimeMonth = (parseInt(atime.getMonth()) + 1);
+		if (atimeMonth < 10) atimeMonth = '0'+atimeMonth;
+		var atimeYear = atime.getFullYear();
+		var atimeHours = parseInt(atime.getHours());
+		if (atimeHours < 10) atimeHours = '0'+atimeHours;
+		var atimeMinutes = parseInt(atime.getMinutes());
+		if (atimeMinutes < 10) atimeMinutes = '0'+atimeMinutes;
+		var data = ['Nom : '+file.get('basename'),
+		            'Type : '+((file.get('is_dir')) ? 'dossier' : 'fichier '+file.get('extension')),
+		            'Emplacement : '+file.get('dirname'),
+		            'Derni&egrave;re modification : '+mtimeDate+'/'+mtimeMonth+'/'+mtimeYear+' '+mtimeHours+':'+mtimeMinutes,
+		            'Dernier acc&egrave;s : '+atimeDate+'/'+atimeMonth+'/'+atimeYear+' '+atimeHours+':'+atimeMinutes,
+		            ((file.get('is_dir')) ? 'Contenu' : 'Taille')+' : '+((file.get('is_dir')) ? file.get('size')+' fichier'+((file.get('size') > 1) ? 's' : '') : W.File.bytesToSize(file.get('size')))];
+		propertiesWindow.window('content').append('<img src="'+this._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
+		var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
+		$.w.button('Fermer').appendTo(buttons).click(function() {
+			propertiesWindow.window('close');
+		});
+		
+		propertiesWindow.window('open');
 	},
 	_download: function(file) {
 		var serverCall = new W.ServerCall({
