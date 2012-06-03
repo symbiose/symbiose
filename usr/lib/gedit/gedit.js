@@ -1,3 +1,9 @@
+/**
+ * Editeur de texte gedit.
+ * @version 1.2
+ * @author $imon
+ */
+
 new W.ScriptFile('usr/lib/codemirror/codemirror.js');
 new W.Stylesheet('usr/share/css/codemirror/main.css');
 
