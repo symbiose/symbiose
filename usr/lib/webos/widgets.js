@@ -1169,11 +1169,15 @@ var entryProperties = $.webos.extend($.webos.properties.get('container'), {
 				that.options._content.focus();
 			});
 		this.element.append(this.options._components.label);
+		
+		this.element.bind('change', function() {
+			that._trigger('change', { type: 'change' }, { entry: that.element, value: that.value() });
+		});
 	},
 	value: function(value) {
 		if (typeof value == 'undefined') {
 			return this.content().val();
-		} else {
+		} else if (this.value() != value) {
 			this.content().val(value);
 		}
 	},
@@ -1458,6 +1462,11 @@ var checkButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 			return this.content().prop('checked');
 		} else {
 			this.options.value = (value) ? true : false;
+			
+			if (this.value() == value) {
+				return;
+			}
+			
 			this.content().prop('checked', this.options.value);
 		}
 	}
@@ -1569,7 +1578,7 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 		
 		this.options._content = $('<div></div>', { 'class': 'entry off' }).click(function() {
 			if (!that.options.disabled) {
-				that.toggle();
+				that._toggle();
 			}
 		}).appendTo(this.element);
 		this.options._components.labels = $('<div></div>', { 'class': 'labels' }).appendTo(this.options._content);
@@ -1582,14 +1591,21 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 			stop: function(event, ui) {
 				var ratio = (that.options._components.slider.position().left + that.options._components.slider.outerWidth() / 2) / that.options._content.innerWidth();
 				if (ratio > 0.5) {
-					that.value(true);
+					that._value(true);
 				} else {
-					that.value(false);
+					that._value(false);
 				}
 			}
 		});
 		
 		this.value(this.options.value);
+	},
+	_value: function(choice) {
+		choice = (choice) ? true : false;
+		if (choice != this.options.value) {
+			this._trigger('change', { type: 'change' }, { entry: this.element, value: choice });
+		}
+		this.value(choice);
 	},
 	value: function(choice) {
 		if (typeof choice == 'undefined') {
@@ -1619,12 +1635,14 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 			
 			if (choice != this.options.value) {
 				this.options.value = choice;
-				this._trigger('change');
 			}
 		}
 	},
 	toggle: function() {
 		this.value(!this.value());
+	},
+	_toggle: function() {
+		this._value(!this.value());
 	},
 	disabled: function(value) {
 		if (typeof value == 'undefined') {
