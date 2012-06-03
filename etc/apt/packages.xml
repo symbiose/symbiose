@@ -1,2 +1,2 @@
 <?xml version="1.0"?>
-<packages><package name="intermezzo" version="2.0"/><package name="gnome-terminal" version="2.0"/><package name="software-center" version="2.2"/><package name="update-manager" version="1.0"/><package name="quickly" version="1.1"/><package name="gcalctool" version="2.0"/></packages>
+<packages><package name="intermezzo" version="2.0"/><package name="gnome-terminal" version="2.0"/><package name="software-center" version="2.2"/><package name="update-manager" version="1.0"/><package name="gcalctool" version="2.0"/><package name="quickly-cli" version="1.1"/></packages>
