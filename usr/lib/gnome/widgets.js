@@ -941,16 +941,6 @@ $.webos.window.messageDialog = function(opts) {
 	
 	var options = $.extend(defaults, opts);
 	
-	var dialog = $.webos.window.dialog({
-		title: options.title,
-		parentWindow: options.parentWindow,
-		resizable: false,
-		hideable: false,
-		width: 450
-	});
-	
-	var contents = dialog.window('content');
-	
 	var icon = new W.Icon('status/info');
 	switch (options.type) {
 		case 'information':
@@ -964,11 +954,22 @@ $.webos.window.messageDialog = function(opts) {
 			break;
 	}
 	
+	var dialog = $.webos.window.dialog({
+		title: options.title,
+		icon: icon,
+		parentWindow: options.parentWindow,
+		resizable: false,
+		hideable: false,
+		width: 450
+	});
+	
+	var contents = dialog.window('content');
+	
 	$.w.image(icon).css('float', 'left').appendTo(contents);
 	$('<strong></strong>').html(options.label).appendTo(contents);
 	
 	if (options.details) {
-		$.w.label(options.details).css('clear', 'both').appendTo(contents);
+		$.w.label(options.details).appendTo(contents);
 	}
 	
 	var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(contents);
