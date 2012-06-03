@@ -15,6 +15,10 @@ input[type="text"]:focus, input[type="password"]:focus {
 	outline: none;
 }
 
+.webos-text-entry.error input, .webos-password-entry.error input, .webos-textarea-entry.error textarea {
+	border-color: #b30000;
+}
+
 .webos-search-entry input[type="text"] {
 	background: url('usr/share/images/themes/adwaita/search.png') no-repeat center right white;
 }

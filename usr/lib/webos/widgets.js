@@ -653,7 +653,7 @@ var progressbarProperties = $.webos.extend($.webos.properties.get('container'), 
 		value: 0
 	},
 	_create: function() {
-		this.options._content = $('<div></div>', { 'class': 'cursor-wait' }).appendTo(this.element);
+		this.options._content = $('<div></div>').appendTo(this.element);
 		this.element.append(this.content());
 		this.value(this.options.value);
 	},
@@ -1205,12 +1205,66 @@ var entryProperties = $.webos.extend($.webos.properties.get('container'), {
 				this.value(value);
 				break;
 		}
+	},
+	input: function() {
+		return this.content();
 	}
 });
 $.webos.widget('entry', entryProperties);
 
+var checkableEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
+	options: {
+		autoCheck: true,
+		check: null
+	},
+	_name: 'checkable-entry',
+	_create: function() {
+		this.option('autoCheck', this.options.autoCheck);
+	},
+	_update: function(key, value) {
+		switch(key) {
+			case 'autoCheck':
+				if (value) {
+					var that = this;
+					this.input().bind('keyup.checkableentry.widget.webos focusout.checkableentry.widget.webos', function() {
+						that.check();
+					});
+				} else {
+					this.input().unbind('keyup.checkableentry.widget.webos focusout.checkableentry.widget.webos');
+				}
+				break;
+		}
+	},
+	isValid: function() {
+		if (typeof this.options.check == 'function') {
+			return (this.options.check(this.value())) ? true : false;
+		}
+		
+		return true;
+	},
+	check: function() {
+		var message = null, valid = true;
+		if (typeof this.options.check == 'function') {
+			var result = this.options.check(this.value());
+			message = (String(result)) ? String(result) : null;
+			valid = (result === true) ? true : false;
+		}
+		
+		if (!valid) {
+			this.element.addClass('error');
+		} else {
+			this.element.removeClass('error');
+		}
+		
+		this._trigger('check', { type: 'check' }, { valid: valid, message: message });
+		
+		return valid;
+	}
+});
+$.webos.widget('checkableEntry', checkableEntryProperties);
+
 //TextEntry
-var textEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
+var textEntryProperties = $.webos.extend($.webos.properties.get('checkableEntry'), {
 	_name: 'text-entry',
 	_create: function() {
 		this.options._content = $('<input />', { type: 'text' }).val(this.options.defaultValue);
@@ -1226,6 +1280,60 @@ $.webos.textEntry = function(label, value) {
 		label: label,
 		value: value
 	});
+};
+
+//CaptchaEntry
+var captchaEntryProperties = $.webos.extend($.webos.properties.get('container'), {
+	_name: 'captcha-entry',
+	_create: function() {
+		var that = this;
+		
+		this.options._components.label = $.webos.label('Chargement...').appendTo(this.element);
+		this.options._components.input = $.webos.textEntry().textEntry('option', 'check', function(value) {
+			return that.isValid();
+		}).hide().appendTo(this.element);
+		
+		this._loadCaptcha();
+	},
+	_loadCaptcha: function() {
+		var that = this;
+		new W.ServerCall({
+			'class': 'CaptchaController',
+			method: 'get'
+		}).load([function(response) {
+			var data = response.getData();
+			that.options._captchaId = data.id;
+			switch (data.type) {
+				case 1:
+					that.options._components.input.textEntry('option', 'label', data.captcha);
+				case 2:
+					that.options._content = $('<img />', { src: 'data:image/png;base64,'+data.captcha, alt: 'captcha' }).insertAfter(that.options._components.label);
+					that.options._components.input.textEntry('option', 'label', 'Veuillez recopier le texte de l\'image ci-dessus : ');
+					break;
+			}
+			that.options._components.label.hide();
+			that.options._components.input.show();
+		}, function(response) {
+			that.options._components.label.html('Une erreur est survenue.');
+		}]);
+	},
+	captchaId: function() {
+		return this.options._captchaId;
+	},
+	isValid: function() {
+		return (this.options._components.input.textEntry('value').length > 0);
+	},
+	check: function() {
+		return this.options._components.input.textEntry('check');
+	},
+	value: function() {
+		return this.options._components.input.textEntry('value');
+	}
+});
+$.webos.widget('captchaEntry', captchaEntryProperties);
+
+$.webos.captchaEntry = function() {
+	return $('<div></div>').captchaEntry();
 };
 
 //SearchEntry
@@ -1245,7 +1353,7 @@ $.webos.searchEntry = function(label) {
 };
 
 //PasswordEntry
-var passwordEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
+var passwordEntryProperties = $.webos.extend($.webos.properties.get('checkableEntry'), {
 	_name: 'password-entry',
 	_create: function() {
 		this.options._content = $('<input />', { type: 'password' });
@@ -1261,7 +1369,7 @@ $.webos.passwordEntry = function(label) {
 };
 
 //TextAreaEntry
-var textAreaEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
+var textAreaEntryProperties = $.webos.extend($.webos.properties.get('checkableEntry'), {
 	_name: 'textarea-entry',
 	_create: function() {
 		this.options._components.br = $('<br />').appendTo(this.element);
