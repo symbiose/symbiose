@@ -59,7 +59,14 @@ class InstalledPackage extends Package {
 
 		foreach ($files as $file) {
 			//On veut recuperer le chemin virtuel, on ajoute un "/" devant
-			$file = '/'.$file;
+			$path = '/'.$file;
+
+			if (!$this->webos->managers()->get('File')->exists($path)) {
+				echo 'Attention : impossible de supprimer "'.$path.'" : le fichier n\'existe pas.<br />';
+				continue;
+			}
+
+			$file = $this->webos->managers()->get('File')->get($path);
 
 			//C'est un dossier
 			if ($this->webos->managers()->get('File')->get($file)->isDir()) {

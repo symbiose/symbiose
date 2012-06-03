@@ -57,7 +57,7 @@ abstract class AvailablePackage extends Package {
 
 		$dest = $this->webos->managers()->get('File')->createDir('/tmp/'.$this->getName().'/');
 
-		$zip = new ZipArchive;
+		$zip = new \ZipArchive;
 		$zip->open('tmp/'.$this->getName().'.zip');
 		$zip->extractTo('tmp/'.$this->getName().'/');
 		$zip->close();
