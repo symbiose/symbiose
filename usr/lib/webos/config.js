@@ -6,6 +6,34 @@ Webos.ConfigFile = function WConfigFile(data, file) {
 	this._file = file;
 };
 Webos.ConfigFile.prototype = {
+	load: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		var that = this;
+		
+		if (Webos.ConfigFile._cache[this._file.get('path')]) {
+			callback.success(Webos.ConfigFile._cache[this._file.get('path')]);
+		} else {
+			new Webos.ServerCall({
+				'class': 'ConfigController',
+				method: 'getConfig',
+				arguments: {
+					path: this._file.get('path')
+				}
+			}).load(new Webos.Callback(function(response) {
+				var data = response.getData(), updatedData = {};
+				for (var key in data) {
+					if (that.get(key) !== data[key]) {
+						updatedData[key] = data[key];
+					}
+				}
+				that.hydrate(updatedData);
+				callback.success(that);
+				for (var key in updatedData) {
+					that.notify('update', { key: key, value: updatedData[key] });
+				}
+			}, callback.error));
+		}
+	},
 	sync: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
