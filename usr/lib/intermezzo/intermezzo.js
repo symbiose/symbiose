@@ -1,14 +1,7 @@
-/* ----------- intermezzo.js ----------- 
- * v1.0
- * Par Doppelganger
- * Le  22/06/2011
- * 
- * v2.0
- * Par $imon
- * Le 10/12/2011
- * 
- * CLASSE JAVASCRIPT POUR LE LECTEUR AUDIO & VIDEO
- * --- UTILISE FLASH ET JQUERY ---
+/**
+ * Lecteur multimedia Intermezzo.
+ * @author Doppelganger & $imon
+ * @version 2.0
  */
 new W.ScriptFile('usr/lib/intermezzo/jquery.jplayer.min.js');
 new W.ScriptFile('usr/lib/webos/fullscreen.js');
