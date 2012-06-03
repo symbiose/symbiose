@@ -157,6 +157,10 @@ function GTerminalWindow(callback) { //La fenetre du terminal
 	//On initialise le terminal
 	this._terminal = $.w.terminal(callback).appendTo(scrollPane.scrollPane('content'));
 	
+	this.terminal = function() {
+		return this._terminal;
+	};
+	
 	//Lors du redimentionnement de la fenetre
 	this._window.bind('windowresize', function() {
 		that._terminal.terminal('prompt').textEntry('content')
