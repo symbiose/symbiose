@@ -16,6 +16,7 @@ function SoftwareCenter(pkg) {
 		title: 'Logith&egrave;que',
 		icon: new W.Icon('applications/software-center'),
 		width: 650,
+		height: 250,
 		stylesheet: 'usr/share/css/software-center/main.css'
 	});
 	
