@@ -287,3 +287,7 @@ Webos.File.bytesToSize = function(bytes) {
 			: (bytes / Math.pow(1024, i)).toFixed(1))
 			+ ' ' + sizes[i];
 };
+
+Webos.User.bind('logout', function() {
+	Webos.File.clearCache();
+});

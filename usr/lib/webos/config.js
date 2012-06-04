@@ -131,3 +131,10 @@ Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
 		}
 	});
 };
+Webos.ConfigFile.clearCache = function() {
+	Webos.ConfigFile._cache = {};
+};
+
+Webos.User.bind('logout', function() {
+	Webos.ConfigFile.clearCache();
+});
