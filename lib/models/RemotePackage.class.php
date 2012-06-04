@@ -14,7 +14,7 @@ class RemotePackage extends AvailablePackage {
 	protected function load() {
 		$xml = new \DOMDocument;
 		if ($xml->load($this->source.'/package.xml') === false)
-			throw new InvalidArgumentException('Le paquet "'.$this->name.'" n\'existe pas');
+			throw new \InvalidArgumentException('Le paquet "'.$this->name.'" n\'existe pas');
 
 		//On stocke les attributs du paquet
 		$this->attributes = array();

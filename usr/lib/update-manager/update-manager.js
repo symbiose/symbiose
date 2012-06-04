@@ -58,8 +58,8 @@ function UpdateManager() {
 				var item = $.w.listItem();
 				
 				var itemCheckbox = item.listItem('addColumn');
-				$.webos.checkButton('', true).change(function() {
-					var checked = $(this).checkButton('checked');
+				$.webos.checkButton('', true).bind('checkbuttonchange', function() {
+					var checked = $(this).checkButton('value');
 					that.updates[pkg.getName()].disabled = !checked;
 					that._updateInfo();
 				}).appendTo(itemCheckbox);
