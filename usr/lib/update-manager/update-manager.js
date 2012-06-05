@@ -46,7 +46,7 @@ function UpdateManager() {
 		
 		this.updates = {};
 		
-		SPackage.getUpdates(new W.Callback(function(packages) {
+		W.Package.getUpdates(new W.Callback(function(packages) {
 			that.components.list.html('');
 			var list = $.w.list().appendTo(that.components.list);
 			
@@ -147,7 +147,7 @@ function UpdateManager() {
 		
 		loadingWindow.window('open');
 		
-		SPackage.updateCache(new W.Callback(function(response) {
+		W.Package.updateCache(new W.Callback(function(response) {
 			loadingWindow.window('close');
 			that.window.window('loading', false);
 			that.displayUpdates();

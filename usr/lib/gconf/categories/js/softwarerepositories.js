@@ -132,7 +132,7 @@ var confirmPackageUpdate = function() {
 			
 			loadingWindow.window('open');
 			
-			SPackage.updateCache(new W.Callback(function(response) {
+			W.Package.updateCache(new W.Callback(function(response) {
 				loadingWindow.window('close');
 				confWindow.window('loading', false);
 				displayRepositoriesFn();

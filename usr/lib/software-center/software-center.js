@@ -20,10 +20,10 @@ function SoftwareCenter(pkg) {
 		stylesheet: 'usr/share/css/software-center/main.css'
 	});
 	
-	this.displayPackage = function(pkg) { //Afficher un paquet
+	this.displayPackage = function(name) { //Afficher un paquet
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
-		var callback = new W.Callback(function(data) {
+		W.Package.get(name, new W.Callback(function(pkg) {
 			if (typeof softwareCenter.views.detail == 'undefined') {
 				softwareCenter.views.detail = $.w.container();
 				softwareCenter.views.detail.addClass('package-details');
@@ -56,33 +56,31 @@ function SoftwareCenter(pkg) {
 				$('<div></div>', { 'class': 'separator' }).appendTo(softwareCenter.views.detail);
 			}
 			
-			softwareCenter.detail.pkgName = data.getName();
+			softwareCenter.detail.pkgName = pkg.name();
 			
-			softwareCenter.detail.title.html(data.getAttribute('name'));
-			softwareCenter.detail.shortDescription.html(data.getAttribute('shortdescription'));
-			softwareCenter.detail.description.html(data.getAttribute('description'));
-			softwareCenter.detail.version.html(data.getAttribute('version'));
-			softwareCenter.detail.size.html(W.File.bytesToSize(data.getAttribute('packagesize'))+' &agrave; t&eacute;l&eacute;charger, '+W.File.bytesToSize(data.getAttribute('installedsize'))+' une fois install&eacute;');
-			softwareCenter.detail.maintainer.html(data.getAttribute('maintainer'));
-			softwareCenter.detail.releaseDate.html(SoftwareCenter.getDate(data.getAttribute('lastupdate')));
-			var actions = softwareCenter._getActions(data);
+			softwareCenter.detail.title.html(pkg.get('name'));
+			softwareCenter.detail.shortDescription.html(pkg.get('shortdescription'));
+			softwareCenter.detail.description.html(pkg.get('description'));
+			softwareCenter.detail.version.html(pkg.get('version'));
+			softwareCenter.detail.size.html(W.File.bytesToSize(pkg.get('packagesize'))+' &agrave; t&eacute;l&eacute;charger, '+W.File.bytesToSize(pkg.get('installedsize'))+' une fois install&eacute;');
+			softwareCenter.detail.maintainer.html(pkg.get('maintainer'));
+			softwareCenter.detail.releaseDate.html(SoftwareCenter.getDate(pkg.get('lastupdate')));
+			var actions = softwareCenter._getActions(pkg);
 			softwareCenter.detail.button.remove();
 			softwareCenter.detail.button = actions.action.appendTo(softwareCenter.detail.actionBox);
 			softwareCenter.detail.state.html(actions.labels.status);
 			
-			if (data.getAttribute('icon') != false) {
-				var icon = data.getAttribute('icon');
-			} else {
-				var icon = 'usr/share/images/software-center/package.png';
+			var icon = pkg.get('icon');
+			if (!icon) {
+				icon = 'usr/share/images/software-center/package.png';
 			}
 			softwareCenter.detail.icon.attr('src', icon);
 			
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		}, function(response) {
 			softwareCenter.window.window('loading', false); //Le chargement est termine
-			W.Error.trigger('Le paquet "'+pkg+'" est introuvable', response.getAllChannels());
-		});
-		SPackage.get(pkg, callback);
+			W.Error.trigger('Le paquet "'+name+'" est introuvable', response.getAllChannels());
+		}));
 	};
 	
 	this.displayPackageList = function(list, filter) { //Afficher une liste de paquets
@@ -100,37 +98,36 @@ function SoftwareCenter(pkg) {
 		this.list.packages = {};
 		
 		var generatePackageItemFn = function(pkg) {
-			softwareCenter.list.packages[pkg.getName()] = {};
+			softwareCenter.list.packages[pkg.name()] = {};
 			var item = $.w.listItem();
 			var itemContent = item.listItem('addColumn');
 			
-			softwareCenter.list.packages[pkg.getName()].item = item;
+			softwareCenter.list.packages[pkg.name()].item = item;
 			
-			if (pkg.getAttribute('icon') != false) {
-				var icon = pkg.getAttribute('icon');
-			} else {
-				var icon = 'usr/share/images/software-center/package.png';
+			var icon = pkg.get('icon');
+			if (!icon) {
+				icon = 'usr/share/images/software-center/package.png';
 			}
 			itemContent.append('<img src="'+icon+'" class="icon"/>');
-			itemContent.append('<span class="name">'+pkg.getAttribute('name')+'</span><br /><span class="shortdescription">'+pkg.getAttribute('shortdescription')+'</span><br />');
+			itemContent.append('<span class="name">'+pkg.get('name')+'</span><br /><span class="shortdescription">'+pkg.get('shortdescription')+'</span><br />');
 			var more = $('<span></span>')
 				.addClass('more')
 				.appendTo(itemContent);
 			
 			$.w.button('Plus d\'informations')
 				.click(function() {
-					softwareCenter.displayPackage(pkg.getName());
+					softwareCenter.displayPackage(pkg.name());
 				})
 				.appendTo(more);
 			
 			var actions = softwareCenter._getActions(pkg);
 			
-			softwareCenter.list.packages[pkg.getName()].actionButton = actions.action.appendTo(more);
+			softwareCenter.list.packages[pkg.name()].actionButton = actions.action.appendTo(more);
 			
-			item.bind('select', function() {
+			item.bind('listitemselect', function() {
 				more.show();
 			});
-			item.bind('unselect', function() {
+			item.bind('listitemunselect', function() {
 				more.hide();
 			});
 			
@@ -157,7 +154,7 @@ function SoftwareCenter(pkg) {
 		for (var name in list) {
 			var pkg = list[name];
 			
-			var category = getFilterCategoryFn(pkg.getAttribute(filter));
+			var category = getFilterCategoryFn(pkg.get(filter));
 			
 			var item = generatePackageItemFn(pkg);
 			
@@ -171,7 +168,7 @@ function SoftwareCenter(pkg) {
 		}
 		
 		var nbrCategories = 0;
-		for (var category in orderedList) {
+		for (var cat in orderedList) {
 			nbrCategories++;
 		}
 		
@@ -182,7 +179,7 @@ function SoftwareCenter(pkg) {
 				.appendTo(this.views.list.container('content'));
 		} else if (nbrCategories == 1) {
 			for (var category in orderedList) {}
-			var title = $('<h1></h1>').html(category).appendTo(this.views.list);
+			$('<h1></h1>').html(category).appendTo(this.views.list);
 			var list = $.w.list().appendTo(this.views.list);
 			for (var i = 0; i < orderedList[category].length; i++) {
 				list.list('content').append(orderedList[category][i]);
@@ -218,7 +215,7 @@ function SoftwareCenter(pkg) {
 			response.triggerError();
 		});
 		
-		SPackage.getFromCategory(category, callback);
+		W.Package.getFromCategory(category, callback);
 	};
 	
 	this.displayLastPackages = function() { //Afficher les 30 derniers paquets parus
@@ -232,7 +229,7 @@ function SoftwareCenter(pkg) {
 			response.triggerError();
 		});
 		
-		SPackage.getLastPackages(30, callback);
+		W.Package.getLastPackages(30, callback);
 	};
 	
 	this.displayInstalled = function() { //Afficher les paquets installes
@@ -246,7 +243,7 @@ function SoftwareCenter(pkg) {
 			response.triggerError();
 		});
 		
-		SPackage.getInstalled(callback);
+		W.Package.getInstalled(callback);
 	};
 	
 	this.displayHistory = function() {
@@ -260,7 +257,7 @@ function SoftwareCenter(pkg) {
 			response.triggerError();
 		});
 		
-		SPackage.getLastInstalled(30, callback);
+		W.Package.getLastInstalled(30, callback);
 	};
 	
 	this.search = function(search) {
@@ -274,7 +271,7 @@ function SoftwareCenter(pkg) {
 			response.triggerError();
 		});
 		
-		SPackage.searchPackages(search, callback);
+		W.Package.searchPackages(search, callback);
 	};
 	
 	this.displayHome = function() { //Afficher l'accueil
@@ -307,36 +304,30 @@ function SoftwareCenter(pkg) {
 				.addClass('title')
 				.appendTo(softwareCenter.home.whatsnew);
 			
-			var categories = {};
-			
 			var generatePackageItemFn = function(pkg) {
-				if (typeof categories[pkg.getAttribute('category')] == 'undefined') {
-					categories[pkg.getAttribute('category')] = pkg.getAttribute('category');
-				}
-				
 				var item = $('<li></li>');
-				if (pkg.getAttribute('icon') != false) {
-					var icon = pkg.getAttribute('icon');
-				} else {
-					var icon = 'usr/share/images/software-center/package.png';
+				
+				var icon = pkg.get('icon');
+				if (!icon) {
+					icon = 'usr/share/images/software-center/package.png';
 				}
 				
 				item.append($('<img />', { 'src': icon, 'class': 'icon' }));
-				item.append('<span class="name">'+pkg.getAttribute('name')+'</span><br /><span class="category">'+SoftwareCenter.getHumanCategory(pkg.getAttribute('category'))+'</span>');
+				item.append('<span class="name">'+pkg.get('name')+'</span><br /><span class="category">'+SoftwareCenter.getHumanCategory(pkg.get('category'))+'</span>');
 				item.click(function() {
-					softwareCenter.displayPackage(pkg.getName());
+					softwareCenter.displayPackage(pkg.name());
 				});
 				
 				return item;
 			};
 			
-			var i = 0;
+			var i = 0, list = $();
 			for (var pkg in packages) {
 				if (i > 8) {
 					break;
 				}
 				if (i % 4 == 0) {
-					var list = $('<ul></ul>');
+					list = $('<ul></ul>');
 					softwareCenter.home.whatsnew.append(list);
 				}
 				
@@ -349,24 +340,21 @@ function SoftwareCenter(pkg) {
 			
 			var menu = $('<ul></ul>').appendTo(softwareCenter.home.menu);
 			
-			var generateCategoryItemFn = function(category) {
-				var item = $('<li></li>').html(SoftwareCenter.getHumanCategory(category));
-				item.click(function() {
-					softwareCenter.displayCategory(category);
-				});
-				return item;
-			};
-			
-			for (var category in categories) {
-				var item = generateCategoryItemFn(category);
-				
-				menu.append(item);
+			var categories = W.Package.categories();
+			for (var cat in categories) {
+				(function(name, title) {
+					var item = $('<li></li>').html(title);
+					item.click(function() {
+						softwareCenter.displayCategory(name);
+					});
+					menu.append(item);
+				})(cat, categories[cat]);
 			}
 			
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		});
 		
-		SPackage.getLastPackages(8, callback);
+		W.Package.getLastPackages(8, callback);
 		
 		this.window.window('content').append(this.views.home);
 		
@@ -454,17 +442,17 @@ function SoftwareCenter(pkg) {
 			labels: {}
 		};
 		if (pkg.isRunning()) {
-			if (pkg.getAttribute('installed')) {
+			if (pkg.get('installed')) {
 				actions.labels.status = 'En cours de suppression...';
 			} else {
 				actions.labels.status = 'En cours d\'installation...';
 			}
 		} else {
-			if (pkg.getAttribute('installed')) {
-				actions.labels.status = 'Install&eacute; le '+SoftwareCenter.getDate(pkg.getAttribute('installed_time'));
+			if (pkg.get('installed')) {
+				actions.labels.status = 'Install&eacute; le '+SoftwareCenter.getDate(pkg.get('installed_time'));
 				actions.labels.action = 'Supprimer';
 			} else {
-				if (!pkg.getAttribute('checked')) {
+				if (!pkg.get('checked')) {
 					actions.labels.status = 'Non v&eacute;rifi&eacute;';
 				} else {
 					actions.labels.status = 'Disponible';
@@ -477,12 +465,12 @@ function SoftwareCenter(pkg) {
 			actions.action = $.w.button(actions.labels.action)
 				.addClass('action-button')
 				.click(function() {
-					if (!pkg.getAttribute('managable')) {
+					if (!pkg.get('managable')) {
 						return;
 					}
 					
 					if (!pkg.isRunning()) {
-						if (pkg.getAttribute('installed')) {
+						if (pkg.get('installed')) {
 							softwareCenter.remove(pkg);
 						} else {
 							softwareCenter.install(pkg);
@@ -491,7 +479,7 @@ function SoftwareCenter(pkg) {
 						W.Error.trigger('Une op&eacute;ration sur ce paquet est d&eacute;j&agrave; en cours');
 					}
 				});
-			if (!pkg.getAttribute('managable')) {
+			if (!pkg.get('managable')) {
 				actions.action.addClass('disabled');
 			}
 		} else {
@@ -550,21 +538,11 @@ function SoftwareCenter(pkg) {
 	this.window.window('open');
 }
 
-//Objet contenant le nom de code des categories et leur titre associe
-SoftwareCenter.categories = {
-	'accessories': 'Accessoires',
-	'office': 'Bureautique',
-	'graphics': 'Graphisme',
-	'internet': 'Internet',
-	'games': 'Jeux',
-	'soundandvideo': 'Son et vid&eacute;o',
-	'system': 'Syst&egrave;me'
-};
 SoftwareCenter.getHumanCategory = function(category) { //Recuperer le titre d'une categorie
-	if(typeof SoftwareCenter.categories[category] == 'undefined') {
-		return category;
+	if(W.Package.categories()[category]) {
+		return W.Package.categories()[category];
 	} else {
-		return SoftwareCenter.categories[category];
+		return category;
 	}
 };
 SoftwareCenter.getDate = function(timestamp) {

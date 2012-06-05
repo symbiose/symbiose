@@ -1,147 +1,142 @@
 /**
- * SPackage represente un paquet.
+ * Webos.Package represente un paquet.
  * @param name Le nom du paquet.
  * @param data Les donnees sur le paquet.
- * @return SPackage Le paquet.
+ * @return Webos.Package Le paquet.
  */
-function SPackage(name, data) {
-	this.name = name;
-	this.data = data;
-	this.running = false;
-	
-	var that = this;
-	
-	/**
-	 * Determiner si un attribut existe.
-	 * @param attribute L'attribut.
-	 * @return Vrai si l'attribut existe.
-	 */
-	this.isAttribute = function(attribute) {
-		return (typeof this.data[attribute] != 'undefined');
-	};
-	
-	/**
-	 * Recuperer un attribut.
-	 * @param attribute L'attribut.
-	 * @return La valeur de l'attribut.
-	 */
-	this.getAttribute = function(attribute) {
-		if (this.isAttribute(attribute)) {
-			return this.data[attribute];
-		} else {
-			return false;
-		}
-	};
-	
+Webos.Package = function WPackage(data, name) {
+	this._name = name;
+	this._running = false;
+	Webos.Model.call(this, data);
+};
+
+Webos.Package.prototype = {
 	/**
 	 * Recuperer le nom du paquet.
-	 * @return Le nom du paquet.
+	 * @return string Le nom du paquet.
 	 */
-	this.getName = function() {
-		return this.name;
-	};
-	
+	name: function() {
+		return this._name;
+	},
 	/**
 	 * Installer le paquet.
+	 * @param Webos.Callback callback
 	 */
-	this.install = function(userCallback) {
-		var callback = new W.Callback(function(response) {
-			that.running = false;
-			that.data.installed = true;
-			that.data.installed_time = Math.round(+new Date()/1000);
-			//On recharge le menu principal
-			if (typeof SDashboard != 'undefined') {
-				var list = SDashboard.getAppletsByName('MainMenu');
-				for (var i = 0; i < list.length; i++) {
-					list[i].reload();
-				}
-			}
-			userCallback.success(that);
-		}, function(response) {
-			that.running = false;
-			userCallback.error(response);
-		});
+	install: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		var that = this;
+		this._running = true;
 		
-		this.running = true;
+		this.notify('installstart');
+		Webos.Package.notify('installstart', { 'package': that });
 		
-		var name = this.getName();
-		var repository = this.getAttribute('repository');
 		new W.ServerCall({
 			'class': 'PackageController',
 			'method': 'install',
 			arguments: {
-				'package': name,
-				'repository': repository
+				'package': this.name(),
+				'repository': this.get('repository')
 			}
-		}).load(callback);
-	};
-	
+		}).load(new Webos.Callback(function(response) {
+			that._running = false;
+			that._set('installed', true);
+			that._set('installed_time', Math.round(+new Date() / 1000));
+			
+			callback.success(that);
+			
+			that.notify('install');
+			Webos.Package.notify('install', { 'package': that });
+			that.notify('installsuccess');
+			Webos.Package.notify('installsuccess', { 'package': that });
+			that.notify('installcomplete');
+			Webos.Package.notify('installcomplete', { 'package': that });
+		}, function(response) {
+			that._running = false;
+			callback.error(response);
+			
+			that.notify('installerror');
+			Webos.Package.notify('installerror', { 'package': that });
+			that.notify('installcomplete');
+			Webos.Package.notify('installcomplete', { 'package': that });
+		}));
+	},
 	/**
 	 * Supprimer le paquet.
+	 * @param Webos.Callback callback
 	 */
-	this.remove = function(userCallback) {
-		var callback = new W.Callback(function(response) {
-			that.running = false;
-			that.data.installed = false;
-			//On recharge le menu principal
-			if (typeof SDashboard != 'undefined') {
-				var list = SDashboard.getAppletsByName('MainMenu');
-				for (var i = 0; i < list.length; i++) {
-					list[i].reload();
-				}
-			}
-			userCallback.success(that);
-		}, function(response) {
-			that.running = false;
-			userCallback.error(response);
-		});
+	remove: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		var that = this;
+		this._running = true;
 		
-		this.running = true;
+		this.notify('removestart');
+		Webos.Package.notify('removestart', { 'package': that });
 		
-		var name = this.getName();
 		new W.ServerCall({
 			'class': 'PackageController',
 			'method': 'remove',
 			arguments: {
-				'package': name
+				'package': this.name()
 			}
-		}).load(callback);
-	};
-	
-	this.isRunning = function() {
-		return this.running;
-	};
-}
+		}).load(new Webos.Callback(function(response) {
+			that._running = false;
+			that._set('installed', false);
+			that._set('installed_time', null);
+			
+			callback.success(that);
+			
+			that.notify('remove');
+			Webos.Package.notify('remove', { 'package': that });
+			that.notify('removesuccess');
+			Webos.Package.notify('removesuccess', { 'package': that });
+			that.notify('removecomplete');
+			Webos.Package.notify('removecomplete', { 'package': that });
+		}, function(response) {
+			that._running = false;
+			callback.error(response);
+			
+			that.notify('removeerror');
+			Webos.Package.notify('removeerror', { 'package': that });
+			that.notify('removecomplete');
+			Webos.Package.notify('removecomplete', { 'package': that });
+		}));
+	},
+	isRunning: function() {
+		return this._running;
+	},
+	set: function() {
+		return false;
+	}
+};
+
+Webos.inherit(Webos.Package, Webos.Model);
+
+Webos.Observable.build(Webos.Package);
 
 /**
  * Recuperer tous les paquets disponibles.
- * @param W.Callback userCallback Le callback.
+ * @param Webos.Callback callback
  */
-SPackage.getAvailable = function(userCallback) {
-	var callback = new W.Callback(function(response) {
-		userCallback.success(SPackage.objectToPackageList(response.getData()));
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.getAvailable = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new W.ServerCall({
 		'class': 'PackageController',
 		'method': 'getAvailable'
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(Webos.Package._objectToPackageList(response.getData()));
+	}, function(response) {
+		callback.error(response);
+	}));
 };
 
 /**
  * Recuperer un paquet.
- * @param name Le nom du paquet.
- * @param W.Callback userCallback Le callback.
+ * @param string name Le nom du paquet.
+ * @param Webos.Callback callback
  */
-SPackage.get = function(name, userCallback) {
-	var callback = new W.Callback(function(response) {
-		var pkg = new SPackage(name, response.getData());
-		userCallback.success(pkg);
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.get = function(name, callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new W.ServerCall({
 		'class': 'PackageController',
@@ -149,20 +144,21 @@ SPackage.get = function(name, userCallback) {
 		'arguments': {
 			'package': name
 		}
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		var pkg = new Webos.Package(response.getData(), name);
+		callback.success(pkg);
+	}, function(response) {
+		callback.error(response);
+	}));
 };
 
 /**
  * Recuperer tous les paquets d'une categorie.
- * @param name Le nom de la categorie.
- * @param W.Callback userCallback Le callback.
+ * @param string name Le nom de la categorie.
+ * @param Webos.Callback callback
  */
-SPackage.getFromCategory = function(name, userCallback) {
-	var callback = new W.Callback(function(response) {
-		userCallback.success(SPackage.objectToPackageList(response.getData()));
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.getFromCategory = function(name, callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new W.ServerCall({
 		'class': 'PackageController',
@@ -170,20 +166,20 @@ SPackage.getFromCategory = function(name, userCallback) {
 		'arguments': {
 			'category': name
 		}
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(Webos.Package._objectToPackageList(response.getData()));
+	}, function(response) {
+		callback.error(response);
+	}));
 };
 
 /**
  * Recuperer les derniers paquets parus.
- * @param limit Le nombre de paquets a renvoyer.
- * @param W.Callback userCallback Le callback.
+ * @param int limit Le nombre de paquets a renvoyer.
+ * @param Webos.Callback callback
  */
-SPackage.getLastPackages = function(limit, userCallback) {
-	var callback = new W.Callback(function(response) {
-		userCallback.success(SPackage.objectToPackageList(response.getData()));
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.getLastPackages = function(limit, callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new W.ServerCall({
 		'class': 'PackageController',
@@ -191,32 +187,32 @@ SPackage.getLastPackages = function(limit, userCallback) {
 		'arguments': {
 			'limit': limit
 		}
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(Webos.Package._objectToPackageList(response.getData()));
+	}, function(response) {
+		callback.error(response);
+	}));
 };
 
 /**
  * Recuperer les paquets installes.
- * @param W.Callback userCallback Le callback.
+ * @param Webos.Callback callback
  */
-SPackage.getInstalled = function(userCallback) {
-	var callback = new W.Callback(function(response) {
-		userCallback.success(SPackage.objectToPackageList(response.getData()));
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.getInstalled = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new W.ServerCall({
 		'class': 'PackageController',
 		'method': 'getInstalled'
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(Webos.Package._objectToPackageList(response.getData()));
+	}, function(response) {
+		callback.error(response);
+	}));
 };
 
-SPackage.getLastInstalled = function(limit, userCallback) {
-	var callback = new W.Callback(function(response) {
-		userCallback.success(SPackage.objectToPackageList(response.getData()));
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.getLastInstalled = function(limit, callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new W.ServerCall({
 		'class': 'PackageController',
@@ -224,15 +220,15 @@ SPackage.getLastInstalled = function(limit, userCallback) {
 		arguments: {
 			limit: limit
 		}
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(Webos.Package._objectToPackageList(response.getData()));
+	}, function(response) {
+		callback.error(response);
+	}));
 };
 
-SPackage.searchPackages = function(search, userCallback) {
-	var callback = new W.Callback(function(response) {
-		userCallback.success(SPackage.objectToPackageList(response.getData()));
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.searchPackages = function(search, callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new W.ServerCall({
 		'class': 'PackageController',
@@ -240,58 +236,80 @@ SPackage.searchPackages = function(search, userCallback) {
 		arguments: {
 			search: search
 		}
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(Webos.Package._objectToPackageList(response.getData()));
+	}, function(response) {
+		callback.error(response);
+	}));
 };
 
 /**
  * Recuperer les mises a jour disponibles.
- * @param W.Callback userCallback Le callback.
+ * @param Webos.Callback callback Le callback.
  */
-SPackage.getUpdates = function(userCallback) {
-	var callback = new W.Callback(function(response) {
-		userCallback.success(SPackage.objectToPackageList(response.getData()));
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.getUpdates = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
 	new W.ServerCall({
 		'class': 'PackageController',
 		'method': 'getUpdates'
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(Webos.Package._objectToPackageList(response.getData()));
+	}, function(response) {
+		callback.error(response);
+	}));
 };
 
 /**
  * Recharger le cache.
- * @param W.Callback userCallback Le callback.
+ * @param Webos.Callback callback Le callback.
  */
-SPackage.updateCache = function(userCallback) {
-	var callback = new W.Callback(function(response) {
-		userCallback.success(response);
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.updateCache = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	Webos.Package.notify('updatestart');
 	
 	new W.ServerCall({
 		'class': 'PackageController',
 		'method': 'updateCache'
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(response);
+		
+		Webos.Package.notify('update');
+		Webos.Package.notify('updatesuccess');
+		Webos.Package.notify('updatecomplete');
+	}, function(response) {
+		callback.error(response);
+		
+		Webos.Package.notify('updateerror');
+		Webos.Package.notify('updatecomplete');
+	}));
 };
 
 /**
  * Installer les mises a jour.
- * @param W.Callback userCallback Le callback.
+ * @param Webos.Callback callback Le callback.
  */
-SPackage.upgrade = function(userCallback) {
-	var callback = new W.Callback(function(response) {
-		userCallback.success(response);
-	}, function(response) {
-		userCallback.error(response);
-	});
+Webos.Package.upgrade = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	Webos.Package.notify('upgradestart');
 	
 	new W.ServerCall({
 		'class': 'PackageController',
 		'method': 'upgrade'
-	}).load(callback);
+	}).load(new Webos.Callback(function(response) {
+		callback.success(response);
+		
+		Webos.Package.notify('upgrade');
+		Webos.Package.notify('upgradesuccess');
+		Webos.Package.notify('upgradecomplete');
+	}, function(response) {
+		callback.error(response);
+		
+		Webos.Package.notify('upgradeerror');
+		Webos.Package.notify('upgradecomplete');
+	}));
 };
 
 /**
@@ -299,26 +317,28 @@ SPackage.upgrade = function(userCallback) {
  * @param data L'objet a convertir.
  * @return object Un objet contenant les paquets.
  */
-SPackage.objectToPackageList = function(data) {
+Webos.Package._objectToPackageList = function(data) {
 	var list = [];
 	for (var key in data) {
-		list.push(new SPackage(key, data[key]));
+		list.push(new Webos.Package(data[key], key));
 	}
 	return list;
 };
 
 //Objet contenant le nom de code des categories et leur titre associe
-SPackage._categories = {
-	'accessories': 'Accessoires',
-	'office': 'Bureautique',
-	'graphics': 'Graphisme',
-	'internet': 'Internet',
-	'games': 'Jeux',
-	'soundandvideo': 'Son et vid&eacute;o',
-	'system': 'Syst&egrave;me'
+Webos.Package._categories = {
+	accessories: 'Accessoires',
+	office: 'Bureautique',
+	graphics: 'Graphisme',
+	internet: 'Internet',
+	games: 'Jeux',
+	soundandvideo: 'Son et vid&eacute;o',
+	system: 'Syst&egrave;me'
 };
-SPackage.categories = function(callback) {
-	callback = W.Callback.toCallback(callback);
+Webos.Package.categories = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
 	
-	callback.success(SPackage._categories);
+	callback.success(Webos.Package._categories);
+	
+	return Webos.Package._categories;
 };

@@ -161,7 +161,7 @@ function QuicklyWindow() {
 		inputs.description = $.w.textAreaEntry('Description :').appendTo(form);
 		inputs.shortdescription = $.w.textEntry('Description courte :').appendTo(form);
 		
-		SPackage.categories(function(cats) {
+		W.Package.categories(function(cats) {
 			inputs.category.selectButton('option', 'choices', cats).selectButton('value', that._data.attributes.category);
 		});
 		
