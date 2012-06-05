@@ -156,7 +156,8 @@ class UserManager_files extends UserManager {
 	public function create(array $data, array $authorizations) {
 		$userData = array(
 			'username' => $data['username'],
-			'realname' => $data['realname']
+			'realname' => $data['realname'],
+			'email' => $data['email']
 		);
 
 		$password = $data['password'];

@@ -133,6 +133,14 @@ abstract class UserManager extends \lib\Manager {
 					return 'Le nom r&eacute;el est vide';
 				}
 				break;
+			case 'email':
+				if (empty($value)) {
+					return 'L\'e-mail est vide';
+				}
+				if (!preg_match('#^[a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$#', $value)) {
+					return 'L\'e-mail est incorrect';
+				}
+				break;
 			default:
 				return 'Information "'.$index.'" invalide';
 		}
