@@ -183,7 +183,7 @@ class FileController extends \lib\ServerCallComponent {
 		}
 
 		//Le type de fichier est-il autorise ?
-		$allowedExts = array('jpg' , 'jpeg' , 'gif' , 'png', 'pdf');
+		$allowedExts = array('jpg' , 'jpeg' , 'gif' , 'png', 'pdf', 'html', 'js', 'odt', 'ods', 'odp');
 		$extension = strtolower(substr(strrchr($_FILES['file']['name'], '.'), 1));
 		if (!in_array($extension, $allowedExts)) {
 			if (isset($tempName)) {
