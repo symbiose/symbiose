@@ -18,7 +18,7 @@ unitSelector.selectButton('input').change(function() {
 		var size = sizeInUnit * Math.pow(1024, parseInt(unitSelector.selectButton('value')));
 		inputs.home.numberEntry('value', size);
 	}
-	unitSelector.selectButton('value', 1);
+	unitSelector.selectButton('value', 0);
 }).appendTo(inputs.home);
 
 inputs.register = $.w.switchButton('Inscription des visiteurs (sans validation) : ').appendTo(form);
