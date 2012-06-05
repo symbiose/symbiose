@@ -19,6 +19,7 @@ var editUser_picture = $('<img />', { src: new W.Icon('stock/person'), 'class': 
 var editUser_name = $.w.label();
 $('<h2></h2>').append(editUser_name).appendTo(editUser);
 var editUser_username = $.w.label().appendTo(editUser);
+var editUser_email = $.w.label().appendTo(editUser);
 editUser.append('<br />');
 var editUser_authorizations = $.w.label().appendTo(editUser);
 editUser.append('<br />');
@@ -59,6 +60,29 @@ var editables = {
 			
 			if (!user.set('username', username)) {
 				W.Error.trigger('Impossible de modifier l\'identifiant de l\'utilisateur "'+user.get('username')+'"');
+				return;
+			}
+			
+			confWindow.window('loading', true);
+			
+			user.sync(new W.Callback(function() {
+				confWindow.window('loading', false);
+			}, function(response) {
+				confWindow.window('loading', false);
+				response.triggerError('Impossible de modifier l\'utilisateur "'+user.get('username')+'"');
+			}));
+		}
+	},
+	'email': {
+		element: editUser_email,
+		label: 'E-mail : ',
+		onEdit: function(user, email) {
+			if (email == user.get('email')) {
+				return;
+			}
+			
+			if (!user.set('email', email)) {
+				W.Error.trigger('Impossible de modifier l\'email de l\'utilisateur "'+user.get('username')+'"');
 				return;
 			}
 			
@@ -379,7 +403,8 @@ var createUserFn = function() {
 		var data = {
 			'username': entries.username.textEntry('value'),
 			'realname': entries.realname.textEntry('value'),
-			'password': entries.password.passwordEntry('value')
+			'password': entries.password.passwordEntry('value'),
+			'email': entries.email.textEntry('value')
 		};
 		
 		var authObject = W.Authorizations.models[entries.authorizations.selectButton('value')];
@@ -388,14 +413,13 @@ var createUserFn = function() {
 		}
 		var auth = new W.Authorizations(authObject);
 		
-		createUserWindow.window('close');
-		confWindow.window('loading', true);
+		createUserWindow.window('loading', true);
 		
 		W.User.create(data, auth, new W.Callback(function() {
-			confWindow.window('loading', false);
+			createUserWindow.window('close');
 			refreshUsersListFn();
 		}, function(response) {
-			confWindow.window('loading', false);
+			createUserWindow.window('loading', false);
 			response.triggerError();
 		}));
 	});
@@ -431,7 +455,7 @@ var refreshUsersListFn = function() {
 					if (usersList.list('selection').length == 1) {
 						enableUserEditFn(user);
 					}
-					removeButton.click(removeUserFn);
+					removeButton.unbind('click').click(removeUserFn);
 				}).bind('listitemunselect', function() {
 					disableUserEditFn();
 					removeButton.unbind('click');
