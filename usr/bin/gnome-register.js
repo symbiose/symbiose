@@ -45,7 +45,8 @@ var form = $.w.entryContainer()
 		W.User.register({
 			username: inputs.username.textEntry('value'),
 			realname: inputs.realname.textEntry('value'),
-			password: inputs.password.passwordEntry('value')
+			password: inputs.password.passwordEntry('value'),
+			email: inputs.email.textEntry('value')
 		}, {
 			id: inputs.captcha.captchaEntry('captchaId'),
 			value: inputs.captcha.captchaEntry('value')
