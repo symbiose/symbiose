@@ -308,6 +308,7 @@ function SoftwareCenter(pkg) {
 						
 						list[codename] = pkg;
 						pkgFound = true;
+						break;
 					}
 					
 					if (pkgFound) {
@@ -581,13 +582,22 @@ function SoftwareCenter(pkg) {
 		})
 		.appendTo(headerContent);
 	
+	var keypressTimer = false;
 	$.w.windowHeaderSearch()
 		.keyup(function() {
 			var search = $(this).windowHeaderSearch('value');
-			if (search == '') {
+			
+			if (keypressTimer !== false) {
+				clearTimeout(keypressTimer);
+			}
+			
+			if (!search) {
 				softwareCenter.displayHome();
 			} else {
-				softwareCenter.search(search);
+				keypressTimer = setTimeout(function() {
+					keypressTimer = false;
+					softwareCenter.search(search);
+				}, 500);
 			}
 		})
 		.appendTo(headerContent);
