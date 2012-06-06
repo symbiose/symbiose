@@ -4,8 +4,8 @@
  * @param data Les donnees sur le paquet.
  * @return Webos.Package Le paquet.
  */
-Webos.Package = function WPackage(data, name) {
-	this._name = name;
+Webos.Package = function WPackage(data, codename) {
+	this._codename = codename;
 	this._running = false;
 	Webos.Model.call(this, data);
 };
@@ -15,8 +15,8 @@ Webos.Package.prototype = {
 	 * Recuperer le nom du paquet.
 	 * @return string Le nom du paquet.
 	 */
-	name: function() {
-		return this._name;
+	codename: function() {
+		return this._codename;
 	},
 	/**
 	 * Installer le paquet.
@@ -34,7 +34,7 @@ Webos.Package.prototype = {
 			'class': 'PackageController',
 			'method': 'install',
 			arguments: {
-				'package': this.name(),
+				'package': this.codename(),
 				'repository': this.get('repository')
 			}
 		}).load(new Webos.Callback(function(response) {
@@ -76,7 +76,7 @@ Webos.Package.prototype = {
 			'class': 'PackageController',
 			'method': 'remove',
 			arguments: {
-				'package': this.name()
+				'package': this.codename()
 			}
 		}).load(new Webos.Callback(function(response) {
 			that._running = false;

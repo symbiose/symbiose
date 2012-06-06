@@ -56,7 +56,7 @@ function SoftwareCenter(pkg) {
 				$('<div></div>', { 'class': 'separator' }).appendTo(softwareCenter.views.detail);
 			}
 			
-			softwareCenter.detail.pkgName = pkg.name();
+			softwareCenter.detail.pkgName = pkg.codename();
 			
 			softwareCenter.detail.title.html(pkg.get('name'));
 			softwareCenter.detail.shortDescription.html(pkg.get('shortdescription'));
@@ -98,11 +98,11 @@ function SoftwareCenter(pkg) {
 		this.list.packages = {};
 		
 		var generatePackageItemFn = function(pkg) {
-			softwareCenter.list.packages[pkg.name()] = {};
+			softwareCenter.list.packages[pkg.codename()] = {};
 			var item = $.w.listItem();
 			var itemContent = item.listItem('addColumn');
 			
-			softwareCenter.list.packages[pkg.name()].item = item;
+			softwareCenter.list.packages[pkg.codename()].item = item;
 			
 			var icon = pkg.get('icon');
 			if (!icon) {
@@ -116,13 +116,13 @@ function SoftwareCenter(pkg) {
 			
 			$.w.button('Plus d\'informations')
 				.click(function() {
-					softwareCenter.displayPackage(pkg.name());
+					softwareCenter.displayPackage(pkg.codename());
 				})
 				.appendTo(more);
 			
 			var actions = softwareCenter._getActions(pkg);
 			
-			softwareCenter.list.packages[pkg.name()].actionButton = actions.action.appendTo(more);
+			softwareCenter.list.packages[pkg.codename()].actionButton = actions.action.appendTo(more);
 			
 			item.bind('listitemselect', function() {
 				more.show();
@@ -315,7 +315,7 @@ function SoftwareCenter(pkg) {
 				item.append($('<img />', { 'src': icon, 'class': 'icon' }));
 				item.append('<span class="name">'+pkg.get('name')+'</span><br /><span class="category">'+SoftwareCenter.getHumanCategory(pkg.get('category'))+'</span>');
 				item.click(function() {
-					softwareCenter.displayPackage(pkg.name());
+					softwareCenter.displayPackage(pkg.codename());
 				});
 				
 				return item;
