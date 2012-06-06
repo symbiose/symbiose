@@ -210,7 +210,7 @@ function SoftwareCenter(pkg) {
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
 		var callback = new W.Callback(function(list) {
-			softwareCenter._search.packages = null;
+			softwareCenter.reinitSearch();
 			softwareCenter.displayPackageList(list, 'category');
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		}, function(response) {
@@ -225,7 +225,7 @@ function SoftwareCenter(pkg) {
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
 		var callback = new W.Callback(function(list) {
-			softwareCenter._search.packages = null;
+			softwareCenter.reinitSearch();
 			softwareCenter.displayPackageList(list, 'lastupdate');
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		}, function(response) {
@@ -240,7 +240,7 @@ function SoftwareCenter(pkg) {
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
 		var callback = new W.Callback(function(list) {
-			softwareCenter._search.packages = null;
+			softwareCenter.reinitSearch();
 			softwareCenter.displayPackageList(list, 'category');
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		}, function(response) {
@@ -255,7 +255,7 @@ function SoftwareCenter(pkg) {
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
 		var callback = new W.Callback(function(list) {
-			softwareCenter._search.packages = null;
+			softwareCenter.reinitSearch();
 			softwareCenter.displayPackageList(list, 'installed_time');
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		}, function(response) {
@@ -336,8 +336,13 @@ function SoftwareCenter(pkg) {
 			W.Package.searchPackages(search, callback);
 		}
 	};
+	this.reinitSearch = function() {
+		this._search.packages = null;
+		this._searchEntry.windowHeaderSearch('value', '');
+	};
 	
 	this.displayHome = function() { //Afficher l'accueil
+		this.reinitSearch();
 		if (typeof this.views.home != 'undefined') {
 			this.switchToView('home');
 			return;
@@ -583,7 +588,7 @@ function SoftwareCenter(pkg) {
 		.appendTo(headerContent);
 	
 	var keypressTimer = false;
-	$.w.windowHeaderSearch()
+	this._searchEntry = $.w.windowHeaderSearch()
 		.keyup(function() {
 			var search = $(this).windowHeaderSearch('value');
 			
