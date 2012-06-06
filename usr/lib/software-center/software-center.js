@@ -85,7 +85,7 @@ function SoftwareCenter(pkg) {
 	
 	this.displayPackageList = function(list, filter) { //Afficher une liste de paquets
 		if (typeof this.views.list != 'undefined') {
-			this.views.list.html('');
+			this.views.list.empty();
 		} else {
 			this.views.list = $.w.container().addClass('list');
 		}
@@ -98,7 +98,9 @@ function SoftwareCenter(pkg) {
 		this.list.packages = {};
 		
 		var generatePackageItemFn = function(pkg) {
-			softwareCenter.list.packages[pkg.codename()] = {};
+			softwareCenter.list.packages[pkg.codename()] = {
+				pkg: pkg
+			};
 			var item = $.w.listItem();
 			var itemContent = item.listItem('addColumn');
 			
@@ -208,6 +210,7 @@ function SoftwareCenter(pkg) {
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
 		var callback = new W.Callback(function(list) {
+			softwareCenter._search.packages = null;
 			softwareCenter.displayPackageList(list, 'category');
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		}, function(response) {
@@ -222,6 +225,7 @@ function SoftwareCenter(pkg) {
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
 		var callback = new W.Callback(function(list) {
+			softwareCenter._search.packages = null;
 			softwareCenter.displayPackageList(list, 'lastupdate');
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		}, function(response) {
@@ -236,6 +240,7 @@ function SoftwareCenter(pkg) {
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
 		var callback = new W.Callback(function(list) {
+			softwareCenter._search.packages = null;
 			softwareCenter.displayPackageList(list, 'category');
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		}, function(response) {
@@ -250,6 +255,7 @@ function SoftwareCenter(pkg) {
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
 		var callback = new W.Callback(function(list) {
+			softwareCenter._search.packages = null;
 			softwareCenter.displayPackageList(list, 'installed_time');
 			softwareCenter.window.window('loading', false); //Le chargement est termine
 		}, function(response) {
@@ -260,18 +266,74 @@ function SoftwareCenter(pkg) {
 		W.Package.getLastInstalled(30, callback);
 	};
 	
+	this._search = {};
 	this.search = function(search) {
 		this.window.window('loading', true); //La fenetre est en cours de chargement
 		
-		var callback = new W.Callback(function(list) {
+		if (this.view == 'list' || this.view == 'detail') {
+			if (!this._search.packages) {
+				this._search.packages = this.list.packages;
+			}
+			
+			var list = {};
+			
+			var queries = search.toLowerCase().split(/,\s*/g);
+
+			for (var i = 0; i < queries.length; i++) {
+				var words = queries[i].split(/[\s,]+/g);
+				queries[i] = words;
+			}
+			
+			for (var codename in this._search.packages) {
+				var pkgFound = false, pkg = this._search.packages[codename].pkg, data = pkg.data();
+				
+				for (var key in data) {
+					var value = data[key];
+					
+					if (typeof value != 'string') {
+						continue;
+					}
+					
+					for (var i = 0; i < queries.length; i++) {
+						var wordNotFound = false, words = queries[i];
+						for (var j = 0; j < words.length; j++) {
+							if (value.toLowerCase().indexOf(words[j]) == -1) {
+								wordNotFound = true;
+								break;
+							}
+						}
+						if (wordNotFound) {
+							continue;
+						}
+						
+						list[codename] = pkg;
+						pkgFound = true;
+					}
+					
+					if (pkgFound) {
+						break;
+					}
+				}
+				
+				if (pkgFound) {
+					continue;
+				}
+			}
+			
 			softwareCenter.displayPackageList(list);
-			softwareCenter.window.window('loading', false); //Le chargement est termine
-		}, function(response) {
 			softwareCenter.window.window('loading', false);
-			response.triggerError();
-		});
-		
-		W.Package.searchPackages(search, callback);
+		} else {
+			var callback = new W.Callback(function(list) {
+				softwareCenter._search.packages = null;
+				softwareCenter.displayPackageList(list);
+				softwareCenter.window.window('loading', false); //Le chargement est termine
+			}, function(response) {
+				softwareCenter.window.window('loading', false);
+				response.triggerError();
+			});
+			
+			W.Package.searchPackages(search, callback);
+		}
 	};
 	
 	this.displayHome = function() { //Afficher l'accueil
@@ -494,6 +556,7 @@ function SoftwareCenter(pkg) {
 			this.views[key].hide();
 		}
 		this.views[view].show();
+		this.view = view;
 	};
 	
 	this._header = $.w.buttonWindowHeader().appendTo(this.window.window('header'));
