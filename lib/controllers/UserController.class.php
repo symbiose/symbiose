@@ -118,7 +118,7 @@ class UserController extends \lib\ServerCallComponent {
 		}
 
 		//On essaie de se connecter avec le mot de passe
-		$user = new User($this->webos);
+		$user = new \lib\models\User($this->webos);
 		$user->connect($username, $currentPassword); //Si l'authentification echoue, une exception sera lancee
 
 		$this->webos->managers()->get('User')->setPassword($user, $newPassword);
