@@ -123,7 +123,7 @@ Webos.inherit(Webos.Theme, Webos.Model);
 
 
 Webos.Theme.current = null;
-Webos.Theme._defaultBackground = 'usr/share/images/backgrounds/default.png';
+Webos.Theme._defaultBackground = 'usr/share/images/backgrounds/default.jpg';
 Webos.Theme.defaultBackground = function() {
 	return Webos.Theme._defaultBackground;
 };
