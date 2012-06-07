@@ -31,7 +31,7 @@ var checkFormFn = function() {
 };
 
 //Contenu de la fenetre
-registerWindowContents.append('Veuillez entrer votre nom d\'utilisateur, votre adresse de messagerie et votre mot de passe pour vous inscrire :');
+registerWindowContents.append('Avec un compte, vous pourrez envoyer vos documents, ajuster vos pr&eacute;f&eacute;rences et profiter pleinement des possibilit&eacute;s du webos. Il vous suffit de remplir ce formulaire :');
 
 var checkInProgress = false;
 var form = $.w.entryContainer()
