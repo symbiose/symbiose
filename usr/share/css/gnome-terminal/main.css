@@ -1,6 +1,7 @@
 .content {
 	color: white !important;
 	background-color: black !important;
+	background-color: rgba(0, 0, 0, 0.93) !important;
 }
 
 .webos-terminal {
@@ -24,7 +25,7 @@
 .webos-terminal input[type="text"],
 .webos-terminal input[type="password"]
 {
-	background-color: black;
+	background-color: transparent;
 	color: white;
-	border: 0 none;
+	border: none;
 }
