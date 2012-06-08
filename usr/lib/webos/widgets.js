@@ -1589,7 +1589,7 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 			containment: 'parent',
 			axis: 'x',
 			stop: function(event, ui) {
-				var ratio = (that.options._components.slider.position().left + that.options._components.slider.outerWidth() / 2) / that.options._content.innerWidth();
+				var ratio = (ui.position.left + that.options._components.slider.outerWidth() / 2) / that.options._content.innerWidth();
 				if (ratio > 0.5) {
 					that._value(true);
 				} else {
@@ -1615,7 +1615,7 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 			
 			if (choice) {
 				this.options._content.removeClass('off').addClass('on');
-				if (this.element.closest('html').length) {
+				if (this.element.closest('html').length && this.element.is(':visible')) {
 					this.options._components.slider.animate({
 						left: this.options._content.innerWidth() - this.options._components.slider.outerWidth()
 					}, 'fast');
@@ -1624,7 +1624,7 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 				}
 			} else {
 				this.options._content.removeClass('on').addClass('off');
-				if (this.element.closest('html').length) {
+				if (this.element.closest('html').length && this.element.is(':visible')) {
 					this.options._components.slider.animate({
 						left: 0
 					}, 'fast');
