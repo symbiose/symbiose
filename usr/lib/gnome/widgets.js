@@ -836,6 +836,7 @@ $.webos.window.confirm = function(opts) {
 	
 	var confirm = $.webos.window.dialog({
 		title: options.title,
+		icon: new W.Icon('actions/help'),
 		parentWindow: options.parentWindow,
 		resizable: false,
 		hideable: false,
