@@ -14,8 +14,8 @@ var windowProperties = $.webos.extend(containerProperties, {
 		maximizable: true,
 		hideable: true,
 		opened: false,
-		parentWindow: [],
-		childWindow: []
+		parentWindow: $(),
+		childWindow: $()
 	},
 	_name: 'window',
 	_create: function() {
@@ -28,22 +28,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 		
 		if (typeof this.options.parentWindow != 'undefined' && this.options.parentWindow.length > 0) {
 			this.options.parentWindow.window('option', 'childWindow', this.element);
-			this.options._components.button = this.options.parentWindow.window('button');
-			this.options._components.icon = $('<img />');
-		} else {
-			this.options._components.button = $('<span></span>', {
-				'class': 'window-button'
-			})
-				.click(function() {
-					that.hideOrShowOrToForeground();
-				})
-				.hide();
-			
-			this.options._components.icon = $('<img />', {
-				alt: 'icon'
-			}).prependTo(this.options._components.button);
-			
-			$.webos.window.setButtonsBorder();
 		}
 		
 		this._setOption('icon', this.options.icon);
@@ -179,29 +163,12 @@ var windowProperties = $.webos.extend(containerProperties, {
 		}
 		titleClone.remove();
 		
-		if (typeof this.options.parentWindow == 'undefined' || this.options.parentWindow.length == 0) {
-			var buttonIcon = this.options._components.button.children('img').clone();
-			var iconWidth = 17;
-			this.options._components.button.html(title);
-			var buttonClone = this.options._components.button.clone().css('width', 'auto').insertAfter(this.options._components.button);
-			if (buttonClone.width() + iconWidth > this.options._components.button.innerWidth()) {
-				while (buttonClone.width() + iconWidth > this.options._components.button.innerWidth() && buttonClone.html().length > 0) {
-					buttonClone.html(buttonClone.html().substr(0, buttonClone.html().length - 1)); 
-				}
-				var nbrCaracters = buttonClone.html().length - 1;
-				this.options._components.button.html(applyGradientToTitle(buttonClone.text(), nbrCaracters));
-			}
-			buttonIcon.prependTo(this.options._components.button);
-			buttonClone.remove();
-		}
-		
 		this.options.title = title;
 	},
 	_update: function(key, value) {
 		switch(key) {
 			case 'icon':
 				this.options.icon = W.Icon.toIcon(value);
-				this.options._components.icon.attr('src', this.options.icon);
 				break;
 			case 'title':
 				this._setTitle(value);
@@ -226,9 +193,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 		}
 		
 		this.element.appendTo('#desktop');
-		if (typeof this.options.parentWindow == 'undefined' || this.options.parentWindow.length == 0) {
-			this.options._components.button.appendTo($.webos.window.buttons);
-		}
 		
 		this.element.fadeIn('fast', function() {
 			that._trigger('afteropen', { type: 'afteropen' }, { window: that.element }); //On declanche l'evenement correspondant
@@ -240,10 +204,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 			this.maximize(false);
 		} else if (!this.options.top && !this.options.left) { //Si on ne fournit pas la position, on centre la fenetre
 			this.center(); //On la centre si l'on a pas definit sa position
-		}
-		
-		if (typeof this.options.parentWindow == 'undefined' || this.options.parentWindow.length == 0) {
-			this.options._components.button.fadeIn('fast');
 		}
 		
 		this._saveDimentions(); //On stocke en memoire ses dimentions
@@ -284,11 +244,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 				$.webos.window.getActive().window('toForeground');
 			}
 		});
-		if (typeof this.options.parentWindow == 'undefined' || this.options.parentWindow.length == 0) {
-			this.options._components.button.fadeOut('fast', function() {
-				$(this).detach();
-			});
-		}
 	},
 	maximize: function(animate) {
 		if (this.is('maximized')) {
@@ -389,7 +344,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 		
 		this._saveDimentions();
 		
-		var buttonBarPosition = this.options._components.button.offset();
+		var hidePos = $.webos.window.getHidePos(this.element);
 		
 		var that = this;
 		
@@ -400,8 +355,8 @@ var windowProperties = $.webos.extend(containerProperties, {
 				opacity: 0,
 				width: 0,
 				height: 0,
-				top: buttonBarPosition.top,
-				left: buttonBarPosition.left
+				top: hidePos.top,
+				left: hidePos.left
 			}, {
 				duration: 'fast',
 				complete: function() {
@@ -434,7 +389,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 		}
 		
 		var position, dimentions;
-		if (this.element.is('.maximized')) {
+		if (this.is('maximized')) {
 			position = { top: 0, left: 0 };
 			dimentions = { height: $('#desktop').height(), width: $('#desktop').width() };
 		} else {
@@ -489,9 +444,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 		this._trigger('toforeground', { type: 'toforeground' }, { window: this.element });
 		this.options.states.foreground = true;
 		
-		if (!this.options._components.button.is('.window-button-active')) {
-			this.options._components.button.addClass('window-button-active');
-		}
 		if (typeof this.options.childWindow != 'undefined' && this.options.childWindow.length > 0) {
 			this.options.childWindow.window('toForeground');
 		}
@@ -502,7 +454,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 		}
 		
 		this.element.addClass('bg-window');
-		this.options._components.button.removeClass('window-button-active');
 		this._trigger('tobackground', { type: 'tobackground' }, { window: this.element });
 		this.options.states.foreground = false;
 	},
@@ -805,8 +756,6 @@ $.webos.window.states = [
 	['loading', 'ready']
 ];
 
-$.webos.window.buttons = $('<ul></ul>', { id: 'windows-buttons' });
-
 $.webos.window.about = function(opts) {
 	//Options par defaut
 	var defaults = {
@@ -1065,6 +1014,22 @@ $.webos.window.getWindowById = function(id) { //Recuperer une fenetre a aprtir d
 			return list[i];
 		}
 	}
+};
+$.webos.window._getHidePos = function() {
+	return {
+		top: 0,
+		left: 0
+	};
+};
+$.webos.window.getHidePos = function(thisWindow) {
+	var hidePos = $.webos.window._getHidePos(thisWindow);
+	return {
+		top: (hidePos && hidePos.top > 0) ? hidePos.top : 0,
+		left: (hidePos && hidePos.left > 0) ? hidePos.left : 0
+	};
+};
+$.webos.window.setHidePosFn = function(fn) {
+	$.webos.window._getHidePos = fn;
 };
 
 //WindowHeader

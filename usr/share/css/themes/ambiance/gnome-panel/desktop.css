@@ -225,14 +225,14 @@ body {
 }
 
 /* BOUTONS DES FENETRES */
-#windows-buttons {
+.windows-buttons {
 	overflow: hidden;
 	height: 24px;
 	display: inline-block;
 	margin: 0;
 	padding: 0;
 }
-#windows-buttons .window-button {
+.windows-buttons .window-button {
 	padding: 2px;
 	float: left;
 	list-style-type: none;
@@ -243,7 +243,7 @@ body {
 	padding-right: 0px;
 	white-space: nowrap;
 }
-#windows-buttons .window-button img {
+.windows-buttons .window-button img {
 	max-height:17px;
 	max-width:17px;
 	margin-right:3px;
@@ -252,19 +252,17 @@ body {
 	
 	float: left;
 }
-#windows-buttons .window-button:hover {
+.windows-buttons .window-button:hover {
 	background: url('usr/share/images/themes/ambiance/bg-window-button.png');
 	background-position: 0% 48px;
 }
-#windows-buttons .window-button-active, #windows-buttons .window-button:active {
+.windows-buttons .active, #windows-buttons .window-button:active {
 	background: url('usr/share/images/themes/ambiance/bg-window-button.png');
 	background-position: 0% 24px;
 }
-#windows-buttons .window-button-last {
+.windows-buttons:last-child {
 	border-right:1px solid #383733;
 }
-
-.separator {	}
 
 .desktop-button { background: url('usr/share/images/themes/ambiance/desktop-button.png'); height: 24px; width: 30px; float:left; }
 .desktop-button:hover { background-position: 0% 24px; }
