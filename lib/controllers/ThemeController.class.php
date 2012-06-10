@@ -3,14 +3,18 @@ namespace lib\controllers;
 
 class ThemeController extends \lib\ServerCallComponent {
 	protected function loadCss($theme, $ui) {
-		$themePath = '/usr/share/css/themes/'.$theme.'/'.$ui.'/';
+		$themePath = '/usr/share/css/themes/'.$theme;
+		$uiThemePath = $themePath.'/'.$ui;
 		if (!$this->webos->managers()->get('File')->exists($themePath)) {
+			throw new \InvalidArgumentException('Le th&egrave;me "'.$theme.'" n\'existe pas');
+		}
+		if (!$this->webos->managers()->get('File')->exists($uiThemePath)) {
 			throw new \InvalidArgumentException('Le th&egrave;me "'.$theme.'" ne supporte pas l\'interface "'.$ui.'"');
 		}
 
-		$themeDir = $this->webos->managers()->get('File')->get($themePath);
 		$cssFiles = array();
 
+		$themeDir = $this->webos->managers()->get('File')->get($themePath);
 		foreach ($themeDir->contents() as $file) {
 			if ($file->isDir()) {
 				continue;
@@ -22,51 +26,19 @@ class ThemeController extends \lib\ServerCallComponent {
 			$cssFiles[] = $file->realpath();
 		}
 
-		return array('css' => $cssFiles);
-	}
-
-	protected function _getUserConfig($ui) {
-		$defaultFile = '/usr/etc/uis/'.$ui.'/config.xml';
-		$userFile = '~/.theme/'.$ui.'/config.xml';
-
-		$config = new \lib\models\Config($this->webos);
-
-		if (!$this->webos->getUser()->isConnected()) {
-			$config->load($defaultFile);
-		} else {
-			if (!$this->webos->managers()->get('File')->exists('~/.theme/')) {
-				$this->webos->managers()->get('File')->createDir('~/.theme/');
+		$uiThemeDir = $this->webos->managers()->get('File')->get($uiThemePath);
+		foreach ($uiThemeDir->contents() as $file) {
+			if ($file->isDir()) {
+				continue;
+			}
+			if ($file->extension() != 'css') {
+				continue;
 			}
 
-			if (!$this->webos->managers()->get('File')->exists('~/.theme/'.$ui.'/')) {
-				$this->webos->managers()->get('File')->createDir('~/.theme/'.$ui.'/');
-			}
-
-			if (!$this->webos->managers()->get('File')->exists($userFile)) {
-				$default = $this->webos->managers()->get('File')->get($defaultFile);
-				$default->copy($userFile);
-			}
-
-			$config->load($userFile);
+			$cssFiles[] = $file->realpath();
 		}
 
-		return $config;
-	}
-
-	protected function get($ui) {
-		$config = $this->_getUserConfig($ui);
-		return $config->getConfig();
-	}
-
-	protected function change($component, $value, $ui) {
-		if (!$this->webos->getUser()->isConnected())
-			throw new \Exception('Impossible de modifier les pr&eacute;f&eacute;rences d\'apparence, vous &ecirc;tes d&eacute;connect&eacute;');
-
-		$config = $this->_getUserConfig($ui);
-
-		$config->set($component, $value);
-
-		$config->save('~/.theme/'.$ui.'/config.xml');
+		return array('css' => $cssFiles);
 	}
 
 	protected function getAvailable($ui) {

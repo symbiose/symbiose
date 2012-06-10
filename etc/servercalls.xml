@@ -152,8 +152,6 @@
 	</class>
 	<class name="ThemeController">
 		<method name="loadCss"></method>
-		<method name="get"></method>
-		<method name="change"></method>
 		<method name="getAvailable"></method>
 	</class>
 	<class name="NetworkController">
