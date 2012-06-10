@@ -28,13 +28,13 @@ function SGnomeShellMeMenuApplet(data) {
 				W.Cmd.execute('gconf');
 			}).appendTo(userMenu);
 			
-			if (fullScreenApi.supportsFullScreen) {
+			if (Webos.fullscreen.support) {
 				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
 				
-				var toggleFullScreenItem = $('<li>Activer le mode plein &eacute;cran</li>');
+				var toggleFullScreenItem = $('<li></li>');
 				
 				var updateFullScreenItemFn = function() {
-					if (fullScreenApi.isFullScreen()) {
+					if (Webos.fullscreen.isFullScreen()) {
 						toggleFullScreenItem.html('Quitter le mode plein &eacute;cran');
 					} else {
 						toggleFullScreenItem.html('Activer le mode plein &eacute;cran');
@@ -42,17 +42,19 @@ function SGnomeShellMeMenuApplet(data) {
 				};
 				
 				toggleFullScreenItem.click(function() {
-					if (fullScreenApi.isFullScreen()) {
-						fullScreenApi.cancelFullScreen();
+					if (Webos.fullscreen.isFullScreen()) {
+						Webos.fullscreen.cancel();
 					} else {
 						$('body').requestFullScreen();
 					}
 					updateFullScreenItemFn();
 				}).appendTo(userMenu);
 				
-				$(document).bind(fullScreenApi.fullScreenEventName, function() {
+				$(document).bind(Webos.fullscreen.eventName, function() {
 					updateFullScreenItemFn();
 				});
+				
+				updateFullScreenItemFn();
 			}
 			
 			$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
