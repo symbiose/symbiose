@@ -279,10 +279,6 @@ ul.webos-menuwindowheader li img.icon {
 	margin-right: 2px;
 }
 
-ul.menu li.separator {
-	border-top: 1px solid #3c3c39;
-}
-
 ul.webos-menuwindowheader > li > a {
 	padding-right: 4px;
 }
