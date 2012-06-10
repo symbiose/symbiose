@@ -22,9 +22,9 @@ backgroundContainer.append('<br />');
 
 var backgroundsList = $.w.iconsList().addClass('backgroundslist').appendTo(backgroundContainer);
 
-var actualBgPath = Webos.File.get(W.Theme.current.get('background')).get('realpath');
-var actualBgItem = $.w.iconsListItem(actualBgPath).click(function() {
-	changeBgFn(W.Theme.current.get('background'), 'Arri&egrave;re-plan actuel');
+var actualBgFile = Webos.File.get(W.Theme.current.get('background'));
+var actualBgItem = $.w.iconsListItem(actualBgFile.get('realpath')).click(function() {
+	changeBgFn(actualBgFile.get('path'), actualBgFile.get('basename'));
 }).iconsListItem('active', true).appendTo(backgroundsList);
 
 W.File.listDir(W.Theme.backgroundsDir, new W.Callback(function(files) {
@@ -48,25 +48,26 @@ W.File.listDir(W.Theme.backgroundsDir, new W.Callback(function(files) {
 				actualBgItem = item;
 				actualBgListed = true;
 				item.iconsListItem('active', true);
+				backgroundsList.prepend(item);
+			} else {
+				backgroundsList.append(item);
 			}
-			backgroundsList.append(item);
 		})(files[index]);
 	}
 	
 	if (!actualBgListed) {
-		var path = Webos.File.get(W.Theme.current.get('background')).get('realpath');
-		actualBgItem = $.w.iconsListItem(path).click(function() {
-			changeBgFn(W.Theme.current.get('background'), 'Arri&egrave;re-plan actuel');
+		actualBgItem = $.w.iconsListItem(actualBgFile.get('realpath')).click(function() {
+			changeBgFn(actualBgFile.get('path'), actualBgFile.get('basename'));
 		}).iconsListItem('active', true).prependTo(backgroundsList);
 	}
 }));
 
 var actualBg = $.w.container().addClass('actualbackground').appendTo(backgroundContainer);
 
-var bgTitle = $('<strong></strong>').html('Arri&egrave;re-plan actuel').appendTo(actualBg);
+var bgTitle = $('<strong></strong>').html(actualBgFile.get('basename')).appendTo(actualBg);
 
 var screen = $.w.container().addClass('screen').appendTo(actualBg);
-var background = $('<img />', { src: actualBgPath }).appendTo(screen);
+var background = $('<img />', { src: actualBgFile.get('realpath') }).appendTo(screen);
 
 var changeBgFn = function(bg, name) {
 	if (!W.Theme.current.set('background', bg)) {
@@ -123,7 +124,8 @@ var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'int
 					W.UserInterface.load(W.UserInterface.current.name());
 				},
 				cancelLabel: 'Non',
-				confirmLabel: 'Red&eacute;marrer maintenant'
+				confirmLabel: 'Red&eacute;marrer maintenant',
+				parentWindow: confWindow
 			}).window('open');
 		}, function(response) {
 			confWindow.window('loading', false);
