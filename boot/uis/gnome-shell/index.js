@@ -42,7 +42,7 @@ W.User.getLogged(new W.Callback(function(user) {
 }, function() {}));
 
 //On initialise les tableaux de bord
-SDashboard.userConfigFile = '~/.gnome-shell/dashboards.xml';
+SDashboard.userConfigFile = '~/.theme/gnome-shell/dashboards.xml';
 SDashboard.defaultConfigFile = '/usr/etc/uis/gnome-shell/dashboards.xml';
 SDashboard.init();
 
@@ -97,6 +97,6 @@ Webos.Error.setErrorHandler(function(error) {
 	});
 });
 
-W.ServerCall.bind('stop', function() {
+W.ServerCall.bind('complete', function() {
 	W.UserInterface.current.loaded();
 });

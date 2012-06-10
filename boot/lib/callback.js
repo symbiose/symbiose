@@ -35,7 +35,12 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 		args = args.concat(that.callbacks.success.arguments);
 		
 		//On execute le callback
-		return that.callbacks.success.callback.apply(that.callbacks.success.context, args);
+		try {
+			var returnValue = that.callbacks.success.callback.apply(that.callbacks.success.context, args);
+			return returnValue;
+		} catch(e) {
+			Webos.Error.catchError(e);
+		}
 	};
 	
 	this.error = function() { //Execution du callback d'erreurs
@@ -46,7 +51,12 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 		args = args.concat(that.callbacks.error.arguments);
 		
 		//On execute le callback
-		return that.callbacks.error.callback.apply(that.callbacks.error.context, args);
+		try {
+			var returnValue = that.callbacks.error.callback.apply(that.callbacks.error.context, args);
+			return returnValue;
+		} catch(e) {
+			Webos.Error.catchError(e);
+		}
 	};
 	
 	this.addParam = function(value, callback) {

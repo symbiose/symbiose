@@ -46,6 +46,9 @@ Webos.ServerCall = function WServerCall(opts) {
 	this.type = 'post';
 	
 	this.status = 0; //Statut : 0 = nop, 1 = chargement, 2 = fini.
+	
+	this.id = Webos.ServerCall.addCallToList(this);
+	this.nbrAttempts = 0;
 };
 Webos.ServerCall.prototype = {
 	load: function(callback) {
@@ -54,7 +57,33 @@ Webos.ServerCall.prototype = {
 		
 		callback = Webos.Callback.toCallback(callback);
 		
-		this.id = Webos.ServerCall.addCallToList(this);
+		this.nbrAttempts++;
+		this.status = 1;
+		
+		if (this.nbrAttempts == 1) {
+			Webos.ServerCall.callStart(this);
+		}
+		
+		var getStackFn = function() {
+			var stack = '    at '+that.url+' calling '+that.data['class']+'->'+that.data.method+'()';
+			if (that.data.arguments && that.data.arguments != '{}') {
+				stack += "\n"+'    with arguments '+that.data.arguments;
+			} else {
+				stack += "\n"+'    without arguments';
+			}
+			if (that.data.user) {
+				stack += "\n"+'    as '+that.data.user;
+			}
+			if (that.data.pid) {
+				stack += "\n"+'    in process #'+that.data.pid;
+			}
+			return stack;
+		};
+		
+		var callCompleteFn = function() {
+			that.status = 2;
+			Webos.ServerCall.callComplete(that);
+		};
 		
 		$.ajax({
 			url: that.url,
@@ -66,18 +95,23 @@ Webos.ServerCall.prototype = {
 			success: function(data, textStatus, jqXHR) { //En cas de succes
 				try {
 					var json = jQuery.parseJSON(data); //On essaie de recuperer les donnees JSON
-				} catch (error) { //Si une erreur survient
+				} catch (jsonError) { //Si une erreur survient
+					var error = (data) ? data : 'Une erreur est survenue lors du chargement d\'un appel serveur';
+					error += "\n"+getStackFn();
+					
 					var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
 						'success': false,
 						'channels': {
 							1: null,
-							2: data //On ajoute le message d'erreur
+							2: error //On ajoute le message d'erreur
 						},
 						'js': null,
-						'out': data
+						'out': error
 					});
 					that.response = response;
 					callback.error(response);
+					
+					callCompleteFn();
 					return; //On stoppe l'execution de la fonction
 				}
 				
@@ -90,23 +124,40 @@ Webos.ServerCall.prototype = {
 					callback.error(response); //On execute le callback d'erreur
 				}
 				
-				Webos.ServerCall.callComplete(that);
+				callCompleteFn();
 			},
 			error: function(jqXHR, textStatus, errorThrown) { //Une erreur est survenue
+				if (that.nbrAttempts < Webos.ServerCall.options.maxAttempts) {
+					setTimeout(function() {
+						that.load();
+					}, Webos.ServerCall.options.errorDelay);
+					return;
+				}
+				
+				var error = 'Une erreur est survenue lors du chargement d\'un appel serveur';
+				if (textStatus) {
+					error += ' (statut : '+textStatus;
+					if (errorThrown) {
+						error += ', '+errorThrown;
+					}
+					error += ')';
+				}
+				error += "\n"+getStackFn();
+				
 				var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
 					'success': false,
 					'channels': {
 						1: null,
-						2: textStatus+' : '+errorThrown //On ajoute le message d'erreur
+						2: error //On ajoute le message d'erreur
 					},
 					'js': null,
-					'out': textStatus+' : '+errorThrown
+					'out': error
 				});
 				that.response = response;
 				
 				callback.error(response);
 				
-				Webos.ServerCall.callComplete(that);
+				callCompleteFn();
 			}
 		});
 	}
@@ -115,22 +166,27 @@ Webos.inherit(Webos.ServerCall, Webos.Observable);
 
 Webos.Observable.build(Webos.ServerCall);
 
+Webos.ServerCall.options = {
+	maxAttempts: 3,
+	errorDelay: 1000
+};
 Webos.ServerCall.list = []; //Liste des appels au serveur
 Webos.ServerCall.addCallToList = function(call) {
-	call.status = 1;
 	var id = Webos.ServerCall.list.push(call) - 1;
+	Webos.ServerCall.notify('callregister', { call: call });
+	return id;
+};
+Webos.ServerCall.callStart = function(call) {
 	if (Webos.ServerCall.getNbrPendingCalls() == 1) {
 		Webos.ServerCall.notify('start', { list: Webos.ServerCall.list });
 	}
-	Webos.ServerCall.notify('register', { call: call });
-	return id;
+	Webos.ServerCall.notify('callstart', { call: call });
 };
 Webos.ServerCall.callComplete = function(call) {
-	call.status = 2;
 	if (Webos.ServerCall.getNbrPendingCalls() == 0) {
-		Webos.ServerCall.notify('stop', { list: [] });
+		Webos.ServerCall.notify('complete', { list: [] });
 	}
-	Webos.ServerCall.notify('complete', { call: call });
+	Webos.ServerCall.notify('callcomplete', { call: call });
 };
 Webos.ServerCall.getPendingCalls = function() {
 	var list = [];

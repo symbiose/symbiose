@@ -40,18 +40,18 @@ W.ServerCall.bind('start', serverCallStart);
 if (W.ServerCall.getNbrPendingCalls() > 0) {
 	serverCallStart();
 }
-W.ServerCall.bind('stop', function() {
+W.ServerCall.bind('complete', function() {
 	icon
 		.attr('src', new W.Icon('status/network-idle', 24, 'ubuntu-mono-dark'))
 		.attr('title', 'Aucune activité réseau');
 });
 
-W.ServerCall.bind('register', function() {
+W.ServerCall.bind('callstart', function() {
 	networkData.total++;
 	networkData.pending++;
 	refreshMenuFn();
 });
-W.ServerCall.bind('complete', function(data) {
+W.ServerCall.bind('callcomplete', function(data) {
 	if (networkData.pending > 0) {
 		networkData.pending--;
 	}
