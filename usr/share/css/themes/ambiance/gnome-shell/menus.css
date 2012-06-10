@@ -1,0 +1,296 @@
+/* MENU */
+ul.menu, ul.menu ul { /* Liste */
+	padding: 0; /* pas de marge intérieure */
+	margin: 0; /* ni extérieure */
+	list-style: none; /* on supprime le style par défaut de la liste */
+	line-height: 19px; /* on définit une hauteur pour chaque élément */
+	text-align: center; /* on centre le texte qui se trouve dans la liste */
+}
+
+ul.menu ul:empty {
+	display: none;
+	visibility: hidden;
+	opacity: 0;
+}
+
+/* Ensemble du menu */
+ul.menu * {
+	position: relative;
+	z-index: 1050;
+}
+
+/* Menu de tableau de bord */
+ul.menu ul {
+	position: absolute;
+	top: 18px;
+	padding: 15px 0;
+	margin: 0 10px;
+	border: 2px solid #a5a5a5;
+	background-color: black;
+	background-color: rgba(0, 0, 0, 0.9);
+	-moz-border-radius: 9px;
+	-webkit-border-radius: 9px;
+	border-radius: 9px;
+}
+/* Cela permet de faire une fleche */
+ul.menu ul:after, ul.menu ul:before {
+	bottom: 100%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+ul.menu ul:after {
+	border-bottom-color: rgba(0, 0, 0, 0.9);
+	border-width: 10px;
+	left: 50%;
+	margin-left: -10px;
+}
+ul.menu ul:before {
+	border-bottom-color: #a5a5a5;
+	border-width: 13px;
+	left: 50%;
+	margin-left: -13px;
+}
+
+/* Sous-listes */
+ul.menu li ul {
+	position: absolute; /* Position absolue */
+	display: none;
+}
+
+/* ITEM DE MENU */
+ul.menu li {
+	text-align: left;
+	padding: 3px 0 2px 4px;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+ul.menu li {
+	height: 20px;
+}
+
+ul.menu li a {
+	text-decoration: none; /* on supprime le style par défaut des liens (la plupart du temps = souligné) */
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+ul.menu li, ul.menu li a {
+	color: #cccccc;
+}
+ul.menu ul li, ul.menu ul li a {
+	color: white;
+}
+
+ul.menu ul li.hover {
+	background-color: #4c4c4c;
+}
+
+/* Item de sous-liste */
+ul.menu li ul li {
+	width: 100%;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+ul.menu li ul li {
+	height: 29px;
+	line-height: 29px;
+	padding: 0 25px;
+}
+
+/* CONTENU DES ITEMS */
+
+/* Icone */
+ul.menu li img.icon {
+	float: left;
+	max-height: 19px;
+	max-width: 19px;
+	margin-right: 2px;
+}
+/* Fleche */
+ul.menu .arrow {
+	display: block;
+	background: url("usr/share/images/themes/adwaita/menu/arrow.png") no-repeat;
+	width: 6px;
+	margin-top: 6px;
+	margin-bottom: 6px;
+	margin-right: 3px;
+	height: 7px;
+	float: right;
+}
+
+ul.menu > li {
+	float: left;
+}
+ul.menu > li > a {
+	margin: 0 10px;
+	font-weight: bold;
+	text-shadow: black 0 0 2px;
+}
+ul.menu > li.hover {
+	border-bottom: 2px solid #dcdfe2;
+	background: url('usr/share/images/themes/adwaita/menu/shadow.png') center bottom no-repeat;
+}
+ul.menu > li:hover > a,
+ul.menu > li.hover > a {
+	color: white;
+	text-shadow: black 0 1px 5px;
+}
+
+ul.menu img.icon {
+	margin-right: 1px;
+	max-width: 23px;
+	text-align: center;
+	float: left;
+}
+
+/* SEPARATEUR */
+ul.menu li.separator, ul.menu li.separator:hover {
+	width: 100%;
+	height: 2px;
+	background: #D1C2B6;
+	background : -moz-linear-gradient(left, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+	background : -webkit-linear-gradient(left, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+	background : -ms-linear-gradient(left, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+	background : linear-gradient(left, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+	border: 0px;
+	margin: 15px 0;
+	overflow: hidden;
+}
+
+/******************************
+       MENUS DES FENETRES
+ ******************************/
+ul.webos-menuwindowheader .separator {
+	width: 95%;
+	height: 1px;
+	color: #D1C2B6;
+	background: #D1C2B6;
+	border: 0px;
+	margin-bottom: 2px;
+	margin-top: 2px;
+	margin-left: 6px;
+}
+
+ul.webos-menuwindowheader .arrow {
+	display: block;
+	background: url("usr/share/images/themes/ambiance/menu/arrow.png") no-repeat;
+	width: 6px;
+	margin-top: 6px;
+	margin-bottom: 6px;
+	margin-right: 3px;
+	height: 7px;
+	float: right;
+}
+
+ul.webos-menuwindowheader img.icon {
+	margin-right: 1px;
+	max-width: 23px;
+	text-align: center;
+	float: left;
+}
+
+ul.menuwindowheader, ul.webos-menuwindowheader ul { /* Liste */
+	padding: 0; /* pas de marge intérieure */
+	margin: 0; /* ni extérieure */
+	list-style: none; /* on supprime le style par défaut de la liste */
+	line-height: 19px; /* on définit une hauteur pour chaque élément */
+	text-align: center;
+	/* on centre le texte qui se trouve dans la liste */
+}
+
+ul.webos-menuwindowheader ul {
+	background-color: #494743;
+	-moz-box-shadow: 5px 4px 12px black;
+	-webkit-box-shadow: 5px 4px 12px black;
+	box-shadow: 5px 4px 12px black;
+}
+
+ul.webos-menuwindowheader * { /* Ensemble du menu */
+	position: relative;
+	z-index: 1050;
+}
+
+ul.webos-menuwindowheader a { /* Contenu des listes */
+	display: block;
+	/* on change le type d'élément, les liens deviennent des balises de type block */
+	padding: 0; /* aucune marge intérieure */
+	padding-top: 3px;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	text-decoration: none;
+	/* on supprime le style par défaut des liens (la plupart du temps = souligné) */
+	color: white;
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+
+ul.webos-menuwindowheader ul a {
+	background-color: #494743;
+	width: 100%;
+	border: 1px solid #494743;
+}
+
+ul.webos-menuwindowheader ul li.hover > a {
+	background: url("usr/share/images/themes/ambiance/menu/background.png")
+		repeat-x;
+	background-position: 0% -25px;
+	border: 1px solid #c35c33;
+}
+
+ul.webos-menuwindowheader li { /* Elements des listes */
+	float: left;
+	/* pour IE qui ne reconnaît pas "transparent" */
+	text-align: left;
+}
+
+ul.webos-menuwindowheader li ul /* Sous-listes */ {
+	position: absolute; /* Position absolue */
+	width: 170px; /* Largeur des sous-listes */
+	display: none;
+}
+
+ul.webos-menuwindowheader li ul li /* Éléments de sous-listes */ {
+	width: 100%;
+}
+
+ul.webos-menuwindowheader li ul ul {
+	margin: -24px 0 0 176px;
+	/* On décale les sous-sous-listes pour qu'elles ne soient pas au dessus des sous-listes */
+}
+ul.webos-menuwindowheader li ul li ul {
+	margin: -26px 0 0 176px;
+	/* On décale les sous-sous-listes pour qu'elles ne soient pas au dessus des sous-listes */
+}
+
+ul.webos-menuwindowheader li img.icon {
+	float: left;
+	max-height: 19px;
+	max-width: 19px;
+	margin-right: 2px;
+}
+
+ul.menu li.separator {
+	border-top: 1px solid #3c3c39;
+}
+
+ul.webos-menuwindowheader > li > a {
+	padding-right: 4px;
+}
+ul.webos-menuwindowheader > li.hover > a {
+	background: url("usr/share/images/themes/ambiance/menu/background.png")
+		repeat-x;
+	background-position: 0% -50px;
+	-moz-border-radius: 5px 5px 0 0;
+	-webkit-border-radius: 5px 5px 0 0;
+	border-radius: 5px 5px 0 0;
+}
