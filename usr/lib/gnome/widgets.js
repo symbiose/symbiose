@@ -634,61 +634,57 @@ var windowProperties = $.webos.extend(containerProperties, {
 	draggable: function() {
 		var that = this;
 		
-		this.element.draggable({
-			handle: this.options._components.header,
-			cancel: '.controllers, .header-specific ul > *',
-			scroll: false,
-			containment: [- $('#desktop').width(), $('#desktop').offset().top, 2 * $('#desktop').width(), $('#desktop').offset().top + 2 * $('#desktop').height()],
-			snap: '#desktop',
-			snapMode: 'inner',
-			start: function(event, ui) {
-				
-			},
-			drag: function(event, ui) {
-				
+		this.options._components.header.bind('mousedown.window.widget.webos', function(e) {
+			if (that.is('maximized')) {
+				return;
 			}
-		});
-		
-		if (!W.Theme.current.get('animations')) {
-			this.element.draggable({
-				addClasses: false,
-				helper: function() {
-					return $('<div></div>', { 'class': 'webos-window-manip-helper' })
-						.height(that.element.height())
-						.width(that.element.width())
-						.css('top', that.element.css('top'))
-						.css('left', that.element.css('left'));
-				}
-			}).bind('dragstop', function(e, ui) {
-				if (!that.element.is(e.target)) {
-					return;
-				}
-				
-				that.element
-					.css('top', $(ui.helper).css('top'))
-					.css('left', $(ui.helper).css('left'));
-			});
-		}
-		
-		this.element.bind('dragstop', function(e, ui) {
-			if (!that.element.is(e.target)) {
+			if ($(e.target).is('.controllers, .header-specific ul > *')) {
 				return;
 			}
 			
-			if (that.element.offset().left + that.element.width() < 0) {
-				that.element.css('left', 0);
-			}
-			if (that.element.offset().left > $('#desktop').width()) {
-				that.element.css('left', $('#desktop').width() - that.element.width());
-			}
-			if (that.element.offset().top + 3 > $('#desktop').innerHeight() + $('#desktop').offset().top) {
-				var topPos = $('#desktop').height() - that.element.outerHeight();
-				if (topPos < 0) {
-					topPos = 0;
+			var el = that.element[0];
+			var diffX = e.pageX - that.element.position().left, diffY = e.pageY - that.element.position().top;
+			
+			var posX = e.pageX - diffX, posY = e.pageY - diffY;
+			
+			var mouseMoveFn = function(e) {
+				posX = e.pageX - diffX, posY = e.pageY - diffY;
+				
+				if (posY < 0) { posY = 0; }
+				
+				el.style.left = posX+'px';
+				el.style.top = posY+'px';
+				
+				e.preventDefault();
+			};
+			$('body').bind('mousemove', mouseMoveFn).one('mouseup', function(e) {
+				$(this).unbind('mousemove', mouseMoveFn);
+				
+				var desktopPosX = $('#desktop').offset().left, desktopPosY = $('#desktop').offset().top;
+				if (posX + that.element.width() < desktopPosX) {
+					that.element.css('left', 0);
 				}
-				that.element.css('top', topPos);
-			}
-			that._saveDimentions();
+				if (posX > desktopPosX + $('#desktop').outerWidth()) {
+					that.element.css('left', $('#desktop').width() - that.element.width());
+				}
+				if (posY > desktopPosY + $('#desktop').outerHeight()) {
+					var topPos = $('#desktop').height() - that.element.outerHeight();
+					if (topPos < 0) {
+						topPos = 0;
+					}
+					that.element.css('top', topPos);
+				}
+				
+				that.element.removeClass('dragging cursor-move');
+				
+				that._saveDimentions();
+				
+				e.preventDefault();
+			});
+			
+			that.element.addClass('dragging cursor-move');
+			
+			e.preventDefault();
 		});
 	},
 	workspace: function(workspace) {
