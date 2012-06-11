@@ -11,7 +11,7 @@
 	border: 1px solid #a3a3a3;
 }
 
-.webos-window.ui-draggable-dragging,
+.webos-window.dragging,
 .webos-window.ui-resizable-resizing,
 .webos-window.animating {
 	-moz-box-shadow: none; 

@@ -139,7 +139,6 @@ a, a * {
 	cursor: url("usr/share/images/themes/ambiance/cursors/wait.ani"), wait;
 }
 
-.ui-draggable-dragging, .ui-draggable-dragging *,
 .cursor-move, .cursor-move * {
 	cursor: url("usr/share/images/themes/ambiance/cursors/move.cur"), move;
 }
