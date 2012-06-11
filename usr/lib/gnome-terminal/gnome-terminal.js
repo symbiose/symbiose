@@ -4,6 +4,8 @@
  * @author $imon
  */
 
+new Webos.ScriptFile('usr/lib/webos/file.js');
+
 var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'terminal',
 	options: {
@@ -52,9 +54,34 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 				.appendTo(that.element)
 				.keydown(function(e) {
 					switch (e.keyCode) {
+						case 9: //Tab
+							var valueArray = $(this).textEntry('value').split(' ');
+							var lastWord = valueArray.pop();
+							var rest = valueArray.join(' ');
+							var results = [];
+							for (var path in Webos.File._cache) {
+								var foundPath = null;
+								if (path.indexOf(lastWord) == 0 && !/.+\/.+/.test(path.substr(lastWord.length))) {
+									foundPath = path;
+								}
+								if (path.indexOf(data.location+'/'+lastWord) == 0 && !/.+\/.+/.test(path.substr((data.location+'/'+lastWord).length))) {
+									foundPath = path.substr(data.location.length).replace(/^\//, '');
+								}
+								if (foundPath) {
+									if (Webos.File._cache[path].get('is_dir')) {
+										foundPath += '/';
+									}
+									results.push(foundPath);
+									$(this).textEntry('value', rest+' '+foundPath);
+									break;
+								}
+							}
+							e.preventDefault();
+							break;
 						case 13: //Enter
 							var cmd = $(this).textEntry('value');
 							that.enterCmd(cmd);
+							e.preventDefault();
 							break;
 						case 38: //Up
 							if (historyPos > 0) {
@@ -64,6 +91,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 								historyPos--;
 								$(this).textEntry('value', that.options._history[historyPos]);
 							}
+							e.preventDefault();
 							break;
 						case 40: //Down
 							if (historyPos < that.options._history.length) {
@@ -76,6 +104,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 								}
 								$(this).textEntry('value', cmd);
 							}
+							e.preventDefault();
 							break;
 					}
 				});
