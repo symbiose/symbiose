@@ -19,7 +19,7 @@ class UserInterfaceController extends \lib\ServerCallComponent {
 			'name' => $ui->getName(),
 			'html' => $ui->getHtml(),
 			'js' => $ui->getJavascript(),
-			'css' => $ui->getCssFiles()
+			'css' => $ui->getCss()
 		);
 	}
 

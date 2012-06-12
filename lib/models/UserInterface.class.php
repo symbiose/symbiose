@@ -74,7 +74,7 @@ class UserInterface extends \lib\WebosComponent {
 					$this->js[] = $file->contents(); //On ajoute le code JS
 					break;
 				case 'css':
-					$this->css[] = $file->realpath(); //On ajoute le fichier CSS a la liste
+					$this->css[] = $file->contents(); //On ajoute le fichier CSS a la liste
 					break;
 			}
 		}
@@ -118,7 +118,7 @@ class UserInterface extends \lib\WebosComponent {
 	 * Recuperer les feuilles de style CSS a inclure.
 	 * @return array Les feuilles de style CSS a inclure.
 	 */
-	public function getCssFiles() {
+	public function getCss() {
 		return $this->css;
 	}
 

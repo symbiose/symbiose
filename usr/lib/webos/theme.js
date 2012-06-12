@@ -30,9 +30,9 @@ Webos.Theme.prototype = {
 			}
 		}).load(new Webos.Callback(function(response) {
 			$.fx.off = !that.get('animations');
-			var cssFiles = response.getData().css;
-			for (var index in cssFiles) {
-				new Webos.Stylesheet(cssFiles[index], '#'+W.UserInterface.current.element.attr('id'));
+			var css = response.getData().css;
+			for (var index in css) {
+				Webos.Stylesheet.insertCss(css[index], '#'+W.UserInterface.current.element.attr('id'));
 			}
 			that._loadBackground();
 			Webos.Theme.current = that;

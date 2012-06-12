@@ -12,7 +12,7 @@ class ThemeController extends \lib\ServerCallComponent {
 			throw new \InvalidArgumentException('Le th&egrave;me "'.$theme.'" ne supporte pas l\'interface "'.$ui.'"');
 		}
 
-		$cssFiles = array();
+		$css = array();
 
 		$themeDir = $this->webos->managers()->get('File')->get($themePath);
 		foreach ($themeDir->contents() as $file) {
@@ -23,7 +23,7 @@ class ThemeController extends \lib\ServerCallComponent {
 				continue;
 			}
 
-			$cssFiles[] = $file->realpath();
+			$css[] = $file->contents();
 		}
 
 		$uiThemeDir = $this->webos->managers()->get('File')->get($uiThemePath);
@@ -35,10 +35,10 @@ class ThemeController extends \lib\ServerCallComponent {
 				continue;
 			}
 
-			$cssFiles[] = $file->realpath();
+			$css[] = $file->contents();
 		}
 
-		return array('css' => $cssFiles);
+		return array('css' => $css);
 	}
 
 	protected function getAvailable($ui) {

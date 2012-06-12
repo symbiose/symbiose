@@ -46,7 +46,7 @@ Webos.UserInterface = function WUserInterface(data) {
 		
 		//Chargement du CSS
 		for (var index in this._attributes.data.css) {
-			new Webos.Stylesheet(this._attributes.data.css[index], '#userinterface-'+this.id());
+			Webos.Stylesheet.insertCss(this._attributes.data.css[index], '#userinterface-'+this.id());
 		}
 		
 		//Chargement du Javascript
