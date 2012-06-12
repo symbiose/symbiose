@@ -15,15 +15,16 @@ $(function() { //Lorsque tout est pret
 	new W.ScriptFile('boot/lib/model.js');
 	new W.ScriptFile('boot/lib/callback.js');
 	new W.ScriptFile('boot/lib/servercall.js');
-	new W.ScriptFile('boot/lib/process.js');
-	new W.ScriptFile('boot/lib/response.js');
-	new W.ScriptFile('boot/lib/ui.js');
-	new W.ScriptFile('boot/lib/css.js');
-	new W.ScriptFile('boot/lib/uniqueid.js');
-	new W.ScriptFile('boot/lib/loadimage.js');
-	new W.ScriptFile('boot/lib/xml.js');
-	new W.ScriptFile('boot/lib/cmd.js');
-	new W.ScriptFile('boot/lib/user.js');
+	Webos.ScriptFile.load(
+		'/boot/lib/process.js',
+		'/boot/lib/ui.js',
+		'/boot/lib/css.js',
+		'/boot/lib/uniqueid.js',
+		'/boot/lib/loadimage.js',
+		'/boot/lib/xml.js',
+		'/boot/lib/cmd.js',
+		'/boot/lib/user.js'
+	);
 	
 	var actualLocation = window.location.href;
 	var locationArray = actualLocation.split('/');

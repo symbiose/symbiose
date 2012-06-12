@@ -64,26 +64,7 @@ Webos.ServerCall.prototype = {
 			Webos.ServerCall.callStart(this);
 		}
 		
-		var getStackFn = function() {
-			var stack = '    at '+that.url+' calling '+that.data['class']+'->'+that.data.method+'()';
-			if (that.data.arguments && that.data.arguments != '{}') {
-				stack += "\n"+'    with arguments '+that.data.arguments;
-			} else {
-				stack += "\n"+'    without arguments';
-			}
-			if (that.data.user) {
-				stack += "\n"+'    as '+that.data.user;
-			}
-			if (that.data.pid) {
-				stack += "\n"+'    in process #'+that.data.pid;
-			}
-			return stack;
-		};
-		
-		var callCompleteFn = function() {
-			that.status = 2;
-			Webos.ServerCall.callComplete(that);
-		};
+		that.notify('start');
 		
 		$.ajax({
 			url: that.url,
@@ -97,7 +78,7 @@ Webos.ServerCall.prototype = {
 					var json = jQuery.parseJSON(data); //On essaie de recuperer les donnees JSON
 				} catch (jsonError) { //Si une erreur survient
 					var error = (data) ? data : 'Une erreur est survenue lors du chargement d\'un appel serveur';
-					error += "\n"+getStackFn();
+					error += "\n"+that.stack();
 					
 					var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
 						'success': false,
@@ -108,28 +89,19 @@ Webos.ServerCall.prototype = {
 						'js': null,
 						'out': error
 					});
-					that.response = response;
-					callback.error(response);
 					
-					callCompleteFn();
+					that._complete(response, callback);
 					return; //On stoppe l'execution de la fonction
 				}
 				
 				var response = new W.ServerCall.Response(json); //On cree la reponse
-				that.response = response;
 				
-				if (response.isSuccess()) { //Si la requete a reussi
-					callback.success(response); //On execute le callback associe
-				} else {
-					callback.error(response); //On execute le callback d'erreur
-				}
-				
-				callCompleteFn();
+				that._complete(response, callback);
 			},
 			error: function(jqXHR, textStatus, errorThrown) { //Une erreur est survenue
 				if (that.nbrAttempts < Webos.ServerCall.options.maxAttempts) {
 					setTimeout(function() {
-						that.load();
+						that.load(callback);
 					}, Webos.ServerCall.options.errorDelay);
 					return;
 				}
@@ -142,7 +114,7 @@ Webos.ServerCall.prototype = {
 					}
 					error += ')';
 				}
-				error += "\n"+getStackFn();
+				error += "\n"+that.stack();
 				
 				var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
 					'success': false,
@@ -153,13 +125,42 @@ Webos.ServerCall.prototype = {
 					'js': null,
 					'out': error
 				});
-				that.response = response;
 				
-				callback.error(response);
-				
-				callCompleteFn();
+				that._complete(response, callback);
 			}
 		});
+	},
+	_complete: function(response, callback) {
+		callback = Webos.Callback.toCallback(callback);
+		
+		this.status = 2;
+		this.response = response;
+		
+		if (response.isSuccess()) { //Si la requete a reussi
+			callback.success(response); //On execute le callback associe
+			this.notify('success');
+		} else {
+			callback.error(response); //On execute le callback d'erreur
+			this.notify('error');
+		}
+		
+		this.notify('complete');
+		Webos.ServerCall.callComplete(this);
+	},
+	stack: function() {
+		var stack = '    at '+this.url+' calling '+this.data['class']+'->'+this.data.method+'()';
+		if (this.data.arguments && this.data.arguments != '{}') {
+			stack += "\n"+'    with arguments '+this.data.arguments;
+		} else {
+			stack += "\n"+'    without arguments';
+		}
+		if (this.data.user) {
+			stack += "\n"+'    as '+this.data.user;
+		}
+		if (this.data.pid) {
+			stack += "\n"+'    in process #'+this.data.pid;
+		}
+		return stack;
 	}
 };
 Webos.inherit(Webos.ServerCall, Webos.Observable);
@@ -184,7 +185,7 @@ Webos.ServerCall.callStart = function(call) {
 };
 Webos.ServerCall.callComplete = function(call) {
 	if (Webos.ServerCall.getNbrPendingCalls() == 0) {
-		Webos.ServerCall.notify('complete', { list: [] });
+		Webos.ServerCall.notify('complete', { list: Webos.ServerCall.list });
 	}
 	Webos.ServerCall.notify('callcomplete', { call: call });
 };
@@ -200,52 +201,212 @@ Webos.ServerCall.getPendingCalls = function() {
 Webos.ServerCall.getNbrPendingCalls = function() {
 	return Webos.ServerCall.getPendingCalls().length;
 };
-Webos.ServerCall.group = function() {
+Webos.ServerCall.join = function() {
 	var requests = [];
-	for (var i = 1; i < arguments.length; i++) {
+	for (var i = 0; i < arguments.length; i++) {
 		requests.push(arguments[i]);
 	}
-	return new Webos.ServerCallGroup(requests);
+	return new Webos.ServerCall.Group(requests);
 };
 
-Webos.ServerCallGroup = function WServerCallGroup(requests) {
+Webos.ServerCall.Group = function WServerCallGroup(requests, opts) {
+	Webos.Observable.call(this);
+	
+	var defaults = {};
+	
+	this.options = $.extend({}, defaults, opts); //On definit toutes les options
 	this.requests = [];
 	this.callbacks = [];
-	
-	var that = this;
-	
-	this._triggerComplete = function(request) {
-		var completed = true;
-		for (var i = 0; i < this.requests.length; i++) {
-			if (Webos.ServerCall.list[i].status == 1) {
-				completed = false;
-			}
-		}
-		
-		if (completed) {
-			for (var i = 0; i < this.callbacks.length; i++) {
-				callback(this);
-			}
-		}
-	};
-	this.complete = function(callback) {
-		this.callbacks.push(callback);
-	};
-	this.add = function(request) {
-		var callback = request.callback;
-		request.callback = new W.Callback(function(response) {
-			callback.success(response);
-			that._triggerComplete(request);
-		}, function(response) {
-			callback.error(response);
-			that._triggerComplete(request);
-		});
-		this.requests.push(request);
-	};
 	
 	if (requests instanceof Array) {
 		for (var i = 0; i < requests.length; i++) {
 			this.add(requests[i]);
 		}
 	}
+	
+	this.nbrAttempts = 0;
+	this.status = 0;
+	this.url = 'sbin/servercallgroup.php';
+	this.type = 'post';
+};
+Webos.ServerCall.Group.prototype = {
+	add: function(request, callback) {
+		var id = this.requests.push(request) - 1;
+		if (callback) {
+			callback = Webos.Callback.toCallback(callback);
+			this.callbacks[id] = callback;
+		}
+		return id;
+	},
+	load: function(callback) {
+		//Lien vers l'objet courant
+		var that = this;
+		
+		if (callback) {
+			callback = Webos.Callback.toCallback(callback);
+			for (var i = 0; i < this.requests.length; i++) {
+				if (!this.callbacks[i]) {
+					this.callbacks[i] = callback;
+				}
+			}
+		}
+		
+		this.nbrAttempts++;
+		this.status = 1;
+		this.data = {};
+		for (var i = 0; i < this.requests.length; i++) {
+			this.requests[i].notify('start');
+			Webos.ServerCall.callStart(this.requests[i]);
+			this.data[i] = this.requests[i].data;
+			this.data[i].arguments = jQuery.parseJSON(this.data[i].arguments);
+		}
+		
+		this.notify('start');
+		
+		$.ajax({
+			url: that.url,
+			data: {
+				requests: JSON.stringify(that.data)
+			},
+			type: that.type,
+			async: (that.options.async == false) ? false : true,
+			dataType: 'text',
+			success: function(data, textStatus, jqXHR) { //En cas de succes
+				try {
+					var json = jQuery.parseJSON(data); //On essaie de recuperer les donnees JSON
+				} catch (jsonError) { //Si une erreur survient
+					var error = (data) ? data : 'Une erreur est survenue lors du chargement d\'un appel serveur';
+					
+					var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
+						'success': false,
+						'channels': {
+							1: null,
+							2: error //On ajoute le message d'erreur
+						},
+						'js': null,
+						'out': error
+					});
+					
+					for (var i = 0; i < that.requests.length; i++) {
+						that.requests[i]._complete(response, that.callbacks[i]);
+					}
+					return; //On stoppe l'execution de la fonction
+				}
+				
+				for (var index in json) {
+					var response = new W.ServerCall.Response(json[index]); //On cree la reponse
+					that.requests[index]._complete(response, that.callbacks[index]);
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) { //Une erreur est survenue
+				if (that.nbrAttempts < Webos.ServerCall.options.maxAttempts) {
+					setTimeout(function() {
+						that.load();
+					}, Webos.ServerCall.options.errorDelay);
+					return;
+				}
+				
+				var error = 'Une erreur est survenue lors du chargement d\'un appel serveur';
+				if (textStatus) {
+					error += ' (statut : '+textStatus;
+					if (errorThrown) {
+						error += ', '+errorThrown;
+					}
+					error += ')';
+				}
+				error += "\n"+that.stack();
+				
+				var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
+					'success': false,
+					'channels': {
+						1: null,
+						2: error //On ajoute le message d'erreur
+					},
+					'js': null,
+					'out': error
+				});
+				
+				for (var index in that.requests) {
+					that.requests[index]._complete(response, that.callbacks[index]);
+				}
+			}
+		});
+	},
+	_complete: function(response, callback) {
+		this.status = 2;
+		this.response = response;
+		
+		if (response.isSuccess()) { //Si la requete a reussi
+			callback.success(response); //On execute le callback associe
+			this.notify('success');
+		} else {
+			callback.error(response); //On execute le callback d'erreur
+			this.notify('error');
+		}
+		
+		this.notify('complete');
+		Webos.ServerCall.callComplete(this);
+	}
+};
+Webos.inherit(Webos.ServerCall.Group, Webos.Observable);
+
+
+//Manipuler une reponse du serveur
+Webos.ServerCall.Response = function WServerCallResponse(response) { 
+	if (response === null) {
+		response = {
+			channels: {},
+			out: null,
+			data: {},
+			js: null
+		};
+	}
+	
+	this.response = response; //Reponse JSON brute
+	
+	this.isSuccess = function() { //Savoir si la requete a reussi
+		if (this.response.success == 1) {
+			return true;
+		} else {
+			return false;
+		}
+	};
+	this.getChannel = function(channel) { //Recuperer le contenu d'un cannal
+		return this.response.channels[channel];
+	};
+	this.getStandardChannel = function() { //Recuperer le contenu du cannal par defaut
+		return this.getChannel(1);
+	};
+	this.getErrorsChannel = function() { //Recuperer le contenu du cannal d'erreurs
+		return this.getChannel(2);
+	};
+	this.getAllChannels = function() { //Recuperer la sortie commune de tous les cannaux
+		return this.response.out;
+	};
+	this.getData = function() { //Recuperer les donnees associees a la reponse
+		return this.response.data;
+	};
+	this.getJavascript = function() { //Recuperer le code JS
+		return this.response.js;
+	};
+	this.isJavascriptEmpty = function() { //Savoir si il y a du code JS
+		return (this.getJavascript() == null);
+	};
+	this.triggerError = function(msg) { //Declancher l'erreur, si elle existe
+		if (this.isSuccess()) {
+			return;
+		}
+		msg = (typeof msg == 'undefined') ? ((this.getErrorsChannel() == null || this.getErrorsChannel() == '') ? this.getAllChannels() : this.getErrorsChannel()) : msg;
+		
+		var details = null;
+		if (msg != this.getAllChannels()) {
+			details = this.getAllChannels();
+		}
+		
+		Webos.Error.trigger(msg, details);
+	};
+	
+	this.toString = function() {
+    	return (this.getAllChannels() !== null) ? this.getAllChannels() : '';
+    };
 };

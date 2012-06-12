@@ -34,7 +34,7 @@ class Authorization extends \lib\WebosComponent {
 		$actionAuthorizations = $this->_getActionAuthorization($request->getClass(), $request->getMethod(), $request->getArguments());
 		foreach($actionAuthorizations as $actionAuthorization) {
 			if (!$this->can($actionAuthorization))
-				throw new \RuntimeException('Vous n\'avez pas les droits requis ("'.$actionAuthorization.'") pour effectuer cette action (classe : "'.$request->getClass().'", m&eacute;thode : "'.$request->getMethod().'")');
+				throw new \RuntimeException('Vous n\'avez pas les droits requis ("'.$actionAuthorization.'") pour effectuer cette action (classe : "'.$request->getClass().'"; m&eacute;thode : "'.$request->getMethod().'"; arguments: "'.implode('", "', $request->getArguments()).'")');
 		}
 		return true;
 	}
@@ -64,7 +64,6 @@ class Authorization extends \lib\WebosComponent {
 	 * @param $providedArguments les arguments fournis.
 	 */
 	protected function _getActionAuthorization($className, $methodName, array $providedArguments) {
-
 		$xml = new \DOMDocument;
 		$xml->load('etc/servercalls.xml');
 		$classes = $xml->getElementsByTagName('class');
@@ -82,10 +81,9 @@ class Authorization extends \lib\WebosComponent {
 
 						$arguments = $method->getElementsByTagName('argument');
 						foreach($arguments as $argument) {
-							if (array_key_exists($argument->getAttribute('id'), $providedArguments)) {
-								$providedArgument = $providedArguments[$argument->getAttribute('id')];
-							} else {
-								$providedArgument = null;
+							$providedArgument = null;
+							if (array_key_exists((int) $argument->getAttribute('id'), $providedArguments)) {
+								$providedArgument = $providedArguments[(int) $argument->getAttribute('id')];
 							}
 
 							$requiredAuthorizations[] = $this->getArgumentAuthorizations($providedArgument, $argument->getAttribute('type'), $argument->getAttribute('action'));

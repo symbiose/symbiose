@@ -40,8 +40,8 @@ Webos.Script.runScript = function runScript(js) {
 };
 
 Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Javascript
-	if (typeof W.ScriptFile.cache[path] != 'undefined') {
-		return W.ScriptFile.cache[path];
+	if (typeof W.ScriptFile._cache[path] != 'undefined') {
+		return W.ScriptFile._cache[path];
 	}
 	
 	this.run = function() {
@@ -53,9 +53,34 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 	
 	this._js = null;
 	
-	Webos.ScriptFile.cache[path] = this;
+	Webos.ScriptFile._cache[path] = this;
 	
 	var that = this;
+	
+	/*new Webos.ServerCall({
+		'class': 'FileController',
+		method: 'getContents',
+		arguments: {
+			file: path
+		}
+	}).load(new Webos.Callback(function(response) {
+		var data = response.getData();
+		var list = [];
+		for(var key in data) {
+			var file = new Webos.File(data[key]);
+			if (Webos.File._cache[file.get('path')]) {
+				Webos.File._cache[file.get('path')].hydrate(file.data());
+				file = Webos.File._cache[file.get('path')];
+				Webos.File.notify('load', { file: file });
+			} else {
+				Webos.File._cache[file.get('path')] = file;
+			}
+			list.push(file);
+		}
+		callback.success(list);
+	}, function(response) {
+		callback.error(response);
+	}));*/
 	
 	this.ajax = $.ajax({
 		url: path,
@@ -70,7 +95,29 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 		}
 	});
 };
-Webos.ScriptFile.cache = {};
+Webos.ScriptFile._cache = {};
+Webos.ScriptFile.load = function() {
+	var group = new Webos.ServerCall.Group([], { async: false });
+	for (var i = 0; i < arguments.length; i++) {
+		group.add(new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'getContents',
+			arguments: {
+				file: arguments[i]
+			}
+		}), function(response) {
+			var js = response.getStandardChannel();
+			if (js) {
+				js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
+				Webos.Script.runScript(js);
+			}
+		});
+	}
+	
+	group.load();
+	
+	return group;
+};
 
 function include(path, args) {
 	this.ajax = $.ajax({

@@ -16,12 +16,12 @@ class ServerCall extends Webos {
 	/**
 	 * Initialise la requete.
 	 */
-	public function __construct() {
+	public function __construct(ServerCallRequest $httpRequest, ServerCallResponse $httpResponse) {
 		parent::__construct(); //On appelle le constructeur parent
 
 		//On initialise la requete et la reponse HTTP
-		$this->httpRequest = new ServerCallRequest();
-		$this->httpResponse = new ServerCallResponse();
+		$this->httpRequest = $httpRequest;
+		$this->httpResponse = $httpResponse;
 
 		//Classe demandee dans la requete
 		$class = $this->getHTTPRequest()->getClass();
@@ -46,7 +46,7 @@ class ServerCall extends Webos {
 			}
 
 			if (!$process->getAuthorization()->check($this->getHTTPRequest()))
-				throw new RuntimeException('Vous n\'avez pas les droits requis pour effectuer cette action (module : "'.$class.'", action : "'.$this->getHTTPRequest()->getMethod().'")');
+				throw new RuntimeException('Vous n\'avez pas les droits requis pour effectuer cette action (module : "'.$class.'"; action : "'.$this->getHTTPRequest()->getMethod().'"; arguments: "'.implode('", "', $this->getHTTPRequest()->getArguments()).'")');
 
 			$this->process = $process;
 		} else {
@@ -55,7 +55,7 @@ class ServerCall extends Webos {
 
 			//Si on n'a pas les droits suffisants pour executer la requete demandee
 			if (!$authorization->check($this->getHTTPRequest()))
-				throw new RuntimeException('Vous n\'avez pas les droits requis pour effectuer cette action (module : "'.$class.'", action : "'.$this->getHTTPRequest()->getMethod().'")');
+				throw new RuntimeException('Vous n\'avez pas les droits requis pour effectuer cette action (module : "'.$class.'"; action : "'.$this->getHTTPRequest()->getMethod().'"; arguments: "'.implode('", "', $this->getHTTPRequest()->getArguments()).'")');
 
 			//On cree le processus de l'action
 			$this->process = new models\ServerCallProcess($this, $authorization, $this->getHTTPRequest()->getClass(), $this->getHTTPRequest()->getMethod());

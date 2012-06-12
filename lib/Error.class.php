@@ -158,6 +158,8 @@ abstract class Error extends \lib\WebosComponent {
 	 * @param Webos $webos Le webos.
 	 */
 	public static function setErrorsWebos(Webos $webos) {
-		self::$errorsWebos = $webos;
+		if (empty(self::$errorsWebos)) {
+			self::$errorsWebos = $webos;
+		}
 	}
 }

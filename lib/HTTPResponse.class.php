@@ -73,4 +73,11 @@ class HTTPResponse {
 	{
 		setcookie($name, $value, $expire, $path, $domain, $secure, $httpOnly);
 	}
+
+	/**
+	 * Recuperer le contenu de la reponse.
+	 */
+	public function getContents() {
+		return $this->contents;
+	}
 }
