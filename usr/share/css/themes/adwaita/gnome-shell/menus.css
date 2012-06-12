@@ -72,6 +72,13 @@ ul.webos-menuwindowheader li ul {
 	display: none;
 }
 
+/* Sous-sous-listes */
+ul.menu li ul li ul,
+ul.webos-menuwindowheader li ul li ul {
+	top: -2px;
+	left: 219px;
+}
+
 /* ITEM DE MENU */
 ul.menu li,
 ul.webos-menuwindowheader li {
@@ -116,7 +123,7 @@ ul.webos-menuwindowheader ul li.hover {
 	border: 1px solid #4b6e99;
 	color: white;
 }
-ul.webos-menuwindowheader ul li.hover a {
+ul.webos-menuwindowheader ul li.hover > a {
 	color: white;
 }
 

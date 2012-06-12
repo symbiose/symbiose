@@ -99,6 +99,9 @@ var windowProperties = $.webos.extend(containerProperties, {
 		this.options._components.title = $('<div></div>', {
 			'class': 'title'
 		})
+			.mousedown(function(e) {
+				e.preventDefault();
+			})
 			.dblclick(function() {
 				that.minimizeOrMaximize();
 			})
@@ -1056,7 +1059,7 @@ var menuWindowHeaderItemProperties = $.webos.extend(containerProperties, {
 		
 		this.options._components.label = $('<a></a>', { href: '#' }).html(this.options.label).appendTo(this.element);
 		this.options._content = $('<ul></ul>').appendTo(this.element);
-		this.options._components.label.bind('click mouseenter', function(e) {
+		this.element.bind('click mouseenter', function(e) {
 			var $menu = that.element, $menuContents = that.content();
 			
 			if ($menu.is('hover')) {
@@ -1067,11 +1070,15 @@ var menuWindowHeaderItemProperties = $.webos.extend(containerProperties, {
 				return;
 			}
 			
-			$menu.addClass('hover');
-			
 			if ($menuContents.children().length > 0) {
 				$menuContents.show();
+			} else if (e.type == 'click') {
+				$menu.removeClass('hover');
+				$menu.parents('ul.webos-menuwindowheader li ul li').hide();
+				return;
 			}
+			
+			$menu.addClass('hover');
 			
 			var onDocClickFn = function(e) {
 				//Si on clique sur le menu
