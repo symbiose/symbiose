@@ -381,11 +381,17 @@ function GEditWindow(file) {
 	
 	var modeItem = $.w.menuWindowHeaderItem('Mode de coloration').appendTo(viewItemContent);
 	var modes = $.webos.gedit.modes();
+	var letters = {};
 	for (var i = 0; i < modes.length; i++) {
 		(function(mode) {
+			var firstLetter = mode.substr(0, 1);
+			if (!letters[firstLetter]) {
+				letters[firstLetter] = $.w.menuWindowHeaderItem(firstLetter).appendTo(modeItem.menuWindowHeaderItem('content'));
+			}
+			
 			$.w.menuWindowHeaderItem(mode).click(function() {
 				that.mode(mode);
-			}).appendTo(modeItem.menuWindowHeaderItem('content'));
+			}).appendTo(letters[firstLetter].menuWindowHeaderItem('content'));
 		})(modes[i]);
 	}
 	
