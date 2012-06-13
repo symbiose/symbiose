@@ -641,7 +641,7 @@ var windowProperties = $.webos.extend(containerProperties, {
 			if (that.is('maximized')) {
 				return;
 			}
-			if ($(e.target).is('.controllers, .header-specific ul > *')) {
+			if ($(e.target).is('.controllers, .header-specific ul *')) {
 				return;
 			}
 			
