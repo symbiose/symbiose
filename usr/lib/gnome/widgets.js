@@ -617,16 +617,19 @@ var windowProperties = $.webos.extend(containerProperties, {
 		
 		if (this.options.resizable) {
 			var that = this;
-			var content = this.options._content;
 			
 			this.element.resizable({
-				alsoResize: content,
+				alsoResize: this.options._content,
 				minWidth: 200,
 				minHeight: 150,
 				handles: 'all',
+				start: function() {
+					that.element.addClass('resizing');
+				},
 				stop: function() {
 					that._saveDimentions();
 					that._setTitle(that.options.title);
+					that.element.removeClass('resizing');
 					that._trigger('resize', { type: 'resize' }, { window: that.element });
 				}
 			});

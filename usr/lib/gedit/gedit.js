@@ -440,10 +440,7 @@ function GEditWindow(file) {
 		})
 		.appendTo(toolbar);
 	
-	this._content = $('<div></div>').appendTo(this._window.window('content')).scrollPane({
-		autoReload: true,
-		expand: true
-	});
+	this._content = $('<div></div>').appendTo(this._window.window('content'));
 	
 	this._gedit = $.w.gedit({
 		file: file
@@ -460,7 +457,16 @@ function GEditWindow(file) {
 		}
 	}).bind('geditopenfile', function() {
 		that._content.scrollPane('reload');
-	}).appendTo(this._content.scrollPane('content'));
+	});
+	
+	this._content.scrollPane({
+		autoReload: true,
+		expand: true,
+		keyUpResize: true,
+		alsoResize: this._gedit
+	});
+	
+	this._gedit.appendTo(this._content.scrollPane('content'));
 	
 	var closeStackLength = 0;
 	this._window.bind('windowbeforeclose', function(event) {

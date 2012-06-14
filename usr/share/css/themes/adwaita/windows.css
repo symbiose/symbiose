@@ -12,11 +12,16 @@
 }
 
 .webos-window.dragging,
-.webos-window.ui-resizable-resizing,
+.webos-window.resizing,
 .webos-window.animating {
 	-moz-box-shadow: none; 
 	-webkit-box-shadow: none;
 	box-shadow: none;
+}
+
+.webos-window.resizing .webos-scrollpane .vertical-bar,
+.webos-window.resizing .webos-scrollpane .horizontal-bar {
+	display: none;
 }
 
 .webos-window.bg-window {

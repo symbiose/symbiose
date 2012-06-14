@@ -162,7 +162,9 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 		verticalDragMinHeight: 20,
 		animate: false,
 		mouseWheelSpeed: 30,
-		expand: false
+		expand: false,
+		keyUpResize: false,
+		alsoResize: null
 	},
 	_create: function() {
 		var originalScrollTop = this.element.scrollTop(), originalScrollLeft = this.element.scrollLeft();
@@ -203,6 +205,8 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		this._update('autoReload', this.options.autoReload);
 		this._update('expand', this.options.expand);
+		this._update('keyUpResize', this.options.keyUpResize);
+		this._update('alsoResize', this.options.alsoResize);
 		this.reload();
 		
 		if (originalScrollTop != 0) {
@@ -289,12 +293,13 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 						if (parent.is(window) && !$(e.target).is(window)) {
 							return;
 						}
+						
 						that.reload();
 					});
-					$(window).bind('windowopen.scrollpane.widget.webos', function(e, data) {
+					$(window).bind('windowopen.'+this.id()+'.scrollpane.widget.webos', function(e, data) {
 						var thisWindow = that.element.parents().filter(data.window);
 						if (!that.options.autoReload || thisWindow.length > 0) {
-							$(this).unbind('windowopen.scrollpane.widget.webos');
+							$(this).unbind('windowopen.'+that.id()+'.scrollpane.widget.webos');
 							parent.unbind(eventName);
 						}
 						if (thisWindow.length > 0) {
@@ -303,8 +308,8 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 						}
 					});
 				} else {
-					$(window).unbind(eventName);
-					
+					parent.unbind(eventName);
+					$(window).unbind('windowopen.'+this.id()+'.scrollpane.widget.webos');
 				}
 				break;
 			case 'expand':
@@ -319,6 +324,38 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 						width: '',
 						height: ''
 					});
+				}
+				break;
+			case 'keyUpResize':
+				this.options.keyUpResize = (value) ? true : false;
+				if (value) {
+					var that = this;
+					this.element.bind('keyup.scrollpane.widget.webos', function() {
+						that.reload();
+					});
+				} else {
+					this.element.unbind('keyup.scrollpane.widget.webos');
+				}
+				break;
+			case 'alsoResize':
+				if (value) {
+					this.element.bind('scrollpanereload.scrollpane.widget.webos', function(e, data) {
+						$(value).css({
+							'min-width': data.containerWidth - data.verticalTrackWidth,
+							'min-height': data.containerHeight - data.horizontalTrackHeight,
+							width: data.paneWidth,
+							height: data.paneHeight
+						});
+					}).bind('scrollpanebeforereload.scrollpane.widget.webos', function() {
+						$(value).css({
+							'min-width': 'auto',
+							'min-height': 'auto',
+							width: 'auto',
+							height: 'auto'
+						});
+					});
+				} else {
+					this.element.unbind('scrollpanereload.scrollpane.widget.webos');
 				}
 				break;
 		}
@@ -468,7 +505,9 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 		this.scrollByY(deltaY, animate);
 	},
 	reload: function() {
-		var data = {};
+		this._trigger('beforereload', { type: 'beforereload' });
+		
+		var data = {};var that = this;
 		this.element.data('scrollpane', data);
 		
 		this.element.css({
@@ -482,107 +521,115 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 		this.element.css('overflow', 'auto');
 		data.paneWidth = this.content()[0].scrollWidth;
 		data.paneHeight = this.content()[0].scrollHeight;
-		this.element.css('overflow', 'hidden');
 		
-		data.percentInViewH = data.paneWidth / data.containerWidth;
-		data.percentInViewV = data.paneHeight / data.containerHeight,
-		data.isScrollableV = (data.percentInViewV > 1);
-		data.isScrollableH = (data.percentInViewH > 1);
-		
-		if (!(data.isScrollableH || data.isScrollableV)) {
-			this.element.removeClass('scrollable');
+		setTimeout(function() { //Delay for Mozilla
+			data.percentInViewH = data.paneWidth / data.containerWidth;
+			data.percentInViewV = data.paneHeight / data.containerHeight,
+			data.isScrollableV = (data.percentInViewV > 1);
+			data.isScrollableH = (data.percentInViewH > 1);
 			
-			this.options._components.horizontalBar.hide();
-			this.options._components.verticalBar.hide();
-			
-			this.content().css({
-				top: 0,
-				width: '100%',
-				height: '100%'
-			});
-			
-			this._mousewheel(false);
-		} else {
-			this.element.addClass('scrollable');
-			
-			this.content().css({
-				width: 'auto',
-				height: 'auto'
-			});
-			
-			if (data.isScrollableV) {
-				this.options._components.verticalBar.show();
-			} else {
-				this.options._components.verticalBar.hide();
-			}
-			if (data.isScrollableH) {
-				this.options._components.horizontalBar.show();
-			} else {
-				this.options._components.horizontalBar.hide();
-			}
-			
-			data.horizontalTrackHeight = this.options._components.horizontalBar.children('.track').outerHeight();
-			data.verticalTrackWidth = this.options._components.verticalBar.outerWidth();
-			
-			//reflow ??
-			//data.percentInViewV = containerHeight / paneHeight;
-			//data.percentInViewH = containerWidth / contentWidth;
-			
-			data.horizontalTrackWidth = data.containerWidth;
-			data.verticalTrackHeight = data.containerHeight;
-			this.element.find('>.vertical-bar>.cap:visible,>.vertical-bar>.arrow').each(function() {
-				data.verticalTrackHeight -= $(this).outerHeight();
-			});
-			this.element.find('>.horizontal-bar>.cap:visible,>.horizontal-bar>.arrow').each(function() {
-				data.horizontalTrackWidth -= $(this).outerWidth();
-			});
-			
-			this.options._components.container.width(data.containerWidth - data.verticalTrackWidth).height(data.containerHeight - data.horizontalTrackHeight);
-			this.content().css({
-				'min-width': data.containerWidth - data.verticalTrackWidth,
-				'min-height': data.containerHeight - data.horizontalTrackHeight
-			});
-			
-			if (data.isScrollableH && data.isScrollableV) {
-				data.verticalTrackHeight -= data.horizontalTrackHeight;
-				this.options._components.horizontalBar.find('>.cap:visible,>.arrow').each(function() {
-					data.horizontalTrackWidth += $(this).outerWidth();
+			if (!(data.isScrollableH || data.isScrollableV)) {
+				that.element.removeClass('scrollable');
+				
+				that.options._components.horizontalBar.hide();
+				that.options._components.verticalBar.hide();
+				
+				that.content().css({
+					top: 0,
+					left: 0,
+					width: '100%',
+					height: '100%'
 				});
-				data.horizontalTrackWidth -= data.verticalTrackWidth;
-				data.paneHeight -= data.verticalTrackWidth;
-				data.containerHeight -= 2 * data.verticalTrackWidth;
-				data.paneWidth -= data.horizontalTrackHeight;
-				data.containerWidth -= 2 * data.horizontalTrackHeight;
-				this.options._components.horizontalBar.find('.corner').height(data.horizontalTrackHeight).width(data.verticalTrackWidth);
+				
+				that._mousewheel(false);
+			} else {
+				that.element.addClass('scrollable');
+				
+				that.content().css({
+					width: 'auto',
+					height: 'auto'
+				});
+				
+				var top = that.content().position().top, left = that.content().position().left;
+				if (data.isScrollableV) {
+					that.options._components.verticalBar.show();
+					top = (- top + (data.paneHeight - data.containerHeight) < 0) ? - (data.paneHeight - data.containerHeight) : top;
+				} else {
+					that.options._components.verticalBar.hide();
+					top = 0;
+				}
+				if (data.isScrollableH) {
+					that.options._components.horizontalBar.show();
+					left = (- left + (data.paneWidth - data.containerWidth) < 0) ? - (data.paneWidth - data.containerWidth) : left;
+				} else {
+					that.options._components.horizontalBar.hide();
+					left = 0;
+				}
+				
+				that.content().css({
+					top: top,
+					left: left
+				});
+				
+				data.horizontalTrackHeight = that.options._components.horizontalBar.children('.track').outerHeight();
+				data.verticalTrackWidth = that.options._components.verticalBar.outerWidth();
+				
+				data.horizontalTrackWidth = data.containerWidth;
+				data.verticalTrackHeight = data.containerHeight;
+				that.element.find('>.vertical-bar>.cap:visible,>.vertical-bar>.arrow').each(function() {
+					data.verticalTrackHeight -= $(that).outerHeight();
+				});
+				that.element.find('>.horizontal-bar>.cap:visible,>.horizontal-bar>.arrow').each(function() {
+					data.horizontalTrackWidth -= $(that).outerWidth();
+				});
+				
+				that.options._components.container.width(data.containerWidth - data.verticalTrackWidth).height(data.containerHeight - data.horizontalTrackHeight);
+
+				that.content().css({
+					'min-width': data.containerWidth - data.verticalTrackWidth,
+					'min-height': data.containerHeight - data.horizontalTrackHeight
+				});
+				
+				if (data.isScrollableH && data.isScrollableV) {
+					data.verticalTrackHeight -= data.horizontalTrackHeight;
+					that.options._components.horizontalBar.find('>.cap:visible,>.arrow').each(function() {
+						data.horizontalTrackWidth += $(that).outerWidth();
+					});
+					data.horizontalTrackWidth -= data.verticalTrackWidth;
+					data.paneHeight -= data.verticalTrackWidth;
+					data.containerHeight -= 2 * data.verticalTrackWidth;
+					data.paneWidth -= data.horizontalTrackHeight;
+					data.containerWidth -= 2 * data.horizontalTrackHeight;
+					that.options._components.horizontalBar.find('.corner').height(data.horizontalTrackHeight).width(data.verticalTrackWidth);
+				}
+				
+				if (data.isScrollableV) {
+					that.options._components.verticalBar.find('.track').height(data.verticalTrackHeight);
+					data.verticalDragHeight = Math.ceil(1 / data.percentInViewV * data.verticalTrackHeight);
+					if (data.verticalDragHeight < that.options.verticalDragMinHeight) {
+						data.verticalDragHeight = that.options.verticalDragMinHeight;
+					}
+					that.options._components.verticalBar.find('.drag-container').height(data.verticalDragHeight);
+					data.dragMaxY = data.verticalTrackHeight - data.verticalDragHeight;
+				}
+				if (data.isScrollableH) {
+					that.options._components.horizontalBar.find('.track').width(data.horizontalTrackWidth);
+					data.horizontalDragWidth = Math.ceil(1 / data.percentInViewH * data.horizontalTrackWidth);
+					if (data.horizontalDragWidth < that.options.horizontalDragMinWidth) {
+						data.horizontalDragWidth = that.options.horizontalDragMinWidth;
+					}
+					that.options._components.horizontalBar.find('.drag-container').width(data.horizontalDragWidth);
+					data.dragMaxX = data.horizontalTrackWidth - data.horizontalDragWidth;
+				}
+				
+				that._mousewheel(true);
 			}
 			
-			if (data.isScrollableV) {
-				this.options._components.verticalBar.find('.track').height(data.verticalTrackHeight);
-				data.verticalDragHeight = Math.ceil(1 / data.percentInViewV * data.verticalTrackHeight);
-				if (data.verticalDragHeight < this.options.verticalDragMinHeight) {
-					data.verticalDragHeight = this.options.verticalDragMinHeight;
-				}
-				this.options._components.verticalBar.find('.drag-container').height(data.verticalDragHeight);
-				data.dragMaxY = data.verticalTrackHeight - data.verticalDragHeight;
-				//this._positionDragY(data.verticalDragPosition); // To update the state for the arrow buttons
-			}
-			if (data.isScrollableH) {
-				this.options._components.horizontalBar.find('.track').width(data.horizontalTrackWidth);
-				data.horizontalDragWidth = Math.ceil(1 / data.percentInViewH * data.horizontalTrackWidth);
-				if (data.horizontalDragWidth < this.options.horizontalDragMinWidth) {
-					data.horizontalDragWidth = this.options.horizontalDragMinWidth;
-				}
-				this.options._components.horizontalBar.find('.drag-container').width(data.horizontalDragWidth);
-				data.dragMaxX = data.horizontalTrackWidth - data.horizontalDragWidth;
-				//this._positionDragX(data.horizontalDragPosition); // To update the state for the arrow buttons
-			}
+			that.element.data('scrollpane', data);
 			
-			this._mousewheel(true);
-		}
-		
-		this.element.data('scrollpane', data);
-		
-		this._trigger('reload');
+			that._trigger('reload', { type: 'reload' }, data);
+		}, 0);
+		that.element.css('overflow', 'hidden');
 	}
 });
 $.webos.widget('scrollPane', scrollPaneProperties);
