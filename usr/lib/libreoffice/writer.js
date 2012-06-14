@@ -17,7 +17,8 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 	
 	this._container = $('<div></div>').scrollPane({
 		autoReload: true,
-		expand: true
+		expand: true,
+		keyUpResize: true
 	}).appendTo(this._window.window('content'));
 	this._editable = $('<div></div>', { 'class': 'editor', contenteditable: 'true' })
 		.keyup(function() {
