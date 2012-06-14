@@ -3,5 +3,5 @@
 	<attribute name="desktop" value="adwaita"/>
 	<attribute name="icons" value="gnome"/>
 	<attribute name="background" value="/usr/share/images/backgrounds/default.jpg"/>
-	<attribute name="animations" value="1"/>
+	<attribute name="animations" value="0"/>
 </config>
