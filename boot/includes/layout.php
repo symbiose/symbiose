@@ -12,19 +12,19 @@
 	<!--[if lt IE 9]>
 		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->
-	
+
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" href="usr/share/css/webos/global.css" />
 
 	<!-- MOBILE METAS -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-	
+
 	<!-- FAVICONS -->
 	<link rel="shortcut icon" href="usr/share/images/distributor/icons/favicon.ico" />
 	<link rel="apple-touch-icon" href="usr/share/images/distributor/icons/apple-touch-icon.png" />
 	<link rel="apple-touch-icon" sizes="72x72" href="usr/share/images/distributor/icons/apple-touch-icon-72x72.png" />
 	<link rel="apple-touch-icon" sizes="114x114" href="usr/share/images/distributor/icons/apple-touch-icon-114x114.png" />
-	
+
 	<?php
 	foreach($jsIncludes as $include) { //On inclut les fichiers JS de base
 		echo '<script type="text/javascript" src="'.$include.'"></script>';
@@ -45,11 +45,9 @@
 	<div id="webos-loading" style="display: none;">
 		<div class="center">
 			<h1>symbiose</h1>
-			<p>
-				Chargement en cours...
-			</p>
+			<p>Chargement en cours...</p>
 		</div>
 	</div>
-	
+
 </body>
 </html>

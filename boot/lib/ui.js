@@ -25,13 +25,7 @@ Webos.UserInterface = function WUserInterface(data) {
 				Webos.UserInterface.list[i].element.remove();
 			}
 		}
-		if ($('#webos-loading').is(':animated')) {
-			$('#webos-loading').stop().fadeTo('normal', 0, function() {
-				$(this).hide();
-			});
-		} else {
-			$('#webos-loading').fadeOut();
-		}
+		Webos.UserInterface.hideLoadingScreen();
 	};
 	
 	this.load = function() {
@@ -74,7 +68,6 @@ Webos.UserInterface.load = function(name) {
 		args.ui = name;
 	}
 	
-	$('#webos-loading p').removeClass('error').html('Chargement en cours...');
 	Webos.Error.setErrorHandler(function(error) {
 		if (!$('#webos-loading p').is('.error')) {
 			$('#webos-loading p').addClass('error').html('<strong>Une erreur est survenue lors du chargement de l\'interface.</strong><br />');
@@ -94,15 +87,7 @@ Webos.UserInterface.load = function(name) {
 		}
 	});
 	
-	if (typeof Webos.UserInterface.current == 'undefined') {
-		$('#webos-loading').show();
-	} else {
-		if ($('#webos-loading').is(':animated')) {
-			$('#webos-loading').stop().fadeTo('normal', 1);
-		} else {
-			$('#webos-loading').fadeIn();
-		}
-	}
+	Webos.UserInterface.showLoadingScreen();
 	
 	new Webos.ServerCall({
 		'class': 'UserInterfaceController',
@@ -142,4 +127,26 @@ Webos.UserInterface.setDefault = function(ui, value, callback) {
 	}, function(response) {
 		callback.error(response);
 	}));
+};
+Webos.UserInterface._loadingScreenTimerId = null;
+Webos.UserInterface.showLoadingScreen = function() {
+	$('#webos-loading p').removeClass('error').html('Chargement en cours...');
+	if (typeof Webos.UserInterface.current == 'undefined') {
+		$('#webos-loading').show();
+	} else {
+		if ($('#webos-loading').is(':animated')) {
+			$('#webos-loading').stop().fadeTo('normal', 1);
+		} else {
+			$('#webos-loading').fadeIn();
+		}
+	}
+};
+Webos.UserInterface.hideLoadingScreen = function() {
+	if ($('#webos-loading').is(':animated')) {
+		$('#webos-loading').stop().fadeTo('normal', 0, function() {
+			$(this).hide();
+		});
+	} else {
+		$('#webos-loading').fadeOut();
+	}
 };

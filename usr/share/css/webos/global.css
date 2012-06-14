@@ -4,8 +4,8 @@
 	font-style: normal;
 	font-weight: normal;
 	src: local('Ubuntu'),
-		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-R.woff') format('woff'),
-		url('usr/share/fonts/ubuntu-font-familly/Ubuntu-R.ttf') format('truetype');
+		url('../../../../usr/share/fonts/ubuntu-font-familly/Ubuntu-R.woff') format('woff'),
+		url('../../../../usr/share/fonts/ubuntu-font-familly/Ubuntu-R.ttf') format('truetype');
 }
 
 html, body {
@@ -35,6 +35,7 @@ html, body {
 	font-size: 50px;
 	color: white;
 	text-shadow: 0 0 0.2em white;
+	margin-bottom: 10px;
 }
 
 #webos-loading p, #webos-unsupported p {
