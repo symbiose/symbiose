@@ -3,6 +3,8 @@ new W.Stylesheet('usr/share/css/nautilus/main.css');
 new W.ScriptFile('usr/lib/jquery.filedrop.js');
 new W.ScriptFile('usr/lib/fileuploader.js');
 
+var thisProcess = W.Process.current();
+
 (function($) {
 	$.fn.setCursorPosition = function(pos1, pos2) {
 		this.each(function(index, elem) {
@@ -1103,37 +1105,41 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 		this.options._content = $.w.list(['Raccourcis']).appendTo(this.element);
 		var listContent = this.options._content.list('content');
 		
-		$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> Dossier personnel']).bind('listitemselect', function() {
-			that.options.open('~');
-		}).appendTo(listContent);
+		if (thisProcess.getAuthorizations().can('file.user.read')) {
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> Dossier personnel']).bind('listitemselect', function() {
+				that.options.open('~');
+			}).appendTo(listContent);
+			
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-desktop', 22)+'" alt=""/> Bureau']).bind('listitemselect', function() {
+				that.options.open('~/Bureau');
+			}).appendTo(listContent);
+			
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-documents', 22)+'" alt=""/> Documents']).bind('listitemselect', function() {
+				that.options.open('~/Documents');
+			}).appendTo(listContent);
+			
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-pictures', 22)+'" alt=""/> Images']).bind('listitemselect', function() {
+				that.options.open('~/Images');
+			}).appendTo(listContent);
+			
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-music', 22)+'" alt=""/> Musique']).bind('listitemselect', function() {
+				that.options.open('~/Musique');
+			}).appendTo(listContent);
+			
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-videos', 22)+'" alt=""/> Vidéos']).bind('listitemselect', function() {
+				that.options.open('~/Vidéos');
+			}).appendTo(listContent);
+			
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-downloads', 22)+'" alt=""/> Téléchargements']).bind('listitemselect', function() {
+				that.options.open('~/Téléchargements');
+			}).appendTo(listContent);
+		}
 		
-		$.w.listItem(['<img src="'+new W.Icon('places/folder-desktop', 22)+'" alt=""/> Bureau']).bind('listitemselect', function() {
-			that.options.open('~/Bureau');
-		}).appendTo(listContent);
-		
-		$.w.listItem(['<img src="'+new W.Icon('places/folder-documents', 22)+'" alt=""/> Documents']).bind('listitemselect', function() {
-			that.options.open('~/Documents');
-		}).appendTo(listContent);
-		
-		$.w.listItem(['<img src="'+new W.Icon('places/folder-pictures', 22)+'" alt=""/> Images']).bind('listitemselect', function() {
-			that.options.open('~/Images');
-		}).appendTo(listContent);
-		
-		$.w.listItem(['<img src="'+new W.Icon('places/folder-music', 22)+'" alt=""/> Musique']).bind('listitemselect', function() {
-			that.options.open('~/Musique');
-		}).appendTo(listContent);
-		
-		$.w.listItem(['<img src="'+new W.Icon('places/folder-videos', 22)+'" alt=""/> Vidéos']).bind('listitemselect', function() {
-			that.options.open('~/Vidéos');
-		}).appendTo(listContent);
-		
-		$.w.listItem(['<img src="'+new W.Icon('places/folder-downloads', 22)+'" alt=""/> Téléchargements']).bind('listitemselect', function() {
-			that.options.open('~/Téléchargements');
-		}).appendTo(listContent);
-		
-		$.w.listItem(['<img src="'+new W.Icon('devices/harddisk', 22)+'" alt=""/> Syst&egrave;me de fichiers']).bind('listitemselect', function() {
-			that.options.open('/');
-		}).appendTo(listContent);
+		if (thisProcess.getAuthorizations().can('file.system.read')) {
+			$.w.listItem(['<img src="'+new W.Icon('devices/harddisk', 22)+'" alt=""/> Syst&egrave;me de fichiers']).bind('listitemselect', function() {
+				that.options.open('/');
+			}).appendTo(listContent);
+		}
 	}
 });
 $.widget('webos.nautilusShortcuts', nautilusShortcutsProperties);
