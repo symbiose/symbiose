@@ -13,7 +13,7 @@ Webos.Observable.prototype = {
 			case 'number':
 				delete this._observers[key];
 				break;
-			case 'function':
+			case 'string':
 				this._observers = this._observers.filter(function(el) {
 					if (el.fn !== fn || el.event !== key) {
 						return el;
