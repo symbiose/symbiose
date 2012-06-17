@@ -28,8 +28,8 @@ Webos.Icon = function WIcon(name, size, theme) {
 		
 		size = (typeof size == 'undefined') ? this.size : size;
 		
-		if (typeof Webos.Icon.cache[this.name] != 'undefined' && Webos.Icon.cache[this.name].size >= size) {
-			return Webos.Icon.cache[this.name].id(size, theme);
+		if (typeof Webos.Icon._cache[this.name] != 'undefined' && Webos.Icon._cache[this.name].size >= size) {
+			return Webos.Icon._cache[this.name].id(size, theme);
 		}
 		
 		if (this.type == 'themes') {
@@ -73,7 +73,7 @@ Webos.Icon = function WIcon(name, size, theme) {
 	};
 	
 	if (!/^[\/(~\/)]/.test(this.name)) {
-		Webos.Icon.cache[this.id()] = this;
+		Webos.Icon._cache[this.id()] = this;
 	}
 };
 
@@ -82,10 +82,7 @@ Webos.Icon.path = '/usr/share/icons';
 Webos.Icon.sizes = {
 	button: 32
 };
-Webos.Icon.setTheme = function(theme) {
-	Webos.Icon.theme = theme;
-};
-Webos.Icon.cache = {};
+Webos.Icon._cache = {};
 Webos.Icon.toIcon = function(arg) {
 	if (arg instanceof Webos.Icon) {
 		return arg;
