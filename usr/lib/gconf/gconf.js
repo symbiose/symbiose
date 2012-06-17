@@ -1,5 +1,7 @@
 new W.ScriptFile('usr/lib/webos/file.js');
 
+var thisProcess = W.Process.current();
+
 function GConf(category) {
 	var that = this;
 	
@@ -58,12 +60,24 @@ function GConf(category) {
 						continue;
 					}
 					new W.XMLFile(files[index].getAttribute('path'), new W.Callback(function(xml) {
-						that._categories.push({
-							name: xml.find('define[name="name"]').attr('value'),
-							title: xml.find('define[name="title"]').attr('value'),
-							icon: xml.find('define[name="icon"]').attr('value'),
-							description: xml.find('define[name="description"]').attr('value')
-						});
+						var shown = true;
+						if (xml.find('define[name="authorizations"]').length > 0) {
+							var auth = xml.find('define[name="authorizations"]').attr('value').split(';');
+							for (var j = 0; j < auth.length; j++) {
+								if (!thisProcess.getAuthorizations().can(auth[i])) {
+									shown = false;
+								}
+							}
+						}
+						
+						if (shown) {
+							that._categories.push({
+								name: xml.find('define[name="name"]').attr('value'),
+								title: xml.find('define[name="title"]').attr('value'),
+								icon: xml.find('define[name="icon"]').attr('value'),
+								description: xml.find('define[name="description"]').attr('value')
+							});
+						}
 						
 						if (nbr == i) {
 							that._window.window('loading', false);
@@ -84,7 +98,7 @@ function GConf(category) {
 		this._buttons.search.hide();
 		include('usr/lib/gconf/categories/js/'+name+'.js', new W.Arguments({
 			params: [that._window]
-		}));
+		}), thisProcess);
 	};
 	
 	this.search = function(value) {

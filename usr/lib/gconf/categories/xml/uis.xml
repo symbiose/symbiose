@@ -4,4 +4,5 @@
 	<define name="title" value="Interfaces"/>
 	<define name="icon" value="actions/interface"/>
 	<define name="description" value="Modifier les interfaces préférées"/>
+	<define name="authorizations" value="file.system.read"/>
 </category>
