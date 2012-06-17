@@ -1649,10 +1649,11 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 	},
 	_value: function(choice) {
 		choice = (choice) ? true : false;
-		if (choice != this.options.value) {
+		var changed = (choice != this.options.value);
+		this.value(choice);
+		if (changed) {
 			this._trigger('change', { type: 'change' }, { entry: this.element, value: choice });
 		}
-		this.value(choice);
 	},
 	value: function(choice) {
 		if (typeof choice == 'undefined') {
