@@ -497,9 +497,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 					left: (this.options.left) ? this.options.left : ($('#desktop').width() - this.options._dimentions.width) / 2
 				};
 			}
-			if (!this.options._scroll) {
-				this.options._scroll = [];
-			}
 			return;
 		}
 		
@@ -507,19 +504,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 		this.options._dimentions.width = this.element.width();
 		this.options._dimentions.height = this.element.height();
 		this.options._position = this.element.position();
-		
-		this.options._scroll = [];
-		var that = this;
-		var saveScrollsFn = function() {
-			if (this.scrollHeight > $(this).height()) {
-				that.options._scroll.push({
-					'object': $(this),
-					'value': this.scrollHeight
-				});
-			}
-		};
-		this.options._content.each(saveScrollsFn);
-		this.options._content.children().each(saveScrollsFn);
 	},
 	dimentions: function() {
 		return this.options._dimentions;
