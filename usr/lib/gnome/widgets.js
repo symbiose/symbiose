@@ -441,7 +441,6 @@ var windowProperties = $.webos.extend(containerProperties, {
 		}
 		
 		this.element.css('z-index', $.webos.window.requestZIndex());
-		this._restoreScrolls();
 		this._restoreFocus();
 		this.element.removeClass('bg-window');
 		this._trigger('toforeground', { type: 'toforeground' }, { window: this.element });
@@ -528,19 +527,10 @@ var windowProperties = $.webos.extend(containerProperties, {
 	position: function() {
 		return this.options._position;
 	},
-	_restoreScrolls: function() {
-		for(var i = 0; i < this.options._scroll.length; i++) {
-			var scrollData = this.options._scroll[i];
-			scrollData.object.scrollTo(scrollData.value);
-		}
-	},
 	_restoreFocus: function() {
 		if (typeof this.options._focus != 'undefined') {
 			this.options._focus.focus();
 		}
-	},
-	button: function() {
-		return this.options._components.button;
 	},
 	header: function() {
 		return this.options._components.specificHeader;
