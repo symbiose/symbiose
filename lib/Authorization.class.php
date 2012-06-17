@@ -48,6 +48,14 @@ class Authorization extends \lib\WebosComponent {
 	}
 
 	/**
+	 * Recuperer les autorisations.
+	 * @return array
+	 */
+	public function get() {
+		return $this->authorizations;
+	}
+
+	/**
 	 * Controller que l'utilisateur a les droits suffisants pour effectuer une action.
 	 * @param unknown_type $authorization
 	 */

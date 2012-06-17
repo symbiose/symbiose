@@ -96,6 +96,7 @@ class Cmd extends FileProcess {
 				$this->webos->getHTTPResponse()->setData(array(
 					'pid' => $this->webos->getProcess()->getId(),
 					'key' => $this->webos->getProcess()->getKey(),
+					'authorizations' => $this->webos->getProcess()->getAuthorization()->get(),
 					'path' => $this->getPath(),
 					'cmd' => $this->cmd
 				));

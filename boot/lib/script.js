@@ -63,24 +63,13 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 		arguments: {
 			file: path
 		}
-	}).load(new Webos.Callback(function(response) {
-		var data = response.getData();
-		var list = [];
-		for(var key in data) {
-			var file = new Webos.File(data[key]);
-			if (Webos.File._cache[file.get('path')]) {
-				Webos.File._cache[file.get('path')].hydrate(file.data());
-				file = Webos.File._cache[file.get('path')];
-				Webos.File.notify('load', { file: file });
-			} else {
-				Webos.File._cache[file.get('path')] = file;
-			}
-			list.push(file);
+	}).load(function(response) {
+		var js = response.getStandardChannel();
+		if (js) {
+			that._js = js;
+			that.run();
 		}
-		callback.success(list);
-	}, function(response) {
-		callback.error(response);
-	}));*/
+	});*/
 	
 	this.ajax = $.ajax({
 		url: path,
@@ -119,7 +108,8 @@ Webos.ScriptFile.load = function() {
 	return group;
 };
 
-function include(path, args) {
+function include(path, args, thisObj) {
+	thisObj = thisObj || window;
 	this.ajax = $.ajax({
 		url: path,
 		method: 'get',
@@ -131,7 +121,7 @@ function include(path, args) {
 			}
 			
 			var fn = new Function('args', data);
-			fn(args);
+			fn.call(thisObj, args);
 		}
 	});
 }

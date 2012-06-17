@@ -25,9 +25,15 @@ Webos.Cmd.prototype = {
 				//On l'execute
 				var data = response.getData();
 				
+				var auth = new Webos.Authorizations();
+				for (var index in data.authorizations) {
+					auth.add(data.authorizations[index]);
+				}
+				
 				Webos.Process.call(that, {
 					pid: data.pid,
 					key: data.key,
+					authorizations: auth,
 					fn: response.getJavascript()
 				});
 				Webos.Cmd.uber.run.call(that);

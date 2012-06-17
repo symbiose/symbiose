@@ -1,6 +1,7 @@
 Webos.Process = function WProcess(options) {
 	this.pid = options.pid;
 	//var key = options.key;
+	this.authorizations = options.authorizations;
 	if (typeof options.args != 'undefined') { //Si les arguments ne sont pas vides
 		this.args = options.args;
 	}
@@ -13,6 +14,9 @@ Webos.Process.prototype = {
 	main: function() {},
 	getPid: function() {
 		return this.pid;
+	},
+	getAuthorizations: function() {
+		return this.authorizations;
 	},
 	run: function() {
 		if (this.running) {
@@ -56,7 +60,7 @@ Webos.Process.current = function() {
 
 
 Webos.Authorizations = function WAuthorizations(authorizations) {
-	this.authorizations = authorizations;
+	this.authorizations = (authorizations) ? authorizations : [];
 	
 	this.can = function(auth) {
 		for (var i = 0; i < this.authorizations.length; i++) {
@@ -69,19 +73,12 @@ Webos.Authorizations = function WAuthorizations(authorizations) {
 	this.get = function() {
 		return this.authorizations;
 	};
-	this.set = function(auth, userCallback) {
-		if (typeof userCallback == 'undefined') {
-			userCallback = new Webos.Callback();
-		}
-		
+	this.set = function(auth) {
 		if (auth != this.authorizations) {
 			this.authorizations = auth;
-			this.save(userCallback);
-		} else {
-			userCallback.success();
 		}
 	};
-	this.add = function(auth, userCallback) {
+	this.add = function(auth) {
 		for (var i = 0; i < this.authorizations.length; i++) {
 			if (this.authorizations[i] == auth) {
 				return;
@@ -89,18 +86,13 @@ Webos.Authorizations = function WAuthorizations(authorizations) {
 		}
 		
 		this.authorizations.push(auth);
-		
-		this.save(userCallback);
 	};
-	this.remove = function(auth, userCallback) {
+	this.remove = function(auth) {
 		for (var i = 0; i < this.authorizations.length; i++) {
 			if (this.authorizations[i] == auth) {
 				delete this.authorizations[i];
-				this.save(userCallback);
 			}
 		}
-		
-		userCallback.success();
 	};
 	this.model = function(value) {
 		var compareArraysFn = function(a, b) {
