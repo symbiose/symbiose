@@ -56,14 +56,19 @@
 						return;
 					}
 					
-					that._trigger('drop', e);
-					
 					that.options._files = e.dataTransfer.files;
-					if (that.options._files === null || that.options._files === undefined) {
+					
+					if (typeof that.options._files == 'undefined' || that.options._files === null) {
 						that._trigger('error', e, { error: errors[0] });
 						return false;
 					}
 					that.options._files_count = that.options._files.length;
+					
+					if (that.options._files_count == 0) {
+						return;
+					}
+					
+					that._trigger('drop', e);
 					
 					that._upload();
 					
@@ -167,7 +172,7 @@
 			var pause = function(timeout) {
 				setTimeout(process, timeout);
 				return;
-			}
+			};
 
 			// Process an upload, recursive
 			var process = function() {
@@ -284,11 +289,12 @@
 
 				xhr.onload = function() {
 					if (xhr.responseText) {
+						var response;
 						try {
 							var json = JSON.parse(xhr.responseText); //On essaie de recuperer les donnees JSON
-							var response = new W.ServerCall.Response(json);
+							response = new W.ServerCall.Response(json);
 						} catch (error) { //Si une erreur survient
-							var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
+							response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
 								'success': false,
 								'channels': {
 									1: null,
@@ -318,7 +324,7 @@
 						if (result === false) stop_loop = true;
 					}
 				};
-			}
+			};
 
 			// Initiate the processing loop
 			process();
@@ -365,7 +371,7 @@
 			var ords = Array.prototype.map.call(datastr, byteValue);
 			var ui8a = new Uint8Array(ords);
 			this.send(ui8a.buffer);
-		}
+		};
 	} catch (e) {}
 
 })(jQuery);
