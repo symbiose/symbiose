@@ -1,5 +1,5 @@
 /**
- * Visionneur d'images Eye Of Symbiose.
+ * Visionneuse d'images Eye Of Symbiose.
  * @version 1.2
  * @author $imon
  */
@@ -21,13 +21,17 @@ function EyeOfSymbiose(image) {
 	var that = this;
 	
 	this.openImage = function(image, userCallback) {
+		userCallback = W.Callback.toCallback(userCallback);
+		
+		image = W.File.get(image);
+		
+		if (this.file && this.file.get('path') == image.get('path')) {
+			return;
+		}
+		
 		this.file = image;
 		this.window.window('loading', true);
 		this.window.window('option', 'title', image.getAttribute('basename')+' - Visionneuse d\'images');
-		
-		if (typeof userCallback == 'undefined') {
-			userCallback = new W.Callback();
-		}
 		
 		this.loadingImage = new W.LoadImage({
 			images: image.getAttribute('realpath'),
@@ -52,7 +56,7 @@ function EyeOfSymbiose(image) {
 		
 		this._getImagesInDir(new W.Callback(function(images) {
 			for (var i = 0; i < images.length; i++) {
-				if (images[i].getAttribute('path') == that.file.getAttribute('path')) {
+				if (images[i].get('path') == that.file.get('path')) {
 					break;
 				}
 			}
