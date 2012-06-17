@@ -193,8 +193,6 @@ class UserController extends \lib\ServerCallComponent {
 			$userId = $this->webos->getUser()->getId();
 		}
 
-		$auth = explode(';', $auth);
-
 		$this->webos->managers()->get('User')->setAuthorisations($userId, $auth);
 	}
 

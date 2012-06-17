@@ -16,7 +16,7 @@ Webos.User.prototype = {
 		
 		return (this.id() == Webos.User.logged);
 	},
-	authorizations: function(callback) {
+	getAuthorizations: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
 		if (typeof this._authorizations != 'undefined') {
@@ -38,9 +38,12 @@ Webos.User.prototype = {
 			for (var index in data) {
 				auth.push(data[index]);
 			}
-			that._authorizations = new Webos.Authorizations(auth, that);
+			that._authorizations = new Webos.Authorizations(auth);
 			callback.success(that._authorizations);
 		}, callback.error));
+	},
+	authorizations: function(callback) {
+		return this.getAuthorizations(callback);
 	},
 	setRealname: function(value) {
 		return this._set('realname', String(value));
@@ -54,17 +57,11 @@ Webos.User.prototype = {
 		
 		return this._set('username', String(value));
 	},
-	setPassword: function(actualPassword, newPassword, userCallback) {
-		userCallback = Webos.Callback.toCallback(userCallback);
+	setPassword: function(actualPassword, newPassword, callback) {
+		callback = Webos.Callback.toCallback(callback);
 		
 		var that = this;
 		
-		var callback = new Webos.Callback(function(response) {
-			userCallback.success(that);
-			that.notify('updatepassword');
-		}, function(response) {
-			userCallback.error(response);
-		});
 		new Webos.ServerCall({
 			'class': 'UserController',
 			'method': 'setPassword',
@@ -73,28 +70,46 @@ Webos.User.prototype = {
 				'newPassword': newPassword,
 				'user': this.id()
 			}
-		}).load(callback);
+		}).load(new Webos.Callback(function(response) {
+			callback.success();
+			that.notify('updatepassword');
+		}, function(response) {
+			callback.error(response);
+		}));
 	},
-	remove: function(userCallback) {
-		userCallback = Webos.Callback.toCallback(userCallback);
+	setAuthorizations: function(authorizations, callback) {
+		new Webos.ServerCall({
+			'class': 'UserController',
+			'method': 'setAuthorizations',
+			'arguments': {
+				'authorizations': authorizations.get(),
+				'user': this.id()
+			}
+		}).load(new Webos.Callback(function(response) {
+			callback.success();
+		}, function(response) {
+			callback.error(response);
+		}));
+	},
+	remove: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
 		
 		var that = this;
 		
-		var callback = new Webos.Callback(function(response) {
-			that.notify('remove');
-			delete Webos.User.cache[that.id()];
-			delete that;
-			userCallback.success(response);
-		}, function(response) {
-			userCallback.error(response);
-		});
 		new Webos.ServerCall({
 			'class': 'UserController',
 			'method': 'remove',
 			'arguments': {
 				'user': this.id()
 			}
-		}).load(callback);
+		}).load(new Webos.Callback(function(response) {
+			that.notify('remove');
+			delete Webos.User.cache[that.id()];
+			delete that;
+			callback.success(response);
+		}, function(response) {
+			callback.error(response);
+		}));
 	},
 	toString: function() {
 		return this.get('username');
@@ -323,137 +338,4 @@ Webos.User.evalPasswordPower = function(s) {
 	}
 	
 	return cmpx * 25;
-};
-
-Webos.Authorizations = function WAuthorizations(authorizations, user) {
-	this.user = user;
-	this.authorizations = authorizations;
-	
-	this.can = function(auth) {
-		for (var i = 0; i < this.authorizations.length; i++) {
-			if (this.authorizations[i] == auth) {
-				return true;
-			}
-		}
-		return false;
-	};
-	this.get = function() {
-		return this.authorizations;
-	};
-	this.set = function(auth, userCallback) {
-		if (typeof userCallback == 'undefined') {
-			userCallback = new Webos.Callback();
-		}
-		
-		if (auth != this.authorizations) {
-			this.authorizations = auth;
-			this.save(userCallback);
-		} else {
-			userCallback.success();
-		}
-	};
-	this.add = function(auth, userCallback) {
-		for (var i = 0; i < this.authorizations.length; i++) {
-			if (this.authorizations[i] == auth) {
-				return;
-			}
-		}
-		
-		this.authorizations.push(auth);
-		
-		this.save(userCallback);
-	};
-	this.remove = function(auth, userCallback) {
-		for (var i = 0; i < this.authorizations.length; i++) {
-			if (this.authorizations[i] == auth) {
-				delete this.authorizations[i];
-				this.save(userCallback);
-			}
-		}
-		
-		userCallback.success();
-	};
-	this.save = function(userCallback) {
-		var callback = new Webos.Callback(function(response) {
-			userCallback.success(response);
-		}, function(response) {
-			userCallback.error(response);
-		});
-		new Webos.ServerCall({
-			'class': 'UserController',
-			'method': 'setAuthorizations',
-			'arguments': {
-				'authorizations': this.authorizations.join(';'),
-				'user': this.user.id()
-			}
-		}).load(callback);
-	};
-	this.model = function(value, userCallback) {
-		var compareArraysFn = function(a, b) {
-			if (a.length != b.length) {
-				return false;
-			}
-			
-			for (var i = 0; i < a.length; i++) {
-				if (a[i] != b[i]) {
-					var found = false;
-					for (var j = 0; j < b.length; j++) {
-						if (a[i] == b[j]) {
-							found = true;
-						}
-					}
-					if (!found) {
-						return false;
-					}
-				}
-			}
-			return true;
-		};
-		
-		if (typeof value == 'undefined') { //GETTER
-			for (var index in Webos.Authorizations.models) {
-				if (compareArraysFn(Webos.Authorizations.models[index], this.authorizations)) {
-					return index;
-				}
-			}
-			return 'select';
-		} else { //SETTER
-			if (typeof userCallback == 'undefined') {
-				userCallback = new Webos.Callback();
-			}
-			if (typeof Webos.Authorizations.models[value] == 'undefined') {
-				userCallback.error();
-				return;
-			}
-			
-			if (compareArraysFn(Webos.Authorizations.models[value], this.authorizations)) {
-				userCallback.success();
-				return;
-			}
-			
-			this.authorizations = Webos.Authorizations.models[value];
-			
-			this.save(userCallback);
-		}
-	};
-};
-Webos.Authorizations.all = ['file.user.read',
-                       'file.user.write',
-                       'file.home.read',
-                       'file.home.write',
-                       'file.system.read',
-                       'file.system.write',
-                       'user.read',
-                       'user.write',
-                       'package.read',
-                       'package.write',
-                       'package.checked.manage',
-                       'package.unchecked.manage'];
-Webos.Authorizations.models = {
-	'user': ['file.user.read',
-             'file.user.write',
-             'package.read',
-             'package.checked.manage'],
-    'admin': Webos.Authorizations.all,
-    'guest': ['file.user.read']
 };
