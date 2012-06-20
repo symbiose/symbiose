@@ -11,12 +11,18 @@
 	border: 1px solid #484741;
 }
 
-.webos-window.ui-draggable-dragging,
-.webos-window.ui-resizable-resizing,
-.webos-window.animating {
+.webos-window.dragging,
+.webos-window.resizing,
+.webos-window.animating,
+.webos-window.bg-window {
 	-moz-box-shadow: none; 
 	-webkit-box-shadow: none;
 	box-shadow: none;
+}
+
+.webos-window.resizing .webos-scrollpane .vertical-bar,
+.webos-window.resizing .webos-scrollpane .horizontal-bar {
+	visibility: hidden;
 }
 
 .webos-window.bg-window {

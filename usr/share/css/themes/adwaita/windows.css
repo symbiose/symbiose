@@ -21,7 +21,7 @@
 
 .webos-window.resizing .webos-scrollpane .vertical-bar,
 .webos-window.resizing .webos-scrollpane .horizontal-bar {
-	display: none;
+	visibility: hidden;
 }
 
 .webos-window.bg-window {
