@@ -136,7 +136,7 @@ class Authorization extends \lib\WebosComponent {
 					return 'package.unchecked.'.$argumentAction;
 				break;
 			case 'user':
-				if ($this->webos->getUser()->isConnected() && $this->webos->getUser()->getId() == (int) $providedArgument) {
+				if (($argumentAction == 'read' || $argumentAction == 'edit') && $this->webos->getUser()->isConnected() && $this->webos->getUser()->getId() == (int) $providedArgument) {
 					return true;
 				}
 				return 'user.'.$argumentAction;
