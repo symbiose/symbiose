@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <users>
-	<user id="1"><authorization name="file.user.read"/><authorization name="file.user.write"/><authorization name="package.read"/><authorization name="user.read"/><authorization name="package.write"/><authorization name="user.write"/></user>
+	<user id="1"><authorization name="file.user.read"/><authorization name="file.user.write"/><authorization name="package.read"/><authorization name="user.read"/></user>
 	
-<user id="2"><authorization name="file.user.read"/><authorization name="file.user.write"/><authorization name="file.home.read"/><authorization name="file.home.write"/><authorization name="file.system.read"/><authorization name="file.system.write"/><authorization name="user.read"/><authorization name="user.write"/><authorization name="user.manage"/><authorization name="package.read"/><authorization name="package.write"/><authorization name="package.checked.manage"/><authorization name="package.unchecked.manage"/></user></users>
+<user id="2"><authorization name="file.user.read"/><authorization name="file.user.write"/><authorization name="file.home.read"/><authorization name="file.home.write"/><authorization name="file.system.read"/><authorization name="file.system.write"/><authorization name="user.read"/><authorization name="user.manage"/><authorization name="package.read"/><authorization name="package.write"/><authorization name="package.checked.manage"/><authorization name="package.unchecked.manage"/><authorization name="user.edit"/></user></users>
