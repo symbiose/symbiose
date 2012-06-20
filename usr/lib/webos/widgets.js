@@ -1786,8 +1786,8 @@ var menuItemProperties = $.webos.extend($.webos.properties.get('container'), {
 			e.preventDefault(); //On n'execute pas l'action par defaut pour ne pas changer de page
 		});
 		
-		this.disabled(this.options.disabled);
-		this.separator(this.options.separator);
+		this.option('disabled', this.options.disabled);
+		this.option('separator', this.options.separator);
 	},
 	_update: function(key, value) {
 		switch (key) {
