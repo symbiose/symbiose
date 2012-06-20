@@ -64,7 +64,7 @@ function GConf(category) {
 						if (xml.find('define[name="authorizations"]').length > 0) {
 							var auth = xml.find('define[name="authorizations"]').attr('value').split(';');
 							for (var j = 0; j < auth.length; j++) {
-								if (!thisProcess.getAuthorizations().can(auth[i])) {
+								if (!thisProcess.getAuthorizations().can(auth[j])) {
 									shown = false;
 								}
 							}
