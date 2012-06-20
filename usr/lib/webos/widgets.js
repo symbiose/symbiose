@@ -1715,6 +1715,106 @@ $.webos.switchButton = function(label, value) {
 	});
 };
 
+//Menu
+var menuProperties = $.webos.extend($.webos.properties.get('container'), {
+	_name: 'menu'
+});
+$.webos.widget('menu', menuProperties);
+
+//MenuItem
+var menuItemProperties = $.webos.extend($.webos.properties.get('container'), {
+	_name: 'menuitem',
+	options: {
+		label: '',
+		disabled: false,
+		separator: false
+	},
+	_create: function() {
+		var that = this;
+		
+		this.options._components.label = $('<a></a>', { href: '#' }).html(this.options.label).appendTo(this.element);
+		this.options._content = $('<ul></ul>').appendTo(this.element);
+		this.element.bind('click mouseenter', function(e) {
+			var $menu = that.element, $menuContents = that.content();
+			
+			if ($menu.is('.hover')) {
+				return;
+			}
+			
+			if (e.type == 'mouseenter' && $menu.parents('li.webos-menuitem').length == 0) {
+				return;
+			}
+			
+			if ($menuContents.children().length > 0) {
+				$menuContents.show();
+			} else if (e.type == 'click') {
+				$menu.removeClass('hover');
+				$menu.parents('li.webos-menuitem ul li').hide();
+				return;
+			}
+			
+			$menu.addClass('hover');
+			
+			var onDocClickFn = function(e) {
+				//Si on clique sur le menu
+				if ($(e.target).parents().filter($menu).length > 0) {
+					if ($(e.target).parents().filter('li.webos-menuitem').first().children('ul').children().length > 0) {
+						return;
+					}
+				}
+				//Sinon, on clique sur autre chose que le menu
+				
+				//On cache le sous-menu
+				$menuContents.hide();
+				//On le deselectionne
+				$menu.removeClass('hover');
+				$(this).unbind('click', onDocClickFn);
+			};
+			$(document).click(onDocClickFn);
+		}).bind('mouseleave', function() {
+			var $menu = that.element, $menuContents = that.content();
+			
+			if ($menu.parents('li.webos-menuitem').length == 0) {
+				return;
+			}
+			
+			$menu.removeClass('hover');
+			$menuContents.hide();
+		});
+		
+		this.options._components.label.bind('click', function(e) {
+			e.preventDefault(); //On n'execute pas l'action par defaut pour ne pas changer de page
+		});
+		
+		this.disabled(this.options.disabled);
+		this.separator(this.options.separator);
+	},
+	_update: function(key, value) {
+		switch (key) {
+			case 'label':
+				this.options._components.label.html(value);
+				break;
+			case 'disabled':
+				value = (value) ? true : false;
+				this.options.disabled = value;
+				this.element.toggleClass('disabled', value);
+				break;
+			case 'separator':
+				value = (value) ? true : false;
+				this.options.separator = value;
+				this.element.toggleClass('separator', value);
+				break;
+		}
+	},
+});
+$.webos.widget('menuItem', menuItemProperties);
+
+$.webos.menuItem = function(label) {
+	return $('<li></li>').menuItem({
+		label: label
+	});
+};
+
 //Keyboard
 $.webos.keyboard = {};
 $.webos.keyboard.systemKey = 'shift';

@@ -322,16 +322,16 @@ function GEditWindow(file) {
 	
 	var menu = $.w.menuWindowHeader().appendTo(headers);
 	
-	var fileItem = $.w.menuWindowHeaderItem('Fichier').appendTo(menu);
-	fileItemContent = fileItem.menuWindowHeaderItem('content');
+	var fileItem = $.w.menuItem('Fichier').appendTo(menu);
+	fileItemContent = fileItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('Nouveau')
+	$.w.menuItem('Nouveau')
 		.click(function() {
 			new GEditWindow();
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Ouvrir...')
+	$.w.menuItem('Ouvrir...')
 		.click(function() {
 			new NautilusFileSelectorWindow({
 				parentWindow: that._window
@@ -343,62 +343,62 @@ function GEditWindow(file) {
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Enregistrer')
+	$.w.menuItem('Enregistrer')
 		.click(function() {
 			that.save();
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Enregistrer sous...')
+	$.w.menuItem('Enregistrer sous...')
 		.click(function() {
 			that.saveAs();
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Quitter')
+	$.w.menuItem('Quitter')
 		.click(function() {
 			that._window.window('close');
 		})
 		.appendTo(fileItemContent);
 	
-	var editItem = $.w.menuWindowHeaderItem('&Eacute;dition').appendTo(menu);
-	editItemContent = editItem.menuWindowHeaderItem('content');
+	var editItem = $.w.menuItem('&Eacute;dition').appendTo(menu);
+	editItemContent = editItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('Annuler')
+	$.w.menuItem('Annuler')
 		.click(function() {
 			that._gedit.gedit('undo');
 		})
 		.appendTo(editItemContent);
 	
-	$.w.menuWindowHeaderItem('R&eacute;tablir')
+	$.w.menuItem('R&eacute;tablir')
 		.click(function() {
 			that._gedit.gedit('redo');
 		})
 		.appendTo(editItemContent);
 	
-	var viewItem = $.w.menuWindowHeaderItem('Affichage').appendTo(menu);
-	viewItemContent = viewItem.menuWindowHeaderItem('content');
+	var viewItem = $.w.menuItem('Affichage').appendTo(menu);
+	viewItemContent = viewItem.menuItem('content');
 	
-	var modeItem = $.w.menuWindowHeaderItem('Mode de coloration').appendTo(viewItemContent);
+	var modeItem = $.w.menuItem('Mode de coloration').appendTo(viewItemContent);
 	var modes = $.webos.gedit.modes();
 	var letters = {};
 	for (var i = 0; i < modes.length; i++) {
 		(function(mode) {
 			var firstLetter = mode.substr(0, 1);
 			if (!letters[firstLetter]) {
-				letters[firstLetter] = $.w.menuWindowHeaderItem(firstLetter).appendTo(modeItem.menuWindowHeaderItem('content'));
+				letters[firstLetter] = $.w.menuItem(firstLetter).appendTo(modeItem.menuItem('content'));
 			}
 			
-			$.w.menuWindowHeaderItem(mode).click(function() {
+			$.w.menuItem(mode).click(function() {
 				that.mode(mode);
-			}).appendTo(letters[firstLetter].menuWindowHeaderItem('content'));
+			}).appendTo(letters[firstLetter].menuItem('content'));
 		})(modes[i]);
 	}
 	
-	var helpItem = $.w.menuWindowHeaderItem('Aide').appendTo(menu);
-	helpItemContent = helpItem.menuWindowHeaderItem('content');
+	var helpItem = $.w.menuItem('Aide').appendTo(menu);
+	helpItemContent = helpItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('&Agrave; propos')
+	$.w.menuItem('&Agrave; propos')
 		.click(function() {
 			that.openAboutWindow();
 		})

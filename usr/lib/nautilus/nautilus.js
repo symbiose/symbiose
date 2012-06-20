@@ -1368,49 +1368,49 @@ function NautilusWindow(dir, userCallback) {
 	
 	this._menu = $.w.menuWindowHeader().appendTo(headers);
 	
-	var fileItem = $.w.menuWindowHeaderItem('Fichier').appendTo(this._menu);
-	fileItemContent = fileItem.menuWindowHeaderItem('content');
+	var fileItem = $.w.menuItem('Fichier').appendTo(this._menu);
+	fileItemContent = fileItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('Nouvelle fen&ecirc;tre')
+	$.w.menuItem('Nouvelle fen&ecirc;tre')
 		.click(function() {
 			W.Cmd.execute('nautilus "'+that.nautilus.nautilus('location')+'"');
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Envoyer des fichiers')
+	$.w.menuItem('Envoyer des fichiers')
 		.click(function() {
 			that.nautilus.nautilus('openUploadWindow');
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Cr&eacute;er un dossier')
+	$.w.menuItem('Cr&eacute;er un dossier')
 		.click(function() {
 			that.nautilus.nautilus('createFile', 'Nouveau dossier', true);
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Cr&eacute;er un fichier')
+	$.w.menuItem('Cr&eacute;er un fichier')
 		.click(function() {
 			that.nautilus.nautilus('createFile', 'Nouveau fichier');
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Fermer')
+	$.w.menuItem('Fermer')
 		.click(function() {
 			that.window.window('close');
 		})
 		.appendTo(fileItemContent);
 	
-	var editItem = $.w.menuWindowHeaderItem('&Eacute;dition').appendTo(this._menu);
-	editItemContent = editItem.menuWindowHeaderItem('content');
+	var editItem = $.w.menuItem('&Eacute;dition').appendTo(this._menu);
+	editItemContent = editItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('Tout s&eacute;lectionner')
+	$.w.menuItem('Tout s&eacute;lectionner')
 		.click(function() {
 			that.nautilus.nautilus('items').addClass('active');
 		})
 		.appendTo(editItemContent);
 	
-	$.w.menuWindowHeaderItem('S&eacute;lectionner...')
+	$.w.menuItem('S&eacute;lectionner...')
 		.click(function() {
 			var selectWindow = $.w.window({
 				parentWindow: that.window,
@@ -1442,34 +1442,34 @@ function NautilusWindow(dir, userCallback) {
 		})
 		.appendTo(editItemContent);
 	
-	$.w.menuWindowHeaderItem('Inverser')
+	$.w.menuItem('Inverser')
 		.click(function() {
 			that.nautilus.nautilus('items').toggleClass('active');
 		})
 		.appendTo(editItemContent);
 	
-	var viewItem = $.w.menuWindowHeaderItem('Affichage').appendTo(this._menu);
-	viewItemContent = viewItem.menuWindowHeaderItem('content');
+	var viewItem = $.w.menuItem('Affichage').appendTo(this._menu);
+	viewItemContent = viewItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('Actualiser')
+	$.w.menuItem('Actualiser')
 		.click(function() {
 			that.refresh();
 		})
 		.appendTo(viewItemContent);
 	
-	var goToItem = $.w.menuWindowHeaderItem('Aller &agrave;...').appendTo(this._menu);
-	goToItemContent = goToItem.menuWindowHeaderItem('content');
+	var goToItem = $.w.menuItem('Aller &agrave;...').appendTo(this._menu);
+	goToItemContent = goToItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('Dossier parent')
+	$.w.menuItem('Dossier parent')
 		.click(function() {
 			that._toolbar.toolbarWindowHeader('content').find('li:not(.active)').last().trigger('click');
 		})
 		.appendTo(goToItemContent);
 	
-	var helpItem = $.w.menuWindowHeaderItem('Aide').appendTo(this._menu);
-	helpItemContent = helpItem.menuWindowHeaderItem('content');
+	var helpItem = $.w.menuItem('Aide').appendTo(this._menu);
+	helpItemContent = helpItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('&Agrave; propos')
+	$.w.menuItem('&Agrave; propos')
 		.click(function() {
 			that.openAboutWindow();
 		})

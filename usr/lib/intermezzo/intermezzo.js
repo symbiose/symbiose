@@ -281,10 +281,10 @@ function IntermezzoWindow(options) {
 	
 	this._menu = $.w.menuWindowHeader().appendTo(headers);
 	
-	var fileItem = $.w.menuWindowHeaderItem('Fichier').appendTo(this._menu);
-	fileItemContent = fileItem.menuWindowHeaderItem('content');
+	var fileItem = $.w.menuItem('Fichier').appendTo(this._menu);
+	fileItemContent = fileItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('Ouvrir')
+	$.w.menuItem('Ouvrir')
 		.click(function() {
 			new NautilusFileSelectorWindow({
 				parentWindow: that.window
@@ -296,7 +296,7 @@ function IntermezzoWindow(options) {
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Quitter')
+	$.w.menuItem('Quitter')
 		.click(function() {
 			that.window.window('close');
 		})

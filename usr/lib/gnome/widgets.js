@@ -6,7 +6,7 @@
  */
 
 //Window
-var windowProperties = $.webos.extend(containerProperties, {
+var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 	options: {
 		title: 'Fen&ecirc;tre',
 		icon: undefined,
@@ -123,10 +123,10 @@ var windowProperties = $.webos.extend(containerProperties, {
 		}
 		
 		if (this.options.top) {
-			this.options._content.css('top', this.options.top);
+			this.element.css('top', this.options.top);
 		}
 		if (this.options.left) {
-			this.options._content.css('left', this.options.left);
+			this.element.css('left', this.options.left);
 		}
 		
 		if (typeof this.options.workspace == 'undefined') {
@@ -181,6 +181,18 @@ var windowProperties = $.webos.extend(containerProperties, {
 				break;
 			case 'stylesheet':
 				this.stylesheet(value);
+				break;
+			case 'width':
+				this.setWidth(value);
+				break;
+			case 'height':
+				this.setHeight(value);
+				break;
+			case 'left':
+				this.element.css('left', value);
+				break;
+			case 'top':
+				this.element.css('top', value);
 				break;
 		}
 	},
@@ -1010,23 +1022,23 @@ $.webos.window.setHidePosFn = function(fn) {
 };
 
 //WindowHeader
-var windowHeaderProperties = $.webos.extend(containerProperties, {
+var windowHeaderProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'windowheader'
 });
 $.webos.widget('windowHeader', windowHeaderProperties);
 
 //WindowHeaderMenu
-var windowHeaderMenuProperties = $.webos.extend(windowHeaderProperties, {
+var windowHeaderMenuProperties = $.webos.extend($.webos.properties.get('menu'), {
 	_name: 'menuwindowheader'
 });
 $.webos.widget('menuWindowHeader', windowHeaderMenuProperties);
 
-$.webos.menuWindowHeader = function() {
-	return $('<ul></ul>').menuWindowHeader();
+$.webos.menuWindowHeader = function(contents) {
+	return $('<ul></ul>').html(contents || '').menuWindowHeader();
 };
 
 //WindowHeaderMenuItem
-var menuWindowHeaderItemProperties = $.webos.extend(containerProperties, {
+var menuWindowHeaderItemProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'menuwindowheaderitem',
 	options: {
 		label: ''
@@ -1098,13 +1110,13 @@ var menuWindowHeaderItemProperties = $.webos.extend(containerProperties, {
 $.webos.widget('menuWindowHeaderItem', menuWindowHeaderItemProperties);
 
 $.webos.menuWindowHeaderItem = function(label) {
-	return $('<li></li>').menuWindowHeaderItem({
+	return $('<li></li>').menuItem({
 		label: label
 	});
 };
 
 //ToolbarWindowHeader
-var toolbarWindowHeaderProperties = $.webos.extend(windowHeaderProperties, {
+var toolbarWindowHeaderProperties = $.webos.extend($.webos.properties.get('windowHeader'), {
 	_name: 'toolbarwindowheader'
 });
 $.webos.widget('toolbarWindowHeader', toolbarWindowHeaderProperties);
@@ -1114,7 +1126,7 @@ $.webos.toolbarWindowHeader = function() {
 };
 
 //ToolbarWindowHeaderItem
-var toolbarWindowHeaderItemProperties = $.webos.extend(containerProperties, {
+var toolbarWindowHeaderItemProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'toolbarwindowheaderitem',
 	options: {
 		active: false
@@ -1178,14 +1190,14 @@ $.webos.toolbarWindowHeaderItem = function(label, icon) {
 };
 
 //WindowHeaderSearch
-$.webos.widget('windowHeaderSearch', searchEntryProperties);
+$.webos.widget('windowHeaderSearch', $.webos.properties.get('searchEntry'));
 
 $.webos.windowHeaderSearch = function() {
 	return $('<li></li>').windowHeaderSearch();
 };
 
 //ButtonWindowHeader
-var buttonWindowHeaderProperties = $.webos.extend(windowHeaderProperties, {
+var buttonWindowHeaderProperties = $.webos.extend($.webos.properties.get('windowHeader'), {
 	_name: 'buttonwindowheader'
 });
 $.webos.widget('buttonWindowHeader', buttonWindowHeaderProperties);
@@ -1195,7 +1207,7 @@ $.webos.buttonWindowHeader = function() {
 };
 
 //ButtonWindowHeaderItem
-var buttonWindowHeaderItemProperties = $.webos.extend(containerProperties, {
+var buttonWindowHeaderItemProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'buttonwindowheaderitem',
 	_create: function() {
 		if (typeof this.options.icon == 'undefined') {
@@ -1240,7 +1252,7 @@ $.webos.buttonWindowHeaderItem = function(label, icon) {
 };
 
 //ContextMenu
-var contextMenuProperties = $.webos.extend(containerProperties, {
+var contextMenuProperties = $.webos.extend($.webos.properties.get('container'), {
 	options: {
 		target: undefined,
 		disabled: false
@@ -1357,7 +1369,7 @@ $.webos.contextMenu = function(target) {
 };
 
 //ContextMenuItem
-var contextMenuItemProperties = $.webos.extend(containerProperties, {
+var contextMenuItemProperties = $.webos.extend($.webos.properties.get('menuItem'), {
 	options: {
 		label: '',
 		disabled: false,

@@ -336,55 +336,55 @@ function QuicklyWindow() {
 	
 	var menu = $.w.menuWindowHeader().appendTo(headers);
 	
-	var fileItem = $.w.menuWindowHeaderItem('Fichier').appendTo(menu);
-	fileItemContent = fileItem.menuWindowHeaderItem('content');
+	var fileItem = $.w.menuItem('Fichier').appendTo(menu);
+	fileItemContent = fileItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('Nouveau paquet')
+	$.w.menuItem('Nouveau paquet')
 		.click(function() {
 			new QuicklyWindow();
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('G&eacute;n&eacute;rer le paquet')
+	$.w.menuItem('G&eacute;n&eacute;rer le paquet')
 		.click(function() {
 			that.build();
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuWindowHeaderItem('Quitter')
+	$.w.menuItem('Quitter')
 		.click(function() {
 			that._window.window('close');
 		})
 		.appendTo(fileItemContent);
 	
-	var editItem = $.w.menuWindowHeaderItem('&Eacute;dition').appendTo(menu);
-	editItemContent = editItem.menuWindowHeaderItem('content');
+	var editItem = $.w.menuItem('&Eacute;dition').appendTo(menu);
+	editItemContent = editItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('Ajouter des fichiers')
+	$.w.menuItem('Ajouter des fichiers')
 		.click(function() {
 			that.openAddFileDialog();
 		})
 		.appendTo(editItemContent);
-	$.w.menuWindowHeaderItem('Supprimer les fichiers s&eacute;lectionn&eacute;s')
+	$.w.menuItem('Supprimer les fichiers s&eacute;lectionn&eacute;s')
 		.click(function() {
 			that.removeSelectedFiles();
 		})
 		.appendTo(editItemContent);
-	$.w.menuWindowHeaderItem('Attributs du paquet...')
+	$.w.menuItem('Attributs du paquet...')
 		.click(function() {
 			that.openAttributesWindow();
 		})
 		.appendTo(editItemContent);
-	$.w.menuWindowHeaderItem('Changer le dossier de destination')
+	$.w.menuItem('Changer le dossier de destination')
 		.click(function() {
 			that.openDestWindow();
 		})
 		.appendTo(editItemContent);
 	
-	var helpItem = $.w.menuWindowHeaderItem('Aide').appendTo(menu);
-	helpItemContent = helpItem.menuWindowHeaderItem('content');
+	var helpItem = $.w.menuItem('Aide').appendTo(menu);
+	helpItemContent = helpItem.menuItem('content');
 	
-	$.w.menuWindowHeaderItem('&Agrave; propos')
+	$.w.menuItem('&Agrave; propos')
 		.click(function() {
 			that.openAboutWindow();
 		})
