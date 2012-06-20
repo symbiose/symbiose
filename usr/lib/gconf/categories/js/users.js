@@ -141,7 +141,9 @@ var editables = {
 						
 						editAuthorizationsWindow.window('close');
 						
-						auth.set(authorizations, new W.Callback(function() {
+						auth.set(authorizations);
+						
+						user.setAuthorizations(auth, new W.Callback(function() {
 							confWindow.window('loading', false);
 						}, function(response) {
 							confWindow.window('loading', false);
