@@ -83,14 +83,18 @@ ul.webos-menuwindowheader li ul li ul {
 ul.menu li,
 ul.webos-menuwindowheader li {
 	text-align: left;
-	padding: 3px 0 2px 4px;
 	-o-text-overflow: ellipsis; /* pour Opera 9 */
 	text-overflow: ellipsis; /* pour le reste du monde */
 	white-space: nowrap;
 }
 ul.menu li {
 	height: 20px;
+	padding: 3px 0 2px 4px;
 }
+ul.webos-menuwindowheader li {
+	padding: 3px 0 2px 0;
+}
+
 ul.webos-menuwindowheader ul li {
 	border: 1px solid transparent;
 	padding-right: 8px;
@@ -175,7 +179,9 @@ ul.menu > li > a {
 	text-shadow: black 0 0 2px;
 }
 ul.webos-menuwindowheader > li > a {
-	margin: 1px 1px 0px 1px;
+	padding: 2px 4px 4px 4px;
+	border: 1px solid transparent;
+	border-bottom: none;
 }
 ul.menu > li.hover {
 	border-bottom: 2px solid #dcdfe2;
@@ -187,15 +193,12 @@ ul.menu > li.hover > a {
 	text-shadow: black 0 1px 5px;
 }
 ul.webos-menuwindowheader > li.hover > a {
-	margin: 0;
 	background-color: #a2c1e7;
 	color: white;
-	border: 1px solid #4c6f9a;
-	border-bottom: none;
+	border-color: #4c6f9a;
 	-moz-border-radius: 3px 3px 0 0;
 	-webkit-border-radius: 3px 3px 0 0;
 	border-radius: 3px 3px 0 0;
-	padding: 2px 2px 4px 2px;
 }
 
 ul.menu img.icon,
