@@ -169,14 +169,7 @@ ul.menu li.separator, ul.menu li.separator:hover {
        MENUS DES FENETRES
  ******************************/
 ul.webos-menuwindowheader .separator {
-	width: 95%;
-	height: 1px;
-	color: #D1C2B6;
-	background: #D1C2B6;
-	border: 0px;
-	margin-bottom: 2px;
-	margin-top: 2px;
-	margin-left: 6px;
+	border-top: solid 1px #3e3e3b;
 }
 
 ul.webos-menuwindowheader .arrow {

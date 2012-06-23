@@ -1,15 +1,3 @@
-ul.menu .separator,
-ul.webos-menuwindowheader .separator {
-	width: 95%;
-	height: 1px;
-	color: #D1C2B6;
-	background: #D1C2B6;
-	border: 0px;
-	margin-bottom: 2px;
-	margin-top: 2px;
-	margin-left: 6px;
-}
-
 ul.menu .arrow,
 ul.webos-menuwindowheader .arrow {
 	display: block;
@@ -178,6 +166,20 @@ ul.webos-menuwindowheader > li.hover > a {
 
 ul.menu .right li ul li {
 	margin: -25px 0 0 0;
+}
+
+ul.menu .separator {
+	width: 95%;
+	height: 1px;
+	color: #D1C2B6;
+	background: #D1C2B6;
+	border: 0px;
+	margin-bottom: 2px;
+	margin-top: 2px;
+	margin-left: 6px;
+}
+ul.webos-menuwindowheader .separator {
+	border-top: solid 1px #aaaaaa;
 }
 
 #powermenu li a.powerbutton {

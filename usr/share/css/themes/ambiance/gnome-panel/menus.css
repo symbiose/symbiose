@@ -1,5 +1,4 @@
-ul.menu .separator,
-ul.webos-menuwindowheader .separator {
+ul.menu .separator {
 	width: 95%;
 	height: 1px;
 	color: #D1C2B6;
@@ -8,6 +7,9 @@ ul.webos-menuwindowheader .separator {
 	margin-bottom: 2px;
 	margin-top: 2px;
 	margin-left: 6px;
+}
+ul.webos-menuwindowheader .separator {
+	border-top: solid 1px #3e3e3b;
 }
 
 ul.menu .arrow,
