@@ -100,43 +100,6 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 	}
 
 	/**
-	 * Recuperer les applications associees a certains types de fichiers.
-	 */
-	protected function getFilesOpeners() {
-		//On recupere la liste des raccourcis
-		$applications = $this->webos->managers()->get('File')->get('/usr/share/applications/')->contents();
-		//On initialise la liste
-		$list = array();
-
-		//On recupere les infos pour chaque raccourci
-		foreach($applications as $shortcut) {
-			if ($shortcut->isDir())
-				continue;
-
-			if ($shortcut->extension() != 'xml')
-				continue;
-
-			$xml = new \DOMDocument;
-			$xml->loadXML($shortcut->contents());
-			$attributes = $xml->getElementsByTagName('attribute');
-			$attributesList = array();
-			foreach ($attributes as $attribute) {
-				$attributesList[$attribute->getAttribute('name')] = $attribute->getAttribute('value');
-			}
-
-			if (array_key_exists('open', $attributesList)) {
-				$extensions = explode(',', $attributesList['open']);
-				foreach($extensions as $ext) {
-					$ext = trim($ext);
-					$list[$ext] = $attributesList['command'];
-				}
-			}
-		}
-
-		$this->webos->getHTTPResponse()->setData($list);
-	}
-
-	/**
 	 * Ajouter une application favorite.
 	 * @param string $name Le nom de l'application.
 	 * @param int $position La position de l'application dans les favoris.
