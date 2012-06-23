@@ -94,7 +94,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				e.preventDefault();
 				
 				if ($(this).is(e.target)) {
-					that.items().filter('.active').removeClass('active');
+					that.getSelection().removeClass('active');
 					$(this).trigger('click');
 				}
 			});
@@ -111,14 +111,41 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			} else if ($(event.target).parents('li, tr').length > 0) {
 				item = $(event.target).parents('li, tr').first();
 			} else {
-				that.items().filter('.active').removeClass('active').trigger('unselect');
+				that.getSelection().removeClass('active').trigger('unselect');
 				return;
 			}
+			
 			if ($.webos.keyboard.pressed('ctrl')) {
 				item.addClass('active').trigger('select');
 			} else {
-				that.items().filter('.active').trigger('unselect').removeClass('active');
+				that.getSelection().trigger('unselect').removeClass('active');
 				item.addClass('active').trigger('select');
+			}
+		});
+		
+		$.webos.keyboard.bind(this.element, 'enter', function() {
+			that.getSelection().each(function() {
+				$(this).data('nautilus').open();
+			});
+		});
+		$.webos.keyboard.bind(this.element, 'del', function() {
+			that.getSelection().each(function() {
+				$(this).data('nautilus').remove();
+			});
+		});
+		
+		$.webos.keyboard.bind(this.element, 'right', function() {
+			var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
+			var elementToSelect = selectedElements.last().next();
+			if (elementToSelect.length > 0) {
+				elementToSelect.addClass('active').trigger('select');
+			}
+		});
+		$.webos.keyboard.bind(this.element, 'left', function() {
+			var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
+			var elementToSelect = selectedElements.last().prev();
+			if (elementToSelect.length > 0) {
+				elementToSelect.addClass('active').trigger('select');
 			}
 		});
 		
@@ -152,24 +179,24 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			that.options._components.contextmenu = contextmenu = $.w.contextMenu(that.element);
 			
-			$.webos.contextMenuItem('Cr&eacute;er un dossier').click(function() {
+			$.webos.menuItem('Cr&eacute;er un dossier').click(function() {
 				that.createFile('Nouveau dossier', true);
 			}).appendTo(contextmenu);
-			$.webos.contextMenuItem('Cr&eacute;er un fichier').click(function() {
+			$.webos.menuItem('Cr&eacute;er un fichier').click(function() {
 				that.createFile('Nouveau fichier');
 			}).appendTo(contextmenu);
-			$.webos.contextMenuItem('T&eacute;l&eacute;charger', true).click(function() {
+			$.webos.menuItem('T&eacute;l&eacute;charger', true).click(function() {
 				W.File.load(dir, new W.Callback(function(file) {
 					that._download(file);
 				}));
 			}).appendTo(contextmenu);
-			$.webos.contextMenuItem('Envoyer un fichier').click(function() {
+			$.webos.menuItem('Envoyer un fichier').click(function() {
 				that.openUploadWindow();
 			}).appendTo(contextmenu);
-			$.webos.contextMenuItem('Rafra&icirc;chir', true).click(function() {
+			$.webos.menuItem('Rafra&icirc;chir', true).click(function() {
 				that.refresh();
 			}).appendTo(contextmenu);
-			$.webos.contextMenuItem('Propri&eacute;t&eacute;s', true).click(function() {
+			$.webos.menuItem('Propri&eacute;t&eacute;s', true).click(function() {
 				W.File.load(that.options.directory, new W.Callback(function(file) {
 					that._openProperties(file);
 				}));
@@ -470,28 +497,28 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		var contextmenu = $.w.contextMenu(item);
 		
-		$.webos.contextMenuItem('Ouvrir').click(function() {
+		$.webos.menuItem('Ouvrir').click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').open();
 			});
 		}).appendTo(contextmenu);
-		$.webos.contextMenuItem('T&eacute;l&eacute;charger').click(function() {
+		$.webos.menuItem('T&eacute;l&eacute;charger').click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').download();
 			});
 		}).appendTo(contextmenu);
-		$.webos.contextMenuItem('Renommer...', true).click(function() {
+		$.webos.menuItem('Renommer...', true).click(function() {
 			item.data('nautilus').rename();
 		}).appendTo(contextmenu);
-		$.webos.contextMenuItem('Supprimer').click(function() {
+		$.webos.menuItem('Supprimer').click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').remove();
 			});
 		}).appendTo(contextmenu);
-		$.webos.contextMenuItem('Propri&eacute;t&eacute;s', true).click(function() {
+		$.webos.menuItem('Propri&eacute;t&eacute;s', true).click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').openProperties();
@@ -563,13 +590,9 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			item.remove();
 		});
 		
-		var unbindFn = function() {
+		this.element.one('nautilusreadcomplete', function() {
 			file.unbind('update', updateCallbackId);
 			file.unbind('remove', removeCallbackId);
-		};
-		
-		this.element.one('nautilusreadcomplete', function() {
-			//unbindFn();
 		});
 		
 		return item;

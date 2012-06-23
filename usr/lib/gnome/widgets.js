@@ -1369,74 +1369,8 @@ $.webos.contextMenu = function(target) {
 };
 
 //ContextMenuItem
-var contextMenuItemProperties = $.webos.extend($.webos.properties.get('menuItem'), {
-	options: {
-		label: '',
-		disabled: false,
-		separator: false
-	},
-	_name: 'contextmenu-item',
-	_create: function() {
-		var that = this;
-		
-		this.options._content = $('<a></a>', { href: '#' }).appendTo(this.element);
-		this.options._components.childs = $('<ul></ul>').appendTo(this.element);
-		
-		this.content().click(function() {
-			if (that.options.disabled) {
-				return false;
-			}
-		});
-		
-		this._setLabel(this.options.label);
-		this.disabled(this.options.disabled);
-		this.separator(this.options.separator);
-	},
-	_update: function(key, value) {
-		switch (key) {
-			case 'label':
-				this._setLabel(value);
-				break;
-			case 'disabled':
-				this.disabled(value);
-				break;
-			case 'separator':
-				this.separator(value);
-				break;
-		}
-	},
-	_setLabel: function(label) {
-		this.content().html(label);
-	},
-	disabled: function(value) {
-		if (typeof value != 'undefined') {
-			value = (value) ? true : false;
-			this.options.disabled = value;
-		} else {
-			return this.options.value;
-		}
-	},
-	separator: function(value) {
-		if (typeof value != 'undefined') {
-			value = (value) ? true : false;
-			this.options.separator = value;
-			if (value) {
-				this.element.addClass('separator');
-			} else {
-				this.element.removeClass('separator');
-			}
-		} else {
-			return this.options.separator;
-		}
-	},
-	childs: function() {
-		return this._components.childs;
-	}
-});
-$.webos.widget('contextMenuItem', contextMenuItemProperties);
-
 $.webos.contextMenuItem = function(label, separator) {
-	return $('<li></li>').contextMenuItem({
+	return $('<li></li>').menuItem({
 		label: label,
 		separator: separator
 	});

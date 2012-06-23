@@ -1735,6 +1735,10 @@ var menuItemProperties = $.webos.extend($.webos.properties.get('container'), {
 		this.options._components.label = $('<a></a>', { href: '#' }).html(this.options.label).appendTo(this.element);
 		this.options._content = $('<ul></ul>').appendTo(this.element);
 		this.element.bind('click mouseenter', function(e) {
+			if (that.options.disabled && e.type == 'click') {
+				return false;
+			}
+			
 			var $menu = that.element, $menuContents = that.content();
 			
 			if ($menu.is('.hover')) {
@@ -1809,9 +1813,10 @@ var menuItemProperties = $.webos.extend($.webos.properties.get('container'), {
 });
 $.webos.widget('menuItem', menuItemProperties);
 
-$.webos.menuItem = function(label) {
+$.webos.menuItem = function(label, separator) {
 	return $('<li></li>').menuItem({
-		label: label
+		label: label,
+		separator: separator
 	});
 };
 
@@ -1928,15 +1933,15 @@ $.webos.keyboard.bind = function(el, keycode, callback) {
 	
 	$(document).keydown(function(e) {
 		if ($.webos.keyboard.pressed(keycode)) {
-			var isBindActive = true;
+			var elToCheck = el, isBindActive = true;
 			if (el.is('.webos-window') || el.parents().filter('.webos-window').length > 0) {
 				if (!el.is('.webos-window')) {
-					el = el.parents().filter('.webos-window').last();
+					elToCheck = el.parents().filter('.webos-window').last();
 				}
-				isBindActive = el.is('foreground');
+				isBindActive = elToCheck.window('is', 'foreground');
 			} else if (el.is('#desktop') || el.parents().filter('#desktop').length > 0) {
 				if (!el.is('#desktop')) {
-					el = el.parents().filter('#desktop').last();
+					elToCheck = el.parents().filter('#desktop').last();
 				}
 				isBindActive = (typeof $.webos.window.getActive() == 'undefined');
 			}
