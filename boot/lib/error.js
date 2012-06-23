@@ -31,6 +31,7 @@ Webos.Error.list = [];
 Webos.Error.callback = function() {};
 Webos.Error.catchError = function(error) {
 	Webos.Error.list.push(error);
+	
 	if (typeof console != 'undefined') {
 		var consoleMsg;
 		if (error instanceof W.Error) {
