@@ -1027,11 +1027,11 @@ var windowHeaderProperties = $.webos.extend($.webos.properties.get('container'),
 });
 $.webos.widget('windowHeader', windowHeaderProperties);
 
-//WindowHeaderMenu
-var windowHeaderMenuProperties = $.webos.extend($.webos.properties.get('menu'), {
+//MenuWindowHeader
+var menuWindowHeaderProperties = $.webos.extend($.webos.properties.get('menu'), {
 	_name: 'menuwindowheader'
 });
-$.webos.widget('menuWindowHeader', windowHeaderMenuProperties);
+$.webos.widget('menuWindowHeader', menuWindowHeaderProperties);
 
 $.webos.menuWindowHeader = function(contents) {
 	return $('<ul></ul>').html(contents || '').menuWindowHeader();
