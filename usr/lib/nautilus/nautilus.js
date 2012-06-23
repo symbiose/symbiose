@@ -3,8 +3,6 @@ new W.Stylesheet('usr/share/css/nautilus/main.css');
 new W.ScriptFile('usr/lib/jquery.filedrop.js');
 new W.ScriptFile('usr/lib/fileuploader.js');
 
-var thisProcess = W.Process.current();
-
 (function($) {
 	$.fn.setCursorPosition = function(pos1, pos2) {
 		this.each(function(index, elem) {
@@ -1125,10 +1123,16 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 	_create: function() {
 		var that = this;
 		
+		var thisProcess = W.Process.current(), canReadUserFiles = true, canReadSystemFiles = true;
+		if (thisProcess) {
+			canReadUserFiles = thisProcess.getAuthorizations().can('file.user.read');
+			canReadSystemFiles = thisProcess.getAuthorizations().can('file.system.read');
+		}
+		
 		this.options._content = $.w.list(['Raccourcis']).appendTo(this.element);
 		var listContent = this.options._content.list('content');
 		
-		if (thisProcess.getAuthorizations().can('file.user.read')) {
+		if (canReadUserFiles) {
 			$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> Dossier personnel']).bind('listitemselect', function() {
 				that.options.open('~');
 			}).appendTo(listContent);
@@ -1158,7 +1162,7 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 			}).appendTo(listContent);
 		}
 		
-		if (thisProcess.getAuthorizations().can('file.system.read')) {
+		if (canReadSystemFiles) {
 			$.w.listItem(['<img src="'+new W.Icon('devices/harddisk', 22)+'" alt=""/> Syst&egrave;me de fichiers']).bind('listitemselect', function() {
 				that.options.open('/');
 			}).appendTo(listContent);
