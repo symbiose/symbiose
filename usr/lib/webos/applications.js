@@ -8,7 +8,7 @@ Webos.Application.prototype = {
 		return this._name;
 	},
 	open: function() {
-		return this._get('open').split(',');
+		return (this.exists('open')) ? this._get('open').split(',') : [];
 	},
 	setOpen: function() {
 		return false;
@@ -34,6 +34,7 @@ Webos.Observable.build(Webos.Application);
 Webos.Application._loaded = false;
 Webos.Application._applications = {};
 Webos.Application._categories = {};
+Webos.Application._openers = {};
 Webos.Application.list = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -50,7 +51,17 @@ Webos.Application.list = function(callback) {
 		
 		Webos.Application._applications = {};
 		for (var key in data.applications) {
-			Webos.Application._applications[key] = new Webos.Application(data.applications[key], key);
+			var app = new Webos.Application(data.applications[key], key);
+			
+			var openers = app.get('open');
+			for (var i = 0; i < openers.length; i++) {
+				if (!Webos.Application._openers[openers[i]]) {
+					Webos.Application._openers[openers[i]] = [];
+				}
+				Webos.Application._openers[openers[i]].push(key);
+			}
+			
+			Webos.Application._applications[key] = app;
 		}
 		
 		Webos.Application._categories = {};
@@ -67,9 +78,7 @@ Webos.Application.get = function(name, callback) {
 	name = String(name);
 	callback = Webos.Callback.toCallback(callback);
 	
-	Webos.Application.list([function(apps) {
-		callback.success(apps[name]);
-	}, callback.error]);
+	return Webos.Application._applications[name];
 };
 Webos.Application.listByCategory = function(cat, callback, apps) {
 	callback = Webos.Callback.toCallback(callback);
@@ -163,6 +172,24 @@ Webos.Application.listFavorites = function(callback, apps) {
 	} else {
 		filterFn(apps);
 	}
+};
+
+Webos.Application.listOpeners = function(extension, callback) {
+	callback = W.Callback.toCallback(callback);
+	
+	Webos.Application.list([function(apps) {
+		if (Webos.Application._openers[extension]) {
+			var openers = [];
+			
+			for (var i = 0; i < Webos.Application._openers[extension].length; i++) {
+				openers.push(Webos.Application.get(Webos.Application._openers[extension][i]));
+			}
+			
+			callback.success(openers);
+		} else {
+			callback.success([]);
+		}
+	}, callback.error]);
 };
 
 Webos.Application.categories = function(callback) {

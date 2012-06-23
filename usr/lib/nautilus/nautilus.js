@@ -2,6 +2,7 @@ new W.ScriptFile('usr/lib/webos/file.js');
 new W.Stylesheet('usr/share/css/nautilus/main.css');
 new W.ScriptFile('usr/lib/jquery.filedrop.js');
 new W.ScriptFile('usr/lib/fileuploader.js');
+new Webos.ScriptFile('usr/lib/webos/applications.js');
 
 (function($) {
 	$.fn.setCursorPosition = function(pos1, pos2) {
@@ -253,9 +254,19 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					$.w.nautilus.progresses.update(uploadsIds[ui.index], 100, msg);
 					
 					if (success) {
-						var files = that.options._files;
-						files.push(new W.File(ui.response.getData().file));
-						that._render(files);
+						var newFile = new W.File(response.getData().file);
+						var newItem = that._renderItem(newFile);
+						if (that.location() == newFile.get('dirname')) {
+							that._insertItem(newItem);
+						}
+						
+						$.w.notification({
+							title: 'Fichier envoy&eacute;',
+							message: 'Le fichier '+newFile.get('basename')+' a &eacute;t&eacute; envoy&eacute;.',
+							icon: that._getFileIcon(newFile),
+							buttons: [$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
+							          $.w.button('Ouvrir').click(function() { newItem.data('nautilus').open(); })]
+						});
 					}
 				},
 				progressupdated: function(event, ui) {
@@ -443,6 +454,11 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				}
 				item.trigger('open');
 			},
+			openWith: function() {
+				var file = item.data('file')();
+				that.openFileWindow(file);
+				item.trigger('open');
+			},
 			download: function() {
 				that._download(item.data('file')());
 				item.trigger('download');
@@ -499,6 +515,12 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').open();
+			});
+		}).appendTo(contextmenu);
+		$.webos.menuItem('Ouvrir avec...').click(function() {
+			var files = (that.getSelection().length == 0) ? item : that.getSelection();
+			files.each(function() {
+				$(this).data('nautilus').openWith();
 			});
 		}).appendTo(contextmenu);
 		$.webos.menuItem('T&eacute;l&eacute;charger').click(function() {
@@ -731,7 +753,17 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				if (success) {
 					var newFile = new W.File(response.getData().file);
 					var newItem = that._renderItem(newFile);
-					that._insertItem(newItem);
+					if (that.location() == newFile.get('dirname')) {
+						that._insertItem(newItem);
+					}
+					
+					$.w.notification({
+						title: 'Fichier envoy&eacute;',
+						message: 'Le fichier '+newFile.get('basename')+' a &eacute;t&eacute; envoy&eacute;.',
+						icon: that._getFileIcon(newFile),
+						buttons: [$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
+						          $.w.button('Ouvrir').click(function() { newItem.data('nautilus').open(); })]
+					});
 				}
 			},
 			onCancel: function(id, fileName){
@@ -824,66 +856,117 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				this.readDir(file.get('path'));
 			}
 		} else {
-			if (typeof this._applications == 'undefined') {
-				var that = this;
-				new W.ServerCall({
-					'class': 'ApplicationShortcutController',
-					method: 'getFilesOpeners',
-					arguments: {}
-				}).load(new W.Callback(function(response) {
-					that._applications = response.getData();
+			if (file.get('extension') == 'js') {
+				var exeWindow = $.w.window.dialog({
+					title: 'Ouverture de fichier',
+					icon: this._getFileIcon(file),
+					resizable: false,
+					hideable: false,
+					width: 550
+				});
+				
+				var form = $.w.entryContainer().appendTo(exeWindow.window('content'));
+				
+				$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
+				$('<strong></strong>').html('Voulez-vous lancer « '+file.get('basename')+' » ou afficher son contenu ?').appendTo(form);
+				form.after('<p>« '+file.get('basename')+' » est un fichier texte exécutable.</p>');
+				
+				var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(form);
+				$.w.button('Lancer dans un terminal').click(function() {
+					exeWindow.window('close');
+					W.Cmd.execute('gnome-terminal "'+file.get('path')+'"');
+				}).appendTo(buttonContainer);
+				$.w.button('Afficher').click(function() {
+					exeWindow.window('close');
 					that._openFile(file);
-				}));
+				}).appendTo(buttonContainer);
+				$.w.button('Annuler').click(function() {
+					exeWindow.window('close');
+				}).appendTo(buttonContainer);
+				$.w.button('Lancer', true).appendTo(buttonContainer);
+				
+				form.submit(function() {
+					exeWindow.window('close');
+					W.Cmd.execute('"'+file.get('path')+'"');
+				});
+				
+				exeWindow.window('open');
 			} else {
-				if (typeof this._applications[file.get('extension')] != 'undefined') {
-					W.Cmd.execute(this._applications[file.get('extension')]+' "'+file.get('path')+'"');
-				} else {
-					var fileOpenerWindow = $.w.window({
-						title: 'Ouverture de '+file.get('basename'),
-						width: 400,
-						resizable: false
-					});
-					
-					var chosenCmd = '';
-					
-					var content = $.w.entryContainer().submit(function() {
-						fileOpenerWindow.window('close');
-						W.Cmd.execute(chosenCmd+' "'+file.get('path')+'"');
-					}).appendTo(fileOpenerWindow.window('content'));
-					
-					content.append('<strong>Choisissez une application pour ouvrir '+file.get('basename')+'</strong>');
-					
-					var list = $.w.list().appendTo(content);
-					var cmds = {};
-					
-					for (var ext in this._applications) {
-						if (typeof cmds[this._applications[ext]] == 'undefined') {
-							cmds[this._applications[ext]] = [ext];
-						} else {
-							cmds[this._applications[ext]].push(ext);
-						}
+				var that = this;
+				Webos.Application.listOpeners(file.get('extension'), function(openers) {
+					if (openers.length > 0) {
+						W.Cmd.execute(openers[0].get('command')+' "'+file.get('path')+'"');
+					} else {
+						that.openFileWindow(file);
 					}
-					
-					for (var cmd in cmds) {
-						(function(cmd, ext) {
-							$.w.listItem([cmd]).appendTo(list.list('content')).bind('listitemselect', function() {
-								chosenCmd = cmd;
-							}).bind('listitemunselect', function() {
-								chosenCmd = undefined;
-							});
-						})(cmd, cmds[cmd]);
-					}
-					
-					var buttonContainer = $.w.buttonContainer().appendTo(content);
-					$.w.button('Annuler').click(function() {
-						fileOpenerWindow.window('close');
-					}).appendTo(buttonContainer);
-					$.w.button('S&eacute;lectionner', true).appendTo(buttonContainer);
-					
-					fileOpenerWindow.window('open');
-				}
+				});
 			}
 		}
+	},
+	openFileWindow: function(file) {
+		var that = this;
+		
+		var openFileWindowFn = function(apps) {
+			var fileOpenerWindow = $.w.window.dialog({
+				title: 'Ouverture de '+file.get('basename'),
+				icon: that._getFileIcon(file),
+				width: 400,
+				resizable: false
+			});
+			
+			var chosenCmd = '';
+			
+			var content = $.w.entryContainer().submit(function() {
+				if (!chosenCmd) {
+					return;
+				}
+				
+				fileOpenerWindow.window('close');
+				W.Cmd.execute('"'+chosenCmd+'" "'+file.get('path')+'"');
+			}).appendTo(fileOpenerWindow.window('content'));
+			
+			content.append('<strong>Choisissez une application pour ouvrir '+file.get('basename')+'</strong>');
+			
+			var list = $.w.list().appendTo(content);
+			
+			for (var i = 0; i < apps.length; i++) {
+				(function(app) {
+					$.w.listItem([app.get('title')]).appendTo(list.list('content')).bind('listitemselect', function() {
+						chosenCmd = app.get('command');
+					}).bind('listitemunselect', function() {
+						chosenCmd = '';
+					});
+				})(apps[i]);
+			}
+			
+			var buttonContainer = $.w.buttonContainer().appendTo(content);
+			$.w.button('Annuler').click(function() {
+				fileOpenerWindow.window('close');
+			}).appendTo(buttonContainer);
+			$.w.button('S&eacute;lectionner', true).appendTo(buttonContainer);
+			
+			fileOpenerWindow.window('open');
+		};
+		
+		Webos.Application.listOpeners(file.get('extension'), function(openers) {
+			if (openers.length > 0) {
+				openFileWindowFn(openers);
+			} else {
+				Webos.Application.list(function(apps) {
+					var openers = [];
+					
+					for (var key in apps) {
+						if (apps[key].get('open').length == 0) {
+							continue;
+						}
+						
+						openers.push(apps[key]);
+					}
+					
+					openFileWindowFn(openers);
+				});
+			}
+		});
 	},
 	createFile: function(name, is_dir) {
 		var originalName = name, exists = false, i = 2, ext = null, filename = name;
