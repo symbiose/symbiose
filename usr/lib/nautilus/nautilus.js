@@ -416,43 +416,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		item.data('nautilus', {
 			open: function() {
 				var file = item.data('file')();
-				if (file.get('extension') == 'js') {
-					var exeWindow = $.w.window.dialog({
-						title: 'Ouverture de fichier',
-						resizable: false,
-						hideable: false,
-						width: 550
-					});
-					
-					var form = $.w.entryContainer().appendTo(exeWindow.window('content'));
-					
-					$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
-					$('<strong></strong>').html('Voulez-vous lancer « '+file.get('basename')+' » ou afficher son contenu ?').appendTo(form);
-					form.after('<p>« '+file.get('basename')+' » est un fichier texte exécutable.</p>');
-					
-					var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(form);
-					$.w.button('Lancer dans un terminal').click(function() {
-						exeWindow.window('close');
-						W.Cmd.execute('gnome-terminal "'+file.get('path')+'"');
-					}).appendTo(buttonContainer);
-					$.w.button('Afficher').click(function() {
-						exeWindow.window('close');
-						that._openFile(file);
-					}).appendTo(buttonContainer);
-					$.w.button('Annuler').click(function() {
-						exeWindow.window('close');
-					}).appendTo(buttonContainer);
-					$.w.button('Lancer', true).appendTo(buttonContainer);
-					
-					form.submit(function() {
-						exeWindow.window('close');
-						W.Cmd.execute('"'+file.get('path')+'"');
-					});
-					
-					exeWindow.window('open');
-				} else {
-					that._openFile(file);
-				}
+				that._openFile(file);
 				item.trigger('open');
 			},
 			openWith: function() {
@@ -860,6 +824,16 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				this.readDir(file.get('path'));
 			}
 		} else {
+			var runOpenerFn = function() {
+				Webos.Application.listOpeners(file.get('extension'), function(openers) {
+					if (openers.length > 0) {
+						W.Cmd.execute(openers[0].get('command')+' "'+file.get('path')+'"');
+					} else {
+						that.openFileWindow(file);
+					}
+				});
+			};
+			
 			if (file.get('extension') == 'js') {
 				var exeWindow = $.w.window.dialog({
 					title: 'Ouverture de fichier',
@@ -882,7 +856,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				}).appendTo(buttonContainer);
 				$.w.button('Afficher').click(function() {
 					exeWindow.window('close');
-					that._openFile(file);
+					runOpenerFn();
 				}).appendTo(buttonContainer);
 				$.w.button('Annuler').click(function() {
 					exeWindow.window('close');
@@ -897,13 +871,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				exeWindow.window('open');
 			} else {
 				var that = this;
-				Webos.Application.listOpeners(file.get('extension'), function(openers) {
-					if (openers.length > 0) {
-						W.Cmd.execute(openers[0].get('command')+' "'+file.get('path')+'"');
-					} else {
-						that.openFileWindow(file);
-					}
-				});
+				runOpenerFn();
 			}
 		}
 	},
