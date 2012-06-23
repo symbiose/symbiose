@@ -152,7 +152,7 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 
 		$apps[$name] = (int) $position;
 
-		sort($apps, \SORT_NUMERIC);
+		asort($apps, \SORT_NUMERIC);
 
 		$diff = 0;
 		$last = 0;
@@ -167,6 +167,7 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 			}
 
 			$favoritesConfig->set($app, $pos + $diff);
+			$last = $pos;
 		}
 
 		$favoritesConfig->save('~/.config/favorites.xml');

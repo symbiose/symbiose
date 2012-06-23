@@ -20,10 +20,59 @@ Webos.Application.prototype = {
 		}
 		return parseInt(favorite);
 	},
+	setFavorite: function(value) {
+		this._set('favorite', (!isNaN(parseInt(value))) ? parseInt(value) : 0);
+	},
 	sync: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
+		var that = this;
 		
+		var data = {};
+		var nbrChanges = 0;
+		for (var key in this._unsynced) {
+			if (this._unsynced[key].state === 1) {
+				this._unsynced[key].state = 2;
+				data[key] = this._unsynced[key].value;
+				nbrChanges++;
+			}
+		}
+		
+		if (nbrChanges === 0) {
+			callback.success(this);
+			return;
+		}
+		
+		if (typeof data.favorite != 'undefined') {
+			if (data.favorite) {
+				new Webos.ServerCall({
+					'class': 'ApplicationShortcutController',
+					method: 'setFavorite',
+					arguments: {
+						name: this.get('name'),
+						position: data.favorite
+					}
+				}).load(new Webos.Callback(function() {
+					that._data['favorite'] = that._unsynced['favorite'].value;
+					delete that._unsynced['favorite'];
+					that.notify('update', { key: 'favorite', value: that._data[key].value });
+					callback.success(that);
+				}, callback.error));
+			} else {
+				new Webos.ServerCall({
+					'class': 'ApplicationShortcutController',
+					method: 'removeFavorite',
+					arguments: {
+						name: this.get('name')
+					}
+				}).load(new Webos.Callback(function() {
+					that._data['favorite'] = that._unsynced['favorite'].value;
+					delete that._unsynced['favorite'];
+					that.notify('update', { key: 'favorite', value: that._data[key].value });
+					callback.success(that);
+				}, callback.error));
+			}
+		}
 	}
 };
 

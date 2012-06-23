@@ -376,11 +376,11 @@
 					}).appendTo(contextmenu);
 					if (app.get('favorite') !== false) {
 						$.webos.menuItem('Retirer des favoris', true).click(function() {
-							removeFavorite(app);
+							that.removeFavorite(app);
 						}).appendTo(contextmenu);
 					} else {
 						$.webos.menuItem('Ajouter aux favoris', true).click(function() {
-							addFavorite(app);
+							that.addFavorite(app);
 						}).appendTo(contextmenu);
 					}
 					
@@ -420,6 +420,28 @@
 				that._showAppsCategories(apps);
 				that._showShortcurts(apps);
 			}, apps);
+		},
+		addFavorite: function(app) {
+			var that = this;
+			
+			Webos.Application.listFavorites(function(favorites) {
+				app.set('favorite', favorites.length + 1);
+				app.sync([function() {
+					that._renderLauncher();
+				}, function(response) {
+					response.triggerError('Impossible d\'ajouter l\'application "'+app.get('title')+'" aux favoris');
+				}]);
+			});
+		},
+		removeFavorite: function(app) {
+			var that = this;
+			
+			app.set('favorite', 0);
+			app.sync([function() {
+				that._renderLauncher();
+			}, function(response) {
+				response.triggerError('Impossible de retirer l\'application "'+app.get('title')+'" des favoris');
+			}]);
 		},
 		_renderLauncher: function() {
 			var that = this;
@@ -474,11 +496,11 @@
 						}).appendTo(contextmenu);
 						if (app.get('favorite') !== false) {
 							$.webos.menuItem('Retirer des favoris', true).click(function() {
-								
+								that.removeFavorite(app);
 							}).appendTo(contextmenu);
 						} else {
 							$.webos.menuItem('Ajouter aux favoris', true).click(function() {
-								
+								that.addFavorite(app);
 							}).appendTo(contextmenu);
 						}
 					})(i, favorites[i]);

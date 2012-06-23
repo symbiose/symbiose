@@ -27,7 +27,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		directory: '~',
 		multipleWindows: false,
 		uploads: [],
-		display: 'icons'
+		display: 'icons',
+		showHiddenFiles: false
 	},
 	_create: function() {
 		var that = this;
@@ -135,14 +136,14 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		$.webos.keyboard.bind(this.element, 'right', function() {
 			var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
-			var elementToSelect = selectedElements.last().next();
+			var elementToSelect = selectedElements.last().next(':visible');
 			if (elementToSelect.length > 0) {
 				elementToSelect.addClass('active').trigger('select');
 			}
 		});
 		$.webos.keyboard.bind(this.element, 'left', function() {
 			var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
-			var elementToSelect = selectedElements.last().prev();
+			var elementToSelect = selectedElements.last().prev(':visible');
 			if (elementToSelect.length > 0) {
 				elementToSelect.addClass('active').trigger('select');
 			}
@@ -152,10 +153,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 	},
 	items: function() {
 		if (this.options.display == 'icons') {
-			return this.content().children('li');
+			return this.content().children('li').filter(':visible');
 		}
 		if (this.options.display == 'list') {
-			return this.content().list('content').children('tr');
+			return this.content().list('content').children('tr').filter(':visible');
 		}
 	},
 	readDir: function(dir, userCallback) {
@@ -592,7 +593,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		});
 		
 		if (/^\./.test(file.get('basename'))) { //C'est un fichier cache, on ne l'affiche pas
-			item.hide();
+			item.addClass('hidden');
+			if (!this.options.showHiddenFiles) {
+				item.hide();
+			}
 		}
 		
 		var updateCallbackId = file.bind('update', function(data) {
@@ -1564,6 +1568,20 @@ function NautilusWindow(dir, userCallback) {
 	$.w.menuItem('Actualiser')
 		.click(function() {
 			that.refresh();
+		})
+		.appendTo(viewItemContent);
+	$.w.menuItem('Afficher les fichiers cach&eacute;s')
+		.click(function() {
+			var value = !(that.nautilus.nautilus('option', 'showHiddenFiles'));
+			
+			if (value) {
+				$(this).menuItem('option', 'label', 'Ne pas afficher les fichiers cach&eacute;s');
+			} else {
+				$(this).menuItem('option', 'label', 'Afficher les fichiers cach&eacute;s');
+			}
+			
+			that.nautilus.nautilus('option', 'showHiddenFiles', value);
+			that.nautilus.nautilus('refresh');
 		})
 		.appendTo(viewItemContent);
 	
