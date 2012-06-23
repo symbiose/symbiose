@@ -91,6 +91,13 @@ class Config extends \lib\WebosComponent {
 			$node->setAttribute('value', $value);
 		}
 
+		$configNodes = $root->getElementsByTagName('attribute');
+		foreach ($configNodes as $node) {
+			if (!array_key_exists($node->getAttribute('name'), $this->config)) {
+				$root->removeChild($node);
+			}
+		}
+
 		$out = $this->domdocument->saveXML();
 		$file->setContents($out);
 	}
