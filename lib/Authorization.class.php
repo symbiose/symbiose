@@ -114,16 +114,22 @@ class Authorization extends \lib\WebosComponent {
 	public function getArgumentAuthorizations($providedArgument, $argumentType, $argumentAction) {
 		switch($argumentType) {
 			case 'file':
-				if (preg_match('#^~/#', $providedArgument) || $providedArgument == '~') {
-					return 'file.user.'.$argumentAction;
-				} elseif (preg_match('#^/home/#', $providedArgument))
-					return 'file.home.'.$argumentAction;
-				else {
-					if ($argumentAction == 'read' && (preg_match('#^/usr/#', $providedArgument) || preg_match('#^/boot/#', $providedArgument)))
-						return true;
-					else
-						return 'file.system.'.$argumentAction;
+				if ($this->webos->getUser()->isConnected()) {
+					if (preg_match('#^'.$this->webos->managers()->get('File')->userDirectory().'/#', $providedArgument) || $providedArgument == $this->webos->managers()->get('File')->userDirectory()) {
+						return 'file.user.'.$argumentAction;
+					}
 				}
+
+				if (preg_match('#^~/#', $providedArgument) || $providedArgument == '~')
+					return 'file.user.'.$argumentAction;
+
+				if (preg_match('#^/home/#', $providedArgument))
+					return 'file.home.'.$argumentAction;
+
+				if ($argumentAction == 'read' && (preg_match('#^/usr/#', $providedArgument) || preg_match('#^/boot/#', $providedArgument)))
+					return true;
+
+				return 'file.system.'.$argumentAction;
 				break;
 			case 'package':
 				if (!$this->webos->managers()->get('Package')->isPackage($providedArgument))
