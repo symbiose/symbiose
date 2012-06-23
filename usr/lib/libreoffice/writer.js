@@ -86,45 +86,6 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 				callback.success();
 			},
 			confirm: function() {
-				that.save(new W.Callback(function() {
-					callback.success();
-				}, function() {
-					callback.error();
-				}));
-			},
-			cancelLabel: 'Fermer sans enregistrer',
-			confirmLabel: 'Enregistrer'
-		});
-		confirm.window('open');
-	};
-	this.newFile = function(contents) {
-		if (typeof contents == 'undefined') {
-			contents = '';
-		}
-		
-		this.closeFile(new W.Callback(function() {
-			that._file = null;
-			that._refreshTitle();
-			that._editable.html(contents);
-			that._container.scrollPane('reload');
-		}, function() {}));
-	};
-	this.closeFile = function(callback) {
-		callback = W.Callback.toCallback(callback);
-		
-		if (this._saved || this._editable.is(':empty')) {
-			callback.success();
-			return;
-		}
-		
-		var filename = (this._file) ? this._file.get('basename') : 'Nouveau fichier';
-		var confirm = $.w.window.confirm({
-			title: 'Enregistrer les modifications',
-			label: 'Voulez-vous enregistrer les modifications du document « '+filename+' » avant de le fermer ?',
-			cancel: function() {
-				callback.success();
-			},
-			confirm: function() {
 				closeStackLength = 0;
 				that.save(new W.Callback(function() {
 					callback.success();
