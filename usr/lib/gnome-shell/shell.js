@@ -1,18 +1,64 @@
 (function() {
+	//On charge la bibliotheque pour gerer les applications
 	new Webos.ScriptFile('usr/lib/webos/applications.js');
 	
+	/**
+	 * Shell est la bibliotheque du Shell.
+	 * @author $imon
+	 * @version 1.2
+	 */
 	window.Shell = {
+		/**
+		 * Vrai si le Shell a ete initialise.
+		 * @var boolean
+		 */
 		_initialized: false,
+		/**
+		 * Vrai si le Shell est affiche.
+		 * @var boolean
+		 */
 		_shown: false,
+		/**
+		 * L'element du Shell.
+		 * @var jQuery
+		 */
 		_$shell: $('#shell'),
+		/**
+		 * Le lanceur du Shell.
+		 * @var jQuery
+		 */
 		_$launcher: $('#shell .launcher'),
+		/**
+		 * L'entree de recherche du Shell.
+		 * @var jQuery
+		 */
 		_$searchEntry: $('#shell .content input.search-entry'),
+		/**
+		 * La surcouche du Shell, utilisee pour rendre les miniatures des fenetres.
+		 * @var jQuery
+		 */
 		_$overlay: $(),
+		/**
+		 * Les filtres de recherche.
+		 * @var jQuery
+		 */
 		_$appsCategories: $('#shell .shortcuts .filters'),
+		/**
+		 * La liste des applications.
+		 * @var jQuery
+		 */
 		_$appsList: $('#shell .shortcuts .list'),
 		
+		/**
+		 * L'objet faisant correspondre un commande aux fenetres ouvertes correspondantes.
+		 * @var object
+		 */
 		_cmds2Windows: {},
 
+		/**
+		 * Afficher le Shell.
+		 * @param boolean animate Si definit a faux, les animations seront desactivees.
+		 */
 		show: function(animate) {
 			this._shown = true;
 			$('#desktop > .webos-nautilus').hide();
@@ -31,6 +77,10 @@
 			
 			this.notify('show');
 		},
+		/**
+		 * Cacher le Shell.
+		 * @param boolean animate Si definit a faux, les animations seront desactivees.
+		 */
 		hide: function(animate) {
 			this._shown = false;
 			this._$searchEntry.val('');
@@ -42,9 +92,16 @@
 			
 			this.notify('hide');
 		},
+		/**
+		 * Definit si le Shell est affiche ou non.
+		 * @return boolean
+		 */
 		shown: function() {
 			return this._shown;
 		},
+		/**
+		 * Basculer l'affichage du Shell.
+		 */
 		toggle: function() {
 			if (!this.shown()) {
 				this.show();
@@ -52,24 +109,31 @@
 				this.hide();
 			}
 		},
+		/**
+		 * Effectuer le rendu des miniatures des fenetres.
+		 * @param boolean animate Si definit a faux, les animations seront desactivees.
+		 */
 		_renderWindowsThumbnails: function(animate) {
-			this._hideShortcuts();
+			this._hideShortcuts(); //On cache les raccourcis.
 			
 			var shellX = 150,
 				shellY = 100,
 				shellWidth = this._$shell.width() - this._$launcher.outerWidth() - shellX,
 				shellHeight = this._$shell.height() - $('#header').outerHeight() - shellY;
-			var windows = SWorkspace.getCurrent().getWindows();
 			
-			if (windows.length == 0) {
+			var windows = SWorkspace.getCurrent().getWindows(); //Fenetres a afficher
+			
+			if (windows.length == 0) { //Si on n'a aucune fenetre a afficher, pas besoin d'aller plus loin
 				return;
 			}
 			
+			//Animations
 			var duration = 'fast';
 			if (animate === false || $.fx.off) {
 				duration = 0;
 			}
 			
+			//Ajout de la surcouche
 			var overlayX = shellX - 5, overlayY = shellY - 5;
 			if (!this._$shellOverlay || this._$shellOverlay.length == 0) {
 				this._$shellOverlay = $('<div></div>', { id: 'gnome-shell-overlay' }).css({
@@ -88,24 +152,26 @@
 				this._$shellOverlay.empty().show();
 			}
 			
+			//Calcul du nombre de lignes et de colonnes optimal
 			var cols = 1, lines = windows.length;
 			while(cols < lines) {
 				cols++;
 				lines = Math.ceil(windows.length / cols);
 			}
 			
+			//Calcul des dimentions max. d'une miniature
 			var paddingX = 10, paddingY = 30;
 			var maxWindowWidth = Math.floor(shellWidth / cols) - paddingX,
 				maxWindowHeight = Math.floor(shellHeight / lines) - paddingY;
 			
 			var that = this;
-			for (var i = 0; i < windows.length; i++) {
+			for (var i = 0; i < windows.length; i++) { //Pour chaque fenetre
 				(function(i, thisWindow) {
 					var thisWindowPos = { element: thisWindow };
 					
 					var windowWidth, windowHeight;
 					thisWindow.stop().css('display', 'block');
-					if (thisWindow.window('is', 'hidden')) {
+					if (thisWindow.window('is', 'hidden')) { //Si la fenetre est cachee, il faut l'afficher
 						thisWindow.css({
 							top: 0,
 							left: 0,
@@ -188,7 +254,7 @@
 						thisWindow.window('close');
 					}).appendTo(windowOverlay);
 					var windowLabel = $('<div></div>', { 'class': 'window-label' }).html('<span>'+thisWindow.window('option', 'title')+'</span>').hide().appendTo(windowOverlay);
-					if (!$.support.transition) {
+					if (!$.support.transition) { //Si le navigateur ne supporte pas les transformations CSS 2d, on active le mode "fallback"
 						var iconContainer = $('<div></div>', { 'class': 'icon' }).appendTo(windowOverlay);
 						$('<img />', { src: thisWindow.window('option', 'icon').realpath(92) }).appendTo(iconContainer);
 					}
@@ -209,7 +275,12 @@
 				})(i, windows[i]);
 			}
 		},
+		/**
+		 * Cacher les miniatures des fenetres.
+		 * @param boolean animate Si definit a faux, les animations seront desactivees.
+		 */
 		_restoreWindows: function(animate) {
+			//Animations
 			var duration = 'fast';
 			if (animate === false || $.fx.off) {
 				duration = 0;
@@ -237,6 +308,7 @@
 						};
 					}
 					
+					//On applique l'effet
 					windows[i].show().stop().transition(endState, duration);
 				} else {
 					if (!windows[i].window('is', 'hidden')) {
@@ -244,6 +316,8 @@
 					}
 				}
 			}
+			
+			//On enleve la surcouche
 			if (typeof this._$shellOverlay != 'undefined') {
 				this._$shellOverlay.fadeOut(duration, function() {
 					$(this).remove();
@@ -251,8 +325,12 @@
 				this._$shellOverlay = $();
 			}
 		},
+		/**
+		 * Afficher les miniatures des fenetres.
+		 */
 		showWindows: function() {
-			this._hideShortcuts();
+			this._hideShortcuts(); //On cache les raccourcis
+			
 			if ($.support.transition) {
 				var windows = SWorkspace.getCurrent().getWindows();
 				for (var i = 0; i < windows.length; i++) {
@@ -260,9 +338,12 @@
 				}
 			}
 			if (typeof this._$shellOverlay != 'undefined') {
-				this._$shellOverlay.show();
+				this._$shellOverlay.show(); //On affiche la surcouche
 			}
 		},
+		/**
+		 * Cacher les miniatures des fenetres.
+		 */
 		_hideWindows: function() {
 			if ($.support.transition) {
 				var windows = SWorkspace.getCurrent().getWindows();
@@ -271,9 +352,13 @@
 				}
 			}
 			if (typeof this._$shellOverlay != 'undefined') {
-				this._$shellOverlay.hide();
+				this._$shellOverlay.hide(); //On cache la surcouche
 			}
 		},
+		/**
+		 * Afficher les categories des applications.
+		 * @param object list La liste des applications a afficher.
+		 */
 		_showAppsCategories: function(list) {
 			var that = this;
 			
@@ -302,6 +387,7 @@
 						return;
 					}
 					
+					//On recupere les infos sur la categorie
 					Webos.Application.category(app.get('category'), function(catData) {
 						if (!catData) {
 							return;
@@ -326,6 +412,10 @@
 				})(key, list[key]);
 			}
 		},
+		/**
+		 * Afficher les raccourcis des applications.
+		 * @param object list La liste des applications a afficher.
+		 */
 		_showShortcurts: function(list) {
 			var that = this;
 			
@@ -390,14 +480,23 @@
 			
 			$list.scrollPane('reload');
 		},
+		/**
+		 * Simuler un clic sur le premier raccourci (utile lors d'un recherche, si l'utilisateur appuie sur la touche entree).
+		 */
 		_clickOnFirstShortcut: function() {
 			$('#shell .shortcuts .list ul:first li:first').click();
 		},
+		/**
+		 * Cacher les raccourcis.
+		 */
 		_hideShortcuts: function() {
 			$('#shell .shortcuts').hide();
 			$('#desktop #shell .mode li.applications.active').removeClass('active');
 			$('#desktop #shell .mode li.windows').addClass('active');
 		},
+		/**
+		 * Afficher les raccourcis de toutes les applications.
+		 */
 		showAllApps: function() {
 			var that = this;
 			
@@ -406,6 +505,11 @@
 				that._showShortcurts(apps);
 			});
 		},
+		/**
+		 * Afficher les raccourcis d'une categorie d'appliactions.
+		 * @param string cat Le nom de la categorie.
+		 * @param object apps Les applications a filtrer.
+		 */
 		showAppsByCat: function(cat, apps) {
 			var that = this;
 			
@@ -413,6 +517,11 @@
 				that._showShortcurts(apps);
 			}, apps);
 		},
+		/**
+		 * Afficher les raccourcis des applications repondant a une recherche.
+		 * @param string search La recherche.
+		 * @param object apps Les applications a filtrer.
+		 */
 		showAppsBySearch: function(search, apps) {
 			var that = this;
 			
@@ -421,6 +530,10 @@
 				that._showShortcurts(apps);
 			}, apps);
 		},
+		/**
+		 * Ajouter une application aux favoris.
+		 * @param Webos.Application app L'application a ajouter.
+		 */
 		addFavorite: function(app) {
 			var that = this;
 			
@@ -433,6 +546,10 @@
 				}]);
 			});
 		},
+		/**
+		 * Enlever une applications des favoris.
+		 * @param Webos.Application app L'application a enlever.
+		 */
 		removeFavorite: function(app) {
 			var that = this;
 			
@@ -443,35 +560,54 @@
 				response.triggerError('Impossible de retirer l\'application "'+app.get('title')+'" des favoris');
 			}]);
 		},
+		/**
+		 * Effectuer le rendu du lanceur.
+		 */
 		_renderLauncher: function() {
 			var that = this;
 			
+			//On recupere les applications favorites
 			Webos.Application.listFavorites(function(favorites) {
+				//On detecte si c'est le premier rendu
 				var isFirstRendering = false;
 				if (that._$launcher.children().length == 0) {
 					isFirstRendering = true;
 				}
 				
-				that._$launcher.empty();
+				that._$launcher.empty(); //On vide le lanceur
 				
 				var windows = SWorkspace.getCurrent().getWindows();
 				
+				//Si rien n'est ouvert et qu'il n'y a aucun favori, on cache le lanceur et on s'arrete la
 				if (favorites.length == 0 && windows.length == 0) {
 					that._$launcher.hide();
 					return;
 				}
 				
-				var alreadyShowedWindows = [];
+				var alreadyShowedWindows = []; //Fenetres affichees dans les favoris
 				for (var i = 0; i < favorites.length; i++) {
 					(function(i, app) {
 						var $item = $('<li></li>').appendTo(that._$launcher);
 						
-						var appWindow = $();
+						//On detecte les fenetres correspondant au favori
+						var appWindows = $();
 						if (that._cmds2Windows[app.get('command')]) {
-							appWindow = that._cmds2Windows[app.get('command')];
+							appWindows = that._cmds2Windows[app.get('command')];
 						}
 						
-						if (appWindow.length > 0) {
+						//Si des fenetres correspondent au favori
+						if (appWindows.length > 0) {
+							//On determine la fenetre ayant le + grand z-index, c'est la derniere fenetre utilisee
+							//C'est elle qui sera controllee a l'aide de l'icone
+							var maxZIndex = 0, appWindow = appWindows.last();
+							appWindows.each(function() {
+								var zIndex = parseInt($(this).css('z-index'));
+								if (zIndex >= maxZIndex) {
+									appWindow = $(this);
+									maxZIndex = zIndex;
+								}
+							});
+							
 							$item.addClass('active').click(function() {
 								that.hide();
 								if (appWindow.window('is', 'hidden')) {
@@ -480,8 +616,13 @@
 									appWindow.window('toForeground');
 								}
 							});
-							alreadyShowedWindows.push(appWindow.window('id'));
+							
+							//On ajoute les fenetres a la liste des fenetres deja affichees
+							appWindows.each(function() {
+								alreadyShowedWindows.push($(this).window('id'));
+							});
 						} else {
+							//Si aucune fenetre ne correspond, l'icone lancera l'application
 							$item.click(function() {
 								that.hide();
 								W.Cmd.execute(app.get('command'));
@@ -489,6 +630,7 @@
 						}
 						$('<img />', { src: new W.Icon(app.get('icon'), 48), alt: app.get('title'), title: app.get('title') }).appendTo($item);
 						
+						//Menu contextuel
 						var contextmenu = $.w.contextMenu($item);
 						$.webos.menuItem('Nouvelle fen&ecirc;tre').click(function() {
 							that.hide();
@@ -505,16 +647,21 @@
 						}
 					})(i, favorites[i]);
 				}
+				
+				//Maintenant, on traite le reste des fenetres
 				for (var i = 0; i < windows.length; i++) {
 					(function(i, thisWindow) {
+						//Si la fenetre a deja ete traitee, on passe
 						if ($.inArray(thisWindow.window('id'), alreadyShowedWindows) != -1) {
 							return;
 						}
 						
+						//Si c'est une fenetre fille, on passe
 						if (typeof thisWindow.window('option', 'parentWindow') != 'undefined' && thisWindow.window('option', 'parentWindow').length != 0) {
 							return;
 						}
 						
+						//Sinon, on affiche l'icone
 						var $item = $('<li></li>', { 'class': 'active' }).click(function() {
 							that.hide();
 							if (thisWindow.window('is', 'hidden')) {
@@ -535,28 +682,41 @@
 				}
 			});
 		},
+		/**
+		 * Initialiser le Shell.
+		 */
 		init: function() {
-			if (this._initialized) {
+			if (this._initialized) { //Si le Shell a deja ete initialise, on stoppe
 				return;
 			}
 			
 			var that = this;
 			
+			//On redimentionne le Shell lorsque la fenetre l'est
 			$(window).bind('resize', function(e) {
 				if (!$(e.target).is('*') && that.shown()) { //Si c'est la fenetre
 					$('#shell .content').width(that._$shell.innerWidth() - that._$launcher.outerWidth());
 				}
 			});
 			
+			//On stocke la correspondance commande <-> fenetre lors de l'ouverture des fenetres
 			$(document).bind('windowopen', function(event, ui) {
 				var process = Webos.Process.get(ui.window.window('pid'));
 				if (typeof process != 'undefined') {
-					that._cmds2Windows[process.cmd] = ui.window;
+					if (that._cmds2Windows[process.cmd]) {
+						that._cmds2Windows[process.cmd] = that._cmds2Windows[process.cmd].add(ui.window);
+					} else {
+						that._cmds2Windows[process.cmd] = ui.window;
+					}
 				}
-			}).bind('windowclose', function(event, ui) {
+			}).bind('windowclose', function(event, ui) { //Lors de leur fermeture, on detruit cette relation
 				var process = Webos.Process.get(ui.window.window('pid'));
-				if (typeof process != 'undefined') {
-					delete that._cmds2Windows[process.cmd];
+				if (typeof process != 'undefined' && that._cmds2Windows[process.cmd]) {
+					if (that._cmds2Windows[process.cmd].length > 1) {
+						that._cmds2Windows[process.cmd] = that._cmds2Windows[process.cmd].not(ui.window);
+					} else {
+						delete that._cmds2Windows[process.cmd];
+					}
 				}
 			}).bind('windowafteropen windowclose', function() {
 				if (that.shown()) {
@@ -567,6 +727,7 @@
 				}
 			});
 			
+			//Lors du clic sur un bouton de mode ("Fenetres" et "Applications"), on change le mode
 			$('#desktop #shell .mode li').click(function() {
 				if ($(this).is('.active')) {
 					return;
@@ -580,6 +741,7 @@
 				}
 			});
 			
+			//Gestion de la recherche via la zone de saisie
 			var keypressTimer = -1;
 			this._$searchEntry.hover(function() {
 				$(this).addClass('active');
@@ -608,11 +770,11 @@
 				}, 500);
 			});
 			
-			this._initialized = true;
+			this._initialized = true; //On marque le Shell comme initialise
 		}
 	};
 	
-	Webos.Observable.build(Shell);
+	Webos.Observable.build(Shell); //On rend le Shell observable
 	
-	Shell.init();
+	Shell.init(); //On initialise le Shell
 })();
