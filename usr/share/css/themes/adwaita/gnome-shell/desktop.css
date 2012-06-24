@@ -283,8 +283,11 @@ body {
 	background-color: rgba(0, 0, 0, 0.5);
 }
 #shell .launcher li {
+	width: 48px;
+	height: 48px;
 	padding: 2px;
 	margin: 3px;
+	text-align: center;
 }
 #shell .launcher li:hover {
 	-moz-border-radius: 3px;
@@ -298,7 +301,7 @@ body {
 	background-repeat: no-repeat;
 }
 #shell .launcher li img {
-	width: 48px;
+	max-width: 48px;
 	height: 48px;
 }
 
