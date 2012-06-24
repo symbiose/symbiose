@@ -1337,6 +1337,8 @@ var contextMenuProperties = $.webos.extend($.webos.properties.get('container'), 
 			setTimeout(function() { // Delay for Mozilla
 				$(document).one('click', clickFn);
 			}, 0);
+			
+			that._trigger('open');
 		});
 		
 		// Disable text selection

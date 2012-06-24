@@ -510,6 +510,13 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			});
 		}).appendTo(contextmenu);
 		
+		contextmenu.bind('contextmenuopen', function() {
+			if (!item.is('.active')) {
+				that.getSelection().removeClass('active').trigger('unselect');
+				item.addClass('active');
+			}
+		});
+		
 		if (file.get('is_dir')) {
 			var overIcon = that._getFileIcon(file, 'dropover');
 			item.droppable({
