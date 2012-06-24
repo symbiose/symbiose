@@ -49,8 +49,9 @@ Webos.UserInterface = function WUserInterface(data) {
 				if (!js) {
 					return;
 				}
+				
 				js = 'try {'+js+"\n"+'} catch(error) { Webos.Error.catchError(error); }';
-				Webos.Script.runScript(js); //On execute le code
+				Webos.Script.run(js); //On execute le code
 			})(this._attributes.data.js[index]);
 		}
 		

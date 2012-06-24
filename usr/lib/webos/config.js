@@ -1,5 +1,3 @@
-new Webos.ScriptFile('usr/lib/webos/file.js');
-
 Webos.ConfigFile = function WConfigFile(data, file) {
 	Webos.Model.call(this, data);
 	

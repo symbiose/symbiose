@@ -1,11 +1,19 @@
 //Inclure une feuille de style CSS
 Webos.Stylesheet = function WStylesheet(path, container) {
-	this.ajax = $.ajax({
-		url: path,
-		method: 'get',
-		async: false,
-		dataType: 'text',
-		success: function(css, textStatus, jqXHR) {
+	if (!/^(\/|~\/)/.test(path)) {
+		path = '/'+path;
+	}
+	
+	new Webos.ServerCall({
+		'class': 'FileController',
+		method: 'getContents',
+		arguments: {
+			file: path
+		},
+		async: false
+	}).load(function(response) {
+		var css = response.getStandardChannel();
+		if (css) {
 			Webos.Stylesheet.insertCss(css, container);
 		}
 	});

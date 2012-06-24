@@ -4,8 +4,6 @@
  * @author $imon
  */
 
-new Webos.ScriptFile('usr/lib/webos/file.js');
-
 var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'terminal',
 	options: {

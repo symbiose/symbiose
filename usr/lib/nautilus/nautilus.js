@@ -1,8 +1,7 @@
-new W.ScriptFile('usr/lib/webos/file.js');
-new W.Stylesheet('usr/share/css/nautilus/main.css');
+new W.Stylesheet('/usr/share/css/nautilus/main.css');
 new W.ScriptFile('usr/lib/jquery.filedrop.js');
 new W.ScriptFile('usr/lib/fileuploader.js');
-new Webos.ScriptFile('usr/lib/webos/applications.js');
+new W.ScriptFile('usr/lib/webos/applications.js');
 
 (function($) {
 	$.fn.setCursorPosition = function(pos1, pos2) {

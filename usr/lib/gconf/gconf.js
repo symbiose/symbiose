@@ -1,5 +1,3 @@
-new W.ScriptFile('usr/lib/webos/file.js');
-
 var thisProcess = W.Process.current();
 
 function GConf(category) {

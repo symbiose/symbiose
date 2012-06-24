@@ -1,5 +1,3 @@
-new W.ScriptFile('usr/lib/webos/file.js');
-
 if (typeof window.LibreOffice == 'undefined') {
 	window.LibreOffice = {};
 }

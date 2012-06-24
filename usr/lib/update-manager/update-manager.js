@@ -1,4 +1,3 @@
-new W.ScriptFile('usr/lib/webos/file.js'); //On charge la bibliotheque des fichiers
 new W.ScriptFile('usr/lib/apt/apt.js'); //On charge la bibliotheque JS d'APT
 
 /**

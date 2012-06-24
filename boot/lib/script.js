@@ -26,11 +26,11 @@ Webos.Script = function WScript(js, args) {
 	
 	//On ajoute la sandbox
 	js = '(function(args) { '+js+' })(new W.Arguments({ options: '+JSON.stringify(options)+', params: ['+paramsString+'] }));';
-	Webos.Script.runScript(js); //On execute le tout
+	Webos.Script.run(js); //On execute le tout
 };
 
 //Executer un script Javascript
-Webos.Script.runScript = function runScript(js) {
+Webos.Script.run = function runScript(js) {
 	js = js.replace(/\/\*([\s\S]*?)\*\//g, ''); //On enleve les commentaires
 	var scriptTag = document.createElement('script');
 	scriptTag.setAttribute('type', 'text/javascript');
@@ -39,41 +39,8 @@ Webos.Script.runScript = function runScript(js) {
 	$('body').append(scriptTag);
 };
 
-Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Javascript
-	this.run = function() {
-		if (this._js) {
-			var js = 'try {'+this._js+"\n"+'} catch(error) { W.Error.catchError(error); }';
-			Webos.Script.runScript(js);
-		}
-	};
-	
-	this._js = null;
-	this.path = path;
-	
-	if (typeof W.ScriptFile._cache[path] != 'undefined') {
-		this._js = W.ScriptFile._cache[path]._js;
-		this.run();
-		return;
-	}
-	
-	Webos.ScriptFile._cache[path] = this;
-	
-	var that = this;
-	
-	/*new Webos.ServerCall({
-		'class': 'FileController',
-		method: 'getContents',
-		arguments: {
-			file: path
-		}
-	}).load(function(response) {
-		var js = response.getStandardChannel();
-		if (js) {
-			that._js = js;
-			that.run();
-		}
-	});*/
-	
+//Charger un script
+Webos.Script.load = function(path) {
 	this.ajax = $.ajax({
 		url: path,
 		method: 'get',
@@ -81,9 +48,48 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 		dataType: 'text',
 		success: function(js, textStatus, jqXHR) {
 			if (js) {
-				that._js = js;
-				that.run();
+				Webos.Script.run(js);
 			}
+		}
+	});
+};
+
+Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Javascript
+	if (!/^(\/|~\/)/.test(path)) {
+		path = '/'+path;
+	}
+	
+	this.run = function() {
+		Webos.ScriptFile._cache[this.path] = this._js;
+		if (this._js) {
+			var js = 'try {'+this._js+"\n"+'} catch(error) { W.Error.catchError(error); }';
+			Webos.Script.run(js);
+		}
+	};
+	
+	this._js = null;
+	this.path = path;
+	
+	if (typeof W.ScriptFile._cache[path] != 'undefined') {
+		this._js = W.ScriptFile._cache[path];
+		this.run();
+		return;
+	}
+	
+	var that = this;
+	
+	new Webos.ServerCall({
+		'class': 'FileController',
+		method: 'getContents',
+		arguments: {
+			file: path
+		},
+		async: false
+	}).load(function(response) {
+		var js = response.getStandardChannel();
+		if (js) {
+			that._js = js;
+			that.run();
 		}
 	});
 };
@@ -102,7 +108,7 @@ Webos.ScriptFile.load = function() {
 			
 			if (js) {
 				js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
-				Webos.Script.runScript(js);
+				Webos.Script.run(js);
 			}
 		});
 	}

@@ -10,21 +10,22 @@ $(function() { //Lorsque tout est pret
 	}
 	
 	//On charge les bibliotheques de base
-	new W.ScriptFile('boot/lib/inherit.js');
-	new W.ScriptFile('boot/lib/observer.js');
-	new W.ScriptFile('boot/lib/error.js');
-	new W.ScriptFile('boot/lib/model.js');
-	new W.ScriptFile('boot/lib/callback.js');
-	new W.ScriptFile('boot/lib/servercall.js');
+	Webos.Script.load('boot/lib/inherit.js');
+	Webos.Script.load('boot/lib/observer.js');
+	Webos.Script.load('boot/lib/error.js');
+	Webos.Script.load('boot/lib/model.js');
+	Webos.Script.load('boot/lib/callback.js');
+	Webos.Script.load('boot/lib/servercall.js');
 	Webos.ScriptFile.load(
+		'/boot/lib/uniqueid.js',
 		'/boot/lib/process.js',
+		'/boot/lib/cmd.js',
+		'/boot/lib/user.js',
+		'/boot/lib/file.js',
 		'/boot/lib/ui.js',
 		'/boot/lib/css.js',
-		'/boot/lib/uniqueid.js',
 		'/boot/lib/loadimage.js',
-		'/boot/lib/xml.js',
-		'/boot/lib/cmd.js',
-		'/boot/lib/user.js'
+		'/boot/lib/xml.js'
 	);
 	
 	var actualLocation = window.location.href;

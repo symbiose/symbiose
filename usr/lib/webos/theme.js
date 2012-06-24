@@ -1,4 +1,3 @@
-new Webos.ScriptFile('usr/lib/webos/file.js');
 new Webos.ScriptFile('usr/lib/webos/config.js');
 
 Webos.Theme = function WTheme(configFile) {
