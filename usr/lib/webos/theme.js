@@ -29,7 +29,7 @@ Webos.Theme.prototype = {
 				'ui': Webos.UserInterface.current.name()
 			}
 		}).load(new Webos.Callback(function(response) {
-			$.fx.off = !that.get('animations');
+			that._setAnimations();
 			var css = response.getData().css;
 			for (var index in css) {
 				Webos.Stylesheet.insertCss(css[index], '#'+W.UserInterface.current.element.attr('id'));
@@ -49,6 +49,9 @@ Webos.Theme.prototype = {
 			.css('background-size', 'cover')
 			.css('filter', 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bg+'\', sizingMethod=\'scale\')')
 			.css('-ms-filter', '"progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bg+'\', sizingMethod=\'scale\')"');
+	},
+	_setAnimations: function() {
+		$.fx.off = !this.get('animations');
 	},
 	background: function() {
 		var bg = this._get('background');
@@ -108,7 +111,7 @@ Webos.Theme.prototype = {
 							that._loadBackground();
 							break;
 						case 'animations':
-							$.fx.off = !that.get('animations');
+							that._setAnimations();
 							break;
 					}
 					
