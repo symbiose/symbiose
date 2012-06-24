@@ -530,11 +530,8 @@
 				that._$launcher.show();
 				
 				if (isFirstRendering) { //Si c'est la premiere initialisation, la position du launcher est buggee
-					//Il faut cacher le shell puis le reafficher pour mettre a jour sa position
-					that.hide(false);
-					setTimeout(function() {
-						that.show(false);
-					}, 20);
+					//Il faut modifier les dimentions du shell mettre a jour sa position
+					$('#shell .content').width(that._$shell.innerWidth() - that._$launcher.outerWidth());
 				}
 			});
 		},
