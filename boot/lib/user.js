@@ -91,6 +91,15 @@ Webos.User.prototype = {
 			callback.error(response);
 		}));
 	},
+	setEmail: function(value) {
+		value = String(value);
+		
+		if (!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(value)) {
+			return false;
+		}
+		
+		return this._set('email', value);
+	},
 	remove: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
