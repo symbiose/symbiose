@@ -200,7 +200,11 @@ class FileCall extends Webos {
 		$this->getHTTPResponse()->addHeader('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cacheOffset) . ' GMT');
 		$this->getHTTPResponse()->removeHeader('Pragma');
 
-		ob_start();
+		if (preg_match('#^(image|audio|video)/#', $file->mime())) {
+			ob_start('ob_gzhandler');
+		} else {
+			ob_start();
+		}
 		readfile($file->realpath());
 		$this->getHTTPResponse()->addHeader('Content-Length: ' . ob_get_length());
 		ob_end_flush();
