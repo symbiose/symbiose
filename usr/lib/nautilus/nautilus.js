@@ -48,6 +48,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				
 				if (that.content().is(e.target)) {
 					var offset = $(this).offset();
+					var dimentions = {
+						width: $(this).width(),
+						height: $(this).height()
+					};
 					var diff = [offset.left, offset.top];
 					var pos = [e.pageX - diff[0], e.pageY - diff[1]];
 					
@@ -60,10 +64,14 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 						.css('position','absolute')
 						.appendTo(that.content());
 					
-					var mouseMoveFn = function(e) {
+					$(document).bind('mousemove.'+that.id()+'.nautilus.widget.webos', function(e) {
 						var x1 = pos[0], y1 = pos[1], x2 = e.pageX - diff[0], y2 = e.pageY - diff[1];
 						if (x1 > x2) { var tmp = x2; x2 = x1; x1 = tmp; }
 						if (y1 > y2) { var tmp = y2; y2 = y1; y1 = tmp; }
+						if (x1 < 0) { x1 = 0; }
+						if (y1 < 0) { y1 = 0; }
+						if (x2 > dimentions.width) { x2 = dimentions.width; }
+						if (y2 > dimentions.height) { y2 = dimentions.height; }
 						helper.css({left: x1, top: y1, width: x2-x1, height: y2-y1});
 						
 						that.items().each(function() {
@@ -79,11 +87,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 						});
 						
 						e.preventDefault();
-					};
-					that.content().mousemove(mouseMoveFn);
+					});
 					
-					that.content().one('mouseup', function(e) {
-						$(this).unbind('mousemove', mouseMoveFn);
+					$(document).one('mouseup', function(e) {
+						$(document).unbind('mousemove.'+that.id()+'.nautilus.widget.webos');
 						helper.fadeOut('fast', function() {
 							$(this).remove();
 						});
