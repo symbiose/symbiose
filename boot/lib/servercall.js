@@ -66,6 +66,27 @@ Webos.ServerCall.prototype = {
 		
 		that.notify('start');
 		
+		for (var i = 0; i < Webos.ServerCall.list.length; i++) {
+			var call = Webos.ServerCall.list[i];
+			
+			if (call.status == 1 && call.id != this.id) {
+				var isEqual = true;
+				for (var attr in call.data) {
+					if (call.data[attr] != this.data[attr]) {
+						isEqual = false;
+						break;
+					}
+				}
+				
+				if (isEqual) {
+					call.bind('complete', function() {
+						that._complete(call.response, callback);
+					});
+					return;
+				}
+			}
+		}
+		
 		$.ajax({
 			url: that.url,
 			data: that.data,
