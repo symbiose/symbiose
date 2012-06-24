@@ -283,8 +283,11 @@ body {
 	background-color: rgba(0, 0, 0, 0.5);
 }
 #shell .launcher li {
+	width: 48px;
+	height: 48px;
 	padding: 2px;
 	margin: 3px;
+	text-align: center;
 }
 #shell .launcher li:hover {
 	-moz-border-radius: 3px;
@@ -298,7 +301,7 @@ body {
 	background-repeat: no-repeat;
 }
 #shell .launcher li img {
-	width: 48px;
+	max-width: 48px;
 	height: 48px;
 }
 
@@ -318,20 +321,30 @@ body {
 #gnome-shell-overlay div .window-label {
 	text-align: center;
 	width: 100%;
-	position: relative;
+	position: absolute;
 	top: 100%;
+	max-height: 27px;
+	overflow: hidden;
 }
 #gnome-shell-overlay div .window-label span {
 	display: inline-block;
 	color: white;
+	font-weight: bold;
 	background-color: black;
-	background-color: rgba(0, 0, 0, 0.7);
-	border: 1px solid #333333;
-	padding: 2px 5px;
+	background-color: rgba(0, 0, 0, 0.4);
+	padding: 2px 12px;
 	margin-top: 5px;
-	-moz-border-radius: 11px;
-	-webkit-border-radius: 11px;
-	border-radius: 11px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	border-radius: 8px;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 #gnome-shell-overlay div .icon {
 	display: none;
