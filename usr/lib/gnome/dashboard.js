@@ -1,12 +1,12 @@
 /**
- * SDashboard represente un tableau de bord.
+ * Webos.Dashboard represente un tableau de bord.
  * @param id L'id du tableau de bord.
  * @param data Les informations sur le tableau de bord.
  * @param applets Les applets contenus dans ce tableau de bord.
  * @author $imon
  * @version 1.0
  */
-function SDashboard(id, data, applets) {
+Webos.Dashboard = function WDashboard(id, data, applets) {
 	this.id = id;
 	this.data = data;
 	this.applets = applets;
@@ -30,27 +30,24 @@ function SDashboard(id, data, applets) {
 	
 	//On initialise le tableau de bord
 	this.init();
-}
+};
 
-SDashboard.userConfigFile = '~/.gnome/dashboards.xml';
-SDashboard.defaultConfigFile = '/usr/etc/gnome/dashboards.xml';
-SDashboard.list = []; //Liste des tableaux de bord
+Webos.Dashboard.list = []; //Liste des tableaux de bord
 
 /**
  * Initialiser tous les tableaux de bord.
  */
-SDashboard.init = function(userCallback) {
-	var successCallback = function(data) {
+Webos.Dashboard.init = function(userCallback) {
+	var initFn = function(data) {
 		data.find('dashboard').each(function() { //Pour chaque tableau de bord
-			var id = parseInt($(this).attr('id'));
-			var data = {};
-			var applets = [];
+			var id = parseInt($(this).attr('id')), data = {}, applets = [];
 			
 			//On stocke les attributs du tableau de bord de cote
 			$(this).find('attributes').find('attribute').each(function() {
 				data[$(this).attr('name')] = $(this).attr('value');
 			});
 			
+			var errors = [];
 			//Pour chaque applet contenu dans ce tableau de bord
 			$(this).find('applets').find('applet').each(function() {
 				var appletData = {};
@@ -63,17 +60,22 @@ SDashboard.init = function(userCallback) {
 				new W.ScriptFile(appletData.library);
 				
 				//Si la bibliotheque est chargee
-				if (typeof window['S'+appletData.name+'Applet'] != 'undefined') {
+				if (typeof Webos.Dashboard.Applet[appletData.name] != 'undefined') {
 					//On initialise l'applet et on l'ajoute a la liste
-					applets.push(new window['S'+appletData.name+'Applet'](appletData));
+					applets.push(new Webos.Dashboard.Applet[appletData.name](appletData));
 				} else {
 					//Sinon on lance une erreur
-					throw new W.Error('Impossible de charger l\'applet "'+appletData.name+'"');
+					errors.push(appletData.name);
 				}
 			});
 			
 			//On ajoute a la liste le tableau de bord
-			SDashboard.list.push(new SDashboard(id, data, applets));
+			Webos.Dashboard.list.push(new Webos.Dashboard(id, data, applets));
+			
+			if (errors.length > 0) {
+				var word = (errors.length > 1) ? 'les applets' : 'l\'applet';
+				throw new W.Error('Impossible de charger '+word+' "'+errors.join('", "')+'"');
+			}
 		});
 		
 		if (typeof userCallback != 'undefined') {
@@ -81,21 +83,27 @@ SDashboard.init = function(userCallback) {
 		}
 	};
 	
-	var callback = new W.Callback(successCallback, function() {
-		new W.XMLFile(SDashboard.defaultConfigFile, new W.Callback(successCallback, function() {
-			throw new W.Error('Fichier de configuration par d&eacute;faut introuvable');
-		}));
+	Webos.User.getLogged(function(user) {
+		if (user) {
+			new W.XMLFile('~/.theme/'+Webos.UserInterface.current.name()+'/dashboards.xml', new W.Callback(initFn, function() {
+				new W.XMLFile('/usr/etc/uis/'+Webos.UserInterface.current.name()+'/dashboards.xml', new W.Callback(initFn, function() {
+					throw new W.Error('Fichier de configuration par d&eacute;faut introuvable');
+				}));
+			}));
+		} else {
+			new W.XMLFile('/usr/etc/uis/'+Webos.UserInterface.current.name()+'/dashboards.xml', new W.Callback(initFn, function() {
+				throw new W.Error('Fichier de configuration par d&eacute;faut introuvable');
+			}));
+		}
 	});
-	
-	new W.XMLFile(SDashboard.userConfigFile, callback);
 };
 
 /**
  * Recuperer la liste des tableaux de bord.
  * @return Array La liste des tableaux de bord.
  */
-SDashboard.getDashboards = function() {
-	return SDashboard.list;
+Webos.Dashboard.getDashboards = function() {
+	return Webos.Dashboard.list;
 };
 
 /**
@@ -103,13 +111,13 @@ SDashboard.getDashboards = function() {
  * @param name Le nom.
  * @return Array La liste des applets correspondants.
  */
-SDashboard.getAppletsByName = function(name) {
-	var list = SDashboard.getDashboards();
+Webos.Dashboard.getAppletsByName = function(name) {
+	var list = Webos.Dashboard.getDashboards();
 	var result = [];
 	
 	for(var i = 0; i < list.length; i++) {
 		var applets = list[i].applets;
-		for (j = 0; j < applets.length; j++) {
+		for (var j = 0; j < applets.length; j++) {
 			if (applets[j].getName() == name) {
 				result.push(applets[j]);
 			}
@@ -120,10 +128,10 @@ SDashboard.getAppletsByName = function(name) {
 };
 
 /**
- * SApplet represente un applet.
+ * Webos.Dashboard.Applet represente un applet.
  * @param data Les informations sur l'applet (position, etc...)
  */
-function SApplet(data) {
+Webos.Dashboard.Applet = function WApplet(data) {
 	this.data = data;
 	
 	/**
@@ -161,6 +169,6 @@ function SApplet(data) {
 	if (this.data.position == 'right') {
 		this.content.css('float','right');
 	} else {
-		this.content.css('float','left')
+		this.content.css('float','left');
 	}
-}
+};

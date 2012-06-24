@@ -1,11 +1,11 @@
 /**
- * SCalendarApplet represente le menu affichant l'heure.
+ * Webos.Dashboard.Applet.Calendar represente le menu affichant l'heure.
  * @param data Les informations sur l'applet.
  * @author $imon
  * @version 1.0
  */
-function SCalendarApplet(data) {
-	SApplet.call(this, data); //Heritage de SApplet
+Webos.Dashboard.Applet.Calendar = function WCalendarApplet(data) {
+	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 
 	var content = $('<ul></ul>', { 'class': 'menu' });
 	this.content.append(content);
@@ -32,4 +32,4 @@ function SCalendarApplet(data) {
 		}, 60000);
 	};
 	showTime();
-}
+};

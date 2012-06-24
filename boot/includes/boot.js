@@ -1,6 +1,7 @@
 $(function() { //Lorsque tout est pret
 	if (!jQuery.support.ajax) {
-		alert('ajax unsupported !');
+		alert('Votre navigateur ne supporte pas ajax, le webos ne peut donc pas demarrer. Veuillez le mettre a jour.');
+		return;
 	}
 	
 	if (!window.Webos) {
@@ -30,7 +31,7 @@ $(function() { //Lorsque tout est pret
 	var locationArray = actualLocation.split('/');
 	var page = locationArray.pop();
 	
-	var ui;
+	var ui = null;
 	if (/\?ui=[a-zA-Z0-9-_.]&?/.test(page)) {
 		ui = page.replace(/\?ui=([a-zA-Z0-9-_.])&?/, '$1');
 	}

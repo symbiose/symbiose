@@ -1,11 +1,11 @@
 /**
- * SGnomeShellPanelApplet represente le menu principal de GNOME Shell.
+ * Webos.Dashboard.Applet.GnomeShellPanel represente le menu principal de GNOME Shell.
  * @param data Les informations sur l'applet.
  * @author $imon
  * @version 1.0
  */
-function SGnomeShellPanelApplet(data) {
-	SApplet.call(this, data); //Heritage de SApplet
+Webos.Dashboard.Applet.GnomeShellPanel = function WGnomeShellPanelApplet(data) {
+	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
 	new Webos.ScriptFile('usr/lib/gnome-shell/shell.js');
 	
@@ -92,4 +92,4 @@ function SGnomeShellPanelApplet(data) {
 			appMenuWindow = undefined;
 		}
 	});
-}
+};

@@ -1,11 +1,11 @@
 /**
- * SWindowsButtonsApplet represente la barre contenant les boutons des fenetres.
+ * Webos.Dashboard.Applet.WindowsButtons represente la barre contenant les boutons des fenetres.
  * @param data Les informations sur l'applet.
  * @author $imon
  * @version 1.0
  */
-function SWindowsButtonsApplet(data) {
-	SApplet.call(this, data); //Heritage de SApplet
+Webos.Dashboard.Applet.WindowsButtons = function WWindowsButtonsApplet(data) {
+	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
 	var $buttons = $('<span></span>', { 'class': 'windows-buttons' });
 	

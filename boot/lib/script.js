@@ -40,10 +40,6 @@ Webos.Script.runScript = function runScript(js) {
 };
 
 Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Javascript
-	if (typeof W.ScriptFile._cache[path] != 'undefined') {
-		return W.ScriptFile._cache[path];
-	}
-	
 	this.run = function() {
 		if (this._js) {
 			var js = 'try {'+this._js+"\n"+'} catch(error) { W.Error.catchError(error); }';
@@ -52,6 +48,13 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 	};
 	
 	this._js = null;
+	this.path = path;
+	
+	if (typeof W.ScriptFile._cache[path] != 'undefined') {
+		this._js = W.ScriptFile._cache[path]._js;
+		this.run();
+		return;
+	}
 	
 	Webos.ScriptFile._cache[path] = this;
 	
@@ -96,6 +99,7 @@ Webos.ScriptFile.load = function() {
 			}
 		}), function(response) {
 			var js = response.getStandardChannel();
+			
 			if (js) {
 				js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
 				Webos.Script.runScript(js);

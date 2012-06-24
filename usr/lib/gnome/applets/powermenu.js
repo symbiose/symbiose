@@ -1,17 +1,17 @@
 /**
- * SPowerMenuApplet represente le menu permettant de controller le webos.
+ * Webos.Dashboard.Applet.PowerMenu represente le menu permettant de controller le webos.
  * @param data Les informations sur l'applet.
  * @author $imon
  * @version 1.0
  */
-function SPowerMenuApplet(data) {
-	SApplet.call(this, data); //Heritage de SApplet
+Webos.Dashboard.Applet.PowerMenu = function WPowerMenuApplet(data) {
+	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
 	var content = $('<ul></ul>', { 'class': 'menu', id: 'powermenu' });
 	this.content.append(content);
 	
 	var button = $('<li></li>').appendTo(content);
-	var buttonContent = $('<a></a>', { href: '#', 'class': 'powerbutton' }).html('<img src="usr/share/images/gnome/disconnect.png" alt=""/>').appendTo(button);
+	$('<a></a>', { href: '#', 'class': 'powerbutton' }).html('<img src="usr/share/images/gnome/disconnect.png" alt=""/>').appendTo(button);
 	var menu = $('<ul></ul>').appendTo(button);
 	
 	var callback = new W.Callback(function(user) {
@@ -32,4 +32,4 @@ function SPowerMenuApplet(data) {
 		}).appendTo(reboot);
 	}, function() {});
 	W.User.get(callback);
-}
+};

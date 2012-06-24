@@ -1,11 +1,11 @@
 /**
- * SMainMenuApplet represente le menu principal de GNOME.
+ * Webos.Dashboard.Applet.MainMenu represente le menu principal de GNOME.
  * @param data Les informations sur l'applet.
  * @author $imon
  * @version 1.0
  */
-function SMainMenuApplet(data) {
-	SApplet.call(this, data); //Heritage de SApplet
+Webos.Dashboard.Applet.MainMenu = function WMainMenuApplet(data) {
+	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
 	var menuContent = $('<ul></ul>', { 'class': 'menu' });
 	this.content.append(menuContent);
@@ -76,4 +76,4 @@ function SMainMenuApplet(data) {
 		method: 'get',
 		arguments: {}
 	}).load(callback);
-}
+};

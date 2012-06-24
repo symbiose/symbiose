@@ -64,7 +64,7 @@ Webos.UserInterface.current = undefined;
 Webos.UserInterface.list = [];
 Webos.UserInterface.load = function(name) {
 	var args = {};
-	if (typeof name !== 'undefined') {
+	if (name) {
 		args.ui = name;
 	}
 	

@@ -14,10 +14,11 @@ W.Theme.get(new W.Callback(function(theme) {
 }));
 
 //On definit la hauteur du bureau
-$(window).resize(function() {
+var resizeDesktopFn = function() {
 	$('#desktop').height($(window).height() - $('#header').outerHeight());
 	$('#desktop .nautilus').height($(window).height() - $('#header').outerHeight() - 20);
-});
+};
+$(window).resize(resizeDesktopFn);
 
 //On cree 2 espaces de travail
 var workspaceId = new SWorkspace().id;
@@ -42,9 +43,7 @@ W.User.getLogged(new W.Callback(function(user) {
 }, function() {}));
 
 //On initialise les tableaux de bord
-SDashboard.userConfigFile = '~/.theme/gnome-shell/dashboards.xml';
-SDashboard.defaultConfigFile = '/usr/etc/uis/gnome-shell/dashboards.xml';
-SDashboard.init();
+Webos.Dashboard.init();
 
 //On definit la fonction de gestion des erreurs
 Webos.Error.setErrorHandler(function(error) {
@@ -98,5 +97,6 @@ Webos.Error.setErrorHandler(function(error) {
 });
 
 W.ServerCall.bind('complete', function() {
+	resizeDesktopFn();
 	W.UserInterface.current.loaded();
 });

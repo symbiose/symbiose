@@ -1,11 +1,11 @@
 /**
- * SMeMenuApplet represente le menu utilisateur.
+ * Webos.Dashboard.Applet.MeMenu represente le menu utilisateur.
  * @param data Les informations sur l'applet.
  * @author $imon
  * @version 1.0
  */
-function SMeMenuApplet(data) {
-	SApplet.call(this, data); //Heritage de SApplet
+Webos.Dashboard.Applet.MeMenu = function SMeMenuApplet(data) {
+	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
 	var content = $('<ul></ul>', { 'class': 'menu' });
 	this.content.append(content);
@@ -32,4 +32,4 @@ function SMeMenuApplet(data) {
 
 		W.User.get(callback);
 	});
-}
+};

@@ -14,11 +14,11 @@ W.Theme.get(new W.Callback(function(theme) {
 }));
 
 //On definit la hauteur du bureau
-$(window).resize(function() {
-	$('#desktop').height($(window).height() - $('#header').outerHeight() - $('#footer').outerHeight()); //On enleve 50px : 25 * 2 pour les barres haut et bas
-	$('#desktop .nautilus').height($(window).height() - $('#header').outerHeight() - $('#footer').outerHeight() - 20); //On enleve 70px : 25 * 2 pour les barres haut et bas + 20 pour le margin
-});
-$(window).trigger('resize');
+var resizeDesktopFn = function() {
+	$('#desktop').height($(window).height() - $('#header').outerHeight(true) - $('#footer').outerHeight(true)); //On enleve 50px : 25 * 2 pour les barres haut et bas
+	$('#desktop .nautilus').height($(window).height() - $('#header').outerHeight(true) - $('#footer').outerHeight(true)); //On enleve 70px : 25 * 2 pour les barres haut et bas + 20 pour le margin
+};
+$(window).resize(resizeDesktopFn);
 
 //On cree 2 espaces de travail
 var workspaceId = new SWorkspace().id;
@@ -43,9 +43,7 @@ W.User.getLogged(new W.Callback(function(user) {
 }, function() {}));
 
 //On initialise les tableaux de bord
-SDashboard.userConfigFile = '~/.theme/gnome-panel/dashboards.xml';
-SDashboard.defaultConfigFile = '/usr/etc/uis/gnome-panel/dashboards.xml';
-SDashboard.init();
+Webos.Dashboard.init();
 
 //On definit la fonction de gestion des erreurs
 Webos.Error.setErrorHandler(function(error) {
@@ -91,5 +89,6 @@ Webos.Error.setErrorHandler(function(error) {
 });
 
 W.ServerCall.bind('complete', function() {
+	resizeDesktopFn();
 	W.UserInterface.current.loaded();
 });

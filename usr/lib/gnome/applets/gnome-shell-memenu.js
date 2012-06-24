@@ -1,11 +1,11 @@
 /**
- * SMeMenuApplet represente le menu utilisateur de GNOME Shell.
+ * Webos.Dashboard.Applet.GnomeShellMeMenu represente le menu utilisateur de GNOME Shell.
  * @param data Les informations sur l'applet.
  * @author $imon
  * @version 1.0
  */
-function SGnomeShellMeMenuApplet(data) {
-	SApplet.call(this, data); //Heritage de SApplet
+Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data) {
+	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
 	var content = $('<ul></ul>', { 'class': 'menu' });
 	this.content.append(content);
@@ -96,4 +96,4 @@ function SGnomeShellMeMenuApplet(data) {
 	}, function() {});
 
 	W.User.get(callback);
-}
+};

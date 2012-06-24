@@ -1,11 +1,11 @@
 /**
- * SDesktopButtonApplet represente le bouton permettantd'afficher ou cacher toutes les fenetres.
+ * Webos.Dashboard.Applet.DesktopButton represente le bouton permettantd'afficher ou cacher toutes les fenetres.
  * @param data Les donnees de l'applet.
  * @author $imon
  * @version 1.0
  */
-function SDesktopButtonApplet(data) {
-	SApplet.call(this, data); //Heritage de SApplet
+Webos.Dashboard.Applet.DesktopButton = function WDesktopButtonApplet(data) {
+	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
 	var showed = {};
 	var button = $('<span></span>', { 'class': 'desktop-button' }).click(function() {
@@ -26,4 +26,4 @@ function SDesktopButtonApplet(data) {
 	});
 	var separator = $('<img />', { src: 'usr/share/images/gnome/separator.png', 'class': 'separator' });
 	this.content.append(button).append(separator);
-}
+};

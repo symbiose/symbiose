@@ -71,7 +71,7 @@ class UserInterface extends \lib\WebosComponent {
 			$file = $this->webos->managers()->get('File')->get($include->getAttribute('path'));
 			switch($file->extension()) {
 				case 'js':
-					$this->js[] = $file->contents(); //On ajoute le code JS
+					$this->js[$file->path()] = $file->contents(); //On ajoute le code JS
 					break;
 				case 'css':
 					$this->css[] = $file->contents(); //On ajoute le fichier CSS a la liste
@@ -86,7 +86,7 @@ class UserInterface extends \lib\WebosComponent {
 		//Code Javascript
 		if ($this->webos->managers()->get('File')->exists($this->_getInterfaceRoot().'/index.js')) {
 			$jsFile = $this->webos->managers()->get('File')->get($this->_getInterfaceRoot().'/index.js');
-			$this->js[] = $jsFile->contents();
+			$this->js[$jsFile->path()] = $jsFile->contents();
 		}
 	}
 
