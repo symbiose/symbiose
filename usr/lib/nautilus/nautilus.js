@@ -870,7 +870,6 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				
 				exeWindow.window('open');
 			} else {
-				var that = this;
 				runOpenerFn();
 			}
 		}
@@ -894,7 +893,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				}
 				
 				fileOpenerWindow.window('close');
-				W.Cmd.execute('"'+chosenCmd+'" "'+file.get('path')+'"');
+				W.Cmd.execute(chosenCmd+' "'+file.get('path')+'"');
 			}).appendTo(fileOpenerWindow.window('content'));
 			
 			content.append('<strong>Choisissez une application pour ouvrir '+file.get('basename')+'</strong>');
