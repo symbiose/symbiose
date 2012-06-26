@@ -5,7 +5,7 @@
  */
 
 new W.ScriptFile('usr/lib/codemirror/codemirror.js');
-new W.Stylesheet('usr/share/css/codemirror/main.css');
+new W.Stylesheet('/usr/share/css/codemirror/main.css');
 
 var geditProperties = $.webos.extend(containerProperties, {
 	_name: 'gedit',
@@ -80,6 +80,15 @@ var geditProperties = $.webos.extend(containerProperties, {
 			return this.options._components.codemirror.getValue();
 		} else {
 			this.options._components.codemirror.setValue(value);
+		}
+	},
+	codemirror: function(method) {
+		var args = [];
+		for (var i = 1; i < arguments.length; i++) {
+			args.push(arguments[i]);
+		}
+		if (this.options._components.codemirror[method]) {
+			return this.options._components.codemirror[method].apply(this.options._components.codemirror, arguments);
 		}
 	},
 	_update: function(key, value) {
@@ -457,6 +466,45 @@ function GEditWindow(file) {
 		}
 	}).bind('geditopenfile', function() {
 		that._content.scrollPane('reload');
+	}).bind('mousedown', function() {
+		var speed = 0.75;
+		var offset = that._content.offset(), dimentions = {
+			width: that._content.width(),
+			height: that._content.height()
+		};
+		var distanceX = 0, distanceY = 0;
+		
+		var timer = setInterval(function() {
+			if (distanceX != 0) {
+				that._content.scrollPane('scrollByX', distanceX * speed, false);
+			}
+			if (distanceY != 0) {
+				that._content.scrollPane('scrollByY', distanceY * speed, false);
+			}
+		}, 100);
+		$(document).bind('mousemove.gedit.webos', function(e) {
+			if (e.pageX < offset.left) {
+				distanceX = e.pageX - offset.left;
+			} else if (e.pageX > offset.left + dimentions.width) {
+				distanceX = e.pageX - (offset.left + dimentions.width);
+			} else {
+				distanceX = 0;
+			}
+			
+			console.log(e.pageY, offset.top, offset.top + dimentions.height);
+			if (e.pageY < offset.top) {
+				distanceY = e.pageY - offset.top;
+			} else if (e.pageY > offset.top + dimentions.height) {
+				distanceY = e.pageY - (offset.top + dimentions.height);
+			} else {
+				distanceY = 0;
+			}
+			console.log(distanceX, distanceY);
+		});
+		$(document).one('mouseup', function() {
+			$(document).unbind('mousemove.gedit.webos');
+			clearInterval(timer);
+		});
 	});
 	
 	this._content.scrollPane({
