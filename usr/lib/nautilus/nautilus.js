@@ -458,7 +458,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					$(document).click(onDocClickFn);
 				}, 0);
 				
-				var input = $('<input />', { type: 'text' }).keypress(function(e) {
+				var input = $('<input />', { type: 'text' }).keydown(function(e) {
 					if (e.keyCode == 13) {
 						$(document).unbind('click', onDocClickFn);
 						renameFn();
@@ -1091,7 +1091,8 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 	options: {
 		selectDirs: false,
 		selectMultiple: false,
-		exists: true
+		exists: true,
+		extensions: null
 	},
 	_create: function() {
 		var that = this;
@@ -1124,6 +1125,11 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 					return false;
 				}
 			});
+			if (this.options.selectMultiple) {
+				$(this).nautilus('items').click(function() {
+					$(this).toggleClass('active');
+				});
+			}
 		});
 		
 		this.options._components.buttons = {};
@@ -1169,7 +1175,30 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 		if (typeof selection == 'undefined' || selection.length == 0) {
 			return;
 		}
-		that._trigger('select', null, { selection: selection, parentDir: that.options._components.nautilus.nautilus('location') });
+		if (this.options.extensions && this.options.extensions.length > 0) {
+			var checkExtsFn = function(file) {
+				for (var i = 0; i < that.options.extensions.length; i++) {
+					if (that.options.extensions[i] == file.get('extension')) {
+						return true;
+					}
+				}
+				
+				return false;
+			};
+			
+			if (this.options.selectMultiple) {
+				for (var i = 0; i < selection.length; i++) {
+					if (!checkExtsFn(selection[i])) {
+						return;
+					}
+				}
+			} else {
+				if (!checkExtsFn(selection)) {
+					return;
+				}
+			}
+		}
+		this._trigger('select', null, { selection: selection, parentDir: that.options._components.nautilus.nautilus('location') });
 	},
 	nautilus: function() {
 		return this.options._components.nautilus;
@@ -1272,7 +1301,8 @@ function NautilusFileSelectorWindow(options, userCallback) {
 		},
 		selectDirs: options.selectDirs,
 		selectMultiple: options.selectMultiple,
-		exists: options.exists
+		exists: options.exists,
+		extensions: options.extensions
 	});
 	
 	var nautilus = this._nautilus.nautilusFileSelector('nautilus');
