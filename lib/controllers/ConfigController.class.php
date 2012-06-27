@@ -43,7 +43,7 @@ class ConfigController extends \lib\ServerCallComponent {
 	 * @param string $base Le chemin vers le fichier servant de modele si le fichier de configuration utilisateur n'existe pas.
 	 */
 	protected function getUserConfig($path, $base) {
-		$config = new \lib\models\Config($this->webos);
+		$config = new Config($this->webos);
 
 		if (!$this->webos->getUser()->isConnected()) {
 			$config->load($base);
