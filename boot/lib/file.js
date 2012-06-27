@@ -1,18 +1,18 @@
 /**
- * CrÈe une instance de Webos.File.
- * @param {Object} data Les donnÈes sur le fichier.
+ * Cr√©e une instance de Webos.File.
+ * @param {Object} data Les donn√©es sur le fichier.
  * @since 1.0 alpha 1
  * @constructor
  */
 Webos.File = function WFile(data) {
-	data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin reÁu
-	if (!data.dirname) { //On dÈfinit automatiquement le dossier p‚rent si non prÈsent
+	data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin re√©u
+	if (!data.dirname) { //On d√©finit automatiquement le dossier p√©rent si non pr√©sent
 		data.dirname = data.path.replace(/\/[^\/]*\/?$/, '');
 	}
-	if (!data.realpath) { //On dÈfinit automatiquement le chemin rÈel si non prÈsent
+	if (!data.realpath) { //On d√©finit automatiquement le chemin r√©el si non pr√©sent
 		data.realpath = 'sbin/filecall.php?file='+data.path;
 	}
-	if (!data.basename) { //On dÈfinit automatiquement le nom du fichier si non prÈsent
+	if (!data.basename) { //On d√©finit automatiquement le nom du fichier si non pr√©sent
 		data.basename = data.path.replace(/^.*[\/\\]/g, '');
 	}
 	
@@ -21,7 +21,7 @@ Webos.File = function WFile(data) {
 Webos.File.prototype = {
 	/**
 	 * Charge les informations sur les fichiers.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe une fois que les informations seront chargÈes.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e une fois que les informations seront charg√©es.
 	 */
 	load: function(callback) {
 		var that = this;
@@ -47,7 +47,7 @@ Webos.File.prototype = {
 	/**
 	 * Renomme le fichier.
 	 * @param {String} newName Le nouveau nom.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe une fois que le fichier sera renommÈ.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e une fois que le fichier sera renomm√©.
 	 */
 	rename: function(newName, callback) {
 		var that = this;
@@ -74,9 +74,9 @@ Webos.File.prototype = {
 		}]);
 	},
 	/**
-	 * DÈplacer le fichier.
+	 * D√©placer le fichier.
 	 * @param {String} dest La destination du fichier.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe une fois que le fichier sera dÈplacÈ.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e une fois que le fichier sera d√©plac√©.
 	 */
 	move: function(dest, callback) {
 		var that = this;
@@ -98,7 +98,7 @@ Webos.File.prototype = {
 	},
 	/**
 	 * Supprimer le fichier.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe une fois que le fichier sera dÈplacÈ.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e une fois que le fichier sera d√©plac√©.
 	 */
 	remove: function(callback) {
 		var that = this;
@@ -125,8 +125,8 @@ Webos.File.prototype = {
 		delete this;
 	},
 	/**
-	 * RÈcupÈrer le contenu du fichier.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe avec en argument le contenu du fichier. Si c'est un dossier, un tableau de fichiers sera fournit.
+	 * R√©cup√©rer le contenu du fichier.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e avec en argument le contenu du fichier. Si c'est un dossier, un tableau de fichiers sera fournit.
 	 */
 	contents: function(callback) {
 		var that = this;
@@ -172,16 +172,16 @@ Webos.File.prototype = {
 		}
 	},
 	/**
-	 * RÈcupÈrer le contenu du fichier.
+	 * R√©cup√©rer le contenu du fichier.
 	 * @deprecated Depuis la version 1.0 alpha 3, il faut utiliser Webos.File#contents().
 	 */
 	getContents: function(callback) {
 		return this.contents(callback);
 	},
 	/**
-	 * DÈfinir le contenu du fichier.
+	 * D√©finir le contenu du fichier.
 	 * @param {String} contents Le contenu.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe une fois que le fichier sera modifiÈ.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e une fois que le fichier sera modifi√©.
 	 */
 	setContents: function(contents, callback) {
 		var that = this;
@@ -204,7 +204,7 @@ Webos.File.prototype = {
 		return this.get('path');
 	}
 };
-Webos.inherit(Webos.File, Webos.Model); //HÈritage de Webos.Model
+Webos.inherit(Webos.File, Webos.Model); //H√©ritage de Webos.Model
 
 Webos.Observable.build(Webos.File); //On construit un objet observable depuis Webos.File
 
@@ -214,33 +214,33 @@ Webos.Observable.build(Webos.File); //On construit un objet observable depuis We
  */
 Webos.File._cache = {};
 /**
- * RÈcupÈrer un fichier.
+ * R√©cup√©rer un fichier.
  * @param file Le chemin vers le fichier.
- * @param {Object} [data] Les donnÈes sur le fichier.
+ * @param {Object} [data] Les donn√©es sur le fichier.
  */
 Webos.File.get = function(file, data) {
 	path = String(file);
 	
 	if (Webos.File._cache[path]) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
-	} else if (file instanceof Webos.File) { //Si c'est dÈj‡ un objet Webos.File, on le retourne directement
+	} else if (file instanceof Webos.File) { //Si c'est d√©j√© un objet Webos.File, on le retourne directement
 		return file;
-	} else { //Sinon, on crÈe un nouvel objet
+	} else { //Sinon, on cr√©e un nouvel objet
 		return new Webos.File($.extend({}, data, {
 			path: path
 		}));
 	}
 };
 /**
- * Charger les donnÈes sur un fichier.
+ * Charger les donn√©es sur un fichier.
  * @param {String} path Le chemin vers le fichier.
- * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe avec en argument le fichier.
+ * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e avec en argument le fichier.
  */
 Webos.File.load = function(path, callback) {
 	path = String(path);
 	callback = Webos.Callback.toCallback(callback);
 	
-	if (typeof Webos.File._cache[path] != 'undefined') { //Si le fichier est dÈj‡ dans le cache, on le retourne
+	if (typeof Webos.File._cache[path] != 'undefined') { //Si le fichier est d√©j√© dans le cache, on le retourne
 		callback.success(Webos.File._cache[path]);
 	} else { //Sinon, on le charge
 		new Webos.ServerCall({
@@ -268,22 +268,22 @@ Webos.File.load = function(path, callback) {
 /**
  * Lister le contenu d'un dossier.
  * @param path Le chemin vers le dossier.
- * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe avec en argument le contenu du dossier.
+ * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e avec en argument le contenu du dossier.
  */
 Webos.File.listDir = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
 	var file = Webos.File.get(path, { is_dir: true }); //On construit notre objet
 
-	//Puis on rÈcupËre son contenu
+	//Puis on r√©cup√©re son contenu
 	file.contents([function(list) {
 		callback.success(list);
 	}, callback.error]);
 };
 /**
- * CrÈer un fichier vide.
+ * Cr√©er un fichier vide.
  * @param path Le chemin vers le nouveau fichier.
- * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe une fois que le fichier sera crÈÈ.
+ * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e une fois que le fichier sera cr√©√©.
  */
 Webos.File.createFile = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
@@ -304,9 +304,9 @@ Webos.File.createFile = function(path, callback) {
 	}));
 };
 /**
- * CrÈer un nouveau dossier.
+ * Cr√©er un nouveau dossier.
  * @param path Le chemin vers le nouveau dossier.
- * @param {Webos.Callback} callback La fonction de rappel qui sera appelÈe une fois que le dossier sera crÈÈ.
+ * @param {Webos.Callback} callback La fonction de rappel qui sera appel√©e une fois que le dossier sera cr√©√©.
  */
 Webos.File.createFolder = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
@@ -327,8 +327,8 @@ Webos.File.createFolder = function(path, callback) {
 	}));
 };
 /**
- * Vider le cache interne de la bibliothËque des fichiers.
- * @param {String} [path] Si spÈcifiÈ, seul le cache du fichier ayant ce chemin sera vidÈ.
+ * Vider le cache interne de la biblioth√©que des fichiers.
+ * @param {String} [path] Si sp√©cifi√©, seul le cache du fichier ayant ce chemin sera vid√©.
  */
 Webos.File.clearCache = function(path) {
 	if (typeof path == 'undefined') {
@@ -339,8 +339,8 @@ Webos.File.clearCache = function(path) {
 };
 /**
  * Nettoyer un chemin.
- * @param {String} path Le chemin ‡ nettoyer.
- * @returns {String} Le chemin nettoyÈ.
+ * @param {String} path Le chemin a nettoyer.
+ * @returns {String} Le chemin nettoy√©.
  */
 Webos.File.cleanPath = function(path) {
 	return path
@@ -350,9 +350,9 @@ Webos.File.cleanPath = function(path) {
 		.replace(/(.+)\/$/, '$1');
 };
 /**
- * Convertir une taille en octets vers une taille lisible par un Ítre humain (ex : 1024 -> 1 Kio).
- * @param {Number} bytes La taille en octets ‡ convertir.
- * @returns {String} La taille convertie, suivie de l'unitÈ.
+ * Convertir une taille en octets vers une taille lisible par un √©tre humain (ex : 1024 -> 1 Kio).
+ * @param {Number} bytes La taille en octets a convertir.
+ * @returns {String} La taille convertie, suivie de l'unit√©.
  */
 Webos.File.bytesToSize = function(bytes) {
 	var sizes = [ 'octets', 'Kio', 'Mio', 'Gio', 'Tio', 'Pio', 'Eio', 'Zio', 'Yio' ];
