@@ -1,4 +1,4 @@
-Symbiose 1.0 alpha 2
+Symbiose 1.0 alpha 3
 ====================
 
 This version (alpha) is unstable.  
