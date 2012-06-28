@@ -211,6 +211,7 @@ Webos.Observable.build(Webos.File); //On construit un objet observable depuis We
 /**
  * Cache des fichiers.
  * @private
+ * @static
  */
 Webos.File._cache = {};
 /**
@@ -218,6 +219,7 @@ Webos.File._cache = {};
  * @param file Le chemin vers le fichier.
  * @param {Object} [data] Les données sur le fichier.
  * @returns {Webos.File} Le fichier.
+ * @static
  */
 Webos.File.get = function(file, data) {
 	path = String(file);
@@ -236,6 +238,7 @@ Webos.File.get = function(file, data) {
  * Charger les données sur un fichier.
  * @param {String} path Le chemin vers le fichier.
  * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le fichier.
+ * @static
  */
 Webos.File.load = function(path, callback) {
 	path = String(path);
@@ -270,6 +273,7 @@ Webos.File.load = function(path, callback) {
  * Lister le contenu d'un dossier.
  * @param path Le chemin vers le dossier.
  * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le contenu du dossier.
+ * @static
  */
 Webos.File.listDir = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
@@ -285,6 +289,7 @@ Webos.File.listDir = function(path, callback) {
  * Créer un fichier vide.
  * @param path Le chemin vers le nouveau fichier.
  * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera créé.
+ * @static
  */
 Webos.File.createFile = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
@@ -308,6 +313,7 @@ Webos.File.createFile = function(path, callback) {
  * Créer un nouveau dossier.
  * @param path Le chemin vers le nouveau dossier.
  * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le dossier sera créé.
+ * @static
  */
 Webos.File.createFolder = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
@@ -330,6 +336,7 @@ Webos.File.createFolder = function(path, callback) {
 /**
  * Vider le cache interne de la bibliothéque des fichiers.
  * @param {String} [path] Si spécifié, seul le cache du fichier ayant ce chemin sera vidé.
+ * @static
  */
 Webos.File.clearCache = function(path) {
 	if (typeof path == 'undefined') {
@@ -342,6 +349,7 @@ Webos.File.clearCache = function(path) {
  * Nettoyer un chemin.
  * @param {String} path Le chemin a nettoyer.
  * @returns {String} Le chemin nettoyé.
+ * @static
  */
 Webos.File.cleanPath = function(path) {
 	return path
@@ -354,6 +362,7 @@ Webos.File.cleanPath = function(path) {
  * Convertir une taille en octets vers une taille lisible par un étre humain (ex : 1024 -> 1 Kio).
  * @param {Number} bytes La taille en octets a convertir.
  * @returns {String} La taille convertie, suivie de l'unité.
+ * @static
  */
 Webos.File.bytesToSize = function(bytes) {
 	var sizes = [ 'octets', 'Kio', 'Mio', 'Gio', 'Tio', 'Pio', 'Eio', 'Zio', 'Yio' ];
