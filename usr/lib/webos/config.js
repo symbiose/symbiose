@@ -1,14 +1,25 @@
+/**
+ * Crée une instance de Webos.ConfigFile.
+ * @param {Object} data La configuration.
+ * @param {Webos.File} file Le fichier associé.
+ * @since 1.0 alpha 3
+ * @constructor
+ */
 Webos.ConfigFile = function WConfigFile(data, file) {
 	Webos.Model.call(this, data);
 	
 	this._file = file;
 };
 Webos.ConfigFile.prototype = {
+	/**
+	 * Charger la configuration depuis le serveur.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que la configuration sera chargée.
+	 */
 	load: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		var that = this;
 		
-		if (Webos.ConfigFile._cache[this._file.get('path')]) {
+		if (Webos.ConfigFile._cache[this._file.get('path')]) { //Si la configuration est déja chargée, pas besoin de le faire une deuxieme fois
 			callback.success(Webos.ConfigFile._cache[this._file.get('path')]);
 		} else {
 			new Webos.ServerCall({
@@ -32,6 +43,10 @@ Webos.ConfigFile.prototype = {
 			}, callback.error));
 		}
 	},
+	/**
+	 * Envoyer les modifications de la configuration vers le serveur.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que les modifications seront envoyées.
+	 */
 	sync: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
@@ -71,9 +86,19 @@ Webos.ConfigFile.prototype = {
 		}, callback.error));
 	}
 };
-Webos.inherit(Webos.ConfigFile, Webos.Model);
+Webos.inherit(Webos.ConfigFile, Webos.Model); //Heritage de Webos.Model
 
+/**
+ * Cache des fichiers de configuration.
+ * @private
+ */
 Webos.ConfigFile._cache = {};
+/**
+ * Recuperer un fichier de configuration.
+ * @param path Le chemin vers le fichier.
+ * @param {Object} [data] La configuration du fichier.
+ * @returns {Webos.ConfigFile} Le fichier de configuration.
+ */
 Webos.ConfigFile.get = function(path, data) {
 	var file = Webos.File.get(path);
 	
@@ -83,6 +108,11 @@ Webos.ConfigFile.get = function(path, data) {
 		return new Webos.ConfigFile($.extend({}, data), file);
 	}
 };
+/**
+ * Charger un fichier de configuration.
+ * @param path Le chemin vers le fichier.
+ * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le fichier de configuration.
+ */
 Webos.ConfigFile.load = function(path, callback) {
 	var file = Webos.File.get(path);
 	callback = Webos.Callback.toCallback(callback);
@@ -103,6 +133,12 @@ Webos.ConfigFile.load = function(path, callback) {
 		}, callback.error));
 	}
 };
+/**
+ * Charger un fichier de configuration utilisateur.
+ * @param path Le chemin vers le fichier de configuration utilisateur (doit se situer dans son dossier personnel, ~).
+ * @param basePath Le chemin vers le modele du fichier de configuration, au cas ou l'utilisateur n'est pas connecte ou le fichier n'existe pas.
+ * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le fichier de configuration.
+ */
 Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
 	var file = Webos.File.get(path), baseFile = Webos.File.get(basePath);
 	callback = Webos.Callback.toCallback(callback);
@@ -129,10 +165,14 @@ Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
 		}
 	});
 };
+/**
+ * Vider le cache des fichiers de configuration.
+ */
 Webos.ConfigFile.clearCache = function() {
 	Webos.ConfigFile._cache = {};
 };
 
+//Lorsque l'utilisateur quitte sa session, on vide le cache
 Webos.User.bind('logout', function() {
 	Webos.ConfigFile.clearCache();
 });
