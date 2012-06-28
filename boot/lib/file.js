@@ -5,7 +5,7 @@
  * @constructor
  */
 Webos.File = function WFile(data) {
-	data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin reéu
+	data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
 	if (!data.dirname) { //On définit automatiquement le dossier pérent si non présent
 		data.dirname = data.path.replace(/\/[^\/]*\/?$/, '');
 	}
@@ -217,13 +217,14 @@ Webos.File._cache = {};
  * Récupérer un fichier.
  * @param file Le chemin vers le fichier.
  * @param {Object} [data] Les données sur le fichier.
+ * @returns {Webos.File} Le fichier.
  */
 Webos.File.get = function(file, data) {
 	path = String(file);
 	
 	if (Webos.File._cache[path]) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
-	} else if (file instanceof Webos.File) { //Si c'est déjé un objet Webos.File, on le retourne directement
+	} else if (file instanceof Webos.File) { //Si c'est déja un objet Webos.File, on le retourne directement
 		return file;
 	} else { //Sinon, on crée un nouvel objet
 		return new Webos.File($.extend({}, data, {
@@ -240,7 +241,7 @@ Webos.File.load = function(path, callback) {
 	path = String(path);
 	callback = Webos.Callback.toCallback(callback);
 	
-	if (typeof Webos.File._cache[path] != 'undefined') { //Si le fichier est déjé dans le cache, on le retourne
+	if (typeof Webos.File._cache[path] != 'undefined') { //Si le fichier est déja dans le cache, on le retourne
 		callback.success(Webos.File._cache[path]);
 	} else { //Sinon, on le charge
 		new Webos.ServerCall({
