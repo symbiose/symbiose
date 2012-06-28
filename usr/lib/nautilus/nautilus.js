@@ -271,7 +271,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 							title: 'Fichier envoy&eacute;',
 							message: 'Le fichier '+newFile.get('basename')+' a &eacute;t&eacute; envoy&eacute;.',
 							icon: that._getFileIcon(newFile),
-							buttons: [$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
+							widgets: [$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
 							          $.w.button('Ouvrir').click(function() { newItem.data('nautilus').open(); })]
 						});
 					}
@@ -742,7 +742,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 						title: 'Fichier envoy&eacute;',
 						message: 'Le fichier '+newFile.get('basename')+' a &eacute;t&eacute; envoy&eacute;.',
 						icon: that._getFileIcon(newFile),
-						buttons: [$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
+						widgets: [$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
 						          $.w.button('Ouvrir').click(function() { newItem.data('nautilus').open(); })]
 					});
 				}

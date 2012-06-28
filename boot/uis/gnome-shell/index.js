@@ -92,7 +92,7 @@ Webos.Error.setErrorHandler(function(error) {
 	$.w.notification({
 		title: 'Une erreur est survenue',
 		message: message,
-		buttons: [$.w.button('D&eacute;tails').click(function() { openWindowFn(); })]
+		widgets: [$.w.button('D&eacute;tails').click(function() { openWindowFn(); })]
 	});
 });
 

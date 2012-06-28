@@ -1,3 +1,8 @@
+/**
+ * Représente un modèle de données.
+ * @param data Les données.
+ * @contructor
+ */
 Webos.Model = function WModel(data) {
 	Webos.Observable.call(this);
 	
@@ -7,11 +12,20 @@ Webos.Model = function WModel(data) {
 	this.hydrate(data);
 };
 Webos.Model.prototype = {
+	/**
+	 * Définir les données du modèle.
+	 * @param {Object} data Les données.
+	 */
 	hydrate: function(data) {
 		for (var key in data) {
 			this._data[key] = data[key];
 		}
 	},
+	/**
+	 * Récupérer une valeur associée à une clef dans les données du modèle.
+	 * @param key La clef.
+	 * @returns La valeur associées à la clef.
+	 */
 	get: function(key) {
 		if (typeof this[key] == 'function') {
 			return this[key]();
@@ -24,15 +38,37 @@ Webos.Model.prototype = {
 			return this._get(key);
 		}
 	},
+	/**
+	 * Récupérer une valeur associée à une clef dans les données du modèle.
+	 * @param key La clef.
+	 * @returns La valeur associées à la clef.
+	 * @deprecated Depuis la version 1.0 alpha 1, utilisez Model#get().
+	 */
 	getAttribute: function(key) {
 		return this.get(key);
 	},
+	/**
+	 * Récupérer une valeur associée à une clef dans l'objet interne de données du modèle.
+	 * @param key La clef.
+	 * @returns La valeur associées à la clef.
+	 * @private
+	 */
 	_get: function(key) {
 		return this._data[key];
 	},
+	/**
+	 * Récupérer toutes les données du modèle.
+	 * @returns {Object} Les données.
+	 */
 	data: function() {
 		return this._data;
 	},
+	/**
+	 * Définir une valeur associée à une clef dans les données du modèle.
+	 * @param key La clef.
+	 * @param value La nouvelle valeur.
+	 * @returns {Boolean} Vrai si la modification a réussi, faux dans le cas contraire.
+	 */
 	set: function(key, value) {
 		var methodName = 'set' + key.charAt(0).toUpperCase() + key.substr(1);
 		if (this.exists(key) && this.get(key) === value) {
@@ -46,9 +82,20 @@ Webos.Model.prototype = {
 		this._set(key, value);
 		return true;
 	},
+	/**
+	 * Définir une valeur associée à une clef dans l'objet interne de données du modèle.
+	 * @param key La clef.
+	 * @param value La nouvelle valeur.
+	 * @private
+	 */
 	_set: function(key, value) {
 		this._unsynced[key] = { value: value, state: 1 };
 	},
+	/**
+	 * Tester si une clef existe dans les données du modèle.
+	 * @param key La clef.
+	 * @returns {Boolean} Vrai si la clef existe, faux dans le cas contraire.
+	 */
 	exists: function(key) {
 		var methodName = 'get' + key.charAt(0).toUpperCase() + key.substr(1);
 		if (typeof this[methodName] == 'function') {
@@ -59,6 +106,10 @@ Webos.Model.prototype = {
 		}
 		return false;
 	},
+	/**
+	 * Envoyer les modifications effectuées sur le modèle vers le serveur.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que les modifications auront été envoyées.
+	 */
 	sync: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
@@ -66,4 +117,4 @@ Webos.Model.prototype = {
 		callback.success();
 	}
 };
-Webos.inherit(Webos.Model, Webos.Observable);
+Webos.inherit(Webos.Model, Webos.Observable); //Héritage de Webos.Observable

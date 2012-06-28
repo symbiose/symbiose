@@ -52,7 +52,7 @@ $.webos.notification = function(options) {
 	return new SNotification(options);
 };
 
-function SAppIndicator(options) {
+Webos.AppIndicator = function WAppIndicator(options) {
 	this.options = options;
 	
 	this.element = $('<li></li>').appendTo(SIndicator.container);
@@ -68,7 +68,7 @@ function SAppIndicator(options) {
 	if (typeof options.click != 'undefined') {
 		indicator.click(options.click);
 	}
-}
+};
 
 function SIndicator(item) {
 	item.appendTo(SIndicator.container);

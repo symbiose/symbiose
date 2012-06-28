@@ -470,8 +470,7 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 				y: - pos.top
 			};
 		} else {
-			this.scrollToX(pos.x);
-			this.scrollToY(pos.y);
+			this.scrollTo(pos.x, pos.y);
 		}
 	},
 	scrollToX: function(destX, animate) {
@@ -489,6 +488,10 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 		var percentScrolled = destY / (data.paneHeight - data.containerHeight);
 		this.positionDragY(percentScrolled * data.dragMaxY, animate);
+	},
+	scrollTo: function(destX, destY, animate) {
+		this.scrollToX(destX, animate);
+		this.scrollToY(destY, animate);
 	},
 	scrollByX: function(deltaX, animate) {
 		var data = this.element.data('scrollpane');
@@ -634,8 +637,8 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 });
 $.webos.widget('scrollPane', scrollPaneProperties);
 
-$.webos.scrollPane = function() {
-	return $('<div></div>').scrollPane();
+$.webos.scrollPane = function(options) {
+	return $('<div></div>').scrollPane(options);
 };
 
 //Label

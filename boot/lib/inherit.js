@@ -1,3 +1,8 @@
+/**
+ * Implémentation de la notion d'héritage.
+ * @param {Object} C La classe fille.
+ * @param {Object} P La classe parente.
+ */
 Webos.inherit = function(C, P) {
 	var F = function() {};
 	F.prototype = P.prototype;

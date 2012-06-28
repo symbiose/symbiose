@@ -1,4 +1,10 @@
-// Permet de creer un objet contenant un callback en cas de succes et un callback en cas d'erreur
+/**
+ * Crée une instance de Webos.Callback, contenant une fonction de rappel qui sera appelée en cas de succès et une fonction qui sera éxécutée en cas d'erreur.
+ * @param {Function} successCallback La fonction qui sera éxécutée en cas de succès.
+ * @paral {Function} errorCallback La fonction qui sera éxécutée en cas d'erreur.
+ * @since 1.0 alpha 1
+ * @constructor
+ */
 Webos.Callback = function WCallback(successCallback, errorCallback) {
 	var that = this;
 	
@@ -10,75 +16,102 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 		},
 		error: {
 			callback: function(error) {
-				W.Error.trigger(error);
+				Webos.Error.trigger(error);
 			}, //La fonction
 			arguments: [],
 			context: null //Le contexte
 		}
 	};
 	
-	//Si une fonction de callback pour un succes est specifiee
+	//Si une fonction de callback pour un succes est specifiée
 	if (typeof successCallback === 'function') {
 		this.callbacks.success.callback = successCallback;
 	}
 	
-	//Si la fonction pour les erreurs est specifiee
+	//Si la fonction pour les erreurs est specifiée
 	if (typeof errorCallback === 'function') {
 		this.callbacks.error.callback = errorCallback;
 	}
-	
-	this.success = function() { //Execution du callback de succes
+};
+Webos.Callback.prototype = {
+	/**
+	 * Appeler la fonction de succès.
+	 * @returns La valeur renvoyée par la fonction.
+	 */
+	success: function() {
 		var args = []; //On convertit l'objet arguments en array
 		for (var i = 0; i < arguments.length; i++) {
 			args.push(arguments[i]);
 		}
-		args = args.concat(that.callbacks.success.arguments);
+		args = args.concat(this.callbacks.success.arguments);
 		
-		//On execute le callback
+		//On éxécute le callback
 		try {
-			var returnValue = that.callbacks.success.callback.apply(that.callbacks.success.context, args);
-			return returnValue;
+			return this.callbacks.success.callback.apply(this.callbacks.success.context, args);
 		} catch(e) {
 			Webos.Error.catchError(e);
 		}
-	};
-	
-	this.error = function() { //Execution du callback d'erreurs
+	},
+	/**
+	 * Appeler la fonction d'erreur.
+	 * @returns La valeur renvoyée par la fonction.
+	 */
+	error: function() {
 		var args = []; //On convertit l'objet arguments en array
 		for (var i = 0; i < arguments.length; i++) {
 			args.push(arguments[i]);
 		}
-		args = args.concat(that.callbacks.error.arguments);
+		args = args.concat(this.callbacks.error.arguments);
 		
-		//On execute le callback
+		//On éxécute le callback
 		try {
-			var returnValue = that.callbacks.error.callback.apply(that.callbacks.error.context, args);
-			return returnValue;
+			return this.callbacks.error.callback.apply(this.callbacks.error.context, args);
 		} catch(e) {
 			Webos.Error.catchError(e);
 		}
-	};
-	
-	this.addParam = function(value, callback) {
-		if (typeof callback === 'undefined') {
+	},
+	/**
+	 * Ajouter un paramètre à envoyer à une des fonctions.
+	 * @param value Le paramètre à envoyer.
+	 * @param {String} [callback="success"] La fonction concernée ("success" ou "error").
+	 */
+	addParam: function(value, callback) {
+		if (!callback) {
 			callback = 'success';
 		}
 		this.callbacks[callback].arguments.push(value);
-	};
-	this.addParams = function(values, callback) {
+	},
+	/**
+	 * Ajouter des paramètres à envoyer à une des fonctions.
+	 * @param {any[]} values Un tableau contenant les paramètres à envoyer.
+	 * @param {String} [callback="success"] La fonction concernée ("success" ou "error").
+	 */
+	addParams: function(values, callback) {
 		if (typeof callback === 'undefined') {
 			callback = 'success';
 		}
 		this.callbacks[callback].arguments.concat(values);
-	};
-	this.setContext = function(context, callback) { //Definir le contexte dans lequel sera execute la fonction
+	},
+	/**
+	 * Définir le contexte d'éxécution d'une des fonctions.
+	 * @param context Le contexte d'éxécution.
+	 * @param {String} [callback="success"] La fonction concernée ("success" ou "error").
+	 */
+	setContext: function(context, callback) { //Definir le contexte dans lequel sera execute la fonction
 		if (typeof callback === 'undefined') { //Si on a pas dit pour quel callback on veut definir le contexte
 			callback = 'success';
 		}
 		this.callbacks[callback].context = context;
-	};
+	}
 };
 
+/**
+ * Convertir n'importe quelle variable en objet Webos.Callback.
+ * @param arg La variable à convertir.
+ * @param [replacement] Les fonctions de remplacement si une ou plusieurs sont manquantes. Si un objet Webos.Callback n'est pas spécifié, il sera converti.
+ * @returns {Webos.Callback} L'objet converti.
+ * @static
+ */
 Webos.Callback.toCallback = function(arg, replacement) {
 	if (arg instanceof Webos.Callback) {
 		return arg;

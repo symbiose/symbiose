@@ -88,7 +88,7 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 					title: 'Bienvenue sur Symbiose !',
 					message: 'Si vous souhaitez acc&eacute;der &agrave; vos documents, veuillez vous connecter.',
 					icon: '/usr/share/images/distributor/logo-48.png',
-					buttons: notificationsButtons
+					widgets: notificationsButtons
 				});
 			});
 		}
