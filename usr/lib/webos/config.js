@@ -94,7 +94,7 @@ Webos.inherit(Webos.ConfigFile, Webos.Model); //Heritage de Webos.Model
  */
 Webos.ConfigFile._cache = {};
 /**
- * Recuperer un fichier de configuration.
+ * Récupérer un fichier de configuration.
  * @param path Le chemin vers le fichier.
  * @param {Object} [data] La configuration du fichier.
  * @returns {Webos.ConfigFile} Le fichier de configuration.
