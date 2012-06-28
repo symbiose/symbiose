@@ -110,6 +110,7 @@ Webos.Callback.prototype = {
  * @param arg La variable à convertir.
  * @param [replacement] Les fonctions de remplacement si une ou plusieurs sont manquantes. Si un objet Webos.Callback n'est pas spécifié, il sera converti.
  * @returns {Webos.Callback} L'objet converti.
+ * @static
  */
 Webos.Callback.toCallback = function(arg, replacement) {
 	if (arg instanceof Webos.Callback) {
