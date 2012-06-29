@@ -32,26 +32,23 @@ Webos.Script = function WScript(js, args) {
 //Executer un script Javascript
 Webos.Script.run = function runScript(js) {
 	js = js.replace(/\/\*([\s\S]*?)\*\//g, ''); //On enleve les commentaires
-	var scriptTag = document.createElement('script');
-	scriptTag.setAttribute('type', 'text/javascript');
+	var head = document.getElementsByTagName('head')[0];
+	var node = document.createElement('script');
+	node.type = 'text/javascript';
+	node.async = false;
 	var scriptText = document.createTextNode(js);
-	scriptTag.appendChild(scriptText);
-	$('body').append(scriptTag);
+	node.appendChild(scriptText);
+	head.appendChild(node);
 };
 
 //Charger un script
 Webos.Script.load = function(path) {
-	this.ajax = $.ajax({
-		url: path,
-		method: 'get',
-		async: false,
-		dataType: 'text',
-		success: function(js, textStatus, jqXHR) {
-			if (js) {
-				Webos.Script.run(js);
-			}
-		}
-	});
+	var head = document.getElementsByTagName('head')[0];
+	var node = document.createElement('script');
+	node.type = 'text/javascript';
+	node.src = path;
+	node.async = false;
+	head.appendChild(node);
 };
 
 Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Javascript
