@@ -179,13 +179,13 @@ $.webos.notification = function(options) {
 var appIndicatorProperties = $.webos.extend($.webos.properties.get('container'), {
 	options: {
 		title: 'Application',
-		icon: undefined,
-		menu: null
+		icon: undefined
 	},
 	_create: function() {
 		var indicator = this.options._components.indicator = $('<div></div>', { 'class': 'indicator' }).appendTo(this.element);
 		this.options._components.icon = $('<img />', { 'class': 'icon' }).appendTo(indicator);
 		this.options._components.title = $('<span></span>', { 'class': 'title' }).appendTo(indicator);
+		this.options._content = $('<ul></ul>').appendTo(this.element);
 		
 		var that = this;
 		
@@ -202,7 +202,7 @@ var appIndicatorProperties = $.webos.extend($.webos.properties.get('container'),
 				width: width
 			}, 'fast');
 		}).click(function(e) {
-			var menu = that.options._components.menu;
+			var menu = that.options._content;
 			
 			if (that.element.children('ul').children().length > 0) {
 				var hideMenuFn = function() {
@@ -263,7 +263,6 @@ var appIndicatorProperties = $.webos.extend($.webos.properties.get('container'),
 		
 		this.option('title', this.options.title);
 		this.option('icon', this.options.icon);
-		this.option('menu', this.options.menu);
 	},
 	_update: function(key, value) {
 		switch (key) {
@@ -272,16 +271,6 @@ var appIndicatorProperties = $.webos.extend($.webos.properties.get('container'),
 				break;
 			case 'icon':
 				this.options._components.icon.attr('src', W.Icon.toIcon(value).realpath(22));
-				break;
-			case 'menu':
-				if (this.options._components.menu) {
-					this.options._components.menu.remove();
-				}
-				if (value) {
-					this.options._components.menu = $(value).appendTo(this.element);
-				} else {
-					this.options._components.menu = $('<ul></ul>').appendTo(this.element);
-				}
 				break;
 		}
 	},
