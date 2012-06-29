@@ -32,44 +32,45 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 	if (typeof errorCallback === 'function') {
 		this.callbacks.error.callback = errorCallback;
 	}
-};
-Webos.Callback.prototype = {
+	
 	/**
 	 * Appeler la fonction de succès.
 	 * @returns La valeur renvoyée par la fonction.
 	 */
-	success: function() {
+	this.success = function() {
 		var args = []; //On convertit l'objet arguments en array
 		for (var i = 0; i < arguments.length; i++) {
 			args.push(arguments[i]);
 		}
-		args = args.concat(this.callbacks.success.arguments);
+		args = args.concat(that.callbacks.success.arguments);
 		
 		//On éxécute le callback
 		try {
-			return this.callbacks.success.callback.apply(this.callbacks.success.context, args);
+			return that.callbacks.success.callback.apply(that.callbacks.success.context, args);
 		} catch(e) {
 			Webos.Error.catchError(e);
 		}
-	},
+	};
 	/**
 	 * Appeler la fonction d'erreur.
 	 * @returns La valeur renvoyée par la fonction.
 	 */
-	error: function() {
+	this.error = function() {
 		var args = []; //On convertit l'objet arguments en array
 		for (var i = 0; i < arguments.length; i++) {
 			args.push(arguments[i]);
 		}
-		args = args.concat(this.callbacks.error.arguments);
+		args = args.concat(that.callbacks.error.arguments);
 		
 		//On éxécute le callback
 		try {
-			return this.callbacks.error.callback.apply(this.callbacks.error.context, args);
+			return that.callbacks.error.callback.apply(that.callbacks.error.context, args);
 		} catch(e) {
 			Webos.Error.catchError(e);
 		}
-	},
+	};
+};
+Webos.Callback.prototype = {
 	/**
 	 * Ajouter un paramètre à envoyer à une des fonctions.
 	 * @param value Le paramètre à envoyer.
