@@ -91,6 +91,7 @@ Webos.inherit(Webos.ConfigFile, Webos.Model); //Heritage de Webos.Model
 /**
  * Cache des fichiers de configuration.
  * @private
+ * @static
  */
 Webos.ConfigFile._cache = {};
 /**
@@ -98,6 +99,7 @@ Webos.ConfigFile._cache = {};
  * @param path Le chemin vers le fichier.
  * @param {Object} [data] La configuration du fichier.
  * @returns {Webos.ConfigFile} Le fichier de configuration.
+ * @static
  */
 Webos.ConfigFile.get = function(path, data) {
 	var file = Webos.File.get(path);
@@ -112,6 +114,7 @@ Webos.ConfigFile.get = function(path, data) {
  * Charger un fichier de configuration.
  * @param path Le chemin vers le fichier.
  * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le fichier de configuration.
+ * @static
  */
 Webos.ConfigFile.load = function(path, callback) {
 	var file = Webos.File.get(path);
@@ -138,6 +141,7 @@ Webos.ConfigFile.load = function(path, callback) {
  * @param path Le chemin vers le fichier de configuration utilisateur (doit se situer dans son dossier personnel, ~).
  * @param basePath Le chemin vers le modele du fichier de configuration, au cas ou l'utilisateur n'est pas connecte ou le fichier n'existe pas.
  * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le fichier de configuration.
+ * @static
  */
 Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
 	var file = Webos.File.get(path), baseFile = Webos.File.get(basePath);
@@ -167,6 +171,7 @@ Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
 };
 /**
  * Vider le cache des fichiers de configuration.
+ * @static
  */
 Webos.ConfigFile.clearCache = function() {
 	Webos.ConfigFile._cache = {};
