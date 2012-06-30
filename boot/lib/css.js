@@ -1,4 +1,10 @@
-//Inclure une feuille de style CSS
+/**
+ * Crée une instance de Webos.Stylesheet, representant une feuille de style CSS.
+ * @param {String} path Le chemin vers la feuille de style.
+ * @param {String} [container] L'element auquel sera applique le style.
+ * @since 1.0 alpha 1
+ * @constructor
+ */
 Webos.Stylesheet = function WStylesheet(path, container) {
 	if (!/^(\/|~\/)/.test(path)) {
 		path = '/'+path;
@@ -19,7 +25,12 @@ Webos.Stylesheet = function WStylesheet(path, container) {
 	});
 };
 
-//Appliquer du code CSS a la page
+/**
+ * Appliquer une feuille de style CSS.
+ * @param {String} css La feuille de style CSS.
+ * @param {String} [container] L'element auquel sera applique le style.
+ * @static
+ */
 Webos.Stylesheet.insertCss = function insertCss(css, container) {
 	if (container) {
 		css = css
