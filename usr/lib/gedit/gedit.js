@@ -7,7 +7,7 @@
 new W.ScriptFile('usr/lib/codemirror/codemirror.js');
 new W.Stylesheet('/usr/share/css/codemirror/main.css');
 
-var geditProperties = $.webos.extend(containerProperties, {
+var geditProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'gedit',
 	options: {
 		file: false,
@@ -24,6 +24,8 @@ var geditProperties = $.webos.extend(containerProperties, {
 				that._trigger('change', { type: 'change' }, { editor: that.element, change: change });
 			}
 		});
+		
+		this.element.addClass('cursor-text');
 		
 		this._setLanguage(this.options.language);
 		
@@ -87,8 +89,9 @@ var geditProperties = $.webos.extend(containerProperties, {
 		for (var i = 1; i < arguments.length; i++) {
 			args.push(arguments[i]);
 		}
+		
 		if (this.options._components.codemirror[method]) {
-			return this.options._components.codemirror[method].apply(this.options._components.codemirror, arguments);
+			return this.options._components.codemirror[method].apply(this.options._components.codemirror, args);
 		}
 	},
 	_update: function(key, value) {
@@ -499,12 +502,35 @@ function GEditWindow(file) {
 			} else {
 				distanceY = 0;
 			}
-			console.log(distanceX, distanceY);
 		});
 		$(document).one('mouseup', function() {
 			$(document).unbind('mousemove.gedit.webos');
 			clearInterval(timer);
 		});
+	});
+	
+	this._gedit.gedit('codemirror', 'setOption', 'onCursorActivity', function() {
+		if (that._gedit.gedit('codemirror', 'getSelection').length > 0) { //Si on selectionne du texte, c'est un autre code qui gere le deplacement
+			return;
+		}
+		
+		var coords = that._gedit.gedit('codemirror', 'cursorCoords', false, 'page');
+		var offset = that._content.offset(), dimentions = {
+			width: that._content.width(),
+			height: that._content.height()
+		};
+		if (coords.x < offset.left) {
+			that._content.scrollPane('scrollByX', coords.x - offset.left, false);
+		}
+		if (coords.x > offset.left + dimentions.width) {
+			that._content.scrollPane('scrollByX', coords.x - offset.left - dimentions.width, false);
+		}
+		if (coords.y < offset.top) {
+			that._content.scrollPane('scrollByY', coords.y - offset.top, false);
+		}
+		if (coords.yBot > offset.top + dimentions.height) {
+			that._content.scrollPane('scrollByY', coords.yBot - offset.top - dimentions.height, false);
+		}
 	});
 	
 	this._content.scrollPane({
