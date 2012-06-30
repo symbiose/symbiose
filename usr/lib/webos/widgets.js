@@ -1,26 +1,32 @@
 /**
  * Widgets pour le webos.
-* @author $imon <contact@simonser.fr.nf>
-* @version 1.0
-* @since 1.0
-*/
+ * @author $imon <contact@simonser.fr.nf>
+ * @version 1.0
+ * @since 1.0 alpha 1
+ */
 
-/*
-* Objet servant a gerer les widgets sur le webos.
-*/
+/**
+ * Namespace global pour les widgets du webos.
+ * @namespace
+ */
 $.webos = {};
-/*
-* Proprietes des widgets.
-*/
+/**
+ * Proprietes des widgets.
+ * @static
+ * @private
+ */
 $.webos.properties = {};
-/*
-* Liste des proprietes des widgets.
-*/
+/**
+ * Liste des proprietes des widgets.
+ * @static
+ * @private
+ */
 $.webos.properties.list = {};
 /**
 * Recuperer les proprietes d'un widget.
 * @param string widget Le nom du widget.
 * @return object
+* @static
 */
 $.webos.properties.get = function(widget) {
 	if (typeof $.webos.properties.list[widget] == 'undefined') {
@@ -34,6 +40,7 @@ $.webos.properties.get = function(widget) {
 * @param string widget Le nom du widget.
 * @param object|string arg1 Les proprietes du widget. Si est le nom d'un widget, le nouveau widget heritera de celui-ci.
 * @param object arg2 Si arg1 est le nom d'un widget, arg2 sera les proprietes du widget.
+* @static
 */
 $.webos.widget = function(widget, arg1, arg2) {
 	var properties;
@@ -46,8 +53,15 @@ $.webos.widget = function(widget, arg1, arg2) {
 	
 	$.widget('weboswidgets.'+widget, properties);
 };
-$.webos.widget.is = function(widget, name) {
-	return $(widget).is(':weboswidgets-' + name);
+/**
+ * Determiner si est element est un widget.
+ * @param {jQuery} element L'element.
+ * @param {String} widgetName Le nom du widget.
+ * @returns {Boolean} Vrai si l'element est le widget specifie, faux sinon.
+ * @static
+ */
+$.webos.widget.is = function(element, widgetName) {
+	return $(element).is(':weboswidgets-' + widgetName);
 };
 var widgetProperties = {
 	_name: 'widget',
