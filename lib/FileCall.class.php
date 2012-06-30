@@ -200,7 +200,8 @@ class FileCall extends Webos {
 		$this->getHTTPResponse()->addHeader('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cacheOffset) . ' GMT');
 		$this->getHTTPResponse()->removeHeader('Pragma');
 
-		if (preg_match('#^(image|audio|video)/#', $file->mime())) {
+		//Desactivation de la compression des reponses
+		if (false && preg_match('#^(image|audio|video)/#', $file->mime())) {
 			ob_start('ob_gzhandler');
 		} else {
 			ob_start();
