@@ -1,17 +1,31 @@
-//Executer une commande
+/**
+ * Crée une instance de Webos.Cmd, representant une commande.
+ * @param {Object} options Les options de la commande.
+ * @since 1.0 alpha 1
+ * @constructor
+ */
 Webos.Cmd = function WCmd(options) {
-	this.cmdText = options.cmd;
-	this.cmd = this.cmdText.split(' ').shift();
-	this.terminal = options.terminal;
+	this.cmdText = options.cmd; //Commande complete
+	this.cmd = this.cmdText.split(' ').shift(); //Nom de la commande
+	this.terminal = options.terminal; //Terminal d'ou la commande sera lancee
 	
+	//On appelle la classe parente
 	Webos.Process.call(this, {
 		args: Webos.Arguments.parse(options.cmd)
 	});
 };
 Webos.Cmd.prototype = {
+	/**
+	 * Recuperer le terminal d'ou la commande est lancee.
+	 * @returns {Webos.Terminal} Le terminal.
+	 */
 	getTerminal: function() {
 		return this.terminal;
 	},
+	/**
+	 * Lancer la commande.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que la commande aura ete executee.
+	 */
 	run: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		var that = this;
@@ -21,8 +35,7 @@ Webos.Cmd.prototype = {
 			'method': 'execute',
 			'arguments': { 'cmd': this.cmdText, 'terminal': this.terminal.getId() }
 		}).load(new Webos.Callback(function(response) {
-			if (!response.isJavascriptEmpty()) { //Si il y a du code JS a executer
-				//On l'execute
+			if (!response.isJavascriptEmpty()) { //Si il y a du code JS a executer, on l'execute
 				var data = response.getData();
 				
 				var auth = new Webos.Authorizations();
@@ -47,8 +60,14 @@ Webos.Cmd.prototype = {
 		}));
 	}
 };
-Webos.inherit(Webos.Cmd, Webos.Process);
+Webos.inherit(Webos.Cmd, Webos.Process); //Heritage de Webos.Process
 
+/**
+ * Executer une commande.
+ * @param {String} cmd La commande a executer.
+ * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que la commande aura ete executee.
+ * @static
+ */
 Webos.Cmd.execute = function(cmd, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -59,54 +78,73 @@ Webos.Cmd.execute = function(cmd, callback) {
 	}));
 };
 
-Webos.Terminal = function WTerminal(userCallback) {
+/**
+ * Crée une instance de Webos.Terminal, representant un terminal.
+ * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que le terminal aura ete initialise.
+ * @since 1.0 alpha 1
+ * @constructor
+ */
+Webos.Terminal = function WTerminal(callback) {
 	this._data = {};
 	
-	var that = this;
+	this.id = Webos.Terminal.register(this);
 	
-	this.enterCmd = function(cmd, callback) {
+	this.init(callback);
+};
+Webos.Terminal.prototype = {
+	/**
+	 * Recuperer l'identifiant du terminal.
+	 * @returns {Number} L'identifiant du terminal.
+	 */
+	getId: function() {
+		return this.id;
+	},
+	/**
+	 * Recuperer toutes les donnees du terminal.
+	 * @returns Toutes les donnees.
+	 */
+	data: function() {
+		return this._data;
+	},
+	/**
+	 * Recuperer une donnee du terminal.
+	 * @param {String} key La clef de la donnee.
+	 * @returns La valeur correspondant a la clef.
+	 */
+	get: function(key) {
+		return this._data[key];
+	},
+	/**
+	 * Recuperer un chemin absolu depuis un chemin relatif par rapport au dossier courant.
+	 * @param {String} path Le chemin relatif par rapport au dossier courant.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que le chemin sera converti.
+	 */
+	relativePath: function(path, callback) {
+		callback.success(this.get('location')+'/'+path);
+	},
+	/**
+	 * Executer une commande dans le terminal.
+	 * @param {String} cmd La commande a executer.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que la commande aura ete executee.
+	 * @returns {Webos.Cmd} La commande.
+	 */
+	enterCmd: function(cmd, callback) {
 		this.cmd = new Webos.Cmd({
 			cmd: cmd,
 			terminal: this
 		});
 		this.cmd.run(Webos.Callback.toCallback(callback));
 		return this.cmd;
-	};
-	
-	this.getId = function() {
-		return this.id;
-	};
-	
-	this.data = function(index) {
-		if (typeof index == 'undefined') {
-			return this._data;
-		} else {
-			return this._data[index];
-		}
-	};
-	this.get = function(key) {
-		return this._data[key];
-	};
-	this.relativePath = function(path, callback) {
-		callback.success(this.get('location')+'/'+path);
-	};
-	
-	this.init = function(callback) {
+	},
+	/**
+	 * Rafraichir les donnees sur le terminal.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que les donnees auront ete rafraichies.
+	 */
+	refreshData: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
-		new Webos.ServerCall({
-			'class': 'TerminalController',
-			method: 'register',
-			arguments: { terminal: that.getId() }
-		}).load(new Webos.Callback(function(response) {
-			that._data = response.getData();
-			
-			callback.success(that);
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-	this.refreshData = function(callback) {
+		var that = this;
+		
 		new Webos.ServerCall({
 			'class': 'TerminalController',
 			method: 'getPromptData',
@@ -116,16 +154,49 @@ Webos.Terminal = function WTerminal(userCallback) {
 			
 			callback.success(that);
 		}, callback.error));
-	};
-	
-	this.id = Webos.Terminal.register(this);
-	
-	this.init(userCallback);
+	},
+	/**
+	 * Initialiser le terminal.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que le terminal aura ete initialise.
+	 */
+	init: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		
+		var that = this;
+		
+		new Webos.ServerCall({
+			'class': 'TerminalController',
+			method: 'register',
+			arguments: { terminal: this.getId() }
+		}).load(new Webos.Callback(function(response) {
+			that._data = response.getData();
+			
+			callback.success(that);
+		}, callback.error));
+	}
 };
-Webos.Terminal.list = [];
+
+/**
+ * La liste des terminaux.
+ * @private
+ * @static
+ */
+Webos.Terminal._list = [];
+/**
+ * Ajouter un terminal a la liste interne des terminaux.
+ * @param {Webos.Terminal} terminal Le terminal a ajouter.
+ * @returns {Number} L'identifiant du terminal dans la liste.
+ * @static
+ */
 Webos.Terminal.register = function(terminal) {
-	return Webos.Terminal.list.push(terminal) - 1;
+	return Webos.Terminal._list.push(terminal) - 1;
 };
+/**
+ * Recuperer un terminal a partir de son identifiant.
+ * @param {Number} id L'identifiant du terminal.
+ * @returns {Webos.Terminal} Le terminal.
+ * @static
+ */
 Webos.Terminal.get = function(id) {
-	return Webos.Terminal.list[id];
+	return Webos.Terminal._list[id];
 };
