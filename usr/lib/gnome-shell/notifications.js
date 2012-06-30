@@ -81,9 +81,12 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 		this.options._components.header = $('<div></div>', { 'class': 'header' }).appendTo(this.element);
 		$('<img />', { src: W.Icon.toIcon(this.options.icon).realpath(24), alt: '', 'class': 'icon' }).appendTo(this.options._components.header);
 		$('<strong></strong>').html(this.options.title+' : ').appendTo(this.options._components.header);
-		this.options._components.details = $('<span></span>', { 'class': 'details' }).html(this.options.message).appendTo(this.options._components.header);
+		this.options._components.details = $('<span></span>', { 'class': 'details' }).appendTo(this.options._components.header);
 		this.options._components.content = $('<div></div>', { 'class': 'content' }).hide().appendTo(this.element);
-		this.options._components.message = $('<div></div>', { 'class': 'message' }).html(this.options.message).appendTo(this.options._components.content);
+		this.options._components.message = $('<div></div>', { 'class': 'message' }).appendTo(this.options._components.content);
+		
+		this.option('shortMessage', this.options.shortMessage);
+		this.option('message', this.options.message);
 		
 		if (this.options.widgets.length > 0) {
 			var buttonContainer = $();
@@ -138,6 +141,19 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 			waitForDismissFn();
 		} else {
 			that._show();
+		}
+	},
+	_update: function(key, value) {
+		switch (key) {
+			case 'message':
+				this.options._components.message.html(value);
+				if (!this.options.shortMessage) {
+					this.options._components.details.html(value);
+				}
+				break;
+			case 'shortMessage':
+				this.options._components.details.html(value);
+				break;
 		}
 	},
 	_show: function() {
