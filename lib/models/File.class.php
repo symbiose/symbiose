@@ -63,6 +63,8 @@ class File extends FileBase {
 				return 'text/css';
 			case 'js':
 				return 'text/javascript';
+			case 'html':
+				return 'text/html';
 		}
 		if (!class_exists('finfo')) {
 			return 'application/octet-stream';
