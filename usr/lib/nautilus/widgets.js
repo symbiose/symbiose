@@ -130,25 +130,41 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 		});
 		
-		$.webos.keyboard.bind(this.element, 'enter', function() {
+		$.webos.keyboard.bind(this.element, 'enter', function(e) {
+			if (e.isFocused) {
+				return;
+			}
+			
 			that.getSelection().each(function() {
 				$(this).data('nautilus').open();
 			});
 		});
-		$.webos.keyboard.bind(this.element, 'del', function() {
-			that.getSelection().each(function() {
+		$.webos.keyboard.bind(this.element, 'del', function(e) {
+			if (e.isFocused) {
+				return;
+			}
+			
+			$that.getSelection().each(function() {
 				$(this).data('nautilus').remove();
 			});
 		});
 		
-		$.webos.keyboard.bind(this.element, 'right', function() {
+		$.webos.keyboard.bind(this.element, 'right', function(e) {
+			if (e.isFocused) {
+				return;
+			}
+			
 			var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
 			var elementToSelect = selectedElements.last().next(':visible');
 			if (elementToSelect.length > 0) {
 				elementToSelect.addClass('active').trigger('select');
 			}
 		});
-		$.webos.keyboard.bind(this.element, 'left', function() {
+		$.webos.keyboard.bind(this.element, 'left', function(e) {
+			if (e.isFocused) {
+				return;
+			}
+			
 			var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
 			var elementToSelect = selectedElements.last().prev(':visible');
 			if (elementToSelect.length > 0) {
