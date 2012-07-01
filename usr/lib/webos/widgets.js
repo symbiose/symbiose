@@ -1963,8 +1963,15 @@ $.webos.keyboard.bind = function(el, keycode, callback) {
 				isBindActive = (typeof $.webos.window.getActive() == 'undefined');
 			}
 			
+			e.isFocused = false;
+			if ($(e.target).is('input,textarea,select')) {
+				e.isFocused = true;
+			}
+			
 			if (isBindActive) {
-				e.preventDefault();
+				if (!e.isFocused) {
+					e.preventDefault();
+				}
 				callback(e);
 			}
 		}
