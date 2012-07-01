@@ -20,6 +20,7 @@ $(function() { //Lorsque tout est pret
 		'/boot/lib/uniqueid.js',
 		'/boot/lib/process.js',
 		'/boot/lib/cmd.js',
+		'/boot/lib/sha1.js',
 		'/boot/lib/user.js',
 		'/boot/lib/file.js',
 		'/boot/lib/ui.js',
