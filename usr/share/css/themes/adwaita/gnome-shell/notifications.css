@@ -61,31 +61,28 @@
 .notifications-area .notification-container .webos-notification .content .webos-button {
 	color: white;
 	border: 2px solid #8b8b8b;
-	background: black;
-	background: rgba(0, 0, 0, 0.3);
+	background-color: black;
+	background-color: rgba(0, 0, 0, 0.3);
 	-moz-border-radius: 14px;
 	-webkit-border-radius: 14px;
 	border-radius: 14px;
-	background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
-	background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
-	background: -ms-linear-gradient(top, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
-	background: linear-gradient(top, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
-	background-size: 1px 100%;
+	background-image: -moz-linear-gradient(top, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
+	background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
+	background-image: -ms-linear-gradient(top, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
+	background-image: linear-gradient(top, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
 }
 .notifications-area .notification-container .webos-notification .content .webos-button:hover {
-	background: rgba(255, 255, 255, 0.1);
-	background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.3) 0%, rgba(143, 143, 143, 0.1) 100%);
-	background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.3) 0%, rgba(143, 143, 143, 0.1) 100%);
-	background: -ms-linear-gradient(top, rgba(255, 255, 255, 0.3) 0%, rgba(143, 143, 143, 0.1) 100%);
-	background: linear-gradient(top, rgba(255, 255, 255, 0.3) 0%, rgba(143, 143, 143, 0.1) 100%);
-	background-size: 1px 100%;
+	background-color: rgba(255, 255, 255, 0.1);
+	background-image: -moz-linear-gradient(top, rgba(255, 255, 255, 0.3) 0%, rgba(143, 143, 143, 0.1) 100%);
+	background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.3) 0%, rgba(143, 143, 143, 0.1) 100%);
+	background-image: -ms-linear-gradient(top, rgba(255, 255, 255, 0.3) 0%, rgba(143, 143, 143, 0.1) 100%);
+	background-image: linear-gradient(top, rgba(255, 255, 255, 0.3) 0%, rgba(143, 143, 143, 0.1) 100%);
 }
 .notifications-area .notification-container .webos-notification .content .webos-button:active {
-	background: -moz-linear-gradient(top, rgba(0, 0, 0, 0.2) 0%, rgba(255, 255, 255, 0.2) 100%);
-	background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.2) 0%, rgba(255, 255, 255, 0.2) 100%);
-	background: -ms-linear-gradient(top, rgba(0, 0, 0, 0.2) 0%, rgba(255, 255, 255, 0.2) 100%);
-	background: linear-gradient(top, rgba(0, 0, 0, 0.2) 0%, rgba(255, 255, 255, 0.2) 100%);
-	background-size: 1px 100%;
+	background-image: -moz-linear-gradient(top, rgba(0, 0, 0, 0.2) 0%, rgba(255, 255, 255, 0.2) 100%);
+	background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.2) 0%, rgba(255, 255, 255, 0.2) 100%);
+	background-image: -ms-linear-gradient(top, rgba(0, 0, 0, 0.2) 0%, rgba(255, 255, 255, 0.2) 100%);
+	background-image: linear-gradient(top, rgba(0, 0, 0, 0.2) 0%, rgba(255, 255, 255, 0.2) 100%);
 }
 .notifications-area .notification-container .webos-notification .content input[type="text"] {
 	width: 100%;
