@@ -107,6 +107,31 @@ Webos.Model.prototype = {
 		return false;
 	},
 	/**
+	 * Retirer une donnée du modèle.
+	 * @param key La clef.
+	 * @returns Vrai si la modification a réussi, faux sinon.
+	 */
+	remove: function(key) {
+		var methodName = 'set' + key.charAt(0).toUpperCase() + key.substr(1);
+		if (!this.exists(key)) {
+			return true;
+		}
+		if (typeof this[methodName] == 'function') {
+			this[methodName]();
+		}
+		
+		this._remove(key);
+		return true;
+	},
+	/**
+	 * Retirer une donnée dans l'objet interne de données du modèle.
+	 * @param key La clef.
+	 * @private
+	 */
+	_remove: function(key) {
+		delete this._data[key];
+	},
+	/**
 	 * Envoyer les modifications effectuées sur le modèle vers le serveur.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que les modifications auront été envoyées.
 	 */
