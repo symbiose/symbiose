@@ -522,3 +522,5 @@ Webos.User.bind('logout', function() {
 		Webos.File.umount(local);
 	}
 });
+
+new Webos.ScriptFile('/usr/lib/webos/fstab.js');

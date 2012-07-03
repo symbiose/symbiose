@@ -125,7 +125,8 @@ function NautilusDeviceMounterWindow(driver) {
 		var form = $.w.entryContainer().submit(function() {
 			that._window.window('loading', true);
 			W.ScriptFile(that._drivers[selectedDriver].lib);
-			var result = Webos.File.mount(localEntry.nautilusFileEntry('value'), remoteEntry.textEntry('value'), selectedDriver);
+			var local = localEntry.nautilusFileEntry('value'), remote = remoteEntry.textEntry('value');
+			var result = Webos.File.mount(local, remote, selectedDriver);
 			
 			if (!result) {
 				that._window.window('loading', false);
@@ -133,9 +134,14 @@ function NautilusDeviceMounterWindow(driver) {
 			}
 			
 			if (permanentEntry.switchButton('value')) {
-				var config = Webos.ConfigFile.loadUserConfig('~/.config/fstab.xml', null, [function() {
-					
+				Webos.File.fstab.add(local, {
+					remote: remote,
+					driver: selectedDriver,
+					lib: that._drivers[selectedDriver].lib
+				}, [function() {
+					that._window.window('close');
 				}, function(response) {
+					that._window.window('loading', false);
 					response.triggerError('Impossible d\'effectuer le montage permanent');
 				}]);
 			} else {
@@ -334,7 +340,7 @@ function NautilusWindow(dir, userCallback) {
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuItem('Envoyer des fichiers')
+	$.w.menuItem('Envoyer des fichiers', true)
 		.click(function() {
 			that.nautilus.nautilus('openUploadWindow');
 		})
@@ -352,7 +358,13 @@ function NautilusWindow(dir, userCallback) {
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuItem('Fermer')
+	$.w.menuItem('Monter un volume')
+		.click(function() {
+			new NautilusDeviceMounterWindow();
+		})
+		.appendTo(fileItemContent);
+	
+	$.w.menuItem('Fermer', true)
 		.click(function() {
 			that.window.window('close');
 		})
@@ -408,12 +420,12 @@ function NautilusWindow(dir, userCallback) {
 	var viewItem = $.w.menuItem('Affichage').appendTo(this._menu);
 	viewItemContent = viewItem.menuItem('content');
 	
-	$.w.menuItem('Actualiser')
+	$.w.menuItem('Actualiser', true)
 		.click(function() {
 			that.refresh();
 		})
 		.appendTo(viewItemContent);
-	$.w.menuItem('Afficher les fichiers cach&eacute;s')
+	$.w.menuItem('Afficher les fichiers cach&eacute;s', true)
 		.click(function() {
 			var value = !(that.nautilus.nautilus('option', 'showHiddenFiles'));
 			
