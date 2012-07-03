@@ -51,22 +51,11 @@ class Config extends \lib\WebosComponent {
 	public function getFile() {
 		return $this->file;
 	}
-
+	
 	/**
-	 * Sauvegarder une configuration.
-	 * @param string $file Le fichier de configuration.
+	 * Recuperer la configuration au format XML.
 	 */
-	public function save($file = null) {
-		if (empty($file)) {
-			$file = $this->file;
-		} else {
-			if (!$this->webos->managers()->get('File')->exists($file)) {
-				$file = $this->webos->managers()->get('File')->createFile($file);
-			} else {
-				$file = $this->webos->managers()->get('File')->get($file);
-			}
-		}
-
+	public function saveXML() {
 		$existing = array();
 		$attributes = $this->domdocument->getElementsByTagName('attribute');
 		foreach ($attributes as $attribute) {
@@ -99,6 +88,26 @@ class Config extends \lib\WebosComponent {
 		}
 
 		$out = $this->domdocument->saveXML();
+		return $out;
+	}
+
+	/**
+	 * Sauvegarder une configuration.
+	 * @param string $file Le fichier de configuration.
+	 */
+	public function save($file = null) {
+		if (empty($file)) {
+			$file = $this->file;
+		} else {
+			if (!$this->webos->managers()->get('File')->exists($file)) {
+				$file = $this->webos->managers()->get('File')->createFile($file);
+			} else {
+				$file = $this->webos->managers()->get('File')->get($file);
+			}
+		}
+		
+		$out = $this->saveXML();
+		
 		$file->setContents($out);
 	}
 

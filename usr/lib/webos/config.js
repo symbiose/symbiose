@@ -144,13 +144,18 @@ Webos.ConfigFile.load = function(path, callback) {
  * @static
  */
 Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
-	var file = Webos.File.get(path), baseFile = Webos.File.get(basePath);
+	var file = Webos.File.get(path);
+	if (basePath) {
+		var baseFile = Webos.File.get(basePath);
+	} else {
+		var baseFile = null;
+	}
 	callback = Webos.Callback.toCallback(callback);
 	
 	Webos.User.getLogged(function(user) {
 		if (user && Webos.ConfigFile._cache[file.get('path')]) {
 			callback.success(Webos.ConfigFile._cache[file.get('path')]);
-		} else if (!user && Webos.ConfigFile._cache[baseFile.get('path')]) {
+		} else if (!user && baseFile && Webos.ConfigFile._cache[baseFile.get('path')]) {
 			callback.success(Webos.ConfigFile._cache[baseFile.get('path')]);
 		} else {
 			new Webos.ServerCall({
@@ -158,7 +163,7 @@ Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
 				method: 'getUserConfig',
 				arguments: {
 					path: file.get('path'),
-					base: baseFile.get('path')
+					base: (baseFile) ? baseFile.get('path') : null
 				}
 			}).load(new Webos.Callback(function(response) {
 				var loadedFile = (user) ? file : baseFile;

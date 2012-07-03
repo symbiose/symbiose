@@ -44,9 +44,13 @@ class ConfigController extends \lib\ServerCallComponent {
 	 */
 	protected function getUserConfig($path, $base) {
 		$config = new Config($this->webos);
+		$data = array();
 
 		if (!$this->webos->getUser()->isConnected()) {
-			$config->load($base);
+			if (!empty($base)) {
+				$config->load($base);
+				$data = $config->getConfig();
+			}
 		} else {
 			$authorisations = $this->webos->getAuthorization();
 			$readAuthorisation = $authorisations->getArgumentAuthorizations($path, 'file', 'read');
@@ -54,21 +58,33 @@ class ConfigController extends \lib\ServerCallComponent {
 
 			if ($authorisations->can($writeAuthorisation)) {
 				if (!$this->webos->managers()->get('File')->exists($path)) {
-					$default = $this->webos->managers()->get('File')->get($base);
-					$default->copy($path);
+					if (!empty($base)) {
+						$default = $this->webos->managers()->get('File')->get($base);
+						$default->copy($path);
+					} else {
+						$file = $this->webos->managers()->get('File')->createFile($path);
+						$file->setContents($config->saveXML());
+					}
 				}
 
-				if ($authorisations->can($readAuthorisation)) {
-					$config->load($path);
-				} else {
-					$config->load($base);
+				if (!empty($base)) {
+					if ($authorisations->can($readAuthorisation)) {
+						$config->load($path);
+						$data = $config->getConfig();
+					} else {
+						$config->load($base);
+						$data = $config->getConfig();
+					}
 				}
 			} else {
-				$config->load($base);
+				if (!empty($base)) {
+					$config->load($base);
+					$data = $config->getConfig();
+				}
 			}
 		}
 
-		return $config->getConfig();
+		return $data;
 	}
 
 	/**
