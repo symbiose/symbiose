@@ -14,7 +14,7 @@ class Config extends \lib\WebosComponent {
 	 */
 	protected $domdocument;
 	protected $file;
-	protected $config;
+	protected $config = array();
 
 	/**
 	 * Initialiser la configuration.
