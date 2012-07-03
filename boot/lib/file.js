@@ -1,4 +1,10 @@
 /**
+ * Bibliotheque de gestion des fichiers.
+ * @author $imon
+ * @since 1.0 alpha 1
+ */
+
+/**
  * Crée une instance de Webos.File.
  * @param {Object} data Les données sur le fichier.
  * @since 1.0 alpha 1
@@ -14,6 +20,9 @@ Webos.File = function WFile(data) {
 	}
 	if (!data.basename) { //On définit automatiquement le nom du fichier si non présent
 		data.basename = data.path.replace(/^.*[\/\\]/g, '');
+	}
+	if (data.is_dir === false && !data.extension) {//On définit automatiquement l'extension du fichier si non présent et que le fichier n'est pas un dossier
+		data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
 	}
 	
 	Webos.Model.call(this, data); //On appelle la classe parente
@@ -81,17 +90,18 @@ Webos.File.prototype = {
 	move: function(dest, callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
+		dest = String(dest);
 		
 		new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'move',
 			arguments: {
 				file: that.get('path'),
-				dest: dest.get('path')
+				dest: dest
 			}
 		}).load(new Webos.Callback(function() {
 			that._remove();
-			callback.success(dest);
+			callback.success();
 		}, function(response) {
 			callback.error(response, that);
 		}));
@@ -187,6 +197,10 @@ Webos.File.prototype = {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
+		if (this.get('is_dir')) {
+			callback.error();
+		}
+		
 		new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'setContents',
@@ -214,6 +228,14 @@ Webos.Observable.build(Webos.File); //On construit un objet observable depuis We
  * @static
  */
 Webos.File._cache = {};
+
+/**
+ * Liste des volumes montés.
+ * @private
+ * @static
+ */
+Webos.File._mountedDevices = {};
+
 /**
  * Récupérer un fichier.
  * @param file Le chemin vers le fichier.
@@ -223,6 +245,13 @@ Webos.File._cache = {};
  */
 Webos.File.get = function(file, data) {
 	path = String(file);
+	
+	//Le fichier est-il dans un volume monte ?
+	for (var local in Webos.File._mountedDevices) {
+		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
+			return Webos[Webos.File._mountedDevices[local].driver].get(path, local, data);
+		}
+	}
 	
 	if (Webos.File._cache[path]) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
@@ -244,6 +273,30 @@ Webos.File.load = function(path, callback) {
 	path = String(path);
 	callback = Webos.Callback.toCallback(callback);
 	
+	//Ajouter un fichier au cache
+	var addFileToCacheFn = function(file) {
+		if (typeof Webos.File._cache[file.get('path')] != 'undefined') {
+			Webos.File._cache[file.get('path')].hydrate(file.data());
+			file = Webos.File._cache[file.get('path')];
+			Webos.File.notify('load', { file: file });
+		} else {
+			Webos.File._cache[file.getAttribute('path')] = file;
+		}
+	};
+	
+	//Le fichier est-il dans un volume monte ?
+	for (var local in Webos.File._mountedDevices) {
+		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
+			(function(mountData) {
+				Webos[mountData.driver].load(path, local, [function(file) {
+					addFileToCacheFn(file);
+					callback.success(file);
+				}, callback.error]);
+			})(Webos.File._mountedDevices[local]);
+			return;
+		}
+	}
+	
 	if (typeof Webos.File._cache[path] != 'undefined') { //Si le fichier est déja dans le cache, on le retourne
 		callback.success(Webos.File._cache[path]);
 	} else { //Sinon, on le charge
@@ -257,13 +310,7 @@ Webos.File.load = function(path, callback) {
 			var file = new Webos.File(response.getData()); //On construit notre objet
 			
 			//On le stocke dans le cache
-			if (typeof Webos.File._cache[file.getAttribute('path')] != 'undefined') {
-				Webos.File._cache[file.getAttribute('path')].hydrate(file.data());
-				file = Webos.File._cache[file.getAttribute('path')];
-				Webos.File.notify('load', { file: file });
-			} else {
-				Webos.File._cache[file.getAttribute('path')] = file;
-			}
+			addFileToCacheFn(file);
 			
 			callback.success(file);
 		}, callback.error));
@@ -294,6 +341,24 @@ Webos.File.listDir = function(path, callback) {
 Webos.File.createFile = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
+	var createFileCallback = function(file) {
+		Webos.File._cache[file.get('path')] = file;
+		Webos.File.notify('create', { file: file });
+	};
+	
+	//Le fichier est-il dans un volume monte ?
+	for (var local in Webos.File._mountedDevices) {
+		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
+			(function(mountData) {
+				Webos[mountData.driver].createFile(path, local, [function(file) {
+					createFileCallback(file);
+					callback.success(file);
+				}, callback.error]);
+			})(Webos.File._mountedDevices[local]);
+			return;
+		}
+	}
+	
 	new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'createFile',
@@ -302,8 +367,7 @@ Webos.File.createFile = function(path, callback) {
 		}
 	}).load(new Webos.Callback(function(response) {
 		var file = new Webos.File(response.getData());
-		Webos.File._cache[file.getAttribute('path')] = file;
-		Webos.File.notify('create', { file: file });
+		createFileCallback(file);
 		callback.success(file);
 	}, function(response) {
 		callback.error(response);
@@ -318,6 +382,24 @@ Webos.File.createFile = function(path, callback) {
 Webos.File.createFolder = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
+	var createFolderCallback = function(file) {
+		Webos.File._cache[file.get('path')] = file;
+		Webos.File.notify('create', { file: file });
+	};
+	
+	//Le fichier est-il dans un volume monte ?
+	for (var local in Webos.File._mountedDevices) {
+		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
+			(function(mountData) {
+				Webos[mountData.driver].createFolder(path, local, [function(file) {
+					createFolderCallback(file);
+					callback.success(file);
+				}, callback.error]);
+			})(Webos.File._mountedDevices[local]);
+			return;
+		}
+	}
+	
 	new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'createFolder',
@@ -326,8 +408,7 @@ Webos.File.createFolder = function(path, callback) {
 		}
 	}).load(new Webos.Callback(function(response) {
 		var file = new Webos.File(response.getData());
-		Webos.File._cache[file.getAttribute('path')] = file;
-		Webos.File.notify('create', { file: file });
+		createFolderCallback(file);
 		callback.success(file);
 	}, function(response) {
 		callback.error(response);
@@ -374,7 +455,70 @@ Webos.File.bytesToSize = function(bytes) {
 			+ ' ' + sizes[i];
 };
 
-//Lorsque l'utilisateur quitte sa session, on vide le cache
+Webos.File.mount = function(local, remote, driverName) {
+	if (!Webos[driverName]) {
+		return false;
+	}
+	
+	if (Webos.File._mountedDevices[local]) {
+		return false;
+	}
+	
+	if (typeof Webos[driverName].init == 'function') {
+		Webos[driverName].init();
+	}
+	
+	if (typeof Webos[driverName].mount == 'function') {
+		Webos[driverName].mount(local, remote);
+	}
+	
+	Webos.File._mountedDevices[local] = {
+		remote: remote,
+		driver: driverName
+	};
+	Webos.File.notify('mount', { local: local, remote: remote, driver: driverName });
+	
+	return true;
+};
+
+Webos.File.mountedDevices = function() {
+	return Webos.File._mountedDevices;
+};
+
+Webos.File.getMountData = function(local) {
+	return Webos.File._mountedDevices[local];
+};
+
+Webos.File.umount = function(local) {
+	if (Webos.File._mountedDevices[local]) {
+		var driver = Webos.File._mountedDevices[local].driver, remote = Webos.File._mountedDevices[local].remote;
+		delete Webos.File._mountedDevices[local];
+		Webos.File.notify('umount', { local: local, driver: driver, remote: remote });
+	}
+};
+
+Webos.File._drivers = {};
+
+Webos.File.registerDriver = function(driverName, data) {
+	if (!Webos[driverName]) {
+		return false;
+	}
+	
+	Webos.File._drivers[driverName] = {
+		title: data.title,
+		icon: data.icon
+	};
+};
+Webos.File.getDriverData = function(driverName) {
+	return Webos.File._drivers[driverName];
+};
+
 Webos.User.bind('logout', function() {
+	//Lorsque l'utilisateur quitte sa session, on vide le cache
 	Webos.File.clearCache();
+	
+	//Et on demonte tous les volumes
+	for (var local in Webos.File.mountedDevices()) {
+		Webos.File.umount(local);
+	}
 });
