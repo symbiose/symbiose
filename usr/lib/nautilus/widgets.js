@@ -386,8 +386,16 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			that._insertItem(newItem);
 			that.element.scrollPane('reload');
 		});
+		var umountCallbackId = Webos.File.bind('umount', function(data) {
+			if (that.location().indexOf(data.local) != 0) {
+				return;
+			}
+			
+			that.readDir('~');
+		});
 		this.element.one('nautilusreadstart', function() {
 			Webos.File.unbind(createFileCallbackId);
+			Webos.File.unbind(umountCallbackId);
 		});
 	},
 	_renderItem: function(file) {
@@ -1227,6 +1235,33 @@ $.webos.nautilusFileSelector = function(options) {
 	return $('<div></div>').nautilusFileSelector(options);
 };
 
+var nautilusFileEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
+	_name: 'nautilusfileentry',
+	options: {
+		fileSelector: {}
+	},
+	_create: function() {
+		var that = this;
+		
+		this.options._content = $('<input />', { type: 'text' }).appendTo(this.element);
+		this.options._components.browseButton = $.w.button('Choisir').click(function() {
+			new NautilusFileSelectorWindow(that.options.fileSelector, function(path) {
+				if (path) {
+					that.value(path);
+				}
+			});
+		}).appendTo(this.element);
+		
+		this.value(this.options.value);
+	}
+});
+$.widget('webos.nautilusFileEntry', nautilusFileEntryProperties);
+
+$.webos.nautilusFileEntry = function(label, options) {
+	return $('<div></div>').nautilusFileEntry($.extend({}, options, {
+		label: label
+	}));
+};
 
 var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'nautilusshortcuts',
@@ -1280,6 +1315,56 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 				that.options.open('/');
 			}).appendTo(listContent);
 		}
+		
+		this._refreshDevices();
+		
+		this.options._mountCallback = Webos.File.bind('mount', function() {
+			that._refreshDevices();
+		});
+		this.options._umountCallback = Webos.File.bind('umount', function() {
+			that._refreshDevices();
+		});
+	},
+	_refreshDevices: function() {
+		var that = this;
+		
+		if (this.options._devices) {
+			this.options._devices.remove();
+		}
+		
+		var mountedDevices = Webos.File.mountedDevices();
+		var devicesShortcuts = $.w.list(['Volumes']);
+		var i = 0;
+		
+		for (var local in mountedDevices) {
+			(function(local, mountData) {
+				var driverData = Webos.File.getDriverData(mountData.driver);
+				var item = $.w.listItem(['<img src="'+new W.Icon(driverData.icon, 22)+'" alt=""/> ' + driverData.title + ' sur ' + local]).bind('listitemselect', function() {
+					$(this).listItem('option', 'active', false);
+				}).click(function(e) {
+					if ($(e.target).is('.umount')) {
+						if (Webos.File.umount(local) === false) {
+							Webos.Error.trigger('Impossible de d&eacute;monter "'+driverData.title+'" sur "'+local+'"');
+						}
+						return;
+					}
+					
+					that.options.open(local);
+				});
+				$('<img />', { src: new W.Icon('actions/umount', 16), alt: '', title: 'D&eacute;monter le volume' }).addClass('umount').prependTo(item.listItem('column', 0));
+				
+				item.appendTo(devicesShortcuts.list('content'));
+			})(local, mountedDevices[local]);
+			i++;
+		}
+		
+		if (i > 0) {
+			this.options._devices = devicesShortcuts.appendTo(this.element);
+		}
+	},
+	destroy: function() {
+		Webos.File.unbind(this.options._mountCallback);
+		Webos.File.unbind(this.options._umountCallback);
 	}
 });
 $.widget('webos.nautilusShortcuts', nautilusShortcutsProperties);

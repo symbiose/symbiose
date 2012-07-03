@@ -104,6 +104,106 @@ function NautilusFileSelectorWindow(options, userCallback) {
 	this._window.window('open');
 }
 
+function NautilusDeviceMounterWindow(driver) {
+	this._window = $.w.window.dialog({
+		title: 'Monteur de volumes',
+		width: 400,
+		icon: new W.Icon('devices/harddisk'),
+		resizable: false
+	});
+	
+	this._drivers = {
+		'DropboxFile': {
+			'title': 'Dropbox',
+			'icon': 'usr/share/images/dropbox/icon_48.png',
+			'lib': '/usr/lib/dropbox/webos.js'
+		}
+	};
+	
+	this.showDrivers = function(driver) {
+		var that = this;
+		var form = $.w.entryContainer().submit(function() {
+			that._window.window('loading', true);
+			W.ScriptFile(that._drivers[selectedDriver].lib);
+			var result = Webos.File.mount(localEntry.nautilusFileEntry('value'), remoteEntry.textEntry('value'), selectedDriver);
+			
+			if (!result) {
+				that._window.window('loading', false);
+				Webos.Error.trigger('Impossible d\'effectuer le montage du volume');
+			}
+			
+			if (permanentEntry.switchButton('value')) {
+				var config = Webos.ConfigFile.loadUserConfig('~/.config/fstab.xml', null, [function() {
+					
+				}, function(response) {
+					response.triggerError('Impossible d\'effectuer le montage permanent');
+				}]);
+			} else {
+				that._window.window('close');
+			}
+		}).appendTo(this._window.window('content'));
+		
+		form.append($.w.label('Choisissez le service &agrave; utiliser :'));
+		
+		var list = $.w.iconsList();
+		
+		var selectedDriver = null;
+		var selectDriverFn = function(name) {
+			submitButton.button('option', 'disabled', false);
+			spoiler.show();
+			localEntry.nautilusFileEntry('value', '~/' + that._drivers[name].title);
+			selectedDriver = name;
+		};
+		
+		for (var name in this._drivers) {
+			(function(name, driverData) {
+				var item = $.w.iconsListItem(driverData.icon, driverData.title)
+					.click(function() {
+						selectDriverFn(name);
+					})
+					.appendTo(list);
+				 if (driver == name) {
+				 	item.iconsListItem('active', true);
+				 }
+			})(name, this._drivers[name]);
+		}
+		
+		list.appendTo(form);
+		
+		var spoiler = $.w.spoiler('Configuration avanc&eacute;e').hide().appendTo(form);
+		var spoilerContents = spoiler.spoiler('content');
+		var localEntry = $.w.nautilusFileEntry('Dossier local :', {
+			fileSelector: {
+				selectDirs: true,
+				exists: false,
+				title: 'Choisir le dossier local',
+				parentWindow: this._window
+			}
+		}).appendTo(spoilerContents);
+		var remoteEntry = $.w.textEntry('Dossier distant :', '/').appendTo(spoilerContents);
+		
+		var thisProcess = W.Process.current(), canWriteUserFiles = true;
+		if (thisProcess) {
+			canWriteUserFiles = thisProcess.getAuthorizations().can('file.user.write');
+		}
+		var permanentEntry = $.w.switchButton('Montage permanent :', canWriteUserFiles).appendTo(spoilerContents);
+		
+		var buttons = $.w.buttonContainer().appendTo(form);
+		$.w.button('Annuler').click(function() {
+			that._window.window('close');
+		}).appendTo(buttons);
+		var submitButton = $.w.button('Valider', true).button('option', 'disabled', true).appendTo(buttons);
+	};
+	
+	if (driver) {
+		this.showDrivers(driver);
+	} else {
+		this.showDrivers();
+	}
+	
+	this._window.window('open');
+}
+
 function NautilusWindow(dir, userCallback) {
 	this.window = $.w.window({
 		title: 'Gestionnaire de fichiers',

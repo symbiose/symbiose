@@ -1,0 +1,10 @@
+<script type="text/javascript">
+if (window.opener) {
+	window.opener.dropbox.checkAuth();
+	window.opener.dropbox.setup();
+	window.close();
+} else {
+	alert('Redirection incorrecte : cette fenetre n\'a pas ete ouverte par l\'API de Dropbox.');
+}
+</script>
+<p>Vous pouvez fermer cette fen&ecirc;tre</p>

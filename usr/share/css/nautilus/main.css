@@ -85,3 +85,9 @@
 	width: 20px;
 	height: 20px;
 }
+.webos-nautilusshortcuts .webos-list-item img.umount {
+	float: right;
+	width: 16px;
+	height: 16px;
+	margin: 2px;
+}

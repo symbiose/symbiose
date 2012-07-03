@@ -22,107 +22,166 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  *
  *  See the License for the specific language governing permissions and       *
  *  limitations under the License.                                            */
+/**
+ * Reviewed by Simon Ser ($imon) <contact@simonser.fr.nf> on 2012-06-30
+ * @author $imon
+ */
 
+/**
+ * @namespace The Dropbox API.
+ */
 var dropbox = {};
-	
-//Change to your own Dropbox API keys
-dropbox.consumerKey = "";
-dropbox.consumerSecret = "";
 
-//Prefix for data storate - MUST be unique
-dropbox.prefix = "app_";
+/**
+ * Dropbox API key.
+ * @type {String}
+ */
+dropbox.consumerKey = "sqp3i88ajf7x2g8";
+/**
+ * Dropbox consumer secret.
+ * @type {String}
+ */
+dropbox.consumerSecret = "0ix4v3nhxv6e7bd";
 
-//Set to "dropbox" if your application has been given full Dropbox folder access
-dropbox.accessType = "sandbox";
+/**
+ * Prefix for data storate - MUST be unique.
+ * @type {String}
+ */
+dropbox.prefix = "webos_dropbox_";
 
-//Change the below line to true to use HTML5 local storage instead of cookies
+/**
+ * Set to "dropbox" if your application has been given full Dropbox folder access or "sandbox" otherwise.
+ * @type {String}
+ */
+dropbox.accessType = "dropbox";
+
+/**
+ * If set to true, trying to use HTML5 local storage instead of cookies.
+ * @type {Boolean}
+ */
 dropbox.authHTML5 = true;
 
-//Set to false to disable file metadata caching
+/**
+ * Set to false to disable file metadata caching.
+ * @type {Boolean}
+ */
 dropbox.cache = true;
 
-//Set this to your authorization callback URL
-dropbox.authCallback = "";
+/**
+ * Authorization callback URL.
+ * @type {String}
+ */
+dropbox.authCallback = window.location.protocol + '//' + window.location.host + window.location.pathname + "usr/lib/dropbox/html/callback.html";
 
-//Maximum number of files to list from a directory. Default 10k
+/**
+ * Maximum number of files to list from a directory.
+ * @type {Number}
+ */
 dropbox.fileLimit = 10000;
 
-//Cookie expire time (in days). Default 10 years
-dropbox.cookieTime = 3650;
+/**
+ * Cookie expire time (in days).
+ * @type {Number}
+ */
+dropbox.cookieTime = 3650; //Default 10 years.
 
 /*-------------------No editing required beneath this line-------------------*/
 
-//Incude required JS libraries
-document.write("<script type='text/javascript' src='oauth.js'></script>");
-document.write("<script type='text/javascript' src='sha1.js'></script>");
-document.write("<script type='text/javascript' src='jquery.js'></script>");
+/**
+ * Dropbox API cache.
+ * @type {Object}
+ * @private
+ */
+dropbox._cache = {};
 
-//If using HTML5 local storage
+//Incude required JS libraries
+Webos.ScriptFile.load('/usr/lib/oauth/oauth.js');
+
+//If using HTML5 local storage, let's perform a test
 if (dropbox.authHTML5 == true) {
-	//Get tokens (only declares variables if the token exists)
-	temp = localStorage.getItem(dropbox.prefix + "requestToken")
-	if (temp) {
-		dropbox.requestToken = temp;
+	try {
+		localStorage.setItem(mod, mod);
+		localStorage.removeItem(mod);
+	} catch(e) {
+		dropbox.authHTML5 = false;
 	}
-	
-	temp = localStorage.getItem(dropbox.prefix + "requestTokenSecret")
-	if (temp) {
-		dropbox.requestTokenSecret = temp;
-	}
-	
-	temp = localStorage.getItem(dropbox.prefix + "accessToken")
-	if (temp) {
-		dropbox.accessToken = temp;
-	}
-	
-	temp = localStorage.getItem(dropbox.prefix + "accessTokenSecret")
-	if (temp) {
-		dropbox.accessTokenSecret = temp;
-	}
-} else {
-	//Get cookies (for stored OAuth tokens)
-	cookies = document.cookie;
-	cookies = cookies.split(";");
-	
-	//Loop through cookies to extract tokens
-	for (i in cookies) {
-		c = cookies[i];
-		while (c.charAt(0) == ' ') c = c.substring(1);
-		c = c.split("=");
-		switch (c[0]) {
-			case dropbox.prefix + "requestToken":
-				dropbox.requestToken = c[1];
-			break;
-			
-			case dropbox.prefix + "requestTokenSecret":
-				dropbox.requestTokenSecret = c[1];
-			break;
-			
-			case dropbox.prefix + "accessToken":
-				dropbox.accessToken = c[1];
-			break;
-			
-			case dropbox.prefix + "accessTokenSecret":
-				dropbox.accessTokenSecret = c[1];
-			break;
-		}
-	}
-	
-	//While we're here, set the cookie expiry date (for later use)
-	dropbox.cookieExpire = new Date();
-	dropbox.cookieExpire.setDate(dropbox.cookieExpire.getDate()+dropbox.cookieTime);
-	dropbox.cookieExpire = dropbox.cookieExpire.toUTCString();
 }
 
-//Setup function runs after libraries are loaded
+/**
+ * Try to get tokens from HTML5 local storage or cookies.
+ * @private
+ */
+dropbox.checkAuth = function() {
+	//If using HTML5 local storage
+	if (dropbox.authHTML5 == true) {
+		//Get tokens (only declares variables if the token exists)
+		temp = localStorage.getItem(dropbox.prefix + "requestToken")
+		if (temp) {
+			dropbox.requestToken = temp;
+		}
+		
+		temp = localStorage.getItem(dropbox.prefix + "requestTokenSecret")
+		if (temp) {
+			dropbox.requestTokenSecret = temp;
+		}
+		
+		temp = localStorage.getItem(dropbox.prefix + "accessToken")
+		if (temp) {
+			dropbox.accessToken = temp;
+		}
+		
+		temp = localStorage.getItem(dropbox.prefix + "accessTokenSecret")
+		if (temp) {
+			dropbox.accessTokenSecret = temp;
+		}
+	} else {
+		//Get cookies (for stored OAuth tokens)
+		cookies = document.cookie;
+		cookies = cookies.split(";");
+		
+		//Loop through cookies to extract tokens
+		for (i in cookies) {
+			c = cookies[i];
+			while (c.charAt(0) == ' ') c = c.substring(1);
+			c = c.split("=");
+			switch (c[0]) {
+				case dropbox.prefix + "requestToken":
+					dropbox.requestToken = c[1];
+				break;
+				
+				case dropbox.prefix + "requestTokenSecret":
+					dropbox.requestTokenSecret = c[1];
+				break;
+				
+				case dropbox.prefix + "accessToken":
+					dropbox.accessToken = c[1];
+				break;
+				
+				case dropbox.prefix + "accessTokenSecret":
+					dropbox.accessTokenSecret = c[1];
+				break;
+			}
+		}
+		
+		//While we're here, set the cookie expiry date (for later use)
+		dropbox.cookieExpire = new Date();
+		dropbox.cookieExpire.setDate(dropbox.cookieExpire.getDate()+dropbox.cookieTime);
+		dropbox.cookieExpire = dropbox.cookieExpire.toUTCString();
+	}
+};
+dropbox.checkAuth();
+
+/**
+ * Setup function runs after libraries are loaded.
+ */
 dropbox.setup = function() {
 	//Check if access already allowed
 	if (!dropbox.accessToken || !dropbox.accessTokenSecret) {
 		//Check if already authorized, but not given access yet
 		if (!dropbox.requestToken || !dropbox.requestTokenSecret) {
 			//Request request token
-			dropbox.oauthReqeust({
-				url: "http://api.getdropbox.com/0/oauth/request_token",
+			dropbox.oauthRequest({
+				url: "https://api.dropbox.com/1/oauth/request_token",
 				type: "text",
 				token: true,
 				tokenSecret: true
@@ -141,12 +200,13 @@ dropbox.setup = function() {
 				dropbox.storeData("requestTokenSecret",dataArray['oauth_token_secret']);
 				
 				//Redirect to autorisation page
-				document.location = "http://api.getdropbox.com/0/oauth/authorize?oauth_token=" + dataArray["oauth_token"] + "&oauth_callback=" + dropbox.authCallback;
+				var url = "https://api.dropbox.com/1/oauth/authorize?oauth_token=" + dataArray["oauth_token"] + "&oauth_callback=" + dropbox.authCallback;
+				var dropboxAuthorizeWindow = window.open(url, 'dropboxAuthorize', 'height=700,width=1050,menubar=no,toolbar=no,location=no,resizable=no');
 			});
 		} else {
 			//Request access token
-			dropbox.oauthReqeust({
-				url: "http://api.getdropbox.com/0/oauth/access_token",
+			dropbox.oauthRequest({
+				url: "https://api.dropbox.com/1/oauth/access_token",
 				type: "text",
 				token: dropbox.requestToken,
 				tokenSecret: dropbox.requestTokenSecret
@@ -172,12 +232,14 @@ dropbox.setup = function() {
 	}
 };
 
-
-//Run setup when everything's loaded
-window.onload = dropbox.setup;
-
-//Function to send oauth requests
-dropbox.oauthReqeust = function(param1,param2,callback) {
+/**
+ * Function to send oauth requests.
+ * @param {Object} param1 The request's properties.
+ * @param {Array} param2 Parameters to send.
+ * @param {Function} callback The callback function, which will be called after loading.
+ * @private
+ */
+dropbox.oauthRequest = function(param1,param2,callback) {
 	//If the token wasn't defined in the function call, then use the access token
 	if (!param1.token) {
 		param1.token = dropbox.accessToken;
@@ -191,14 +253,14 @@ dropbox.oauthReqeust = function(param1,param2,callback) {
 		param1.type = "json";
 	}
 	
-	//If method isn't defined, assume it's GET
+	//If method isn't defined, assume it's POST
 	if (!param1.method) {
-		param1.method = "GET";
+		param1.method = "POST";
 	}
 	
 	//Define the accessor
 	accessor = {
-		consumerSecret: dropbox.consumerSecret,
+		consumerSecret: dropbox.consumerSecret
 	};
 	
 	//Outline the message
@@ -207,7 +269,7 @@ dropbox.oauthReqeust = function(param1,param2,callback) {
 	    method: param1.method,
 	    parameters: [
 	      	["oauth_consumer_key", dropbox.consumerKey],
-	      	["oauth_signature_method","HMAC-SHA1"]
+	      	["oauth_signature_method","PLAINTEXT"]
 	  	]
 	};
 	
@@ -242,12 +304,185 @@ dropbox.oauthReqeust = function(param1,param2,callback) {
 		
 		error: function(a,b,c) {
 			//Something went wrong. Feel free to add a better error message if you want
-			alert("Error");
+			console.log('Error');
 		}
 	});
-}
+};
 
-//Function to store data (tokens/cache) using either cookies or HTML5, depending on choice
+/**
+ * Get the URL of a oauth GET request.
+ * @param {Object} param1 The request's properties.
+ * @param {Array} param2 Parameters to send.
+ * @returns {String} The URL.
+ * @private
+ */
+dropbox.oauthGetURL = function(param1,param2) {
+	//If the token wasn't defined in the function call, then use the access token
+	if (!param1.token) {
+		param1.token = dropbox.accessToken;
+	}
+	if (!param1.tokenSecret) {
+		param1.tokenSecret = dropbox.accessTokenSecret;
+	}
+	
+	//If type isn't defined, it's JSON
+	if (!param1.type) {
+		param1.type = "json";
+	}
+	
+	//Define the accessor
+	accessor = {
+		consumerSecret: dropbox.consumerSecret
+	};
+	
+	//Outline the message
+	message = {
+		action: param1.url,
+	    method: 'GET',
+	    parameters: [
+	      	["oauth_consumer_key", dropbox.consumerKey],
+	      	["oauth_signature_method","PLAINTEXT"]
+	  	]
+	};
+	
+	//Only add tokens to the request if they're wanted (vars not passed as true)
+	if (param1.token != true) {
+		message.parameters.push(["oauth_token",param1.token]);
+	}
+	if (param1.tokenSecret != true) {
+		accessor.tokenSecret = param1.tokenSecret;
+	}
+	
+	//If given, append request-specific parameters to the OAuth request
+	for (i in param2) {
+		message.parameters.push(param2[i]);
+	}
+	
+	//Timestamp and sign the OAuth request
+	OAuth.setTimestampAndNonce(message);
+	OAuth.SignatureMethod.sign(message, accessor);
+	
+	var params = OAuth.getParameterMap(message.parameters), i = 0;
+	for (var key in params) {
+		if (i == 0) {
+			message.action += '?';
+		} else {
+			message.action += '&';
+		}
+		message.action += escape(key) + '=' + escape(params[key]);
+		i++;
+	}
+	
+	return message.action;
+};
+
+/**
+ * Function to send oauth requests using PUT method.
+ * @param {Object} param1 The request's properties.
+ * @param {Array} param2 Parameters to send.
+ * @param {String} body The request's body.
+ * @param {Function} callback The callback function, which will be called after loading.
+ * @private
+ */
+dropbox.oauthPutRequest = function(param1,param2,body,callback) {
+	//If the token wasn't defined in the function call, then use the access token
+	if (!param1.token) {
+		param1.token = dropbox.accessToken;
+	}
+	if (!param1.tokenSecret) {
+		param1.tokenSecret = dropbox.accessTokenSecret;
+	}
+	
+	//If type isn't defined, it's JSON
+	if (!param1.type) {
+		param1.type = "json";
+	}
+	
+	//Define the accessor
+	accessor = {
+		consumerSecret: dropbox.consumerSecret
+	};
+	
+	//Outline the message
+	message = {
+		action: param1.url,
+	    method: 'PUT',
+	    parameters: [
+	      	["oauth_consumer_key", dropbox.consumerKey],
+	      	["oauth_signature_method","PLAINTEXT"]
+	  	]
+	};
+	
+	//Only add tokens to the request if they're wanted (vars not passed as true)
+	if (param1.token != true) {
+		message.parameters.push(["oauth_token",param1.token]);
+	}
+	if (param1.tokenSecret != true) {
+		accessor.tokenSecret = param1.tokenSecret;
+	}
+	
+	//If given, append request-specific parameters to the OAuth request
+	for (i in param2) {
+		message.parameters.push(param2[i]);
+	}
+	
+	//Timestamp and sign the OAuth request
+	OAuth.setTimestampAndNonce(message);
+	OAuth.SignatureMethod.sign(message, accessor);
+	
+	//Add parameters to URL
+	var params = OAuth.getParameterMap(message.parameters), i = 0;
+	for (var key in params) {
+		if (i == 0) {
+			message.action += '?';
+		} else {
+			message.action += '&';
+		}
+		message.action += escape(key) + '=' + escape(params[key]);
+		i++;
+	}
+	
+
+	//Post the OAuth request
+	var xhr = null;
+
+	if (window.XMLHttpRequest || window.ActiveXObject) {
+		if (window.ActiveXObject) {
+			try {
+				xhr = new ActiveXObject("Msxml2.XMLHTTP");
+			} catch(e) {
+				xhr = new ActiveXObject("Microsoft.XMLHTTP");
+			}
+		} else {
+			xhr = new XMLHttpRequest();
+		}
+	} else {
+		console.log("XMLHTTPRequest not supported, please update your web browser.");
+		return;
+	}
+
+	var boundary = '------multipartformboundary' + (new Date).getTime();
+	
+	xhr.open('PUT', message.action, true);
+	xhr.setRequestHeader('content-type', 'multipart/form-data; boundary=' + boundary);
+	
+	xhr.sendAsBinary(body);
+	
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+			callback(jQuery.parseJSON(xhr.responseText));
+		} else if (xhr.readyState == 4) {
+			console.log('Error');
+		}
+	};
+};
+
+/**
+ * Function to store data (tokens/cache) using either cookies or HTML5, depending on choice.
+ * @param {String} name The key.
+ * @param {String} data The data.
+ * @private
+ */
 dropbox.storeData = function(name,data) {
 	//Escape data to be saved
 	data = escape(data);
@@ -259,9 +494,14 @@ dropbox.storeData = function(name,data) {
 		//Store data in cookie
 		document.cookie = dropbox.prefix + name + "=" + data + "; expires=" + dropbox.cookieExpire + "; path=/";
 	}
-}
+};
 
-//Function to get data (tokens/cache) using either cookies or HTML5, depending on choice
+/**
+ * Function to get data (tokens/cache) using either cookies or HTML5, depending on choice.
+ * @param {String} key The key.
+ * @returns {String} The data.
+ * @private
+ */
 dropbox.getData = function(name) {
 	//If using HTML5 local storage mode
 	if (dropbox.authHTML5 == true) {
@@ -281,37 +521,48 @@ dropbox.getData = function(name) {
 			}
 		}
 	}
-}
+};
 
 /*    PUBLIC FUNCTIONS    */
 
-//Function to get account info of user
+/**
+ * Function to get account info of user.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
 dropbox.getAccount = function(callback) {
-	dropbox.oauthReqeust({
-		url: "http://api.dropbox.com/0/account/info"
+	dropbox.oauthRequest({
+		url: "https://api.dropbox.com/1/account/info"
 	}, [], function(data) {
 		callback(data);
 	});
-}
+};
 
-//Function to get file/folder metadata
+/**
+ * Function to get file/folder metadata.
+ * @param {String} path The file's path.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
 dropbox.getMetadata = function(path,callback) {
-	dropbox.oauthReqeust({
-		url: "http://api.dropbox.com/0/metadata/" + dropbox.accessType + "/" + path
+	dropbox.oauthRequest({
+		url: "https://api.dropbox.com/1/metadata/" + dropbox.accessType + "/" + escape(path)
 	}, [["list","false"]], function(data) {
 		callback(data);
 	});
-}
+};
 
-//Function to get a list of the contents of a directory
+/**
+ * Function to get a list of the contents of a directory.
+ * @param {String} path The folder's path.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
 dropbox.getFolderContents = function(path,callback) {
 	//If caching is enabled, get the hash of the requested folder
 	if (dropbox.cache == true) {
 		//Get cached data
-		hash = dropbox.getData("cache." + path);
+		hash = dropbox._cache[path];
 		
 		//If cached data exists
-		if (hash != "null") {
+		if (hash != "null" && hash != "undefined" && hash) {
 			//Parse the cached data and extract the hash
 			hash = jQuery.parseJSON(hash).hash;
 		} else {
@@ -322,55 +573,70 @@ dropbox.getFolderContents = function(path,callback) {
 		//Set to a blank hash
 		hash = "00000000000000000000000000000000";
 	}
+	hash = "00000000000000000000000000000000";
 	
 	//Send the OAuth request
-	dropbox.oauthReqeust({
-		url: "http://api.dropbox.com/0/metadata/" + dropbox.accessType + "/" + path,
-		type: "text"
+	dropbox.oauthRequest({
+		url: "https://api.dropbox.com/1/metadata/" + dropbox.accessType + "/" + escape(path)
 	}, [
 		["list","true"],
-		["status_in_response","true"],
 		["hash",hash]
 	], function(data) {
 		//If caching is enabled, check if the folder contents have changed
 		if (dropbox.cache == true) {
-			if (jQuery.parseJSON(data).status == 304) {
+			if (data.status == 304) {
 				//Contents haven't changed - return cached data instead
-				data = dropbox.getData("cache." + path);
+				data = jQuery.parseJSON(dropbox._cache[path]);
 			} else {
-				//Strip out parent JSON object
-				data = data.substr(1);
-				while (data.charAt(0) != "{") data = data.substr(1);
-				data = data.substr(0,data.length-1);
-				while (data.charAt(data.length-1) != "}") data = data.substr(0,data.length-1);
+				data = data.contents;
 				
 				//Contents have changed - cache them for later
-				dropbox.storeData("cache." + path,data);
+				dropbox._cache[path] = JSON.stringify(data);
 			}
 		}
-		
-		//Parse the data as JSON
-		data = jQuery.parseJSON(data);
 		
 		//Run the callback
 		callback(data);
 	});
-}
+};
 
-//Function to get the contents of a file
+/**
+ * Function to get the contents of a file.
+ * @param {String} path The file's path.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
 dropbox.getFile = function(path,callback) {
-	dropbox.oauthReqeust({
-		url: escape("http://api-content.dropbox.com/0/files/" + dropbox.accessType + "/" + path),
-		type: "text"
+	dropbox.oauthRequest({
+		url: "https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + escape(path),
+		type: "text",
+		method: "GET"
 	}, [], function(data) {
 		callback(data);
 	});
-}
+};
 
-//Function to move a file/folder to a new location
-dropbox.getFile = function(from,to,callback) {
-	dropbox.oauthReqeust({
-		url: "http://api.dropbox.com/0/fileops/move"
+/**
+ * Function to get the URL of a file.
+ * @param {String} path The file's path.
+ * @returns {String} The file's URL.
+ */
+dropbox.getFileURL = function(path) {
+	return dropbox.oauthGetURL({
+		url: "https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + escape(path),
+		type: "text",
+		method: "GET"
+	}, []);
+};
+
+/**
+ * Function to move a file/folder to a new location.
+ * @param {String} from Specifies the file or folder to be moved.
+ * @param {String} to Specifies the destination path, including the new name for the file or folder.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
+dropbox.moveItem = function(from,to,callback) {
+	dropbox.oauthRequest({
+		url: "https://api.dropbox.com/1/fileops/move"
 	}, [
 		["from_path",from],
 		["to_path",to],
@@ -378,12 +644,17 @@ dropbox.getFile = function(from,to,callback) {
 	], function(data) {
 		callback(data);
 	});
-}
+};
 
-//Function to copy a file/folder to a new location
+/**
+ * Function to copy a file/folder to a new location.
+ * @param {String} from Specifies the file or folder to be copied.
+ * @param {String} to Specifies the destination path, including the new name for the file or folder.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
 dropbox.copyItem = function(from,to,callback) {
-	dropbox.oauthReqeust({
-		url: "http://api.dropbox.com/0/fileops/copy"
+	dropbox.oauthRequest({
+		url: "https://api.dropbox.com/1/fileops/copy"
 	}, [
 		["from_path",from],
 		["to_path",to],
@@ -391,12 +662,16 @@ dropbox.copyItem = function(from,to,callback) {
 	], function(data) {
 		callback(data);
 	});
-}
+};
 
-//Function to delete a file/folder
+/**
+ * Function to delete a file/folder.
+ * @param {String} path The path to the file or folder to be deleted.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
 dropbox.deleteItem = function(path,callback) {
-	dropbox.oauthReqeust({
-		url: "http://api.dropbox.com/0/fileops/delete",
+	dropbox.oauthRequest({
+		url: "https://api.dropbox.com/1/fileops/delete",
 		type: "text"
 	}, [
 		["path",path],
@@ -404,41 +679,80 @@ dropbox.deleteItem = function(path,callback) {
 	], function(data) {
 		callback(data);
 	});
-}
+};
 
-//Function to delete a file/folder
-dropbox.deleteItem = function(path,callback) {
-	dropbox.oauthReqeust({
-		url: "http://api.dropbox.com/0/fileops/create_folder"
+/**
+ * Function to create a folder.
+ * @param {String} path The path to the new folder to create.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
+dropbox.createFolder = function(path,callback) {
+	dropbox.oauthRequest({
+		url: "https://api.dropbox.com/1/fileops/create_folder"
 	}, [
 		["path",path],
 		["root",dropbox.accessType]
 	], function(data) {
 		callback(data);
 	});
-}
+};
 
-//Function to get a thumbnail for an image
-dropbox.getThumbnail = function(path,size) {
+/**
+ * Function to get a thumbnail for an image.
+ * @param {String} path The path to the image file you want to thumbnail.
+ * @param {Object} size One of the following values (default small): small (32x32), medium (64x64), large (128x128), s (64x64), m (128x128), l (640x640), xl (1024x768).
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
+dropbox.getThumbnail = function(path,size,callback) {
 	//Check 'size' parameter is valid
-	if (size != "small" && size != "medium" && size != "large") size = "small";
+	if (size != "small" 
+	&& size != "medium" 
+	&& size != "large" 
+	&& size != "s" 
+	&& size != "m" 
+	&& size != "l" 
+	&& size != "xl") {
+		size = "small";
+	}
 	
 	//Send OAuth request
-	dropbox.oauthReqeust({
-		url: escape("http://api-content.dropbox.com/0/thumbnails/" + dropbox.accessType + "/" + path),
+	dropbox.oauthRequest({
+		url: "https://api-content.dropbox.com/1/thumbnails/" + dropbox.accessType + "/" + escape(path),
 		type: "text"
 	}, [["size",size]], function(data) {
 		callback(data);
 	});
-}
+};
 
-//Function to upload a file
-dropbox.uploadFile = function(path,file) {
-	dropbox.oauthReqeust({
-		url: escape("http://api-content.dropbox.com/0/files/" + dropbox.accessType + "/" + path),
-		type: "text",
-		method: "POST"
-	}, [["file",file]], function(data) {
+//
+/**
+ * Function to upload a file.
+ * @param {String} path The path to the folder the file should be uploaded to.
+ * @param {String} contents The file contents to be uploaded.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
+dropbox.uploadFile = function(path,contents,callback) {
+	dropbox.oauthPutRequest({
+		url: "https://api-content.dropbox.com/1/files_put/" + dropbox.accessType + "/" + escape(path)
+	}, [], contents, function(data) {
 		callback(data);
 	});
-}
+};
+
+/**
+ * A string that is used to keep track of your current state. On the next call pass in this value to return delta entries that have been recorded since the cursor was returned.
+ * @private
+ */
+dropbox._cursor = 0;
+/**
+ * A way of letting you keep up with changes to files and folders in a user's Dropbox. You can periodically call /delta to get a list of "delta entries", which are instructions on how to update your local state to match the server's state.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
+dropbox.getDelta = function(callback) {
+	dropbox.oauthRequest({
+		url: "https://api.dropbox.com/1/delta"
+	}, [cursor], function(data) {
+		dropbox._cursor++;
+		callback(data);
+	});
+};

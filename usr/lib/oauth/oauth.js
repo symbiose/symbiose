@@ -547,5 +547,4 @@ OAuth.SignatureMethod.registerMethodClass(["HMAC-SHA1", "HMAC-SHA1-Accessor"],
 
 try {
     OAuth.correctTimestampFromSrc();
-} catch(e) {
-}
+} catch(e) {}
