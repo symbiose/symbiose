@@ -114,6 +114,10 @@ class Authorization extends \lib\WebosComponent {
 	public function getArgumentAuthorizations($providedArgument, $argumentType, $argumentAction) {
 		switch($argumentType) {
 			case 'file':
+				if ($providedArgument === null) {
+					return true;
+				}
+				
 				if ($this->webos->getUser()->isConnected()) {
 					if (preg_match('#^'.$this->webos->managers()->get('File')->userDirectory().'/#', $providedArgument) || $providedArgument == $this->webos->managers()->get('File')->userDirectory()) {
 						return 'file.user.'.$argumentAction;
