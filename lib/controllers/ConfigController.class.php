@@ -67,11 +67,11 @@ class ConfigController extends \lib\ServerCallComponent {
 					}
 				}
 
-				if (!empty($base)) {
-					if ($authorisations->can($readAuthorisation)) {
-						$config->load($path);
-						$data = $config->getConfig();
-					} else {
+				if ($authorisations->can($readAuthorisation)) {
+					$config->load($path);
+					$data = $config->getConfig();
+				} else {
+					if (!empty($base)) {
 						$config->load($base);
 						$data = $config->getConfig();
 					}
