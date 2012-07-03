@@ -157,6 +157,9 @@ Webos.ConfigFile.loadUserConfig = function(path, basePath, callback) {
 			callback.success(Webos.ConfigFile._cache[file.get('path')]);
 		} else if (!user && baseFile && Webos.ConfigFile._cache[baseFile.get('path')]) {
 			callback.success(Webos.ConfigFile._cache[baseFile.get('path')]);
+		} else if (!user && !baseFile) {
+			var config = new Webos.ConfigFile({}, file);
+			callback.success(config);
 		} else {
 			new Webos.ServerCall({
 				'class': 'ConfigController',
