@@ -112,7 +112,7 @@ Webos.Model.prototype = {
 	 * @returns Vrai si la modification a réussi, faux sinon.
 	 */
 	remove: function(key) {
-		var methodName = 'set' + key.charAt(0).toUpperCase() + key.substr(1);
+		var methodName = 'remove' + key.charAt(0).toUpperCase() + key.substr(1);
 		if (!this.exists(key)) {
 			return true;
 		}
@@ -129,7 +129,7 @@ Webos.Model.prototype = {
 	 * @private
 	 */
 	_remove: function(key) {
-		delete this._data[key];
+		this._unsynced[key] = { value: undefined, state: 1 };
 	},
 	/**
 	 * Envoyer les modifications effectuées sur le modèle vers le serveur.
