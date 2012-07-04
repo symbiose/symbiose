@@ -79,7 +79,7 @@ Webos.ConfigFile.prototype = {
 				if (that._unsynced[key].state === 2) {
 					that._data[key] = that._unsynced[key].value;
 					delete that._unsynced[key];
-					that.notify('update', { key: key, value: that._data[key].value });
+					that.notify('update', { key: key, value: that._data[key] });
 				}
 			}
 			callback.success(that);
