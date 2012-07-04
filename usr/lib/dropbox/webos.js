@@ -195,7 +195,7 @@ Webos.DropboxFile.createFolder = function(path, base, callback) {
  * @static
  */
 Webos.DropboxFile.getDropboxPath = function(path, base) {
-	return String(path).replace(base.replace(/\/.+/, ''), Webos.File.getMountData(base).remote);
+	return String(path).replace(base, Webos.File.getMountData(base).remote);
 };
 /**
  * Recuperer le chemin absolu a partir d'un chemin par relatif par rapport au dossier de Dropbox.
@@ -205,7 +205,7 @@ Webos.DropboxFile.getDropboxPath = function(path, base) {
  * @static
  */
 Webos.DropboxFile.getWebosPath = function(path, base) {
-	return String(path).replace(Webos.File.getMountData(base).remote.replace(/\/.+/, ''), base);
+	return String(path).replace(Webos.File.getMountData(base).remote, base);
 };
 
 Webos.File.registerDriver('DropboxFile', {
