@@ -240,6 +240,8 @@ dropbox.setup = function() {
  * @private
  */
 dropbox.oauthRequest = function(param1,param2,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	//If the token wasn't defined in the function call, then use the access token
 	if (!param1.token) {
 		param1.token = dropbox.accessToken;
@@ -296,15 +298,13 @@ dropbox.oauthRequest = function(param1,param2,callback) {
 		type: message.method,
 		data: OAuth.getParameterMap(message.parameters),
 		dataType: param1.type,
-		
 		success: function(data) {
 			//OAuth request successful - run callback
-			callback(data);
+			callback.success(data);
 		},
-		
-		error: function(a,b,c) {
+		error: function(jqXHR, textStatus, errorThrown) {
 			//Something went wrong. Feel free to add a better error message if you want
-			console.log('Error');
+			callback.error(jqXHR, textStatus, errorThrown);
 		}
 	});
 };
@@ -385,6 +385,8 @@ dropbox.oauthGetURL = function(param1,param2) {
  * @private
  */
 dropbox.oauthPutRequest = function(param1,param2,body,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	//If the token wasn't defined in the function call, then use the access token
 	if (!param1.token) {
 		param1.token = dropbox.accessToken;
@@ -470,9 +472,10 @@ dropbox.oauthPutRequest = function(param1,param2,body,callback) {
 	
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
-			callback(jQuery.parseJSON(xhr.responseText));
+			callback.success(jQuery.parseJSON(xhr.responseText));
 		} else if (xhr.readyState == 4) {
 			console.log('Error');
+			callback.error(xhr);
 		}
 	};
 };
@@ -530,11 +533,15 @@ dropbox.getData = function(name) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.getAccount = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	dropbox.oauthRequest({
 		url: "https://api.dropbox.com/1/account/info"
-	}, [], function(data) {
-		callback(data);
-	});
+	}, [], [function(data) {
+		callback.success(data);
+	}, function(xhr) {
+		
+	}]);
 };
 
 /**
@@ -543,10 +550,12 @@ dropbox.getAccount = function(callback) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.getMetadata = function(path,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	dropbox.oauthRequest({
 		url: "https://api.dropbox.com/1/metadata/" + dropbox.accessType + "/" + escape(path)
 	}, [["list","false"]], function(data) {
-		callback(data);
+		callback.success(data);
 	});
 };
 
@@ -556,6 +565,8 @@ dropbox.getMetadata = function(path,callback) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.getFolderContents = function(path,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	//If caching is enabled, get the hash of the requested folder
 	if (dropbox.cache == true) {
 		//Get cached data
@@ -596,7 +607,7 @@ dropbox.getFolderContents = function(path,callback) {
 		}
 		
 		//Run the callback
-		callback(data);
+		callback.success(data);
 	});
 };
 
@@ -606,12 +617,14 @@ dropbox.getFolderContents = function(path,callback) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.getFile = function(path,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	dropbox.oauthRequest({
 		url: "https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + escape(path),
 		type: "text",
 		method: "GET"
 	}, [], function(data) {
-		callback(data);
+		callback.success(data);
 	});
 };
 
@@ -635,6 +648,8 @@ dropbox.getFileURL = function(path) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.moveItem = function(from,to,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	dropbox.oauthRequest({
 		url: "https://api.dropbox.com/1/fileops/move"
 	}, [
@@ -642,7 +657,7 @@ dropbox.moveItem = function(from,to,callback) {
 		["to_path",to],
 		["root",dropbox.accessType]
 	], function(data) {
-		callback(data);
+		callback.success(data);
 	});
 };
 
@@ -653,6 +668,8 @@ dropbox.moveItem = function(from,to,callback) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.copyItem = function(from,to,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	dropbox.oauthRequest({
 		url: "https://api.dropbox.com/1/fileops/copy"
 	}, [
@@ -660,7 +677,7 @@ dropbox.copyItem = function(from,to,callback) {
 		["to_path",to],
 		["root",dropbox.accessType]
 	], function(data) {
-		callback(data);
+		callback.success(data);
 	});
 };
 
@@ -670,6 +687,8 @@ dropbox.copyItem = function(from,to,callback) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.deleteItem = function(path,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	dropbox.oauthRequest({
 		url: "https://api.dropbox.com/1/fileops/delete",
 		type: "text"
@@ -677,7 +696,7 @@ dropbox.deleteItem = function(path,callback) {
 		["path",path],
 		["root",dropbox.accessType]
 	], function(data) {
-		callback(data);
+		callback.success(data);
 	});
 };
 
@@ -687,13 +706,15 @@ dropbox.deleteItem = function(path,callback) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.createFolder = function(path,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	dropbox.oauthRequest({
 		url: "https://api.dropbox.com/1/fileops/create_folder"
 	}, [
 		["path",path],
 		["root",dropbox.accessType]
 	], function(data) {
-		callback(data);
+		callback.success(data);
 	});
 };
 
@@ -704,6 +725,8 @@ dropbox.createFolder = function(path,callback) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.getThumbnail = function(path,size,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	//Check 'size' parameter is valid
 	if (size != "small" 
 	&& size != "medium" 
@@ -720,7 +743,7 @@ dropbox.getThumbnail = function(path,size,callback) {
 		url: "https://api-content.dropbox.com/1/thumbnails/" + dropbox.accessType + "/" + escape(path),
 		type: "text"
 	}, [["size",size]], function(data) {
-		callback(data);
+		callback.success(data);
 	});
 };
 
@@ -732,10 +755,12 @@ dropbox.getThumbnail = function(path,size,callback) {
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.uploadFile = function(path,contents,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	dropbox.oauthPutRequest({
 		url: "https://api-content.dropbox.com/1/files_put/" + dropbox.accessType + "/" + escape(path)
 	}, [], contents, function(data) {
-		callback(data);
+		callback.success(data);
 	});
 };
 
@@ -749,10 +774,12 @@ dropbox._cursor = 0;
  * @param {Function} callback The callback function, which will be called after loading.
  */
 dropbox.getDelta = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
 	dropbox.oauthRequest({
 		url: "https://api.dropbox.com/1/delta"
 	}, [cursor], function(data) {
 		dropbox._cursor++;
-		callback(data);
+		callback.success(data);
 	});
 };
