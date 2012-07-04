@@ -9,7 +9,6 @@ Webos.File.fstab = {
 		
 		Webos.ConfigFile.loadUserConfig('~/.config/fstab.xml', null, [function(config) {
 			var data = config.data();
-			console.log(config);
 			for (var local in data) {
 				var mountData = jQuery.parseJSON(data[local]);
 				new Webos.ScriptFile(mountData.lib);
@@ -24,7 +23,14 @@ Webos.File.fstab = {
 		callback = Webos.Callback.toCallback(callback);
 		
 		Webos.ConfigFile.loadUserConfig('~/.config/fstab.xml', null, [function(config) {
-			callback.success(config.data());
+			var data = config.data(), list = {};
+			
+			for (var local in data) {
+				var mountData = jQuery.parseJSON(data[local]);
+				list[local] = mountData;
+			}
+			
+			callback.success(list);
 		}, callback.error]);
 	},
 	add: function(local, data, callback) {
@@ -53,4 +59,16 @@ Webos.File.fstab = {
 	}
 };
 
+Webos.File.bind('umount', function(data) {
+	Webos.File.fstab.list(function(fstab) {
+		if (fstab[data.local]) {
+			Webos.File.fstab.remove(data.local, [function() {}, function(response) {
+				response.triggerError('Impossible d\'effectuer le d&eacute;montage permanent');
+			}]);
+		}
+	});
+});
+Webos.User.bind('login', function() {
+	Webos.File.fstab.mount();
+});
 Webos.File.fstab.mount();
