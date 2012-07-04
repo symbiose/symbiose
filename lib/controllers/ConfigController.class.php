@@ -111,6 +111,12 @@ class ConfigController extends \lib\ServerCallComponent {
 		$config = new Config($this->webos);
 		$config->load($path);
 
+		foreach ($config->getConfig() as $index => $value) {
+			if (!array_key_exists($index, $data)) {
+				$config->remove($index);
+			}
+		}
+		
 		foreach ($data as $index => $value) {
 			$config->set($index, $value);
 		}
