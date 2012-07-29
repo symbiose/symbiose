@@ -494,7 +494,6 @@ function GEditWindow(file) {
 				distanceX = 0;
 			}
 			
-			console.log(e.pageY, offset.top, offset.top + dimentions.height);
 			if (e.pageY < offset.top) {
 				distanceY = e.pageY - offset.top;
 			} else if (e.pageY > offset.top + dimentions.height) {
