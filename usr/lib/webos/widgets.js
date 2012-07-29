@@ -1964,7 +1964,7 @@ $.webos.keyboard.bind = function(el, keycode, callback) {
 			}
 			
 			e.isFocused = false;
-			if ($(e.target).is('input,textarea,select')) {
+			if ($(e.target).is('input,textarea,select,*:focus')) {
 				e.isFocused = true;
 			}
 			
