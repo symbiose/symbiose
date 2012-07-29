@@ -304,7 +304,7 @@ dropbox.oauthRequest = function(param1,param2,callback) {
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
 			//Something went wrong. Feel free to add a better error message if you want
-			callback.error(jqXHR, textStatus, errorThrown);
+			callback.error(jqXHR.status + ' ' + jqXHR.statusText + '. ' + jqXHR.responseText, jqXHR);
 		}
 	});
 };
@@ -474,8 +474,7 @@ dropbox.oauthPutRequest = function(param1,param2,body,callback) {
 		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
 			callback.success(jQuery.parseJSON(xhr.responseText));
 		} else if (xhr.readyState == 4) {
-			console.log('Error');
-			callback.error(xhr);
+			callback.error(xhr.status + ' ' + xhr.statusText + '. ' + xhr.responseText, xhr);
 		}
 	};
 };
@@ -539,9 +538,7 @@ dropbox.getAccount = function(callback) {
 		url: "https://api.dropbox.com/1/account/info"
 	}, [], [function(data) {
 		callback.success(data);
-	}, function(xhr) {
-		
-	}]);
+	}, callback.error]);
 };
 
 /**
@@ -554,9 +551,9 @@ dropbox.getMetadata = function(path,callback) {
 	
 	dropbox.oauthRequest({
 		url: "https://api.dropbox.com/1/metadata/" + dropbox.accessType + "/" + escape(path)
-	}, [["list","false"]], function(data) {
+	}, [["list","false"]], [function(data) {
 		callback.success(data);
-	});
+	}, callback.error]);
 };
 
 /**
@@ -592,7 +589,7 @@ dropbox.getFolderContents = function(path,callback) {
 	}, [
 		["list","true"],
 		["hash",hash]
-	], function(data) {
+	], [function(data) {
 		//If caching is enabled, check if the folder contents have changed
 		if (dropbox.cache == true) {
 			if (data.status == 304) {
@@ -608,7 +605,7 @@ dropbox.getFolderContents = function(path,callback) {
 		
 		//Run the callback
 		callback.success(data);
-	});
+	}, callback.error]);
 };
 
 /**
@@ -623,9 +620,9 @@ dropbox.getFile = function(path,callback) {
 		url: "https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + escape(path),
 		type: "text",
 		method: "GET"
-	}, [], function(data) {
+	}, [], [function(data) {
 		callback.success(data);
-	});
+	}, callback.error]);
 };
 
 /**
@@ -656,9 +653,9 @@ dropbox.moveItem = function(from,to,callback) {
 		["from_path",from],
 		["to_path",to],
 		["root",dropbox.accessType]
-	], function(data) {
+	], [function(data) {
 		callback.success(data);
-	});
+	}, callback.error]);
 };
 
 /**
@@ -676,9 +673,9 @@ dropbox.copyItem = function(from,to,callback) {
 		["from_path",from],
 		["to_path",to],
 		["root",dropbox.accessType]
-	], function(data) {
+	], [function(data) {
 		callback.success(data);
-	});
+	}, callback.error]);
 };
 
 /**
@@ -695,9 +692,9 @@ dropbox.deleteItem = function(path,callback) {
 	}, [
 		["path",path],
 		["root",dropbox.accessType]
-	], function(data) {
+	], [function(data) {
 		callback.success(data);
-	});
+	}, callback.error]);
 };
 
 /**
@@ -713,9 +710,9 @@ dropbox.createFolder = function(path,callback) {
 	}, [
 		["path",path],
 		["root",dropbox.accessType]
-	], function(data) {
+	], [function(data) {
 		callback.success(data);
-	});
+	}, callback.error]);
 };
 
 /**
@@ -742,9 +739,9 @@ dropbox.getThumbnail = function(path,size,callback) {
 	dropbox.oauthRequest({
 		url: "https://api-content.dropbox.com/1/thumbnails/" + dropbox.accessType + "/" + escape(path),
 		type: "text"
-	}, [["size",size]], function(data) {
+	}, [["size",size]], [function(data) {
 		callback.success(data);
-	});
+	}, callback.error]);
 };
 
 //
@@ -759,9 +756,9 @@ dropbox.uploadFile = function(path,contents,callback) {
 	
 	dropbox.oauthPutRequest({
 		url: "https://api-content.dropbox.com/1/files_put/" + dropbox.accessType + "/" + escape(path)
-	}, [], contents, function(data) {
+	}, [], contents, [function(data) {
 		callback.success(data);
-	});
+	}, callback.error]);
 };
 
 /**
@@ -778,8 +775,8 @@ dropbox.getDelta = function(callback) {
 	
 	dropbox.oauthRequest({
 		url: "https://api.dropbox.com/1/delta"
-	}, [cursor], function(data) {
+	}, [cursor], [function(data) {
 		dropbox._cursor++;
 		callback.success(data);
-	});
+	}, callback.error]);
 };

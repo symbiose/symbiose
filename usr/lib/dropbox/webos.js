@@ -63,43 +63,41 @@ Webos.DropboxFile.prototype = {
 		
 		var dest = Webos.DropboxFile.getDropboxPath(this.get('dirname') + '/' + newName, this.get('base'));
 		
-		dropbox.moveItem(this.get('dropboxpath'), dest, function() {
+		dropbox.moveItem(this.get('dropboxpath'), dest, [function() {
 			that.hydrate({
 				dropboxpath: dest,
 				path: Webos.DropboxFile.getWebosPath(dest, that.get('base'))
 			});
 			that.load([function() {
 				callback.success();
-			}, function(response) {
-				callback.error(response);
-			}]);
-		});
+			}, callback.error]);
+		}, callback.error]);
 	},
 	move: function(dest, callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		dest = String(dest);
 		
-		dropbox.moveItem(this.get('dropboxpath'), Webos.DropboxFile.getDropboxPath(dest), function() {
+		dropbox.moveItem(this.get('dropboxpath'), Webos.DropboxFile.getDropboxPath(dest,  this.get('base')), [function() {
 			that._remove();
 			callback.success();
-		});
+		}, callback.error]);
 	},
 	remove: function(callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
-		dropbox.deleteItem(this.get('dropboxpath'), function() {
+		dropbox.deleteItem(this.get('dropboxpath'), [function() {
 			that._remove();
 			callback.success();
-		});
+		}, callback.error]);
 	},
 	contents: function(callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
 		if (this.get('is_dir')) {
-			dropbox.getFolderContents(this.get('dropboxpath'), function(data) {
+			dropbox.getFolderContents(this.get('dropboxpath'), [function(data) {
 				var list = [];
 				for(var i = 0; i < data.length; i++) {
 					var file = new Webos.DropboxFile(data[i], that.get('base'));
@@ -112,11 +110,11 @@ Webos.DropboxFile.prototype = {
 					list.push(file);
 				}
 				callback.success(list);
-			});
+			}, callback.error]);
 		} else {
-			dropbox.getFile(this.get('dropboxpath'), function(contents) {
-				callback.success(contents, that);
-			});
+			dropbox.getFile(this.get('dropboxpath'), [function(contents) {
+				callback.success(contents);
+			}, callback.error]);
 		}
 	},
 	setContents: function(contents, callback) {
@@ -127,9 +125,9 @@ Webos.DropboxFile.prototype = {
 			callback.error();
 		}
 		
-		dropbox.uploadFile(this.get('dropboxpath'), contents, function() {
+		dropbox.uploadFile(this.get('dropboxpath'), contents, [function() {
 			callback.success();
-		});
+		}, callback.error]);
 	}
 };
 Webos.inherit(Webos.DropboxFile, Webos.File); //Héritage de Webos.File
@@ -151,10 +149,10 @@ Webos.DropboxFile.get = function(file, base, data) {
 };
 
 Webos.DropboxFile.load = function(path, base, callback) {
-	path = Webos.DropboxFile.getDropboxPath(path);
+	path = Webos.DropboxFile.getDropboxPath(path, base);
 	callback = Webos.Callback.toCallback(callback);
 	
-	dropbox.getMetadata(Webos.DropboxFile.getDropboxPath(path, base), function(data) {
+	dropbox.getMetadata(Webos.DropboxFile.getDropboxPath(path, base), [function(data) {
 		var file = new Webos.DropboxFile(data, base);
 		
 		//On le stocke dans le cache
@@ -166,25 +164,25 @@ Webos.DropboxFile.load = function(path, base, callback) {
 		}
 		
 		callback.success(file);
-	});
+	}, callback.error]);
 };
 
 Webos.DropboxFile.createFile = function(path, base, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	dropbox.uploadFile(Webos.DropboxFile.getDropboxPath(path, base), '', function(data) {
+	dropbox.uploadFile(Webos.DropboxFile.getDropboxPath(path, base), '', [function(data) {
 		var file = Webos.DropboxFile.get(path, base, data);
 		callback.success(file);
-	});
+	}, callback.error]);
 };
 
 Webos.DropboxFile.createFolder = function(path, base, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	dropbox.createFolder(Webos.DropboxFile.getDropboxPath(path, base), function(data) {
+	dropbox.createFolder(Webos.DropboxFile.getDropboxPath(path, base), [function(data) {
 		var file = Webos.DropboxFile.get(path, base, data);
 		callback.success(file);
-	});
+	}, callback.error]);
 };
 
 /**
@@ -195,7 +193,7 @@ Webos.DropboxFile.createFolder = function(path, base, callback) {
  * @static
  */
 Webos.DropboxFile.getDropboxPath = function(path, base) {
-	return String(path).replace(base, Webos.File.getMountData(base).remote);
+	return Webos.File.cleanPath(String(path).replace(base, Webos.File.getMountData(base).remote + '/'));
 };
 /**
  * Recuperer le chemin absolu a partir d'un chemin par relatif par rapport au dossier de Dropbox.
@@ -205,7 +203,11 @@ Webos.DropboxFile.getDropboxPath = function(path, base) {
  * @static
  */
 Webos.DropboxFile.getWebosPath = function(path, base) {
-	return String(path).replace(Webos.File.getMountData(base).remote, base);
+	if (!Webos.File.getMountData(base).remote) {
+		return Webos.File.cleanPath(base + '/' + String(path));
+	}
+	
+	return Webos.File.cleanPath(String(path).replace(Webos.File.getMountData(base).remote, base + '/'));
 };
 
 Webos.File.registerDriver('DropboxFile', {
