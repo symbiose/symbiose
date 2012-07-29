@@ -1150,7 +1150,7 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 					return false;
 				}
 			});
-			if (this.options.selectMultiple) {
+			if (that.options.selectMultiple) {
 				$(this).nautilus('items').click(function() {
 					$(this).toggleClass('active');
 				});
