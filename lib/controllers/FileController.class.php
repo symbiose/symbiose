@@ -230,13 +230,15 @@ class FileController extends \lib\ServerCallComponent {
 
 		if ($file->isDir()) {
 			$source = $file->zip('/tmp/'.sha1(time().'-'.rand()).'.zip');
+			$filename = $file->basename() . '.zip';
 		} else {
 			$source = $file;
+			$filename = $file->basename();
 		}
 
 		header('Content-Description: File Transfer');
 		header('Content-Type: application/octet-stream');
-		header('Content-Disposition: attachment; filename='.$file->basename());
+		header('Content-Disposition: attachment; filename='.$filename);
 		header('Content-Transfer-Encoding: binary');
 		header('Expires: 0');
 		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
