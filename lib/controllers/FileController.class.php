@@ -5,7 +5,6 @@ namespace lib\controllers;
  * FileController permet de controller l'ensemble des fichiers.
  * @author $imon
  * @version 1.0
- *
  */
 class FileController extends \lib\ServerCallComponent {
 	/**
