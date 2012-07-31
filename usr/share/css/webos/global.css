@@ -12,7 +12,7 @@ html, body {
 	overflow: hidden;
 }
 
-#webos-loading, #webos-unsupported {
+#webos-loading, #webos-unsupported, #webos-error {
 	overflow: hidden;
 	position: absolute;
 	top: 0;
@@ -24,14 +24,14 @@ html, body {
 	font-family: Ubuntu, Verdana, serif;
 }
 
-#webos-loading .center, #webos-unsupported .center {
+#webos-loading .center, #webos-unsupported .center, #webos-error .center {
 	position: relative;
 	top: 42%;
 	margin: auto;
 	text-align: center;
 }
 
-#webos-loading h1, #webos-unsupported h1 {
+#webos-loading h1, #webos-unsupported h1, #webos-error h1 {
 	font-size: 50px;
 	color: white;
 	text-shadow: 0 0 0.2em white;
@@ -41,21 +41,19 @@ html, body {
 #webos-loading p, #webos-unsupported p {
 	color: #ffcdf1;
 }
+#webos-unsupported p, #webos-error p {
+	color: #ff6767;
+}
 
-#webos-loading a, #webos-unsupported a,
+#webos-loading a, #webos-unsupported a
 #webos-loading a:hover, #webos-unsupported a:hover,
 #webos-loading a:active, #webos-unsupported a:active,
 #webos-loading a:visited, #webos-unsupported a:visited {
 	color: #ffcdf1;
 }
-
-#webos-loading p.error, #webos-unsupported p.error {
-	color: #ff6767;
-}
-
-#webos-loading p.error a, #webos-unsupported p.error a,
-#webos-loading p.error a:hover, #webos-unsupported p.error a:hover,
-#webos-loading p.error a:active, #webos-unsupported p.error a:active,
-#webos-loading p.error a:visited, #webos-unsupported p.error a:visited {
+#webos-unsupported p.error a, #webos-error a,
+#webos-unsupported p.error a:hover, #webos-error a:hover,
+#webos-unsupported p.error a:active, #webos-error a:active,
+#webos-unsupported p.error a:visited, #webos-error a:visited {
 	color: #ff6767;
 }

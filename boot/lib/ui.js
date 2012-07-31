@@ -70,8 +70,9 @@ Webos.UserInterface.load = function(name) {
 	}
 	
 	Webos.Error.setErrorHandler(function(error) {
-		if (!$('#webos-loading p').is('.error')) {
-			$('#webos-loading p').addClass('error').html('<strong>Une erreur est survenue lors du chargement de l\'interface.</strong><br />');
+		if ($('#webos-error').is(':hidden')) {
+			$('#webos-error p').html('<strong>Une erreur est survenue lors du chargement de l\'interface.</strong><br />');
+			$('#webos-error').show();
 		}
 		
 		var message;
@@ -81,7 +82,7 @@ Webos.UserInterface.load = function(name) {
 			message = error.name + ' : ' + error.message;
 		}
 		
-		$('#webos-loading p').append(message+'<br />');
+		$('#webos-error p').append(message+'<br />');
 		
 		if (typeof Webos.UserInterface.current != 'undefined') {
 			Webos.UserInterface.current.callLoaded = false;
@@ -131,7 +132,7 @@ Webos.UserInterface.setDefault = function(ui, value, callback) {
 };
 Webos.UserInterface._loadingScreenTimerId = null;
 Webos.UserInterface.showLoadingScreen = function() {
-	$('#webos-loading p').removeClass('error').html('Chargement en cours...');
+	$('#webos-error p').empty();
 	if (typeof Webos.UserInterface.current == 'undefined') {
 		$('#webos-loading').show();
 	} else {
