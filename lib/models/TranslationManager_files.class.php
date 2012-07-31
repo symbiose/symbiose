@@ -7,7 +7,12 @@ class TranslationManager_files extends TranslationManager {
 			$locale = $this->getLanguage();
 		}
 		
-		$file = $this->webos->managers()->get('File')->get('/usr/share/locale/' . $locale . '/' . $path . '.ini');
+		$filepath = '/usr/share/locale/' . $locale . '/' . $path . '.ini';
+		if (!$this->webos->managers()->get('File')->exists($filepath)) {
+			return new Translation($this->webos);
+		}
+		
+		$file = $this->webos->managers()->get('File')->get($filepath);
 		$contents = $file->contents();
 		
 		$data = array();
