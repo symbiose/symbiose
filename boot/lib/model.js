@@ -17,6 +17,10 @@ Webos.Model.prototype = {
 	 * @param {Object} data Les données.
 	 */
 	hydrate: function(data) {
+		if (!data) {
+			return;
+		}
+		
 		for (var key in data) {
 			this._data[key] = data[key];
 		}
