@@ -61,6 +61,11 @@ Webos.ConfigFile.prototype = {
 				nbrChanges++;
 			}
 		}
+		for (var key in this._data) {
+			if (!this._unsynced[key]) {
+				data[key] = this._data[key];
+			}
+		}
 		
 		if (nbrChanges === 0) {
 			callback.success(this);
