@@ -23,7 +23,7 @@ strong {
 	overflow: visible;
 }
 
-.screen {
+.actualbackground .screen {
 	width: 336px;
 	height: 310px;
 	background-image: url('usr/share/images/gconf/categories/appearance/screen.png');
@@ -35,7 +35,7 @@ strong {
 	padding-bottom: 106px;
 	overflow: hidden;
 }
-.screen img {
+.actualbackground .screen img {
 	height: 100%;
 	width: 100%;
 }
