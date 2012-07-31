@@ -177,4 +177,7 @@
 		<method name="get"></method>
 		<method name="check"></method>
 	</class>
+	<class name="TranslationController">
+		<method name="getLanguage"></method>
+	</class>
 </actions>

@@ -20,7 +20,8 @@ class Daos extends \lib\WebosComponent {
 		'File' => 'files',
 		'User' => 'files',
 		'UserInterface' => 'files',
-		'Package' => 'files'
+		'Package' => 'files',
+		'Translation' => 'files'
 	);
 
 	/**

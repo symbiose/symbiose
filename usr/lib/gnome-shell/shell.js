@@ -54,6 +54,12 @@
 		 * @var object
 		 */
 		_cmds2Windows: {},
+		
+		/**
+		 * L'objet contenant les traductions.
+		 * @var Webos.Translation
+		 */
+		_translations: null,
 
 		/**
 		 * Afficher le Shell.
@@ -361,10 +367,11 @@
 		 */
 		_showAppsCategories: function(list) {
 			var that = this;
+			var t = this.translations();
 			
 			this._$appsCategories.empty();
 			
-			$('<li></li>', { title: 'Afficher toutes les applications', 'class': 'active' }).html('Toutes').click(function() {
+			$('<li></li>', { title: t.get('Show all applications'), 'class': 'active' }).html(t.get('All')).click(function() {
 				$(this).parent().children('.active').removeClass('active');
 				$(this).addClass('active');
 				if (!that._$searchEntry.val()) {
@@ -418,6 +425,7 @@
 		 */
 		_showShortcurts: function(list) {
 			var that = this;
+			var t = this.translations();
 			
 			this._hideWindows();
 			$('#shell .shortcuts').show();
@@ -460,16 +468,16 @@
 					$('<span></span>', { 'class': 'title' }).html(app.get('title')).appendTo(item);
 					
 					var contextmenu = $.w.contextMenu(item);
-					$.webos.menuItem('Nouvelle fen&ecirc;tre').click(function() {
+					$.webos.menuItem(t.get('New window')).click(function() {
 						that.hide();
 						W.Cmd.execute(app.get('command'));
 					}).appendTo(contextmenu);
 					if (app.get('favorite') !== false) {
-						$.webos.menuItem('Retirer des favoris', true).click(function() {
+						$.webos.menuItem(t.get('Remove from favorites'), true).click(function() {
 							that.removeFavorite(app);
 						}).appendTo(contextmenu);
 					} else {
-						$.webos.menuItem('Ajouter aux favoris', true).click(function() {
+						$.webos.menuItem(t.get('Add to favorites'), true).click(function() {
 							that.addFavorite(app);
 						}).appendTo(contextmenu);
 					}
@@ -536,13 +544,14 @@
 		 */
 		addFavorite: function(app) {
 			var that = this;
+			var t = this.translations();
 			
 			Webos.Application.listFavorites(function(favorites) {
 				app.set('favorite', favorites.length + 1);
 				app.sync([function() {
 					that._renderLauncher();
 				}, function(response) {
-					response.triggerError('Impossible d\'ajouter l\'application "'+app.get('title')+'" aux favoris');
+					response.triggerError(t.get('Cannot add "${app}" to favorites', { 'app': app.get('title') }));
 				}]);
 			});
 		},
@@ -552,12 +561,13 @@
 		 */
 		removeFavorite: function(app) {
 			var that = this;
+			var t = this.translations();
 			
 			app.set('favorite', 0);
 			app.sync([function() {
 				that._renderLauncher();
 			}, function(response) {
-				response.triggerError('Impossible de retirer l\'application "'+app.get('title')+'" des favoris');
+				response.triggerError(t.get('Cannot remove "${app}" from favorites', { 'app': app.get('title') }));
 			}]);
 		},
 		/**
@@ -565,6 +575,7 @@
 		 */
 		_renderLauncher: function() {
 			var that = this;
+			var t = this.translations();
 			
 			//On recupere les applications favorites
 			Webos.Application.listFavorites(function(favorites) {
@@ -632,16 +643,16 @@
 						
 						//Menu contextuel
 						var contextmenu = $.w.contextMenu($item);
-						$.webos.menuItem('Nouvelle fen&ecirc;tre').click(function() {
+						$.webos.menuItem(t.get('New window')).click(function() {
 							that.hide();
 							W.Cmd.execute(app.get('command'));
 						}).appendTo(contextmenu);
 						if (app.get('favorite') !== false) {
-							$.webos.menuItem('Retirer des favoris', true).click(function() {
+							$.webos.menuItem(t.get('Remove from favorites'), true).click(function() {
 								that.removeFavorite(app);
 							}).appendTo(contextmenu);
 						} else {
-							$.webos.menuItem('Ajouter aux favoris', true).click(function() {
+							$.webos.menuItem(t.get('Add to favorites'), true).click(function() {
 								that.addFavorite(app);
 							}).appendTo(contextmenu);
 						}
@@ -681,6 +692,12 @@
 					$('#shell .content').width(that._$shell.innerWidth() - that._$launcher.outerWidth());
 				}
 			});
+		},
+		/**
+		 * Recuperer les traductions de GNOME Shell.
+		 */
+		translations: function() {
+			return this._translations;
 		},
 		/**
 		 * Initialiser le Shell.
@@ -728,7 +745,7 @@
 			});
 			
 			//Lors du clic sur un bouton de mode ("Fenetres" et "Applications"), on change le mode
-			$('#desktop #shell .mode li').click(function() {
+			this._$shell.find('.mode li').click(function() {
 				if ($(this).is('.active')) {
 					return;
 				}
@@ -769,6 +786,15 @@
 					that.showAppsBySearch(that._$searchEntry.val());
 				}, 500);
 			});
+			
+			//On charge les traductions
+			Webos.Translation.load(function(t) {
+				that._translations = t;
+				
+				that._$searchEntry.attr('placeholder', t.get('Search...'));
+				that._$shell.find('.mode li.windows').html(t.get('Windows'));
+				that._$shell.find('.mode li.applications').html(t.get('Applications'));
+			}, 'gnome-shell');
 			
 			this._initialized = true; //On marque le Shell comme initialise
 		}

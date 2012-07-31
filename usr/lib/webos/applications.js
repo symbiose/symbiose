@@ -256,3 +256,12 @@ Webos.Application.category = function(name, callback) {
 		callback.success(Webos.Application._categories[name]);
 	}, callback.error]);
 };
+
+Webos.Application.getDefault = function(type, callback) {
+	type = String(type);
+	callback = Webos.Callback.toCallback(callback);
+	
+	Webos.Application.list([function() {
+		callback.success(Webos.Application.get('firefox'));
+	}, callback.error]);
+};

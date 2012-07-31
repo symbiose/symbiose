@@ -9,87 +9,92 @@ Webos.Dashboard.Applet.GnomeShellPanel = function WGnomeShellPanelApplet(data) {
 	
 	new Webos.ScriptFile('usr/lib/gnome-shell/shell.js');
 	
-	var menuContent = $('<ul></ul>', { 'class': 'menu' });
-	this.content.append(menuContent);
+	var that = this;
 	
-	var $menu = $('<li><a href="#">Activit&eacute;s</a></li>').appendTo(menuContent);
-	var $appMenu = $('<li id="shell-appmenu"><a href="#"></a></li>').appendTo(menuContent);
-	
-	Shell.bind('show', function() {
-		$appMenu.hide();
-		$menu.addClass('hover');
-	});
-	Shell.bind('hide', function() {
-		$appMenu.show();
-		$menu.removeClass('hover');
-	});
-	
-	var mouseEntered = false, shellToggled = false;
-	$menu.click(function(e) {
-		Shell.toggle();
+	//On charge les traductions
+	Webos.Translation.load(function(t) {
+		var menuContent = $('<ul></ul>', { 'class': 'menu' });
+		that.content.append(menuContent);
 		
-		e.stopPropagation();
-		e.preventDefault();
-	}).mouseenter(function(e) {
-		mouseEntered = !(e.pageX == 0 && e.pageY == 0);
+		var $menu = $('<li><a href="#">'+t.get('Activities')+'</a></li>').appendTo(menuContent);
+		var $appMenu = $('<li id="shell-appmenu"><a href="#"></a></li>').appendTo(menuContent);
 		
-		if (e.pageY != 0) {
-			shellToggled = false;
-		}
-	}).mousemove(function(e) {
-		if (mouseEntered && !shellToggled && e.pageX < 10 && e.pageY < 10) {
+		Shell.bind('show', function() {
+			$appMenu.hide();
+			$menu.addClass('hover');
+		});
+		Shell.bind('hide', function() {
+			$appMenu.show();
+			$menu.removeClass('hover');
+		});
+		
+		var mouseEntered = false, shellToggled = false;
+		$menu.click(function(e) {
 			Shell.toggle();
-			shellToggled = true;
-		}
-	});
-	
-	var appMenuWindow = $();
-	$(document).bind('windowopen windowtoforeground', function(event, ui) {
-		var thisWindow = $(ui.window);
-		if (typeof thisWindow.window('option', 'parentWindow') != 'undefined' && thisWindow.window('option', 'parentWindow').length > 0) {
-			thisWindow = thisWindow.window('option', 'parentWindow');
-		}
+			
+			e.stopPropagation();
+			e.preventDefault();
+		}).mouseenter(function(e) {
+			mouseEntered = !(e.pageX == 0 && e.pageY == 0);
+			
+			if (e.pageY != 0) {
+				shellToggled = false;
+			}
+		}).mousemove(function(e) {
+			if (mouseEntered && !shellToggled && e.pageX < 10 && e.pageY < 10) {
+				Shell.toggle();
+				shellToggled = true;
+			}
+		});
 		
-		if (typeof appMenuWindow != 'undefined' && thisWindow.window('id') == appMenuWindow.window('id')) {
-			return;
-		}
-		
-		$appMenu.empty();
-		var $appMenuTitle = $('<a></a>', { href: '#' }).appendTo($appMenu);
-		var $iconContainer = $('<span></span>', { 'class': 'icon-container' }).appendTo($appMenuTitle);
-		$('<img />', { src: thisWindow.window('option', 'icon').realpath(48), alt: '', 'class': 'icon' }).appendTo($iconContainer);
-		$('<span></span>', { 'class': 'icon-overlay' }).appendTo($iconContainer);
-		var loadingImg = $('<div></div>', { 'class': 'loading' }).appendTo($appMenuTitle);
-		$('<span></span>', { 'class': 'title' }).html(thisWindow.window('option', 'title')).appendTo($appMenuTitle);
-		$appMenuContent = $('<ul></ul>').appendTo($appMenu);
-		$('<li>Quitter '+thisWindow.window('option', 'title')+'</li>').click(function() {
-			thisWindow.window('close');
-		}).appendTo($appMenuContent);
-		
-		if (!thisWindow.window('is', 'loading')) {
-			loadingImg.hide();
-		}
-		
-		var loadingStartHandler = function() {
-			loadingImg.show();
-		};
-		var loadingStopHandler = function() {
-			loadingImg.hide();
-		};
-		thisWindow
-			.bind('windowloadingstart', loadingStartHandler)
-			.bind('windowloadingstop', loadingStopHandler)
-			.one('windowclose windowtobackground', function() {
-				thisWindow
-					.unbind('windowloadingstart', loadingStartHandler)
-					.unbind('windowloadingstop', loadingStopHandler);
-			});
-		
-		appMenuWindow = thisWindow;
-	}).bind('windowclose windowtobackground', function(event, ui) {
-		if (ui.window.is(appMenuWindow)) {
+		var appMenuWindow = $();
+		$(document).bind('windowopen windowtoforeground', function(event, ui) {
+			var thisWindow = $(ui.window);
+			if (typeof thisWindow.window('option', 'parentWindow') != 'undefined' && thisWindow.window('option', 'parentWindow').length > 0) {
+				thisWindow = thisWindow.window('option', 'parentWindow');
+			}
+			
+			if (typeof appMenuWindow != 'undefined' && thisWindow.window('id') == appMenuWindow.window('id')) {
+				return;
+			}
+			
 			$appMenu.empty();
-			appMenuWindow = undefined;
-		}
-	});
+			var $appMenuTitle = $('<a></a>', { href: '#' }).appendTo($appMenu);
+			var $iconContainer = $('<span></span>', { 'class': 'icon-container' }).appendTo($appMenuTitle);
+			$('<img />', { src: thisWindow.window('option', 'icon').realpath(48), alt: '', 'class': 'icon' }).appendTo($iconContainer);
+			$('<span></span>', { 'class': 'icon-overlay' }).appendTo($iconContainer);
+			var loadingImg = $('<div></div>', { 'class': 'loading' }).appendTo($appMenuTitle);
+			$('<span></span>', { 'class': 'title' }).html(thisWindow.window('option', 'title')).appendTo($appMenuTitle);
+			$appMenuContent = $('<ul></ul>').appendTo($appMenu);
+			$('<li>Quitter '+thisWindow.window('option', 'title')+'</li>').click(function() {
+				thisWindow.window('close');
+			}).appendTo($appMenuContent);
+			
+			if (!thisWindow.window('is', 'loading')) {
+				loadingImg.hide();
+			}
+			
+			var loadingStartHandler = function() {
+				loadingImg.show();
+			};
+			var loadingStopHandler = function() {
+				loadingImg.hide();
+			};
+			thisWindow
+				.bind('windowloadingstart', loadingStartHandler)
+				.bind('windowloadingstop', loadingStopHandler)
+				.one('windowclose windowtobackground', function() {
+					thisWindow
+						.unbind('windowloadingstart', loadingStartHandler)
+						.unbind('windowloadingstop', loadingStopHandler);
+				});
+			
+			appMenuWindow = thisWindow;
+		}).bind('windowclose windowtobackground', function(event, ui) {
+			if (ui.window.is(appMenuWindow)) {
+				$appMenu.empty();
+				appMenuWindow = undefined;
+			}
+		});
+	}, 'gnome-shell');
 };
