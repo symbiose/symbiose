@@ -30,7 +30,13 @@ Webos.Translation.load = function(callback, path, locale) {
 	locale = String(locale);
 	
 	var loadTranslationFn = function() {
-		var file = Webos.File.get('/usr/share/locale/' + ((locale && /[a-z]{2}_[A-Z]{2}/.test(locale)) ? locale : (Webos.Translation.language()) ? Webos.Translation.language() : Webos.Translation._defaultLanguage) + '/' + path + '.ini');
+		locale = ((locale && /[a-z]{2}_[A-Z]{2}/.test(locale)) ? locale : (Webos.Translation.language()) ? Webos.Translation.language() : Webos.Translation._defaultLanguage);
+		var file = Webos.File.get('/usr/share/locale/' + locale + '/' + path + '.ini');
+		
+		if (locale == Webos.Translation._defaultLanguage) {
+			callback.success(new Webos.Translation());
+			return;
+		}
 		
 		file.contents([function(contents) {
 			var lines = contents.split('\n');
