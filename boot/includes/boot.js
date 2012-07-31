@@ -4,8 +4,10 @@ $(function() { //Lorsque tout est pret
 		return;
 	}
 	
-	if (!window.Webos) {
-		window.Webos = {};
+	if (!window.Webos) { //@see /boot/lib/script.js
+		window.Webos = {
+			name: 'Symbiose'
+		};
 		window.W = window.Webos;
 	}
 	
@@ -26,7 +28,8 @@ $(function() { //Lorsque tout est pret
 		'/boot/lib/ui.js',
 		'/boot/lib/css.js',
 		'/boot/lib/loadimage.js',
-		'/boot/lib/xml.js'
+		'/boot/lib/xml.js',
+		'/boot/lib/translation.js'
 	);
 	
 	var actualLocation = window.location.href;

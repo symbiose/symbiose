@@ -1,5 +1,7 @@
 if (!window.Webos) {
-	window.Webos = {};
+	window.Webos = {
+		name: 'Symbiose'
+	};
 	window.W = window.Webos;
 }
 
