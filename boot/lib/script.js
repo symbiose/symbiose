@@ -1,10 +1,3 @@
-if (!window.Webos) {
-	window.Webos = {
-		name: 'Symbiose'
-	};
-	window.W = window.Webos;
-}
-
 //Executer un script JS en mode "sandbox"
 Webos.Script = function WScript(js, args) {
 	this.js = js;

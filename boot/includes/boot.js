@@ -4,13 +4,6 @@ $(function() { //Lorsque tout est pret
 		return;
 	}
 	
-	if (!window.Webos) { //@see /boot/lib/script.js
-		window.Webos = {
-			name: 'Symbiose'
-		};
-		window.W = window.Webos;
-	}
-	
 	//On charge les bibliotheques de base
 	Webos.Script.load('boot/lib/inherit.js');
 	Webos.Script.load('boot/lib/observer.js');
