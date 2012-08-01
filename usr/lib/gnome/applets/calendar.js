@@ -13,23 +13,25 @@ Webos.Dashboard.Applet.Calendar = function WCalendarApplet(data) {
 	var menu = $('<li></li>').appendTo(content);
 	var dateBox = $('<a></a>', { href: '#' }).appendTo(menu);
 	
-	var days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-	var months = ['janvier', 'f&eacute;vrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'a&ocirc;ut', 'septembre', 'octobre', 'novembre', 'd&eacute;cembre'];
-
 	var showTime = function() {
-		var myDate = new Date();
-		var hour = myDate.getHours();
-		var minute = myDate.getMinutes();
-		var dayName = days[myDate.getDay()].substr(0, 3) + '.';
-		var dayNbr = myDate.getDate();
-		var month = months[myDate.getMonth()];
-		if (hour < 10) { hour = '0' + hour; }
-		if (minute < 10) { minute = '0' + minute; }
-		var theDate = dayName + ' ' + dayNbr + ' ' + month + ', ' + hour + ':' + minute;
-		dateBox.text(theDate);
-		setTimeout(function() {
+		var locale = Webos.Locale.current();
+		
+		var theDate = locale.dateAbbreviation(new Date()) + ', ' + locale.time(new Date());
+		
+		dateBox.html(theDate);
+	};
+	
+	setTimeout(function() { //Quand la minute actuelle est passee
+		setInterval(function() { //On rafraichit l'heure toutes les minutes
 			showTime();
 		}, 60000);
-	};
-	showTime();
+		
+		showTime();
+	}, (60 - new Date().getSeconds()) * 1000);
+	
+	Webos.Locale.bind('change', function() { //Lors du changement des preferences de localisation, on rafraichit l'heure
+		showTime();
+	});
+	
+	showTime(); //On affiche l'heure
 };
