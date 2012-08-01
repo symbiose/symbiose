@@ -1,6 +1,8 @@
 <?php
 namespace lib;
 
+use \RuntimeException;
+
 /**
  * ServerCallRequest represente la requete d'un script JavaScript pour executer une methode PHP.
  * @author $imon
