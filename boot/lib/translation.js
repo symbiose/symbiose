@@ -21,7 +21,6 @@ Webos.Translation.prototype = {
 Webos.inherit(Webos.Translation, Webos.Model); //Héritage de Webos.Model
 
 Webos.Translation._language = null;
-Webos.Translation._defaultLanguage = 'en_EN';
 Webos.Translation.language = function() {
 	return Webos.Translation._language;
 };
@@ -30,7 +29,7 @@ Webos.Translation.load = function(callback, path, locale) {
 	locale = String(locale);
 	
 	var loadTranslationFn = function() {
-		locale = ((locale && /[a-z]{2}_[A-Z]{2}/.test(locale)) ? locale : (Webos.Translation.language()) ? Webos.Translation.language() : Webos.Translation._defaultLanguage);
+		locale = ((locale && /[a-z]{2}_[A-Z]{2}/.test(locale)) ? locale : (Webos.Translation.language()) ? Webos.Translation.language() : Webos.Locale._defaultLocale);
 		var file = Webos.File.get('/usr/share/locale/' + locale + '/' + path + '.ini');
 		
 		if (locale == Webos.Translation._defaultLanguage) {
@@ -79,22 +78,295 @@ Webos.Translation.load = function(callback, path, locale) {
 	};
 	
 	if (!Webos.Translation.language() && !(locale && /[a-z]{2}_[A-Z]{2}/.test(locale))) {
-		Webos.Translation.loadUserLocale([function() {
+		Webos.Locale.load([function() {
 			loadTranslationFn();
 		}, callback.error]);
 	} else {
 		loadTranslationFn();
 	}
 };
-Webos.Translation.loadUserLocale = function(callback) {
+Webos.Translation.setLanguage = function(locale, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	new Webos.ServerCall({
-		'class': 'TranslationController',
-		method: 'getLanguage',
-	}).load([function(response) {
-		Webos.Translation._language = response.getData().language;
-		
+	if (!Webos.Locale.exists(locale)) {
+		callback.error();
+		return;
+	}
+	
+	var conf = Webos.ConfigFile.get('~/.config/locale.xml');
+	conf.set('language', locale);
+	conf.sync([function() {
+		Webos.Translation._language = locale;
 		callback.success();
 	}, callback.error]);
 };
+
+Webos.Locale = function(data, functions, name) {
+	this._name = name;
+	this._data = data;
+	
+	for (var index in functions) {
+		this[index] = functions[index];
+	}
+	if (name != Webos.Locale._defaultLocale) {
+		var defaultLocale = Webos.Locale.get(Webos.Locale._defaultLocale);
+		for (var index in defaultLocale) {
+			if (typeof this[index] == 'undefined') {
+				this[index] = defaultLocale[index];
+			}
+		}
+	}
+	
+	Webos.Locale._list[name] = this;
+};
+Webos.Locale.prototype = {
+	name: function() {
+		return this._name;
+	},
+	_get: function(index) {
+		return this._data[index];
+	},
+	title: function() {
+		return this._get('title');
+	},
+	toString: function() {
+		return this.name();
+	}
+};
+
+Webos.Observable.build(Webos.Locale);
+
+Webos.Locale._locale = null;
+Webos.Locale._defaultLocale = 'en_EN';
+Webos.Locale._list = {};
+Webos.Locale._check = function(locale) {
+	return /[a-z]{2}_[A-Z]{2}/.test(locale);
+};
+Webos.Locale.getAll = function() {
+	return Webos.Locale._list;
+};
+Webos.Locale.get = function(name) {
+	return Webos.Locale._list[name] || Webos.Locale._list[Webos.Locale._defaultLocale];
+};
+Webos.Locale.exists = function(name) {
+	return (typeof Webos.Locale._list[name] != 'undefined');
+};
+Webos.Locale.current = function() {
+	return (Webos.Locale._locale) ? Webos.Locale.get(Webos.Locale._locale) : (Webos.Locale.detect()) ? Webos.Locale.get(Webos.Locale.detect()) : Webos.Locale.get(Webos.Locale._defaultLocale);
+};
+Webos.Locale.load = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	var getUserLanguageFn = function() {
+		new Webos.ServerCall({
+			'class': 'TranslationController',
+			method: 'getLanguage',
+		}).load([function(response) {
+			Webos.Translation._language = response.getData().language;
+			
+			var locale = response.getData().locale;
+			if (Webos.Locale._locale != locale) {
+				Webos.Locale._locale = locale;
+				Webos.Locale.notify('change', { name: locale, locale: Webos.Locale.get(locale) });
+			}
+			
+			callback.success();
+		}, callback.error]);
+	};
+	
+	Webos.User.get([function(user) {
+		if (user) {
+			getUserLanguageFn();
+		} else {
+			var locale = Webos.Locale.detect();
+			if (locale) {
+				Webos.Translation._language = locale;
+				
+				if (Webos.Locale._locale != locale) {
+					Webos.Locale._locale = locale;
+					Webos.Locale.notify('change', { name: locale, locale: Webos.Locale.get(locale) });
+				}
+				
+				callback.success();
+			} else {
+				getUserLanguageFn();
+			}
+		}
+	}, function(response) {
+		getUserLanguageFn();
+	}]);
+};
+Webos.Locale.detect = function() {
+	if (!navigator.language && !navigator.browserLanguage) {
+		return;
+	}
+	
+	var lang = navigator.language || navigator.browserLanguage;
+				
+	lang = lang.replace('-', '_');
+	var parts = lang.split('_');
+	if (!parts[1]) {
+		parts[1] = parts[0].toUpperCase();
+	}
+	var locale = parts.join('_');
+	
+	return locale;
+};
+Webos.Locale.set = function(locale, callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	if (!Webos.Locale.exists(locale)) {
+		callback.error();
+		return;
+	}
+	
+	var conf = Webos.ConfigFile.get('~/.config/locale.xml');
+	conf.set('locale', locale);
+	conf.sync([function() {
+		Webos.Locale._locale = locale;
+		Webos.Locale.notify('change', { name: locale, locale: Webos.Locale.get(locale) });
+		callback.success();
+	}, callback.error]);
+};
+
+Webos.User.bind('login logout', function() {
+	//Lorsque l'utilisateur quitte sa session, on reinitialise la langue
+	Webos.Translation._language = null;
+	Webos.Locale._locale = null;
+	Webos.Locale.load();
+});
+
+Webos.Locale.load();
+
+
+new Webos.Locale({
+	title: 'English (United Kingdom)',
+	days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+	months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+}, {
+	number: function(nbr) {
+		nbr = String(nbr);
+		parts = nbr.split('.');
+		
+		var integer = '';
+		var count = 0;
+		for (var i = parts[0].length - 1; i >= 0; i--) {
+			if (count % 3 == 0 && i != parts[0].length - 1) {
+				integer = ',' + integer;
+			}
+			integer = parts[0].charAt(i) + integer;
+			
+			count++;
+		}
+		
+		nbr = integer + '.' + parts[1];
+		
+		return nbr;
+	},
+	day: function(nbr) {
+		return this._get('days')[nbr];
+	},
+	dayAbbreviation: function(nbr) {
+		return this.day(nbr).slice(0, 3);
+	},
+	month: function(nbr) {
+		return this._get('months')[nbr];
+	},
+	monthAbbreviation: function(nbr) {
+		return this.month(nbr).slice(0, 3);
+	},
+	date: function(date) {
+		return this.day(date.getDay()) + ' ' + 
+			date.getDate() + ' ' + 
+			this.month(date.getMonth());
+	},
+	dateAbbreviation: function(date) {
+		return this.dayAbbreviation(date.getDay()) + ' ' + 
+			date.getDate() + ' ' + 
+			this.monthAbbreviation(date.getMonth());
+	},
+	time: function(date, showSeconds) {
+		var addZeroFn = function(nbr) {
+			nbr = String(nbr);
+			if (nbr.length == 1) {
+				nbr = '0' + nbr;
+			}
+			return nbr;
+		};
+		
+		return addZeroFn(date.getHours()) + ':' + 
+			addZeroFn(date.getMinutes()) + 
+			((showSeconds) ? (':' + addZeroFn(date.getSeconds())) : '');
+	},
+	completeDate: function(date) {
+		return this.dateAbbreviation(date) + ' ' + 
+			date.getFullYear() + ' ' + 
+			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
+	},
+	currency: function(value) {
+		return '&#xA3;' + this.number(value);
+	}
+}, 'en_EN');
+
+new Webos.Locale({
+	title: 'Fran&ccedil;ais (France)',
+	days: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+	months: ['Janvier', 'F&eacute;vrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'A&ocirc;ut', 'Septembre', 'Octobre', 'Novembre', 'D&eacute;cembre'],
+	monthsAbbreviations: ['Jan.', 'F&eacute;v.', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil.', 'A&ocirc;ut', 'Sept.', 'Oct.', 'Nov.', 'D&eacute;c.']
+}, {
+	number: function(nbr) {
+		nbr = String(nbr);
+		parts = nbr.split('.');
+		
+		var integer = '';
+		var count = 0;
+		for (var i = parts[0].length - 1; i >= 0; i--) {
+			if (count % 3 == 0 && i != parts[0].length - 1) {
+				integer = ' ' + integer;
+			}
+			integer = parts[0].charAt(i) + integer;
+			
+			count++;
+		}
+		
+		nbr = integer + ',' + parts[1];
+		
+		return nbr;
+	},
+	day: function(nbr) {
+		return this._get('days')[nbr];
+	},
+	dayAbbreviation: function(nbr) {
+		return this.day(nbr).slice(0, 3) + '.';
+	},
+	month: function(nbr) {
+		return this._get('months')[nbr];
+	},
+	monthAbbreviation: function(nbr) {
+		return this._get('monthsAbbreviations')[nbr];
+	},
+	date: function(date) {
+		return this.day(date.getDay()) + ' ' + 
+			date.getDate() + ' ' + 
+			this.month(date.getMonth()).toLowerCase();
+	},
+	dateAbbreviation: function(date) {
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' + 
+			date.getDate() + ' ' + 
+			this.monthAbbreviation(date.getMonth()).toLowerCase();
+	},
+	completeDate: function(date) {
+		return this.dateAbbreviation(date) + ' ' + 
+			date.getFullYear() + ' ' + 
+			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
+	},
+	currency: function(value) {
+		return this.number(value) + ' &#x20AC;';
+	}
+}, 'fr_FR');
+
+new Webos.Locale({
+	title: 'Deutsch (Deutschland)',
+	days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+	months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
+}, {}, 'de_DE');

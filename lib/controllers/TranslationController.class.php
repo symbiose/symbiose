@@ -23,7 +23,16 @@ class TranslationController extends \lib\ServerCallComponent {
 				$conf->save('~/.config/locale.xml');
 			}
 		}
+		if ($conf->exist('locale')) {
+			$locale = $conf->get('locale');
+		} else {
+			$locale = $lang;
+			if ($this->webos->getUser()->isConnected()) {
+				$conf->set('locale', $locale);
+				$conf->save('~/.config/locale.xml');
+			}
+		}
 		
-		return array('language' => $lang);
+		return array('language' => $lang, 'locale' => $locale);
 	}
 }
