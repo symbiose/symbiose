@@ -3,4 +3,4 @@
 	<attribute name="desktop" value="adwaita"/>
 	<attribute name="icons" value="humanity"/>
 	<attribute name="background" value="/usr/share/images/backgrounds/default.jpg"/>
-</config>
+<attribute name="animations" value="1"/></config>
