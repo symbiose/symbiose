@@ -514,8 +514,6 @@ Webos.File.getDriverData = function(driverName) {
 };
 
 Webos.User.bind('login logout', function() {
-	console.log('login logout');
-	
 	//Lorsque l'utilisateur quitte sa session, on vide le cache
 	Webos.File.clearCache();
 	
