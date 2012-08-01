@@ -26,6 +26,9 @@ textarea {
 	width: 15.5%;
 	margin-bottom: 1px;
 	height: 27px;
+	text-align: center;
+	padding-left: 3px;
+	padding-right: 3px;
 }
 
 .webos-button.enter {
