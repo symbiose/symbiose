@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category>
+	<define name="name" value="locale"/>
+	<define name="title" value="Prise en charge des langues"/>
+	<define name="icon" value="apps/translate"/>
+	<define name="description" value="Modifier les préférences de localisation"/>
+</category>
