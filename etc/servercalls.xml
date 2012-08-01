@@ -172,6 +172,9 @@
 		<method name="setConfig">
 			<argument id="0" type="file" action="write"/>
 		</method>
+		<method name="changeConfig">
+			<argument id="0" type="file" action="write"/>
+		</method>
 	</class>
 	<class name="CaptchaController">
 		<method name="get"></method>

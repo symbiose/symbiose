@@ -103,11 +103,11 @@ class ConfigController extends \lib\ServerCallComponent {
 	}
 
 	/**
-	 * Definir plusieurs parametres d'une configuration.
+	 * Definir tous les parametres d'une configuration.
 	 * @param string $path Le chemin vers le fichier de configuration.
 	 * @param array $data Un tableau contenant les nouveaux parametres.
 	 */
-	protected function setConfig($path, $data) {
+	protected function setConfig($path, array $data) {
 		$config = new Config($this->webos);
 		$config->load($path);
 
@@ -119,6 +119,27 @@ class ConfigController extends \lib\ServerCallComponent {
 		
 		foreach ($data as $index => $value) {
 			$config->set($index, $value);
+		}
+
+		$config->save();
+	}
+	
+	/**
+	 * Modifier plusieurs parametres d'une configuration.
+	 * @param string $path Le chemin vers le fichier de configuration.
+	 * @param array $set Les parametres a definir.
+	 * @param array $remove Les parametres a enlever.
+	 */
+	protected function changeConfig($path, array $set, array $remove) {
+		$config = new Config($this->webos);
+		$config->load($path);
+		
+		foreach ($set as $index => $value) {
+			$config->set($index, $value);
+		}
+		
+		foreach ($remove as $index => $value) {
+			$config->remove($index);
 		}
 
 		$config->save();

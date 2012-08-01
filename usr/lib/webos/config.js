@@ -52,18 +52,19 @@ Webos.ConfigFile.prototype = {
 		
 		var that = this;
 		
-		var data = {};
+		var data = {}, remove = {};
 		var nbrChanges = 0;
 		for (var key in this._unsynced) {
 			if (this._unsynced[key].state === 1) {
+				var value = this._unsynced[key].value;
+				if (typeof value != 'undefined') {
+					data[key] = value;
+				} else {
+					remove[key] = value;
+				}
+				
 				this._unsynced[key].state = 2;
-				data[key] = this._unsynced[key].value;
 				nbrChanges++;
-			}
-		}
-		for (var key in this._data) {
-			if (!this._unsynced[key]) {
-				data[key] = this._data[key];
 			}
 		}
 		
@@ -74,10 +75,11 @@ Webos.ConfigFile.prototype = {
 		
 		new Webos.ServerCall({
 			'class': 'ConfigController',
-			method: 'setConfig',
+			method: 'changeConfig',
 			arguments: {
 				path: this._file.get('path'),
-				data: data
+				set: data,
+				remove: remove
 			}
 		}).load(new Webos.Callback(function() {
 			for (var key in that._unsynced) {
