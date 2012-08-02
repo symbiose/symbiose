@@ -32,7 +32,7 @@ Webos.Translation.load = function(callback, path, locale) {
 		locale = ((locale && /[a-z]{2}_[A-Z]{2}/.test(locale)) ? locale : (Webos.Translation.language()) ? Webos.Translation.language() : Webos.Locale._defaultLocale);
 		var file = Webos.File.get('/usr/share/locale/' + locale + '/' + path + '.ini');
 		
-		if (locale == Webos.Translation._defaultLanguage) {
+		if (locale == Webos.Locale._defaultLocale) {
 			callback.success(new Webos.Translation());
 			return;
 		}
