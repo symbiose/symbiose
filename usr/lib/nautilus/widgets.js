@@ -819,6 +819,13 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			if (state == 'dropover') {
 				iconName = 'mimes/folder-open';
 			}
+			
+			var mountedDevices = Webos.File.mountedDevices();
+			if (mountedDevices[file.get('path')]) {
+				var mountData = Webos.File.getMountData(file.get('path'));
+				var driverData = Webos.File.getDriverData(mountData.driver);
+				iconName = driverData.icon;
+			}
 		}
 		
 		switch (file.get('path')) {
