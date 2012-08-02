@@ -227,6 +227,7 @@ Webos.User.getLogged = function(callback) {
 			Webos.User.cache[user.id()] = user;
 			Webos.User.logged = user.id();
 			callback.success(user);
+			Webos.User._startPingTimer();
 		} else {
 			Webos.User.logged = false;
 			callback.success();
@@ -264,6 +265,42 @@ Webos.User.logout = function(callback) {
 		callback.success();
 	}, callback.error));
 };
+
+Webos.User._pingTimer = null;
+Webos.User._startPingTimer = function() {
+	if (!Webos.User._pingTimer) {
+		Webos.User._pingTimer = setInterval(function() {
+			if (!Webos.User.logged) {
+				Webos.User._stopPingTimer();
+				return;
+			}
+			
+			var lastCall = [].concat(Webos.ServerCall.list).pop(); //On recupere le dernier appel au serveur
+			if (lastCall.completeTime && new Date().getTime() - lastCall.completeTime.getTime() >= 5 * 60 * 1000) {
+				Webos.User.logged = null;
+				Webos.User.get([function(user) {
+					if (!user) {
+						Webos.User.notify('logout', {});
+					}
+				}, function() {
+					Webos.User.notify('logout', {});
+				}]);
+			}
+		}, 6 * 60 * 1000);
+	}
+};
+Webos.User._stopPingTimer = function() {
+	if (Webos.User._pingTimer) {
+		clearInterval(Webos.User._pingTimer);
+	}
+};
+Webos.User.bind('login', function() {
+	Webos.User._startPingTimer();
+});
+Webos.User.bind('logout', function() {
+	Webos.User._stopPingTimer();
+});
+
 Webos.User.list = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	

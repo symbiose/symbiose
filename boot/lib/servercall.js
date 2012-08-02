@@ -62,6 +62,7 @@ Webos.ServerCall.prototype = {
 		
 		if (this.nbrAttempts == 1) {
 			Webos.ServerCall.callStart(this);
+			this.startTime = new Date();
 		}
 		
 		that.notify('start');
@@ -156,6 +157,8 @@ Webos.ServerCall.prototype = {
 		
 		this.status = 2;
 		this.response = response;
+		
+		this.completeTime = new Date();
 		
 		if (response.isSuccess()) { //Si la requete a reussi
 			callback.success(response); //On execute le callback associe
