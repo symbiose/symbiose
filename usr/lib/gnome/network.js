@@ -14,6 +14,7 @@ var menu = $('<ul></ul>').appendTo(item);
 var menuTotal = $('<li></li>').appendTo(menu);
 var menuPending = $('<li></li>').appendTo(menu);
 var menuFailed = $('<li></li>').appendTo(menu);
+$('<li></li>', { 'class': 'separator' }).appendTo(menu);
 $('<li>R&eacute;initialiser</li>').click(function() {
 	networkData = {
 		total: 0,
