@@ -137,44 +137,14 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		this._setOption('resizable', (typeof this.options.resizable == 'undefined') ? true : this.options.resizable);
 	},
-	_setTitle: function(title) {
-		var applyGradientToTitle = function(title, max) {
-			if (max > title.length) {
-				max = title.length;
-			}
-			
-			var newTitleArray = title.split('', max);
-			
-			for (var i = 0; i < max; i++) {
-				if (i >= max - $.webos.window.windowsTitleGradientLength) {
-					var no = max - i;
-					var opacity = 1 / $.webos.window.windowsTitleGradientLength  * no;
-					newTitleArray[i] = '<span style="opacity: '+opacity+';">'+newTitleArray[i]+'</span>';
-				}
-			}
-			return newTitleArray.join('');
-		};
-		
-		this.options._components.title.html(title);
-		var titleClone = this.options._components.title.clone().css('display', 'inline').insertAfter(this.options._components.title);
-		if (titleClone.width() > this.options._components.title.innerWidth()) {
-			while (titleClone.innerWidth() > this.options._components.title.innerWidth() && titleClone.html().length > 0) {
-				titleClone.html(titleClone.html().substr(0, titleClone.html().length - 1));
-			}
-			var nbrCaracters = titleClone.html().length - 1;
-			this.options._components.title.html(applyGradientToTitle(titleClone.text(), nbrCaracters));
-		}
-		titleClone.remove();
-		
-		this.options.title = title;
-	},
 	_update: function(key, value) {
 		switch(key) {
 			case 'icon':
 				this.options.icon = W.Icon.toIcon(value);
 				break;
 			case 'title':
-				this._setTitle(value);
+				this.options._components.title.html(value);
+				this._trigger('changetitle', { type: 'changetitle' }, { title: value });
 				break;
 			case 'resizable':
 				this.resizable(value);
@@ -614,7 +584,6 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				},
 				stop: function() {
 					that._saveDimentions();
-					that._setTitle(that.options.title);
 					that.element.removeClass('resizing');
 					that._trigger('resize', { type: 'resize' }, { window: that.element });
 				}
