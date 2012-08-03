@@ -803,7 +803,9 @@ $.webos.window.about = function(opts) {
 };
 
 $.webos.window.dialog = function(opts) {
-	var dialog = $.webos.window(opts);
+	var dialog = $.webos.window($.extend({
+		resizable: false
+	}, opts));
 	
 	dialog.window('content').css('padding', '5px');
 	
