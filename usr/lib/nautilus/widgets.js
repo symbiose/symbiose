@@ -823,7 +823,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			var mountedDevices = Webos.File.mountedDevices();
 			if (mountedDevices[file.get('path')]) {
 				var mountData = Webos.File.getMountData(file.get('path'));
-				var driverData = Webos.File.getDriverData(mountData.driver);
+				var driverData = Webos.File.getDriverData(mountData.get('driver'));
 				iconName = driverData.icon;
 			}
 		}
@@ -1344,8 +1344,8 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 		var i = 0;
 		
 		for (var local in mountedDevices) {
-			(function(local, mountData) {
-				var driverData = Webos.File.getDriverData(mountData.driver);
+			(function(local, point) {
+				var driverData = Webos.File.getDriverData(point.get('driver'));
 				var item = $.w.listItem(['<img src="'+new W.Icon(driverData.icon, 22)+'" alt=""/> ' + driverData.title + ' sur ' + local]).bind('listitemselect', function() {
 					$(this).listItem('option', 'active', false);
 				}).click(function(e) {

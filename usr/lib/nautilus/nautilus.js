@@ -115,8 +115,13 @@ function NautilusDeviceMounterWindow(driver) {
 	this._drivers = {
 		'DropboxFile': {
 			'title': 'Dropbox',
-			'icon': 'usr/share/images/dropbox/icon_48.png',
+			'icon': '/usr/share/images/dropbox/icon_48.png',
 			'lib': '/usr/lib/dropbox/webos.js'
+		},
+		'FTPFile': {
+			'title': 'FTP',
+			'icon': 'places/folder-remote',
+			'lib': '/usr/lib/webos/ftp.js'
 		}
 	};
 	
@@ -125,28 +130,26 @@ function NautilusDeviceMounterWindow(driver) {
 		var form = $.w.entryContainer().submit(function() {
 			that._window.window('loading', true);
 			W.ScriptFile(that._drivers[selectedDriver].lib);
-			var local = localEntry.nautilusFileEntry('value'), remote = remoteEntry.textEntry('value');
-			var result = Webos.File.mount(local, remote, selectedDriver);
-			
-			if (!result) {
+			var local = localEntry.nautilusFileEntry('value'), remote = remoteEntry.textEntry('value'), permanent = permanentEntry.switchButton('value');
+			var point = new Webos.File.MountPoint({
+				remote: remote,
+				driver: selectedDriver
+			}, local);
+			Webos.File.mount(point, [function(point) {
+				if (permanent) {
+					Webos.File.fstab.add(point, [function() {
+						that._window.window('close');
+					}, function(response) {
+						that._window.window('loading', false);
+						response.triggerError('Impossible d\'effectuer le montage permanent');
+					}]);
+				} else {
+					that._window.window('close');
+				}
+			}, function() {
 				that._window.window('loading', false);
 				Webos.Error.trigger('Impossible d\'effectuer le montage du volume');
-			}
-			
-			if (permanentEntry.switchButton('value')) {
-				Webos.File.fstab.add(local, {
-					remote: remote,
-					driver: selectedDriver,
-					lib: that._drivers[selectedDriver].lib
-				}, [function() {
-					that._window.window('close');
-				}, function(response) {
-					that._window.window('loading', false);
-					response.triggerError('Impossible d\'effectuer le montage permanent');
-				}]);
-			} else {
-				that._window.window('close');
-			}
+			}]);
 		}).appendTo(this._window.window('content'));
 		
 		form.append($.w.label('Choisissez le service &agrave; utiliser :'));
@@ -163,7 +166,7 @@ function NautilusDeviceMounterWindow(driver) {
 		
 		for (var name in this._drivers) {
 			(function(name, driverData) {
-				var item = $.w.iconsListItem(driverData.icon, driverData.title)
+				var item = $.w.iconsListItem(Webos.Icon.toIcon(driverData.icon), driverData.title)
 					.click(function() {
 						selectDriverFn(name);
 					})
@@ -309,7 +312,7 @@ function NautilusWindow(dir, userCallback) {
 	this.openAboutWindow = function() {
 		var aboutWindow = $.w.window.about({
 			name: 'Nautilus',
-			version: '0.1',
+			version: '0.3',
 			description: 'Nautilus permet d\'organiser vos fichiers et vos dossiers.',
 			author: '$imon',
 			icon: new W.Icon('applications/nautilus')

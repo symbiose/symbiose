@@ -247,9 +247,10 @@ Webos.File.get = function(file, data) {
 	path = String(file);
 	
 	//Le fichier est-il dans un volume monte ?
-	for (var local in Webos.File._mountedDevices) {
+	var devices = Webos.File.mountedDevices();
+	for (var local in devices) {
 		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			return Webos[Webos.File._mountedDevices[local].driver].get(path, local, data);
+			return Webos[devices[local].get('driver')].get(path, devices[local], data);
 		}
 	}
 	
@@ -285,14 +286,15 @@ Webos.File.load = function(path, callback) {
 	};
 	
 	//Le fichier est-il dans un volume monte ?
-	for (var local in Webos.File._mountedDevices) {
+	var devices = Webos.File.mountedDevices();
+	for (var local in devices) {
 		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			(function(mountData) {
-				Webos[mountData.driver].load(path, local, [function(file) {
+			(function(point) {
+				Webos[point.get('driver')].load(path, point, [function(file) {
 					addFileToCacheFn(file);
 					callback.success(file);
 				}, callback.error]);
-			})(Webos.File._mountedDevices[local]);
+			})(devices[local]);
 			return;
 		}
 	}
@@ -347,14 +349,15 @@ Webos.File.createFile = function(path, callback) {
 	};
 	
 	//Le fichier est-il dans un volume monte ?
-	for (var local in Webos.File._mountedDevices) {
+	var devices = Webos.File.mountedDevices();
+	for (var local in devices) {
 		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			(function(mountData) {
-				Webos[mountData.driver].createFile(path, local, [function(file) {
+			(function(point) {
+				Webos[point.get('driver')].createFile(path, point, [function(file) {
 					createFileCallback(file);
 					callback.success(file);
 				}, callback.error]);
-			})(Webos.File._mountedDevices[local]);
+			})(devices[local]);
 			return;
 		}
 	}
@@ -388,14 +391,15 @@ Webos.File.createFolder = function(path, callback) {
 	};
 	
 	//Le fichier est-il dans un volume monte ?
-	for (var local in Webos.File._mountedDevices) {
+	var devices = Webos.File.mountedDevices();
+	for (var local in devices) {
 		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			(function(mountData) {
-				Webos[mountData.driver].createFolder(path, local, [function(file) {
+			(function(point) {
+				Webos[point.get('driver')].createFolder(path, point, [function(file) {
 					createFolderCallback(file);
 					callback.success(file);
 				}, callback.error]);
-			})(Webos.File._mountedDevices[local]);
+			})(devices[local]);
 			return;
 		}
 	}
@@ -455,30 +459,80 @@ Webos.File.bytesToSize = function(bytes) {
 			+ ' ' + sizes[i];
 };
 
-Webos.File.mount = function(local, remote, driverName) {
-	if (!Webos[driverName]) {
-		return false;
+Webos.File.MountPoint = function WMountPoint(data, local) {
+	Webos.Model.call(this, data);
+	
+	this._local = local;
+};
+Webos.File.MountPoint.prototype = {
+	local: function() {
+		return this._local;
+	},
+	setData: function(data) {
+		this._data.data = data;
+	},
+	data: function() {
+		return this._data.data;
+	},
+	getRelativePath: function(path) {
+		return Webos.File.cleanPath(String(path).replace(this.get('local'), this.get('remote') + '/'));
+	},
+	getWebosPath: function(path) {
+		if (!this.get('remote')) {
+			return Webos.File.cleanPath(this.get('local') + '/' + String(path));
+		}
+		
+		return Webos.File.cleanPath(String(path).replace(this.get('remote'), this.get('local') + '/'));
+	}
+};
+Webos.inherit(Webos.File.MountPoint, Webos.Model);
+
+Webos.File.mount = function(point, callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	if (!Webos[point.get('driver')]) {
+		callback.error();
+		return;
 	}
 	
-	if (Webos.File._mountedDevices[local]) {
-		return false;
+	if (Webos.File._mountedDevices[point.get('local')]) {
+		callback.error();
+		return;
 	}
 	
-	if (typeof Webos[driverName].init == 'function') {
-		Webos[driverName].init();
-	}
-	
-	if (typeof Webos[driverName].mount == 'function') {
-		Webos[driverName].mount(local, remote);
-	}
-	
-	Webos.File._mountedDevices[local] = {
-		remote: remote,
-		driver: driverName
+	var mountFn = function() {
+		var mountFn = function() {
+			Webos.File._mountedDevices[point.get('local')] = point;
+			Webos.File.notify('mount', { local: point.get('local'), remote: point.get('remote'), driver: point.get('driver'), point: point });
+			callback.success(point);
+		};
+		
+		if (typeof Webos[point.get('driver')].mount == 'function') {
+			Webos[point.get('driver')].mount(point, [function(newPoint) {
+				if (newPoint) {
+					point = newPoint;
+				}
+				mountFn();
+			}, callback.error]);
+		} else {
+			mountFn();
+		}
 	};
-	Webos.File.notify('mount', { local: local, remote: remote, driver: driverName });
 	
-	return true;
+	var init = true, devices = Webos.File.mountedDevices();
+	for (var index in devices) {
+		if (devices[index].get('driver') == point.get('driver')) {
+			init = false;
+			break;
+		}
+	}
+	if (init && typeof Webos[point.get('driver')].init == 'function') {
+		Webos[point.get('driver')].init([function() {
+			mountFn();
+		}, callback.error]);
+	} else {
+		mountFn();
+	}
 };
 
 Webos.File.mountedDevices = function() {
@@ -491,9 +545,9 @@ Webos.File.getMountData = function(local) {
 
 Webos.File.umount = function(local) {
 	if (Webos.File._mountedDevices[local]) {
-		var driver = Webos.File._mountedDevices[local].driver, remote = Webos.File._mountedDevices[local].remote;
+		var point = Webos.File._mountedDevices[local], data = { local: point.get('local'), driver: point.get('driver'), remote: point.get('remote'), point: point };
 		delete Webos.File._mountedDevices[local];
-		Webos.File.notify('umount', { local: local, driver: driver, remote: remote });
+		Webos.File.notify('umount', data);
 	}
 };
 
@@ -506,7 +560,8 @@ Webos.File.registerDriver = function(driverName, data) {
 	
 	Webos.File._drivers[driverName] = {
 		title: data.title,
-		icon: data.icon
+		icon: data.icon,
+		lib: data.lib
 	};
 };
 Webos.File.getDriverData = function(driverName) {

@@ -12,9 +12,14 @@ Webos.File.fstab = {
 			for (var local in data) {
 				var mountData = jQuery.parseJSON(data[local]);
 				new Webos.ScriptFile(mountData.lib);
-				if (!Webos.File.mount(local, mountData.remote, mountData.driver)) {
+				var point = new Webos.File.MountPoint({
+					remote: mountData.remote,
+					driver: mountData.driver,
+					data: mountData.data
+				}, local);
+				Webos.File.mount(point, [function() {}, function(response) {
 					Webos.Error.trigger('Impossible de monter "'+mountData.driver+'" sur "'+local+'"');
-				}
+				}]);
 			}
 			callback.success();
 		}, callback.error]);
@@ -33,14 +38,15 @@ Webos.File.fstab = {
 			callback.success(list);
 		}, callback.error]);
 	},
-	add: function(local, data, callback) {
+	add: function(point, callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
 		Webos.ConfigFile.loadUserConfig('~/.config/fstab.xml', null, [function(config) {
-			config.set(local, JSON.stringify({
-				remote: data.remote,
-				lib: data.lib,
-				driver: data.driver
+			config.set(point.get('local'), JSON.stringify({
+				remote: point.get('remote'),
+				lib: Webos.File.getDriverData(point.get('driver')).lib,
+				driver: point.get('driver'),
+				data: point.get('data')
 			}));
 			config.sync([function() {
 				callback.success();

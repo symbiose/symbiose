@@ -171,21 +171,28 @@ dropbox.checkAuth = function() {
 };
 dropbox.checkAuth();
 
+dropbox._setupCallback = null;
 /**
  * Setup function runs after libraries are loaded.
  */
-dropbox.setup = function() {
+dropbox.setup = function(callback) {
 	//Check if access already allowed
 	if (!dropbox.accessToken || !dropbox.accessTokenSecret) {
 		//Check if already authorized, but not given access yet
 		if (!dropbox.requestToken || !dropbox.requestTokenSecret) {
+			if (callback) {
+				var requestCallback = Webos.Callback.toCallback(callback);
+			} else {
+				var requestCallback = new Webos.Callback();
+			}
+			
 			//Request request token
 			dropbox.oauthRequest({
 				url: "https://api.dropbox.com/1/oauth/request_token",
 				type: "text",
 				token: true,
 				tokenSecret: true
-			}, [], function(data) {
+			}, [], [function(data) {
 				data = data.split("&");
 				dataArray = new Array();
 				
@@ -202,15 +209,27 @@ dropbox.setup = function() {
 				//Redirect to autorisation page
 				var url = "https://api.dropbox.com/1/oauth/authorize?oauth_token=" + dataArray["oauth_token"] + "&oauth_callback=" + dropbox.authCallback;
 				var dropboxAuthorizeWindow = window.open(url, 'dropboxAuthorize', 'height=700,width=1050,menubar=no,toolbar=no,location=no,resizable=no');
-			});
+				
+				//Callback
+				if (callback) {
+					dropbox._setupCallback = Webos.Callback.toCallback(callback);
+				}
+			}, requestCallback.error]);
 		} else {
+			if (callback) {
+				callback = Webos.Callback.toCallback(callback);
+			} else {
+				callback = dropbox._setupCallback;
+				dropbox._setupCallback = null;
+			}
+			
 			//Request access token
 			dropbox.oauthRequest({
 				url: "https://api.dropbox.com/1/oauth/access_token",
 				type: "text",
 				token: dropbox.requestToken,
 				tokenSecret: dropbox.requestTokenSecret
-			}, [], function(data) {
+			}, [], [function(data) {
 				data = data.split("&");
 				dataArray = new Array();
 				
@@ -227,8 +246,13 @@ dropbox.setup = function() {
 				//Update variables with tokens
 				dropbox.accessToken = dataArray['oauth_token'];
 				dropbox.accessTokenSecret = dataArray['oauth_token_secret'];
-			});
+				
+				//Callback
+				callback.success();
+			}, callback.error]);
 		}
+	} else {
+		Webos.Callback.toCallback(callback).success();
 	}
 };
 

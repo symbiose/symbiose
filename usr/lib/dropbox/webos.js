@@ -4,7 +4,7 @@
  * @since 1.0 beta 1
  */
 
-Webos.ScriptFile.load('/usr/lib/dropbox/dropbox.js');
+Webos.ScriptFile.load('/usr/lib/dropbox/dropbox.js'); //On charge la bibliotheque native
 
 /**
  * Represente un fichier de Dropbox.
@@ -13,24 +13,27 @@ Webos.ScriptFile.load('/usr/lib/dropbox/dropbox.js');
  * @since 1.0 alpha 1
  * @constructor
  */
-Webos.DropboxFile = function(data, base) {
+Webos.DropboxFile = function(data, point) {
 	data.dropboxpath = data.path;
-	data.path = Webos.DropboxFile.getWebosPath(data.dropboxpath, base);
+	data.path = point.getWebosPath(data.dropboxpath);
 	
 	if (data.bytes) {
 		data.size = data.bytes;
 	}
 	
-	this._base = base;
+	this._mountPoint = point;
 	
 	Webos.File.call(this, data); //On appelle la classe parente
 };
 Webos.DropboxFile.prototype = {
+	mountPoint: function() {
+		return this._mountPoint;
+	},
 	load: function(callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
-		Webos.DropboxFile.load(this.get('path'), this.get('base'), function(file) {
+		Webos.DropboxFile.load(this.get('path'), this.get('mountPoint'), function(file) {
 			var updatedData = {};
 			for (var key in file.data()) {
 				if (key == 'path') {
@@ -47,9 +50,6 @@ Webos.DropboxFile.prototype = {
 			}
 		});
 	},
-	base: function() {
-		return this._base;
-	},
 	realpath: function() {
 		return dropbox.getFileURL(this.get('dropboxpath'));
 	},
@@ -61,12 +61,12 @@ Webos.DropboxFile.prototype = {
 			callback.error('Le nom d\'un fichier ne peut pas contenir le caract&egrave;re "/"');
 		}
 		
-		var dest = Webos.DropboxFile.getDropboxPath(this.get('dirname') + '/' + newName, this.get('base'));
+		var dest = this.get('mountPoint').getRelativePath(this.get('dirname') + '/' + newName);
 		
 		dropbox.moveItem(this.get('dropboxpath'), dest, [function() {
 			that.hydrate({
 				dropboxpath: dest,
-				path: Webos.DropboxFile.getWebosPath(dest, that.get('base'))
+				path: that.get('mountPoint').getWebosPath(dest)
 			});
 			that.load([function() {
 				callback.success();
@@ -78,7 +78,7 @@ Webos.DropboxFile.prototype = {
 		callback = Webos.Callback.toCallback(callback);
 		dest = String(dest);
 		
-		dropbox.moveItem(this.get('dropboxpath'), Webos.DropboxFile.getDropboxPath(dest,  this.get('base')), [function() {
+		dropbox.moveItem(this.get('dropboxpath'), this.get('mountPoint').getRelativePath(dest,  this.get('base')), [function() {
 			that._remove();
 			callback.success();
 		}, callback.error]);
@@ -100,7 +100,7 @@ Webos.DropboxFile.prototype = {
 			dropbox.getFolderContents(this.get('dropboxpath'), [function(data) {
 				var list = [];
 				for(var i = 0; i < data.length; i++) {
-					var file = new Webos.DropboxFile(data[i], that.get('base'));
+					var file = new Webos.DropboxFile(data[i], that.get('mountPoint'));
 					if (Webos.File._cache[file.get('path')]) {
 						Webos.File._cache[file.get('path')].hydrate(file.data());
 						file = Webos.File._cache[file.get('path')];
@@ -132,85 +132,54 @@ Webos.DropboxFile.prototype = {
 };
 Webos.inherit(Webos.DropboxFile, Webos.File); //Héritage de Webos.File
 
-Webos.DropboxFile.init = function() {
-	dropbox.setup();
+Webos.DropboxFile.init = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	dropbox.setup(callback);
 };
 
-Webos.DropboxFile.get = function(file, base, data) {
+Webos.DropboxFile.get = function(file, point, data) {
 	path = String(file);
 	
 	if (file instanceof Webos.DropboxFile) { //Si c'est déja un objet Webos.DropboxFile, on le retourne directement
 		return file;
 	} else { //Sinon, on crée un nouvel objet
 		return new Webos.DropboxFile($.extend({}, data, {
-			path: Webos.DropboxFile.getDropboxPath(path, base)
-		}), base);
+			path: point.getRelativePath(path)
+		}), point);
 	}
 };
 
-Webos.DropboxFile.load = function(path, base, callback) {
-	path = Webos.DropboxFile.getDropboxPath(path, base);
+Webos.DropboxFile.load = function(path, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	dropbox.getMetadata(Webos.DropboxFile.getDropboxPath(path, base), [function(data) {
-		var file = new Webos.DropboxFile(data, base);
-		
-		//On le stocke dans le cache
-		if (typeof Webos.File._cache[file.get('path')] != 'undefined') {
-			Webos.File._cache[file.get('path')].hydrate(file.data());
-			file = Webos.File._cache[file.get('path')];
-		} else {
-			Webos.File._cache[file.get('path')] = file;
-		}
+	dropbox.getMetadata(point.getRelativePath(path), [function(data) {
+		var file = new Webos.DropboxFile(data, point);
 		
 		callback.success(file);
 	}, callback.error]);
 };
 
-Webos.DropboxFile.createFile = function(path, base, callback) {
+Webos.DropboxFile.createFile = function(path, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	dropbox.uploadFile(Webos.DropboxFile.getDropboxPath(path, base), '', [function(data) {
+	dropbox.uploadFile(point.getRelativePath(path), '', [function(data) {
 		var file = Webos.DropboxFile.get(path, base, data);
 		callback.success(file);
 	}, callback.error]);
 };
 
-Webos.DropboxFile.createFolder = function(path, base, callback) {
+Webos.DropboxFile.createFolder = function(path, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	dropbox.createFolder(Webos.DropboxFile.getDropboxPath(path, base), [function(data) {
+	dropbox.createFolder(point.getRelativePath(path), [function(data) {
 		var file = Webos.DropboxFile.get(path, base, data);
 		callback.success(file);
 	}, callback.error]);
-};
-
-/**
- * Recuperer le chemin par rapport au dossier de Dropbox a partir d'un chemin absolu.
- * @param {String} path Le chemin absolu.
- * @param {String} base Le chemin  de la racine du volume.
- * @returns {String} Le chemin relatif par rapport au dossier de Dropbox.
- * @static
- */
-Webos.DropboxFile.getDropboxPath = function(path, base) {
-	return Webos.File.cleanPath(String(path).replace(base, Webos.File.getMountData(base).remote + '/'));
-};
-/**
- * Recuperer le chemin absolu a partir d'un chemin par relatif par rapport au dossier de Dropbox.
- * @param {String} path Le chemin relatif par rapport au dossier de Dropbox.
- * @param {String} base Le chemin  de la racine du volume.
- * @returns {String} path Le chemin absolu.
- * @static
- */
-Webos.DropboxFile.getWebosPath = function(path, base) {
-	if (!Webos.File.getMountData(base).remote) {
-		return Webos.File.cleanPath(base + '/' + String(path));
-	}
-	
-	return Webos.File.cleanPath(String(path).replace(Webos.File.getMountData(base).remote, base + '/'));
 };
 
 Webos.File.registerDriver('DropboxFile', {
 	title: 'Dropbox',
-	icon: '/usr/share/images/dropbox/icon_48.png'
+	icon: '/usr/share/images/dropbox/icon_48.png',
+	lib: '/usr/lib/dropbox/webos.js'
 });
