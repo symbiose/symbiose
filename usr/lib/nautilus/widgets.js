@@ -869,6 +869,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				this.readDir(file.get('path'));
 			}
 		} else {
+			var that = this;
+			
 			var runOpenerFn = function() {
 				Webos.Application.listOpeners(file.get('extension'), function(openers) {
 					if (openers.length > 0) {
