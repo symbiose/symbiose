@@ -183,4 +183,15 @@
 	<class name="TranslationController">
 		<method name="getLanguage"></method>
 	</class>
+	<class name="FTPController">
+		<method name="connect"></method>
+		<method name="getMetadata"></method>
+		<method name="getFile"></method>
+		<method name="putFile"></method>
+		<method name="getFileList"></method>
+		<method name="createFile"></method>
+		<method name="createFolder"></method>
+		<method name="rename"></method>
+		<method name="delete"></method>
+	</class>
 </actions>
