@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="FTP"/>
+	<attribute name="description" value="Accéder a votre serveur FTP"/>
+	<attribute name="command" value="nautilus-mounter FTPFile"/>
+	<attribute name="icon" value="places/folder-remote"/>
+	<attribute name="category" value="internet"/>
+</shortcut>

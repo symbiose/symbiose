@@ -108,8 +108,7 @@ function NautilusDeviceMounterWindow(driver) {
 	this._window = $.w.window.dialog({
 		title: 'Monteur de volumes',
 		width: 400,
-		icon: new W.Icon('devices/harddisk'),
-		resizable: false
+		icon: new W.Icon('devices/harddisk')
 	});
 	
 	this._drivers = {
@@ -158,6 +157,9 @@ function NautilusDeviceMounterWindow(driver) {
 		
 		var selectedDriver = null;
 		var selectDriverFn = function(name) {
+			if (!that._drivers[name]) {
+				return;
+			}
 			submitButton.button('option', 'disabled', false);
 			spoiler.show();
 			localEntry.nautilusFileEntry('value', '~/' + that._drivers[name].title);
@@ -202,6 +204,10 @@ function NautilusDeviceMounterWindow(driver) {
 			that._window.window('close');
 		}).appendTo(buttons);
 		var submitButton = $.w.button('Valider', true).button('option', 'disabled', true).appendTo(buttons);
+		
+		if (driver) {
+			selectDriverFn(driver);
+		}
 	};
 	
 	if (driver) {
