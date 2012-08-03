@@ -66,7 +66,7 @@ Webos.Dashboard.Applet.GnomeShellPanel = function WGnomeShellPanelApplet(data) {
 			var loadingImg = $('<div></div>', { 'class': 'loading' }).appendTo($appMenuTitle);
 			$('<span></span>', { 'class': 'title' }).html(thisWindow.window('option', 'title')).appendTo($appMenuTitle);
 			$appMenuContent = $('<ul></ul>').appendTo($appMenu);
-			$('<li>Quitter '+thisWindow.window('option', 'title')+'</li>').click(function() {
+			$('<li>'+t.get('Quit ${app}', { app: thisWindow.window('option', 'title') })+'</li>').click(function() {
 				thisWindow.window('close');
 			}).appendTo($appMenuContent);
 			
