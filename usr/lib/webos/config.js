@@ -49,7 +49,6 @@ Webos.ConfigFile.prototype = {
 	 */
 	sync: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
-		
 		var that = this;
 		
 		var data = {}, remove = {};
@@ -60,7 +59,7 @@ Webos.ConfigFile.prototype = {
 				if (typeof value != 'undefined') {
 					data[key] = value;
 				} else {
-					remove[key] = value;
+					remove[key] = true;
 				}
 				
 				this._unsynced[key].state = 2;
