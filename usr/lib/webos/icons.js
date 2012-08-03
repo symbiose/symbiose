@@ -33,7 +33,7 @@ Webos.Icon = function WIcon(name, size, theme) {
 		}
 		
 		if (this.type == 'themes') {
-			var theme = (typeof theme == 'undefined') ? ((typeof this.theme == 'undefined') ? Webos.Theme.current.get('icons') : this.theme) : size;
+			var theme = (typeof theme == 'undefined') ? ((typeof this.theme == 'undefined') ? Webos.Theme.current().get('icons') : this.theme) : size;
 			return this.type+'/'+theme+'/'+size+'/'+this.name;
 		} else {
 			return this.type+'/'+size+'/'+this.name;

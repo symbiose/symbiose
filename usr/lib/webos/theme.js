@@ -34,7 +34,7 @@ Webos.Theme.prototype = {
 				Webos.Stylesheet.insertCss(css[index], '#'+W.UserInterface.current.element.attr('id'));
 			}
 			that._loadBackground();
-			Webos.Theme.current = that;
+			Webos.Theme._current = that;
 			callback.success();
 		}, callback.error));
 	},
@@ -124,7 +124,10 @@ Webos.Theme.prototype = {
 Webos.inherit(Webos.Theme, Webos.Model);
 
 
-Webos.Theme.current = null;
+Webos.Theme._current = null;
+Webos.Theme.current = function() {
+	return Webos.Theme._current || new Webos.Theme(Webos.ConfigFile.get('~/.theme/'+Webos.UserInterface.current.name()+'/config.xml'));
+};
 Webos.Theme._defaultBackground = 'usr/share/images/backgrounds/default.jpg';
 Webos.Theme.defaultBackground = function() {
 	return Webos.Theme._defaultBackground;

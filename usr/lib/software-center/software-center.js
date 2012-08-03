@@ -456,8 +456,8 @@ function SoftwareCenter(pkg) {
 	
 	var getHeaderImgDirFn = function() {
 		var baseDir = 'usr/share/images/software-center/header', supportedThemes = ['ambiance', 'adwaita'];
-		if (jQuery.inArray(Webos.Theme.current.get('desktop'), supportedThemes) != -1) {
-			return baseDir+'/'+Webos.Theme.current.get('desktop');
+		if (jQuery.inArray(Webos.Theme.current().get('desktop'), supportedThemes) != -1) {
+			return baseDir+'/'+Webos.Theme.current().get('desktop');
 		} else {
 			return baseDir+'/'+supportedThemes[0];
 		}
