@@ -50,7 +50,7 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 		file.contents([function(contents) {
 			that._originalFile = file;
 			
-			this._translate(contents);
+			that._translate(contents);
 			
 			that._refreshTitle();
 		}, function(response) {
