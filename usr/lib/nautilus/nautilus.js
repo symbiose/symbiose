@@ -139,6 +139,17 @@ function NautilusDeviceMounterWindow(driver) {
 			that._window.window('loading', true, {
 				message: 'Montage de '+that._drivers[selectedDriver].title+' en cours...'
 			});
+			
+			var displaySuccessFn = function() {
+				$.w.notification({
+					title: that._drivers[selectedDriver].title+' a &eacute;t&eacute; mont&eacute;',
+					message: 'Le volume '+that._drivers[selectedDriver].title+' a &eacute;t&eacute; mont&eacute; sur « '+local+' ».',
+					icon: that._drivers[selectedDriver].icon,
+					widgets: [$.w.button('D&eacute;monter').click(function() { Webos.File.umount(local); }),
+					          $.w.button('Ouvrir').click(function() { new NautilusWindow(local); })]
+				});
+			};
+			
 			Webos.File.mount(point, [function(point) {
 				if (permanent) {
 					that._window.window('loading', true, {
@@ -146,12 +157,14 @@ function NautilusDeviceMounterWindow(driver) {
 					});
 					Webos.File.fstab.add(point, [function() {
 						that._window.window('close');
+						displaySuccessFn();
 					}, function(response) {
 						that._window.window('loading', false);
 						response.triggerError('Impossible d\'effectuer le montage permanent');
 					}]);
 				} else {
 					that._window.window('close');
+					displaySuccessFn();
 				}
 			}, function() {
 				that._window.window('loading', false);
