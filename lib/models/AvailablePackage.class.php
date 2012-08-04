@@ -25,7 +25,10 @@ abstract class AvailablePackage extends Package {
 					throw new RuntimeException('Impossible d\'installer le paquet "'.$this->getName().'" : dependance "'.$dep.'" non satisfaite');
 				}
 
-				$this->webos->managers()->get('Package')->getPackage($dep)->install();
+				$pkg = $this->webos->managers()->get('Package')->getPackage($dep);
+				if (!$pkg->isInstalled()) {
+					$pkg->install();
+				}
 			}
 		}
 	}

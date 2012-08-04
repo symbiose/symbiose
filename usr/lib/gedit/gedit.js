@@ -1,6 +1,6 @@
 /**
  * Editeur de texte gedit.
- * @version 1.2
+ * @version 1.3
  * @author $imon
  */
 
@@ -231,10 +231,10 @@ function GEditWindow(file) {
 	this.openAboutWindow = function() {
 		var aboutWindow = $.w.window.about({
 			name: 'gedit',
-			version: '0.2',
+			version: '1.3',
 			description: 'gedit est un petit &eacute;diteur de texte l&eacute;ger.',
 			author: '$imon',
-			icon: new W.Icon('applications/gedit')
+			icon: 'applications/gedit'
 		});
 		aboutWindow.window('open');
 	};

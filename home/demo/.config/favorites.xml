@@ -4,4 +4,4 @@
 	<attribute name="gnome-terminal" value="2"/>
 	<attribute name="gedit" value="3"/>
 	<attribute name="software-center" value="4"/>
-</config>
+<attribute name="gnome-translate" value="5"/></config>

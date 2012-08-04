@@ -3,7 +3,7 @@ new W.ScriptFile('usr/lib/apt/apt.js'); //On charge la bibliotheque JS d'APT
 /**
  * UpdateManager represente un gestionnaire de mises a jour.
  * @author $imon
- * @version 1.0
+ * @version 1.1
  */
 function UpdateManager() {
 	var that = this;
@@ -41,7 +41,9 @@ function UpdateManager() {
 	}).appendTo(buttonContainer);
 	
 	this.displayUpdates = function() {
-		this.window.window('loading', true);
+		this.window.window('loading', true, {
+			message: 'Chargement de la liste des mises &agrave; jour...'
+		});
 		
 		this.updates = {};
 		
@@ -50,7 +52,7 @@ function UpdateManager() {
 			var list = $.w.list().appendTo(that.components.list);
 			
 			var generateItemFn = function(pkg) {
-				that.updates[pkg.getName()] = {
+				that.updates[pkg.get('codename')] = {
 					pkg: pkg,
 					disabled: false
 				};
@@ -59,19 +61,19 @@ function UpdateManager() {
 				var itemCheckbox = item.listItem('addColumn');
 				$.webos.checkButton('', true).bind('checkbuttonchange', function() {
 					var checked = $(this).checkButton('value');
-					that.updates[pkg.getName()].disabled = !checked;
+					that.updates[pkg.get('codename')].disabled = !checked;
 					that._updateInfo();
 				}).appendTo(itemCheckbox);
 				
 				var itemContent = item.listItem('addColumn');
 				
 				$('<span></span>')
-					.html(pkg.getAttribute('name'))
+					.html(pkg.get('name'))
 					.addClass('title')
 					.appendTo(itemContent);
 				itemContent.append('<br />');
 				$('<span></span>')
-					.html(pkg.getName()+' (taille: '+W.File.bytesToSize(pkg.getAttribute('packagesize'))+')')
+					.html(pkg.get('codename')+' (taille: '+W.File.bytesToSize(pkg.get('packagesize'))+')')
 					.addClass('details')
 					.appendTo(itemContent);
 				
@@ -111,7 +113,7 @@ function UpdateManager() {
 		var size = 0;
 		for (var name in this.updates) {
 			if (typeof this.updates[name] != 'undefined' && this.updates[name].disabled === false) {
-				size += parseInt(this.updates[name].pkg.getAttribute('packagesize'));
+				size += parseInt(this.updates[name].pkg.get('packagesize'));
 				i++;
 			}
 		}
@@ -128,30 +130,14 @@ function UpdateManager() {
 	};
 	
 	this.checkUpdates = function() {
-		this.window.window('loading', true);
-		
-		var loadingWindow = $.w.window.dialog({
-			title: 'Mise &agrave; jour du cache',
-			stylesheet: 'usr/share/css/update-manager/loading-window.css',
-			resizable : false,
-			closeable: false,
-			parentWindow: that.window
+		this.window.window('loading', true, {
+			message: 'Mise &agrave; jour du cache...'
 		});
 		
-		loadingWindowContent = loadingWindow.window('content');
-		
-		$('<div></div>').addClass('update-icon').appendTo(loadingWindowContent);
-		$('<strong></strong>').html('Mise &agrave; jour du cache').appendTo(loadingWindowContent);
-		$.w.label('Le cache est en cours de mise &agrave; jour, veuillez patienter quelques instants...').appendTo(loadingWindowContent)
-		
-		loadingWindow.window('open');
-		
 		W.Package.updateCache(new W.Callback(function(response) {
-			loadingWindow.window('close');
 			that.window.window('loading', false);
 			that.displayUpdates();
 		}, function(response) {
-			loadingWindow.window('close');
 			that.window.window('loading', false);
 			W.Error.trigger('Impossible de mettre &agrave; jour le cache.', response.getAllChannels());
 		}));
@@ -173,7 +159,9 @@ function UpdateManager() {
 		
 		var total = i;
 		
-		this.window.window('loading', true);
+		this.window.window('loading', true, {
+			message: 'Installation des mises &agrave; jour...'
+		});
 		
 		var loadingWindow = $.w.window.dialog({
 			title: 'Installation des mises &agrave; jour',
@@ -198,7 +186,7 @@ function UpdateManager() {
 		var installUpdateFn = function(i) {
 			var pkg = updates[i];
 			
-			infobox.html('Installation de <em>'+pkg.getName()+'</em>...');
+			infobox.html('Installation de « '+pkg.get('codename')+' »...');
 			
 			var callback = new W.Callback(function() {
 				var progress = (i + 1) / total * 100;
@@ -215,7 +203,7 @@ function UpdateManager() {
 					}
 				}
 			}, function() {
-				errors.push(pkg.getName());
+				errors.push(pkg.get('codename'));
 				callback.success();
 			});
 			

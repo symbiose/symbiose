@@ -1,7 +1,7 @@
 /**
  * GCalcTool represente une calculatrice.
  * @author Doppelganger & $imon
- * @version 1.2
+ * @version 1.3
  */
 function GCalcTool() {
 	this.mode = 'calcul';

@@ -4,7 +4,7 @@ new W.ScriptFile('usr/lib/apt/apt.js'); //On charge la bibliotheque JS d'APT
  * SoftwareCenter represente une logitheque.
  * @param pkg Le paquet a efficher des l'ouverture de la logitheque.
  * @author $imon
- * @version 2.0
+ * @version 2.4
  */
 function SoftwareCenter(pkg) {
 	var softwareCenter = this;
@@ -432,7 +432,7 @@ function SoftwareCenter(pkg) {
 		var callback = new W.Callback(function(response) {
 			softwareCenter._updateLoadingPackage(pkg);
 		}, function(response) {
-			W.Error.trigger('L\'installation du paquet "'+pkg.getName()+'" a &eacute;chou&eacute;', response.getAllChannels());
+			W.Error.trigger('L\'installation du paquet "'+pkg.get('codename')+'" a &eacute;chou&eacute;', response.getAllChannels());
 			softwareCenter._updateLoadingPackage(pkg);
 		});
 		
@@ -445,7 +445,7 @@ function SoftwareCenter(pkg) {
 		var callback = new W.Callback(function(response) {
 			softwareCenter._updateLoadingPackage(pkg);
 		}, function(response) {
-			W.Error.trigger('La suppression du paquet "'+pkg.getName()+'" a &eacute;chou&eacute;', response.getAllChannels());
+			W.Error.trigger('La suppression du paquet "'+pkg.get('codename')+'" a &eacute;chou&eacute;', response.getAllChannels());
 			softwareCenter._updateLoadingPackage(pkg);
 		});
 		
@@ -466,22 +466,22 @@ function SoftwareCenter(pkg) {
 	this._updateLoadingPackage = function(pkg) {
 		var actions = this._getActions(pkg);
 		
-		if (typeof this.detail != 'undefined' && this.detail.pkgName == pkg.getName()) {
+		if (typeof this.detail != 'undefined' && this.detail.pkgName == pkg.get('codename')) {
 			this.detail.state.html(actions.labels.status);
 			this.detail.button.replaceWith(actions.action);
 			this.detail.button = actions.action;
 		}
 		
-		if (typeof this.list != 'undefined' && typeof this.list.packages[pkg.getName()] != 'undefined') {
-			this.list.packages[pkg.getName()].actionButton.replaceWith(actions.action);
-			this.list.packages[pkg.getName()].actionButton = actions.action;
+		if (typeof this.list != 'undefined' && typeof this.list.packages[pkg.get('codename')] != 'undefined') {
+			this.list.packages[pkg.get('codename')].actionButton.replaceWith(actions.action);
+			this.list.packages[pkg.get('codename')].actionButton = actions.action;
 		}
 		
 		if (typeof this.runningPkgs == 'undefined') {
 			this.runningPkgs = {};
 		}
 		if (pkg.isRunning()) {
-			this.runningPkgs[pkg.getName()] = pkg;
+			this.runningPkgs[pkg.get('codename')] = pkg;
 			if (typeof this._headerLoadingButton == 'undefined') {
 				this._headerLoadingButton = $.w.buttonWindowHeaderItem('En cours', getHeaderImgDirFn()+'/loading.gif')
 					.click(function() {
@@ -490,8 +490,8 @@ function SoftwareCenter(pkg) {
 					.appendTo(this._header.buttonWindowHeader('content'));
 			}
 		} else {
-			if (typeof this.runningPkgs[pkg.getName()] != 'undefined') {
-				delete this.runningPkgs[pkg.getName()];
+			if (typeof this.runningPkgs[pkg.get('codename')] != 'undefined') {
+				delete this.runningPkgs[pkg.get('codename')];
 			}
 			var i = 0;
 			for (var name in this.runningPkgs) {
