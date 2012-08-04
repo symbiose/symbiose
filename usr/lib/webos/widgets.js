@@ -857,14 +857,14 @@ var listProperties = $.webos.extend($.webos.properties.get('container'), {
 			this.options._components.head.append($('<tr></tr>'));
 		}
 		
-		this.options._components.head.children('tr').append($('<td></td>').html(value));
+		return $('<td></td>').html(value).appendTo(this.options._components.head.children('tr'));
 	},
 	column: function(id, content) {
 		var column;
 		if (typeof id == 'undefined') {
 			column = this.addColumn();
 		} else {
-			column = $(this.options._components.head.children('td')[id]);
+			column = $(this.options._components.head.find('td')[id]);
 			if (column.length == 0) {
 				column = this.addColumn();
 			}
@@ -939,7 +939,7 @@ var listProperties = $.webos.extend($.webos.properties.get('container'), {
 	_update: function(key, value) {
 		switch(key) {
 			case 'columns':
-				this.options._components.head.children('tr').remove();
+				this.options._components.head.find('td').remove();
 				for (var i = 0; i < this.options.columns.length; i++) {
 					this.addColumn(this.options.columns[i]);
 				}
