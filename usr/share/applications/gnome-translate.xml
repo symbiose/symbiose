@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Traduction d'applications"/>
+	<attribute name="description" value="Traduire des applications"/>
+	<attribute name="command" value="gnome-translate"/>
+	<attribute name="icon" value="apps/translate"/>
+	<attribute name="menu" value="system"/>
+	<attribute name="category" value="administration"/>
+	<attribute name="open" value="ini,js"/>
+</shortcut>
