@@ -438,7 +438,7 @@ Webos.File.clearCache = function(path) {
  */
 Webos.File.cleanPath = function(path) {
 	return path
-		.replace(/\/+/, '/')
+		.replace(/\/+/g, '/')
 		.replace('/./', '/')
 		.replace(/\/\.$/, '/')
 		.replace(/(.+)\/$/, '$1');
