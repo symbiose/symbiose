@@ -64,7 +64,7 @@ Webos.Dashboard.Applet.GnomeShellPanel = function WGnomeShellPanelApplet(data) {
 			$('<img />', { src: thisWindow.window('option', 'icon').realpath(48), alt: '', 'class': 'icon' }).appendTo($iconContainer);
 			$('<span></span>', { 'class': 'icon-overlay' }).appendTo($iconContainer);
 			var loadingImg = $('<div></div>', { 'class': 'loading' }).appendTo($appMenuTitle);
-			$('<span></span>', { 'class': 'title' }).html(thisWindow.window('option', 'title')).appendTo($appMenuTitle);
+			var $title = $('<span></span>', { 'class': 'title' }).html(thisWindow.window('option', 'title')).appendTo($appMenuTitle);
 			$appMenuContent = $('<ul></ul>').appendTo($appMenu);
 			$('<li>'+t.get('Quit ${app}', { app: thisWindow.window('option', 'title') })+'</li>').click(function() {
 				thisWindow.window('close');
@@ -80,13 +80,18 @@ Webos.Dashboard.Applet.GnomeShellPanel = function WGnomeShellPanelApplet(data) {
 			var loadingStopHandler = function() {
 				loadingImg.hide();
 			};
+			var changeTitleHandler = function() {
+				$title.html(thisWindow.window('option', 'title'));
+			};
 			thisWindow
 				.bind('windowloadingstart', loadingStartHandler)
 				.bind('windowloadingstop', loadingStopHandler)
+				.bind('windowchangetitle', changeTitleHandler)
 				.one('windowclose windowtobackground', function() {
 					thisWindow
 						.unbind('windowloadingstart', loadingStartHandler)
-						.unbind('windowloadingstop', loadingStopHandler);
+						.unbind('windowloadingstop', loadingStopHandler)
+						.unbind('windowchangetitle', changeTitleHandler);
 				});
 			
 			appMenuWindow = thisWindow;
