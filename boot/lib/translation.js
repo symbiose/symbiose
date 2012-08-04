@@ -24,6 +24,42 @@ Webos.Translation._language = null;
 Webos.Translation.language = function() {
 	return Webos.Translation._language;
 };
+Webos.Translation.parse = function(contents) {
+	var lines = contents.split('\n');
+	var data = {};
+	
+	for (var i = 0; i < lines.length; i++) {
+		if (lines[i].charAt(0) == ';') {
+			continue;
+		}
+		
+		var words = lines[i].split('=');
+		
+		if (words.length < 2) {
+			continue;
+		}
+		if (words[0].length == 0) {
+			continue;
+		}
+		
+		var original = words[0];
+		var translation = '';
+		for (var j = 1; j < words.length; j++) {
+			if (j >= 2) {
+				translation += '=';
+			}
+			translation += words[j];
+		}
+		
+		if (translation.length == 0) {
+			continue;
+		}
+		
+		data[original] = translation;
+	}
+	
+	return data;
+};
 Webos.Translation.load = function(callback, path, locale) {
 	callback = Webos.Callback.toCallback(callback);
 	locale = String(locale);
@@ -38,40 +74,7 @@ Webos.Translation.load = function(callback, path, locale) {
 		}
 		
 		file.contents([function(contents) {
-			var lines = contents.split('\n');
-			var data = {};
-			
-			for (var i = 0; i < lines.length; i++) {
-				if (lines[i].charAt(0) == ';') {
-					continue;
-				}
-				
-				var words = lines[i].split('=');
-				
-				if (words.length < 2) {
-					continue;
-				}
-				if (words[0].length == 0) {
-					continue;
-				}
-				
-				var original = words[0];
-				var translation = '';
-				for (var j = 1; j < words.length; j++) {
-					if (j >= 2) {
-						translation += '=';
-					}
-					translation += words[j];
-				}
-				
-				if (translation.length == 0) {
-					continue;
-				}
-				
-				data[original] = translation;
-			}
-			
-			callback.success(new Webos.Translation(data));
+			callback.success(new Webos.Translation(Webos.Translation.parse(contents)));
 		}, function(response) {
 			callback.success(new Webos.Translation());
 		}]);
@@ -147,6 +150,9 @@ Webos.Locale.getAll = function() {
 };
 Webos.Locale.get = function(name) {
 	return Webos.Locale._list[name] || Webos.Locale._list[Webos.Locale._defaultLocale];
+};
+Webos.Locale.getDefault = function() {
+	return Webos.Locale.get(Webos.Locale._defaultLocale);
 };
 Webos.Locale.exists = function(name) {
 	return (typeof Webos.Locale._list[name] != 'undefined');
