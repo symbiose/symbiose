@@ -144,7 +144,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				return;
 			}
 			
-			$that.getSelection().each(function() {
+			that.getSelection().each(function() {
 				$(this).data('nautilus').remove();
 			});
 		});
