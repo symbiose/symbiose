@@ -14,18 +14,12 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 		
 		if (this._originalFile) {
 			title = this._originalFile.get('basename');
+		} else {
+			title = 'Nouvelle traduction';
 		}
 		
 		if (this._exportFile) {
-			if (title) {
-				title += ' [export&eacute;e]';
-			} else {
-				title = this._exportFile.get('basename');
-			}
-		}
-		
-		if (!title) {
-			title = 'Nouvelle traduction';
+			title += ' [export&eacute;e]';
 		}
 		
 		title += ' - Traduction d\'applications';
@@ -56,117 +50,122 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 		file.contents([function(contents) {
 			that._originalFile = file;
 			
-			that._window.window('loading', true, {
-				message: 'G&eacute;n&eacute;ration des traductions...'
-			});
+			this._translate(contents);
 			
-			var translates = [], lastChar = null, inString = false, stringOpener = null, inConcat = false, concatStart = 0, inComment = false, commentOpener = null, buffer = '';
-			for (var i = 0; i < contents.length; i++) {
-				var currentChar = contents[i];
-				switch(currentChar) {
-					case '"':
-					case '\'':
-						if (inString && inConcat && lastChar == '+') {
-							inConcat = false;
-							buffer = jQuery.trim(buffer);
-							var concatContents = jQuery.trim(buffer.substr(concatStart));
-							concatContents = jQuery.trim(concatContents.substring(0, concatContents.length - 1));
-							buffer = buffer.substr(0, concatStart);
-							if (concatContents) {
-								buffer += '${'+concatContents.replace('{', '&#x7B;').replace('}', '&#x7D;')+'}';
-							}
-							stringOpener = currentChar;
-						} else if (inString && inConcat) {
-							buffer += currentChar;
-						} else if (inString && stringOpener == currentChar && lastChar != '\\') {
-							inString = false;
-							translates.push([buffer, '']);
-							buffer = '';
-						} else if (inString) {
-							buffer += currentChar;
-						} else if (!inComment) {
-							inString = true;
-							stringOpener = currentChar;
-						}
-						break;
-					case '\\':
-						if (inString && lastChar == '\\') {
-							buffer += currentChar;
-						}
-						break;
-					case '+':
-						if (!inString && lastChar == stringOpener) { //Si on vient de fermer une chaine
-							buffer = translates.pop()[0];
-							inString = true;
-							inConcat = true;
-							concatStart = buffer.length;
-						} else if (inString) {
-							buffer += currentChar;
-						}
-						break;
-					case ';':
-						if (inConcat) {
-							inConcat = false;
-							inString = false;
-							buffer = jQuery.trim(buffer);
-							var concatContents = jQuery.trim(buffer.substr(concatStart));
-							buffer = buffer.substr(0, concatStart);
-							if (concatContents) {
-								buffer += '${'+concatContents.replace('{', '&#x7B;').replace('}', '&#x7D;')+'}';
-							}
-							translates.push([buffer, '']);
-							buffer = '';
-						}
-						break;
-					case '/':
-						if (!inComment && !inString && lastChar == '/') {
-							inComment = true;
-							commentOpener = '//';
-						}
-						if (inComment && commentOpener == '/*' && lastChar == '*') {
-							inComment = false;
-						}
-						if (inString) {
-							buffer += currentChar;
-						}
-						break;
-					case "\n":
-						if (inComment && commentOpener == '//') {
-							inComment = false;
-						}
-						break;
-					case '*':
-						if (!inComment && !inString && lastChar == '/') {
-							inComment = true;
-							commentOpener = '/*';
-						}
-						if (inString) {
-							buffer += currentChar;
-						}
-						break;
-					default:
-						if (inString) {
-							buffer += currentChar;
-						}
-				}
-				if (!inString || inConcat) {
-					if (!/^\s$/.test(currentChar)) {
-						lastChar = currentChar;
-					}
-				} else {
-					lastChar = currentChar;
-				}
-			}
-			
-			that._buildList(translates, null, true);
-			
-			that._window.window('loading', false);
 			that._refreshTitle();
 		}, function(response) {
 			that._window.window('loading', false);
 			that._refreshTitle();
 			response.triggerError('Impossible de charger le fichier "'+file.get('path')+'"');
 		}]);
+	};
+	
+	this._translate = function(contents) {
+		this._window.window('loading', true, {
+			message: 'G&eacute;n&eacute;ration des traductions...'
+		});
+		
+		var translates = [], lastChar = null, inString = false, stringOpener = null, inConcat = false, concatStart = 0, inComment = false, commentOpener = null, buffer = '';
+		for (var i = 0; i < contents.length; i++) {
+			var currentChar = contents[i];
+			switch(currentChar) {
+				case '"':
+				case '\'':
+					if (inString && inConcat && lastChar == '+') {
+						inConcat = false;
+						buffer = jQuery.trim(buffer);
+						var concatContents = jQuery.trim(buffer.substr(concatStart));
+						concatContents = jQuery.trim(concatContents.substring(0, concatContents.length - 1));
+						buffer = buffer.substr(0, concatStart);
+						if (concatContents) {
+							buffer += '${'+concatContents.replace('{', '&#x7B;').replace('}', '&#x7D;')+'}';
+						}
+						stringOpener = currentChar;
+					} else if (inString && inConcat) {
+						buffer += currentChar;
+					} else if (inString && stringOpener == currentChar && lastChar != '\\') {
+						inString = false;
+						translates.push([buffer, '']);
+						buffer = '';
+					} else if (inString) {
+						buffer += currentChar;
+					} else if (!inComment) {
+						inString = true;
+						stringOpener = currentChar;
+					}
+					break;
+				case '\\':
+					if (inString && lastChar == '\\') {
+						buffer += currentChar;
+					}
+					break;
+				case '+':
+					if (!inString && lastChar == stringOpener) { //Si on vient de fermer une chaine
+						buffer = translates.pop()[0];
+						inString = true;
+						inConcat = true;
+						concatStart = buffer.length;
+					} else if (inString) {
+						buffer += currentChar;
+					}
+					break;
+				case ';':
+					if (inConcat) {
+						inConcat = false;
+						inString = false;
+						buffer = jQuery.trim(buffer);
+						var concatContents = jQuery.trim(buffer.substr(concatStart));
+						buffer = buffer.substr(0, concatStart);
+						if (concatContents) {
+							buffer += '${'+concatContents.replace('{', '&#x7B;').replace('}', '&#x7D;')+'}';
+						}
+						translates.push([buffer, '']);
+						buffer = '';
+					}
+					break;
+				case '/':
+					if (!inComment && !inString && lastChar == '/') {
+						inComment = true;
+						commentOpener = '//';
+					}
+					if (inComment && commentOpener == '/*' && lastChar == '*') {
+						inComment = false;
+					}
+					if (inString) {
+						buffer += currentChar;
+					}
+					break;
+				case "\n":
+					if (inComment && commentOpener == '//') {
+						inComment = false;
+					}
+					break;
+				case '*':
+					if (!inComment && !inString && lastChar == '/') {
+						inComment = true;
+						commentOpener = '/*';
+					}
+					if (inString) {
+						buffer += currentChar;
+					}
+					break;
+				default:
+					if (inString) {
+						buffer += currentChar;
+					}
+			}
+			if (!inString || inConcat) {
+				if (!/^\s$/.test(currentChar)) {
+					lastChar = currentChar;
+				}
+			} else {
+				lastChar = currentChar;
+			}
+		}
+		
+		this._buildList(translates, null, true);
+		
+		this._window.window('loading', false);
 	};
 	
 	this._translates = [];
@@ -360,6 +359,30 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 		dialog.window('open');
 	};
 	
+	this.import = function() {
+		var dialog = $.w.window.dialog({
+			title: 'Import d\'un fichier &agrave; traduire',
+			parentWindow: this._window,
+			width: 500
+		});
+		
+		var form = $.w.entryContainer().submit(function() {
+			dialog.window('close');
+			that._translate(contents.textAreaEntry('value'));
+		}).appendTo(dialog.window('content'));
+		
+		var contents = $.w.textAreaEntry('Code source de l\'application &agrave; traduire :').appendTo(form);
+		contents.textAreaEntry('content').width('100%').height('300px');
+		
+		var buttons = $.w.buttonContainer().appendTo(form);
+		$.w.button('Annuler').click(function() {
+			dialog.window('close');
+		}).appendTo(buttons);
+		$.w.button('Importer', true).appendTo(buttons);
+		
+		dialog.window('open');
+	};
+	
 	this._isSaved = false;
 	this._exportFile = null;
 	this.save = function(callback) {
@@ -419,7 +442,13 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuItem('Enregistrer')
+	$.w.menuItem('Importer')
+		.click(function() {
+			that.import();
+		})
+		.appendTo(fileItemContent);
+	
+	$.w.menuItem('Enregistrer', true)
 		.click(function() {
 			that.save();
 		})
