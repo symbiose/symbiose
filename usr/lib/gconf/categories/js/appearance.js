@@ -22,7 +22,7 @@ backgroundContainer.append('<br />');
 
 var backgroundsList = $.w.iconsList().addClass('backgroundslist').appendTo(backgroundContainer);
 
-var actualBgFile = Webos.File.get(W.Theme.current.get('background'));
+var actualBgFile = Webos.File.get(W.Theme.current().get('background'));
 var actualBgItem = $.w.iconsListItem(actualBgFile.get('realpath')).click(function() {
 	changeBgFn(actualBgFile.get('path'), actualBgFile.get('basename'));
 }).iconsListItem('active', true).appendTo(backgroundsList);
@@ -44,7 +44,7 @@ W.File.listDir(W.Theme.backgroundsDir, new W.Callback(function(files) {
 				changeBgFn(file.get('path'), file.get('basename'));
 			});
 			
-			if (W.Theme.current.get('background') == file.get('path')) {
+			if (W.Theme.current().get('background') == file.get('path')) {
 				actualBgItem = item;
 				actualBgListed = true;
 				item.iconsListItem('active', true);
@@ -70,14 +70,14 @@ var screen = $.w.container().addClass('screen').appendTo(actualBg);
 var background = $('<img />', { src: actualBgFile.get('realpath') }).appendTo(screen);
 
 var changeBgFn = function(bg, name) {
-	if (!W.Theme.current.set('background', bg)) {
+	if (!W.Theme.current().set('background', bg)) {
 		W.Error.trigger('Impossible de modifier le fond d\'&eacute;cran');
 		return;
 	}
 	
 	confWindow.window('loading', true);
 	
-	W.Theme.current.sync(new W.Callback(function() {
+	W.Theme.current().sync(new W.Callback(function() {
 		var path = Webos.File.get(bg).get('realpath');
 		new W.LoadImage({
 			images: path,
@@ -104,18 +104,18 @@ var themeContainer = $.w.container().appendTo(form);
 $('<strong></strong>').html('Th&egrave;me').appendTo(themeContainer);
 
 var themesList = {};
-themesList[W.Theme.current.get('desktop')] = W.Theme.current.get('desktop');
+themesList[W.Theme.current().get('desktop')] = W.Theme.current().get('desktop');
 var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'interface utilisateur : ', themesList)
 	.change(function() {
 		var theme = themeSelector.selectButton('value');
 		
-		if (!W.Theme.current.set('desktop', theme)) {
+		if (!W.Theme.current().set('desktop', theme)) {
 			W.Error.trigger('Impossible de modifier le th&egrave;me');
 			return;
 		}
 		
 		confWindow.window('loading', true);
-		W.Theme.current.sync(new W.Callback(function() {
+		W.Theme.current().sync(new W.Callback(function() {
 			confWindow.window('loading', false);
 			$.webos.window.confirm({
 				title: 'Changement de th&egrave;me',
@@ -129,7 +129,7 @@ var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'int
 			}).window('open');
 		}, function(response) {
 			confWindow.window('loading', false);
-			themeSelector.selectButton('value', W.Theme.current.get('desktop'));
+			themeSelector.selectButton('value', W.Theme.current().get('desktop'));
 			response.triggerError('Impossible de modifier le th&egrave;me');
 		}));
 	})
@@ -143,26 +143,26 @@ W.Theme.getAvailable('desktop', function(themes) {
 	}
 	themeSelector
 		.selectButton('option', 'choices', themesList)
-		.selectButton('value', W.Theme.current.get('desktop'));
+		.selectButton('value', W.Theme.current().get('desktop'));
 });
 
 var iconsList = {};
-iconsList[W.Theme.current.get('icons')] = W.Theme.current.get('icons');
+iconsList[W.Theme.current().get('icons')] = W.Theme.current().get('icons');
 var iconsSelector = $.w.selectButton('Th&egrave;me des ic&ocirc;nes : ', iconsList)
 	.change(function() {
 		var icons = iconsSelector.selectButton('value');
 		
-		if (!W.Theme.current.set('icons', icons)) {
+		if (!W.Theme.current().set('icons', icons)) {
 			W.Error.trigger('Impossible de modifier le th&egrave;me');
 			return;
 		}
 		
 		confWindow.window('loading', true);
-		W.Theme.current.sync(new W.Callback(function() {
+		W.Theme.current().sync(new W.Callback(function() {
 			confWindow.window('loading', false);
 		}, function(response) {
 			confWindow.window('loading', false);
-			iconsSelector.selectButton('value', W.Theme.current.icons());
+			iconsSelector.selectButton('value', W.Theme.current().icons());
 			response.triggerError('Impossible de modifier le th&egrave;me');
 		}));
 	})
@@ -177,20 +177,20 @@ W.File.listDir(W.Theme.iconsDir, function(list) {
 	}
 	iconsSelector
 		.selectButton('option', 'choices', iconsThemes)
-		.selectButton('value', W.Theme.current.get('icons'));
+		.selectButton('value', W.Theme.current().get('icons'));
 });
 
-var animationsSelector = $.w.switchButton('Animations : ', W.Theme.current.get('animations'))
+var animationsSelector = $.w.switchButton('Animations : ', W.Theme.current().get('animations'))
 	.bind('switchbuttonchange', function() {
 		var animations = animationsSelector.switchButton('value');
 		
-		if (!W.Theme.current.set('animations', animations)) {
+		if (!W.Theme.current().set('animations', animations)) {
 			W.Error.trigger('Impossible de modifier le th&egrave;me');
 			return;
 		}
 		
 		confWindow.window('loading', true);
-		W.Theme.current.sync(new W.Callback(function() {
+		W.Theme.current().sync(new W.Callback(function() {
 			confWindow.window('loading', false);
 		}, function(response) {
 			confWindow.window('loading', false);
