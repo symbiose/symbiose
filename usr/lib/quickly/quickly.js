@@ -1,14 +1,73 @@
 new W.ScriptFile('usr/lib/apt/apt.js');
 
+/**
+ * Quickly permet de creer rapidement et simplement des paquets.
+ * @version 1.1
+ * @author $imon
+ */
 function QuicklyWindow() {
 	var that = this;
 	
 	this._window = $.w.window({
 		title: 'Cr&eacute;ateur de paquets Quickly',
-		icon: new W.Icon('mimes/package'),
+		icon: 'mimes/package',
 		width: 500,
 		height: 350
 	});
+	
+	this._open = function(file, callback) {
+		callback = W.Callback.toCallback(callback);
+		
+		this._window.window('loading', true, {
+			message: 'Ouverture de « '+file.get('basename')+' »...'
+		});
+		
+		file.contents([function(xml) {
+			var xmlDoc = $.parseXML(xml), $xml = $(xmlDoc);
+			$package = $xml.find('package');
+			if ($package.length == 0) {
+				that._window.window('loading', false);
+				callback.error();
+				return;
+			}
+			
+			$attributes = $package.find('attributes');
+			for (var name in that._data.attributes) {
+				$attr = $attributes.find('attribute[name="'+name+'"]');
+				if ($attr.length == 0) {
+					continue;
+				}
+				that._data.attributes[name] = $attr.attr('value');
+			}
+			that._data.attributesSet = true;
+			
+			$files = $package.find('files');
+			$files.find('file').each(function() {
+				var path = '/'+$(this).attr('path');
+				that._data.files.push(path);
+				that._addFile(path);
+			});
+			that._filesList.list('sort');
+			
+			that._window.window('loading', false);
+			callback.success();
+		}, function(response) {
+			that._window.window('loading', false);
+			callback.error(response);
+		}]);
+	};
+	
+	this.open = function(callback) {
+		callback = W.Callback.toCallback(callback);
+		
+		new NautilusFileSelectorWindow({
+			parentWindow: that._window
+		}, function(file) {
+			if (file) {
+				that._open(file, callback);
+			}
+		});
+	};
 	
 	this._data = {};
 	
@@ -46,7 +105,9 @@ function QuicklyWindow() {
 		};
 		
 		if (file.get('is_dir')) {
-			this._window.window('loading', true);
+			this._window.window('loading', true, {
+				message: 'Ajout du dossier « '+file.get('path')+' »...'
+			});
 			file.contents([function(files) {
 				var i = 0;
 				var addCurrentFileFn = function() {
@@ -112,7 +173,8 @@ function QuicklyWindow() {
 		priority: 'optionnal',
 		maintainer: '',
 		description: '',
-		shortdescription: ''
+		shortdescription: '',
+		dependencies: ''
 	};
 	this._data.attributesSet = false;
 	this.openAttributesWindow = function(callback) {
@@ -159,7 +221,9 @@ function QuicklyWindow() {
 		}).appendTo(form);
 		inputs.maintainer = $.w.textEntry('Auteur :').appendTo(form);
 		inputs.description = $.w.textAreaEntry('Description :').appendTo(form);
+		inputs.description.textAreaEntry('content').width('100%').height('100px');
 		inputs.shortdescription = $.w.textEntry('Description courte :').appendTo(form);
+		inputs.dependencies = $.w.textEntry('D&eacute;pendances (s&eacute;par&eacute;es par des virgules) :').appendTo(form);
 		
 		W.Package.categories(function(cats) {
 			inputs.category.selectButton('option', 'choices', cats).selectButton('value', that._data.attributes.category);
@@ -213,7 +277,7 @@ function QuicklyWindow() {
 		new NautilusFileSelectorWindow({
 			parentWindow: that._window,
 			exists: false,
-			title: 'Choisir un dossier de destination'
+			title: 'Choisir un fichier de destination'
 		}, function(file) {
 			if (file) {
 				that._data.dest = file;
@@ -273,6 +337,10 @@ function QuicklyWindow() {
 		};
 		
 		var generatePkgFn = function() {
+			that._window.window('loading', true, {
+				message: 'G&eacute;n&eacute;ration du paquet...'
+			});
+			
 			var cmd = 'quickly-cli --config-file="'+xmlFile+'" --installed --files-listing=0 --dest="'+pkgFile+'"';
 			
 			Webos.Cmd.execute(cmd, [function(response) {
@@ -300,11 +368,17 @@ function QuicklyWindow() {
 					successWindow.window('close');
 				}).appendTo(buttons);
 				
+				that._window.window('loading', false);
 				successWindow.window('open');
 			}, function(response) {
+				that._window.window('loading', false);
 				response.triggerError('Impossible de g&eacute;n&eacute;rer le paquet');
 			}]);
 		};
+		
+		this._window.window('loading', true, {
+			message: 'Enregistrement de la configuration...'
+		});
 		
 		W.File.load(xmlFile, [function(file) {
 			saveXmlFn(file);
@@ -312,6 +386,7 @@ function QuicklyWindow() {
 			W.File.createFile(xmlFile, [function(file) {
 				saveXmlFn(file);
 			}, function(response) {
+				that._window.window('loading', false);
 				response.triggerError('Impossible de cr&eacute;er le fichier de configuration du paquet "'+xmlFile+'"');
 			}]);
 		}]);
@@ -320,7 +395,7 @@ function QuicklyWindow() {
 	this.openAboutWindow = function() {
 		var aboutWindow = $.w.window.about({
 			name: 'Quickly',
-			version: '1.0',
+			version: '1.1',
 			description: 'Quickly permet de g&eacute;n&eacute;rer rapidement des paquets.',
 			author: '$imon',
 			icon: new W.Icon('mimes/package')
@@ -345,13 +420,19 @@ function QuicklyWindow() {
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuItem('G&eacute;n&eacute;rer le paquet')
+	$.w.menuItem('Ouvrir...')
+		.click(function() {
+			that.open();
+		})
+		.appendTo(fileItemContent);
+	
+	$.w.menuItem('G&eacute;n&eacute;rer le paquet', true)
 		.click(function() {
 			that.build();
 		})
 		.appendTo(fileItemContent);
 	
-	$.w.menuItem('Quitter')
+	$.w.menuItem('Quitter', true)
 		.click(function() {
 			that._window.window('close');
 		})
@@ -370,7 +451,7 @@ function QuicklyWindow() {
 			that.removeSelectedFiles();
 		})
 		.appendTo(editItemContent);
-	$.w.menuItem('Attributs du paquet...')
+	$.w.menuItem('Attributs du paquet...', true)
 		.click(function() {
 			that.openAttributesWindow();
 		})
