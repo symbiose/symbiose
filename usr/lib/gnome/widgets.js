@@ -518,27 +518,36 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 	setHeight: function(height) {
 		this.options._content.height(height);
 	},
-	loading: function(value) {
+	loading: function(value, opts) {
 		if (value) {
-			if (this.is('loading')) {
-				return;
-			}
+			var options = $.extend({
+				message: 'Chargement...',
+				lock: true
+			}, opts);
 			
-			var width = this.options._content.width();
-			var height = this.options._content.height();
-			this.options._content
-				.hide()
-				.removeClass('content');
+			this.options.loading = options;
 			
-			this.options._loadingContent = $('<div></div>', { 'class': 'content loading cursor-wait' })
-				.width(width)
-				.height(height)
-				.css('min-height', '50px')
-				.css('min-width', '50px')
-				.insertAfter(this.options._content);
-			
-			if (this.options.resizable) {
-				this.element.resizable('option', 'alsoResize', this.options._loadingContent);
+			if (options.lock) {
+				if (!this.is('loading')) {
+					var width = this.options._content.outerWidth(true);
+					var height = this.options._content.outerHeight(true);
+					this.options._content.hide();
+					
+					this.options._loadingContent = $('<div></div>', { 'class': 'content loading cursor-wait' })
+						.width(width)
+						.height(height)
+						.css('min-height', '50px')
+						.css('min-width', '50px')
+						.insertAfter(this.options._content);
+					
+					var $message = $('<div></div>', { 'class': 'message' }).appendTo(this.options._loadingContent);
+					
+					if (this.options.resizable) {
+						this.element.resizable('option', 'alsoResize', this.options._loadingContent);
+					}
+				}
+				
+				this.options._loadingContent.find('.message').html(options.message);
 			}
 			
 			this._trigger('loadingstart');
@@ -548,17 +557,19 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				return;
 			}
 			
-			this.options._loadingContent.remove();
-			delete this.options._loadingContent;
-			this.options._content
-				.show()
-				.addClass('content');
-			
-			if (this.options.resizable) {
-				this.element
-					.css('width', 'auto')
-					.css('height', 'auto')
-					.resizable('option', 'alsoResize', this.options._content);
+			if (this.options.loading.lock) {
+				this.options._loadingContent.remove();
+				delete this.options._loadingContent;
+				this.options._content
+					.show()
+					.addClass('content');
+				
+				if (this.options.resizable) {
+					this.element
+						.css('width', 'auto')
+						.css('height', 'auto')
+						.resizable('option', 'alsoResize', this.options._content);
+				}
 			}
 			
 			this._trigger('loadingstop');

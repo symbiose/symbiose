@@ -177,9 +177,13 @@
 	margin: 0;
 }
 
-.webos-window .content.loading {
-	color:#f0ebe2;
-	background: url("usr/share/images/themes/adwaita/loading.gif") no-repeat center #f0ebe2;
+.webos-window .content.loading .message {
+	position: absolute;
+	top: 50%;
+	width: 100%;
+	text-align: center;
+	background: url("usr/share/images/themes/adwaita/loading.gif") no-repeat top center;
+	padding-top: 35px;
 }
 
 /* HEADERS SPECIFIQUES */
