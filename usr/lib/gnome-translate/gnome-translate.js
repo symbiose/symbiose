@@ -121,6 +121,8 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 						}
 						translates.push([buffer, '']);
 						buffer = '';
+					} else if (inString) {
+						buffer += currentChar;
 					}
 					break;
 				case '/':
