@@ -371,8 +371,8 @@ new Webos.Locale({
 	}
 }, 'fr_FR');
 
-new Webos.Locale({
+/*new Webos.Locale({
 	title: 'Deutsch (Deutschland)',
 	days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
 	months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
-}, {}, 'de_DE');
+}, {}, 'de_DE');*/
