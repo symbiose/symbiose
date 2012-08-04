@@ -245,7 +245,9 @@ function GEditWindow(file) {
 		var file = this._gedit.gedit('option', 'file');
 		var contents = this._gedit.gedit('contents');
 		var saveFn = function(file) {
-			that._window.window('loading', true);
+			that._window.window('loading', true, {
+				lock: false
+			});
 			file.setContents(contents, new W.Callback(function() {
 				that._contents = contents;
 				that._refreshTitle();
@@ -285,7 +287,9 @@ function GEditWindow(file) {
 		
 		var contents = this._gedit.gedit('contents');
 		var saveFn = function(file) {
-			that._window.window('loading', true);
+			that._window.window('loading', true, {
+				lock: false
+			});
 			file.setContents(contents, new W.Callback(function() {
 				that._contents = contents;
 				that._refreshTitle();

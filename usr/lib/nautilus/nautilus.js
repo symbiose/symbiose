@@ -127,15 +127,23 @@ function NautilusDeviceMounterWindow(driver) {
 	this.showDrivers = function(driver) {
 		var that = this;
 		var form = $.w.entryContainer().submit(function() {
-			that._window.window('loading', true);
+			that._window.window('loading', true, {
+				message: 'Chargement de la biblioth&egrave;que de '+that._drivers[selectedDriver].title+'...'
+			});
 			W.ScriptFile(that._drivers[selectedDriver].lib);
 			var local = localEntry.nautilusFileEntry('value'), remote = remoteEntry.textEntry('value'), permanent = permanentEntry.switchButton('value');
 			var point = new Webos.File.MountPoint({
 				remote: remote,
 				driver: selectedDriver
 			}, local);
+			that._window.window('loading', true, {
+				message: 'Montage de '+that._drivers[selectedDriver].title+' en cours...'
+			});
 			Webos.File.mount(point, [function(point) {
 				if (permanent) {
+					that._window.window('loading', true, {
+						message: 'Ajout du montage permanent...'
+					});
 					Webos.File.fstab.add(point, [function() {
 						that._window.window('close');
 					}, function(response) {
@@ -240,7 +248,9 @@ function NautilusWindow(dir, userCallback) {
 
 	this.nautilus.bind('nautilusreadstart', function(e, data) {
 		that._refreshHeader(data.location);
-		that.window.window('loading', true);
+		that.window.window('loading', true, {
+			message: 'Ouverture du dossier « '+data.location.replace(/\/$/, '').split('/').pop()+' »...'
+		});
 	}).bind('nautilusreadcomplete', function() {
 		that.window.window('loading', false);
 	}).bind('nautilusreaderror', function(e, data) {
