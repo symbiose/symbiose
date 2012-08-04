@@ -429,6 +429,16 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 		}
 	};
 	
+	this.openAboutWindow = function() {
+		$.w.window.about({
+			name: 'Traduction d\'applications',
+			version: '0.1',
+			description: 'Simplifie la traduction d\'applications.',
+			author: '$imon',
+			icon: 'apps/translate'
+		}).window('open');
+	};
+	
 	this._list = $.w.list(['','','']).appendTo(this._window.window('content'));
 	
 	var headers = this._window.window('header');
@@ -467,6 +477,15 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 			that._window.window('close');
 		})
 		.appendTo(fileItemContent);
+	
+	var helpItem = $.w.menuItem('Aide').appendTo(menu);
+	helpItemContent = helpItem.menuItem('content');
+	
+	$.w.menuItem('&Agrave; propos')
+		.click(function() {
+			that.openAboutWindow();
+		})
+		.appendTo(helpItemContent);
 	
 	this._window.window('open');
 	
