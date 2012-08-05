@@ -69,6 +69,7 @@ Webos.Translation.load = function(callback, path, locale) {
 		var file = Webos.File.get('/usr/share/locale/' + locale + '/' + path + '.ini');
 		
 		if (locale == Webos.Locale._defaultLocale) {
+			
 			callback.success(new Webos.Translation());
 			return;
 		}
