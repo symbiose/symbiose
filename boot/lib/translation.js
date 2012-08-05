@@ -212,12 +212,24 @@ Webos.Locale.detect = function() {
 				
 	lang = lang.replace('-', '_');
 	var parts = lang.split('_');
+	parts[0] = parts[0].toLowerCase();
 	if (!parts[1]) {
 		parts[1] = parts[0].toUpperCase();
 	}
 	var locale = parts.join('_');
+	if (Webos.Locale.exists(locale)) {
+		return locale;
+	}
 	
-	return locale;
+	if (parts[0] != parts[1].toLowerCase()) {
+		parts[1] = parts[0].toUpperCase();
+	}
+	locale = parts.join('_');
+	if (Webos.Locale.exists(locale)) {
+		return locale;
+	}
+	
+	return Webos.Locale.getDefault().get('name');
 };
 Webos.Locale.set = function(locale, callback) {
 	callback = Webos.Callback.toCallback(callback);
