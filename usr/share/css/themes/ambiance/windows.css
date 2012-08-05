@@ -176,8 +176,20 @@
 }
 
 .webos-window .content.loading {
-	color:#f0ebe2;
-	background: url("usr/share/images/themes/ambiance/loading.gif") no-repeat center #f0ebe2;
+	position: relative;
+	overflow: hidden;
+}
+.webos-window .content.loading .message-container {
+	position: absolute;
+	top: 50%;
+	width: 100%;
+	text-align: center;
+}
+.webos-window .content.loading .message-container .message {
+	position: relative;
+	top: -27px;
+	background: url("usr/share/images/themes/ambiance/loading.gif") no-repeat top center;
+	padding-top: 35px;
 }
 
 /* HEADERS SPECIFIQUES */

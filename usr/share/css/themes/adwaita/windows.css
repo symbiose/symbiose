@@ -154,7 +154,7 @@
 
 /* CONTENU DE LA FENETRE */
 .webos-window .content {
-	background: #f0ebe2;
+	background-color: #fdfdfd;
 	color: #4c4c4c;
 	overflow: auto;
 	min-width: 10px;
@@ -177,11 +177,19 @@
 	margin: 0;
 }
 
-.webos-window .content.loading .message {
+.webos-window .content.loading {
+	position: relative;
+	overflow: hidden;
+}
+.webos-window .content.loading .message-container {
 	position: absolute;
 	top: 50%;
 	width: 100%;
 	text-align: center;
+}
+.webos-window .content.loading .message-container .message {
+	position: relative;
+	top: -27px;
 	background: url("usr/share/images/themes/adwaita/loading.gif") no-repeat top center;
 	padding-top: 35px;
 }

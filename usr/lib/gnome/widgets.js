@@ -540,7 +540,8 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 						.css('min-width', '50px')
 						.insertAfter(this.options._content);
 					
-					var $message = $('<div></div>', { 'class': 'message' }).appendTo(this.options._loadingContent);
+					var $messContainer = $('<div></div>', { 'class': 'message-container' }).appendTo(this.options._loadingContent);
+					var $message = $('<div></div>', { 'class': 'message' }).appendTo($messContainer);
 					
 					if (this.options.resizable) {
 						this.element.resizable('option', 'alsoResize', this.options._loadingContent);
