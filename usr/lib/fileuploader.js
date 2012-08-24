@@ -542,7 +542,7 @@ qq.extend(qq.FileUploader.prototype, {
     _find: function(parent, type){                                
         var element = qq.getByClass(parent, this._options.classes[type])[0];        
         if (!element){
-            throw new Error('element not found ' + type);
+            throw new Error('Element not found ' + type);
         }
         
         return element;
@@ -995,7 +995,7 @@ qq.extend(qq.UploadHandlerForm.prototype, {
         var input = this._inputs[id];
         
         if (!input){
-            throw new Error('file with passed id was not added, or already uploaded or cancelled');
+            throw new Error('File with passed id was not added, or already uploaded or cancelled');
         }                
 
         var fileName = this.getName(id);
@@ -1056,7 +1056,7 @@ qq.extend(qq.UploadHandlerForm.prototype, {
         var doc = iframe.contentDocument ? iframe.contentDocument: iframe.contentWindow.document,
             response;
         
-        this.log("converting iframe's innerHTML to JSON");
+        this.log("Converting iframe's innerHTML to JSON");
         this.log("innerHTML = " + doc.body.innerHTML);
                         
         try {
@@ -1144,7 +1144,7 @@ qq.extend(qq.UploadHandlerXhr.prototype, {
      **/    
     add: function(file){
         if (!(file instanceof File)){
-            throw new Error('Passed obj in not a File (in qq.UploadHandlerXhr)');
+            throw new Error('Passed object is not a File (in qq.UploadHandlerXhr)');
         }
                 
         return this._files.push(file) - 1;        
@@ -1213,7 +1213,7 @@ qq.extend(qq.UploadHandlerXhr.prototype, {
                 
         if (xhr.status == 200){
             this.log("xhr - server response received");
-            this.log("responseText = " + xhr.responseText);
+            this.log("Text response : " + xhr.responseText);
                         
             var response;
                     
