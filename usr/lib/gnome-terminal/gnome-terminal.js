@@ -29,6 +29,11 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 		});
 		
 		this.options._terminal = new W.Terminal(callback);
+		
+		Webos.Translation.load(function(t) {
+			that.options._translations = t;
+			that._trigger('translationsloaded');
+		}, 'gnome-terminal');
 	},
 	terminal: function() {
 		return this.options._terminal;
@@ -43,7 +48,16 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 			var data = that.options._terminal.data();
 			
 			if (data.username === false) {
-				W.Error.trigger('Vous &ecirc;tes d&eacute;connect&eacute; (il est possible que le temps d\'inactivit&eacute; soit d&eacute;pass&eacute;)');
+				var displayErrorFn = function() {
+					W.Error.trigger(that.options._translations.get('You are disconnected (the idle time is possibly exceeded)'));
+				};
+				if (!that.options._translations) {
+					that.element.bind('terminaltranslationsloaded', function() {
+						displayErrorFn();
+					});
+				} else {
+					displayErrorFn();
+				}
 				return;
 			}
 			
@@ -169,48 +183,60 @@ $.webos.terminal = function(callback) {
  * @author $imon
  * @version 1.0
  */
-function GTerminalWindow(callback) { //La fenetre du terminal
-	//On initialise la fenetre
-	this._window = $.w.window({
-		title: 'Terminal',
-		icon: new W.Icon('apps/terminal'),
-		width: 400,
-		height: 250,
-		stylesheet: 'usr/share/css/gnome-terminal/main.css'
+GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
+	Webos.Observable.call(this);
+	
+	this.bind('translationsloaded', function() {
+		var t = this._translations;
+		
+		//On initialise la fenetre
+		this._window = $.w.window({
+			title: t.get('Terminal'),
+			icon: new W.Icon('apps/terminal'),
+			width: 400,
+			height: 250,
+			stylesheet: 'usr/share/css/gnome-terminal/main.css'
+		});
+		
+		var that = this;
+		
+		var scrollPane = $('<div></div>').appendTo(this._window.window('content')).scrollPane({
+			autoReload: true,
+			expand: true
+		});
+		
+		//On initialise le terminal
+		this._terminal = $.w.terminal(callback).appendTo(scrollPane.scrollPane('content'));
+		
+		//Lors du redimentionnement de la fenetre
+		this._window.bind('windowresize', function() {
+			that._terminal.terminal('prompt').textEntry('content')
+				.width(that._terminal.terminal('prompt').innerWidth() - that._terminal.terminal('prompt').textEntry('label').outerWidth() - 5)
+				.focus();
+		});
+		
+		//Lors du clic sur le terminal
+		scrollPane.scrollPane('content').click(function(e) {
+			if ($(e.target).is(this)) {
+				that._terminal.terminal('prompt').textEntry('content').focus();
+			}
+		});
+		
+		this._terminal.bind('terminalexecute terminalready', function() {
+			scrollPane.scrollPane('reload');
+		});
+		
+		//On ouvre la fenetre
+		this._window.window('open');
 	});
 	
-	var that = this;
-	
-	var scrollPane = $('<div></div>').appendTo(this._window.window('content')).scrollPane({
-		autoReload: true,
-		expand: true
-	});
-	
-	//On initialise le terminal
-	this._terminal = $.w.terminal(callback).appendTo(scrollPane.scrollPane('content'));
-	
-	this.terminal = function() {
+	Webos.TranslatedLibrary.call(this);
+};
+GTerminalWindow.prototype = {
+	_translationsName: 'gnome-terminal',
+	terminal: function() {
 		return this._terminal;
-	};
-	
-	//Lors du redimentionnement de la fenetre
-	this._window.bind('windowresize', function() {
-		that._terminal.terminal('prompt').textEntry('content')
-			.width(that._terminal.terminal('prompt').innerWidth() - that._terminal.terminal('prompt').textEntry('label').outerWidth() - 5)
-			.focus();
-	});
-	
-	//Lors du clic sur le terminal
-	scrollPane.scrollPane('content').click(function(e) {
-		if ($(e.target).is(this)) {
-			that._terminal.terminal('prompt').textEntry('content').focus();
-		}
-	});
-	
-	this._terminal.bind('terminalexecute terminalready', function() {
-		scrollPane.scrollPane('reload');
-	});
-	
-	//On ouvre la fenetre
-	this._window.window('open');
-}
+	}
+};
+Webos.inherit(GTerminalWindow, Webos.Observable);
+Webos.inherit(GTerminalWindow, Webos.TranslatedLibrary);
