@@ -27,13 +27,30 @@ Webos.Translation.language = function() {
 Webos.Translation.parse = function(contents) {
 	var lines = contents.split('\n');
 	var data = {};
+	var inComment = false;
 	
 	for (var i = 0; i < lines.length; i++) {
-		if (lines[i].charAt(0) == ';') {
+		var line = lines[i];
+		
+		if (/\/\*/.test(line)) {
+			inComment = true;
+			line = line.replace(/$(.*)\/\*/, '$1');
+		}
+		if (/\*\//.test(line)) {
+			inComment = false;
+			line = line.replace(/\*\/(.*)^/, '$1');
+		}
+		if (inComment) {
+			continue;
+		}
+		if (line.charAt(0) == ';') {
+			continue;
+		}
+		if (line.substr(0, 2) == '//') {
 			continue;
 		}
 		
-		var words = lines[i].split('=');
+		var words = line.split('=');
 		
 		if (words.length < 2) {
 			continue;
@@ -248,6 +265,31 @@ Webos.Locale.set = function(locale, callback) {
 	}, callback.error]);
 };
 
+Webos.TranslatedLibrary = function() {
+	this._loadTranslations();
+};
+Webos.TranslatedLibrary.prototype = {
+	_translations: null,
+	_translationsName: '',
+	_loadTranslations: function() {
+		if (this._translations) {
+			return;
+		}
+		
+		if (!this._translationsName) {
+			this.notify('translationsloaded');
+			return;
+		}
+		
+		var that = this;
+		
+		Webos.Translation.load(function(t) {
+			that._translations = t;
+			that.notify('translationsloaded');
+		}, this._translationsName);
+	}
+};
+
 Webos.User.bind('login logout', function() {
 	//Lorsque l'utilisateur quitte sa session, on reinitialise la langue
 	Webos.Translation._language = null;
@@ -289,13 +331,13 @@ new Webos.Locale({
 		return this._get('days')[nbr];
 	},
 	dayAbbreviation: function(nbr) {
-		return this.day(nbr).slice(0, 3);
+		return this.day(nbr).slice(0, 3) + '.';
 	},
 	month: function(nbr) {
 		return this._get('months')[nbr];
 	},
 	monthAbbreviation: function(nbr) {
-		return this.month(nbr).slice(0, 3);
+		return this.month(nbr).slice(0, 3) + '.';
 	},
 	date: function(date) {
 		return this.day(date.getDay()) + ' ' + 
@@ -371,16 +413,19 @@ new Webos.Locale({
 	monthsAbbreviations: ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni', 'Juli', 'Aug.', 'Sept.', 'Okt.', 'Nov.', 'Dez.'],
 	currency: '&#x20AC;'
 }, {
+	dayAbbreviation: function(nbr) {
+		return this.day(nbr).slice(0, 2);
+	},
 	monthAbbreviation: function(nbr) {
 		return this._get('monthsAbbreviations')[nbr];
 	},
 	date: function(date) {
-		return this.day(date.getDay()) + ' ' + 
+		return this.day(date.getDay()) + ', den ' + 
 			date.getDate() + '. ' + 
 			this.month(date.getMonth()).toLowerCase();
 	},
 	dateAbbreviation: function(date) {
-		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' + 
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ', den ' + 
 			date.getDate() + '. ' + 
 			this.monthAbbreviation(date.getMonth()).toLowerCase();
 	},
