@@ -43,7 +43,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 			var data = that.options._terminal.data();
 			
 			if (data.username === false) {
-				W.Error.trigger('Vous &ecirc;tres d&eacute;connect&eacute; (il est possible que le temps d\'inactivit&eacute; soit d&eacute;pass&eacute;)');
+				W.Error.trigger('Vous &ecirc;tes d&eacute;connect&eacute; (il est possible que le temps d\'inactivit&eacute; soit d&eacute;pass&eacute;)');
 				return;
 			}
 			

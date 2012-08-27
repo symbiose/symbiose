@@ -260,8 +260,11 @@ Webos.Locale.load();
 
 new Webos.Locale({
 	title: 'English (United Kingdom)',
+	integerGroupsSeparator: ',',
+	decimalSeparator: '.',
 	days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-	months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+	months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+	currency: '&#xA3;'
 }, {
 	number: function(nbr) {
 		nbr = String(nbr);
@@ -271,14 +274,14 @@ new Webos.Locale({
 		var count = 0;
 		for (var i = parts[0].length - 1; i >= 0; i--) {
 			if (count % 3 == 0 && i != parts[0].length - 1) {
-				integer = ',' + integer;
+				integer = this._get('integerGroupsSeparator') + integer;
 			}
 			integer = parts[0].charAt(i) + integer;
 			
 			count++;
 		}
 		
-		nbr = integer + '.' + parts[1];
+		nbr = integer + this._get('decimalSeparator') + parts[1];
 		
 		return nbr;
 	},
@@ -323,44 +326,19 @@ new Webos.Locale({
 			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
 	},
 	currency: function(value) {
-		return '&#xA3;' + this.number(value);
+		return this._get('currency') + this.number(value);
 	}
 }, 'en_EN');
 
 new Webos.Locale({
 	title: 'Fran&ccedil;ais (France)',
+	integerGroupsSeparator: ' ',
+	decimalSeparator: ',',
 	days: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
 	months: ['Janvier', 'F&eacute;vrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'A&ocirc;ut', 'Septembre', 'Octobre', 'Novembre', 'D&eacute;cembre'],
-	monthsAbbreviations: ['Jan.', 'F&eacute;v.', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil.', 'A&ocirc;ut', 'Sept.', 'Oct.', 'Nov.', 'D&eacute;c.']
+	monthsAbbreviations: ['Jan.', 'F&eacute;v.', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil.', 'A&ocirc;ut', 'Sept.', 'Oct.', 'Nov.', 'D&eacute;c.'],
+	currency: '&#x20AC;'
 }, {
-	number: function(nbr) {
-		nbr = String(nbr);
-		parts = nbr.split('.');
-		
-		var integer = '';
-		var count = 0;
-		for (var i = parts[0].length - 1; i >= 0; i--) {
-			if (count % 3 == 0 && i != parts[0].length - 1) {
-				integer = ' ' + integer;
-			}
-			integer = parts[0].charAt(i) + integer;
-			
-			count++;
-		}
-		
-		nbr = integer + ',' + parts[1];
-		
-		return nbr;
-	},
-	day: function(nbr) {
-		return this._get('days')[nbr];
-	},
-	dayAbbreviation: function(nbr) {
-		return this.day(nbr).slice(0, 3) + '.';
-	},
-	month: function(nbr) {
-		return this._get('months')[nbr];
-	},
 	monthAbbreviation: function(nbr) {
 		return this._get('monthsAbbreviations')[nbr];
 	},
@@ -380,12 +358,33 @@ new Webos.Locale({
 			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
 	},
 	currency: function(value) {
-		return this.number(value) + ' &#x20AC;';
+		return this.number(value) + ' ' + this._get('currency');
 	}
 }, 'fr_FR');
 
-/*new Webos.Locale({
+new Webos.Locale({
 	title: 'Deutsch (Deutschland)',
+	integerGroupsSeparator: ' ',
+	decimalSeparator: ',',
 	days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-	months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
-}, {}, 'de_DE');*/
+	months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+	monthsAbbreviations: ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni', 'Juli', 'Aug.', 'Sept.', 'Okt.', 'Nov.', 'Dez.'],
+	currency: '&#x20AC;'
+}, {
+	monthAbbreviation: function(nbr) {
+		return this._get('monthsAbbreviations')[nbr];
+	},
+	date: function(date) {
+		return this.day(date.getDay()) + ' ' + 
+			date.getDate() + '. ' + 
+			this.month(date.getMonth()).toLowerCase();
+	},
+	dateAbbreviation: function(date) {
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' + 
+			date.getDate() + '. ' + 
+			this.monthAbbreviation(date.getMonth()).toLowerCase();
+	},
+	currency: function(value) {
+		return this.number(value) + ' ' + this._get('currency');
+	}
+}, 'de_DE');
