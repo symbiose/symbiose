@@ -24,7 +24,7 @@ Webos.Observable.prototype = {
 	},
 	notify: function(event, data, thisObj) {
 		data = data || {};
-		var scope = thisObj || window;
+		var scope = thisObj || this;
 		this._observers.forEach(function(el) {
 			if (jQuery.inArray(event, el.event.split(' ')) != -1) {
 				el.fn.call(scope, data);
@@ -57,7 +57,7 @@ Webos.Observable.build = function(object) {
 	};
 	object.notify = function(event, data, thisObj) {
 		data = data || {};
-		var scope = thisObj || window;
+		var scope = thisObj || object;
 		object._observers.forEach(function(el) {
 			if (jQuery.inArray(event, el.event.split(' ')) != -1) {
 				el.fn.call(scope, data);
