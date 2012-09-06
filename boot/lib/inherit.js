@@ -10,3 +10,26 @@ Webos.inherit = function(C, P) {
 	C.uber = P.prototype;
 	C.prototype.constructor = C;
 };
+
+/**
+ * Détermine si un objet est une instance d'une classe.
+ * @param {Object} instance L'objet a tester.
+ * @param {Object} obj La classe.
+ * @returns {Boolean} Vrai si l'objet est une instance de la classe spécifiée.
+ */
+Webos.isInstanceOf = function(instance, obj) {
+	var current;
+	do {
+		if (current) {
+			current = current.uber.constructor;
+		} else {
+			current = instance.constructor;
+		}
+		
+		if (current === obj) {
+			return true;
+		}
+	} while (current.uber);
+	
+	return false;
+};

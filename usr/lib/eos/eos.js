@@ -117,6 +117,13 @@ function EyeOfSymbiose(image) {
 			return;
 		}
 		
+		var dir = this.file.getAttribute('dirname');
+		
+		if (!dir) {
+			userCallback.success([this.file]);
+			return;
+		}
+		
 		if (typeof this.imagesInDir == 'undefined') {
 			var callback = new W.Callback(function(files) {
 				var images = [];
@@ -131,7 +138,6 @@ function EyeOfSymbiose(image) {
 				userCallback.error(response);
 			});
 			
-			var dir = this.file.getAttribute('dirname');
 			W.File.listDir(dir, callback);
 		} else {
 			userCallback.success(that.imagesInDir);
@@ -220,9 +226,9 @@ function EyeOfSymbiose(image) {
 		.click(function() {
 			new NautilusFileSelectorWindow({
 				parentWindow: that.window
-			}, function(file) {
-				if (typeof file != 'undefined') {
-					that.open(file);
+			}, function(files) {
+				if (files.length) {
+					that.open(files[0]);
 				}
 			});
 		})

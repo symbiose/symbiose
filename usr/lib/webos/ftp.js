@@ -9,6 +9,9 @@ Webos.FTPFile = function WFTPFile(data, point) {
 	data.path = point.getWebosPath(data.ftppath);
 	data.realpath = 'ftp://'+point.get('data').user+':'+point.get('data').password+'@'+point.get('data').host+':'+point.get('data').port+'/'+data.ftppath;
 	
+	data.readable = true;
+	data.writable = true;
+	
 	this._mountPoint = point;
 	
 	Webos.File.call(this, data); //On appelle la classe parente
@@ -69,8 +72,7 @@ Webos.FTPFile.prototype = {
 		dest = String(dest);
 		
 		//TODO: moving files support
-		callback.error();
-		Webos.Error.trigger('Impossible de d&eacute;placer des fichiers : fonction non support&eacute; pour FTP');
+		this._unsupportedMethod(callback);
 	},
 	remove: function(callback) {
 		var that = this;

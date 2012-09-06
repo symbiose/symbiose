@@ -21,6 +21,9 @@ Webos.DropboxFile = function(data, point) {
 		data.size = data.bytes;
 	}
 	
+	data.readable = true;
+	data.writable = true;
+	
 	this._mountPoint = point;
 	
 	Webos.File.call(this, data); //On appelle la classe parente

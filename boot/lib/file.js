@@ -5,53 +5,43 @@
  */
 
 /**
- * Crée une instance de Webos.File.
+ * Représente un fichier.
  * @param {Object} data Les données sur le fichier.
  * @since 1.0 alpha 1
  * @constructor
  */
 Webos.File = function WFile(data) {
-	data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
-	if (!data.dirname) { //On définit automatiquement le dossier pérent si non présent
-		data.dirname = data.path.replace(/\/[^\/]*\/?$/, '');
-	}
-	if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
-		data.realpath = 'sbin/filecall.php?file='+data.path;
+	if (!data.dirname) { //On définit automatiquement le dossier parent si non présent
+		if (data.path.indexOf('/', 1) != -1) {
+			data.dirname = data.path.replace(/\/[^\/]*\/?$/, '');
+		} else if (data.path.indexOf('/') == 0) {
+			data.dirname = '/';
+		}
 	}
 	if (!data.basename) { //On définit automatiquement le nom du fichier si non présent
 		data.basename = data.path.replace(/^.*[\/\\]/g, '');
 	}
-	if (data.is_dir === false && !data.extension) {//On définit automatiquement l'extension du fichier si non présent et que le fichier n'est pas un dossier
+	if (data.is_dir === false && !data.extension) { //On définit automatiquement l'extension du fichier si non présent et que le fichier n'est pas un dossier
 		data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
 	}
+	
+	data.readable = (data.readable) ? true : false;
+	data.writable = (data.writable) ? true : false;
 	
 	Webos.Model.call(this, data); //On appelle la classe parente
 };
 Webos.File.prototype = {
+	_unsupportedMethod: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		
+		callback.error(Webos.Callback.Result.error('Op&eacute;ration impossible sur le type du fichier "'+this.get('path')+'"'));
+	},
 	/**
-	 * Charge les informations sur les fichiers.
+	 * Charge les informations sur le fichier.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que les informations seront chargées.
 	 */
 	load: function(callback) {
-		var that = this;
-		callback = Webos.Callback.toCallback(callback);
-		
-		Webos.File.clearCache(that.get('path'));
-		Webos.File.load(that.get('path'), new Webos.Callback(function(file) {
-			var updatedData = {};
-			for (var key in file.data()) {
-				if (that.get(key) !== file.data()[key]) {
-					updatedData[key] = file.data()[key];
-				}
-			}
-			that.hydrate(updatedData);
-			callback.success(that);
-			for (var key in updatedData) {
-				that.notify('update', { key: key, value: updatedData[key] });
-			}
-		}, function(response) {
-			callback.error(response, that);
-		}));
+		this._unsupportedMethod(callback);
 	},
 	/**
 	 * Renomme le fichier.
@@ -59,28 +49,7 @@ Webos.File.prototype = {
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera renommé.
 	 */
 	rename: function(newName, callback) {
-		var that = this;
-		callback = Webos.Callback.toCallback(callback);
-		
-		new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'rename',
-			arguments: {
-				file: that.get('path'),
-				newName: newName
-			}
-		}).load([function() {
-			that.hydrate({
-				path: that.get('dirname')+'/'+newName
-			});
-			that.load([function() {
-				callback.success(that);
-			}, function(response) {
-				callback.error(response, that);
-			}]);
-		}, function(response) {
-			callback.error(response, that);
-		}]);
+		this._unsupportedMethod(callback);
 	},
 	/**
 	 * Déplacer le fichier.
@@ -88,98 +57,21 @@ Webos.File.prototype = {
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera déplacé.
 	 */
 	move: function(dest, callback) {
-		var that = this;
-		callback = Webos.Callback.toCallback(callback);
-		dest = String(dest);
-		
-		new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'move',
-			arguments: {
-				file: that.get('path'),
-				dest: dest
-			}
-		}).load(new Webos.Callback(function() {
-			that._remove();
-			callback.success();
-		}, function(response) {
-			callback.error(response, that);
-		}));
+		this._unsupportedMethod(callback);
 	},
 	/**
 	 * Supprimer le fichier.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera déplacé.
 	 */
 	remove: function(callback) {
-		var that = this;
-		callback = Webos.Callback.toCallback(callback);
-		
-		new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'delete',
-			arguments: {
-				file: that.get('path')
-			}
-		}).load(new Webos.Callback(function() {
-			that._remove();
-			callback.success();
-		}, function(response) {
-			callback.error(response, that);
-		}));
-	},
-	_remove: function() {
-		this.notify('remove');
-		Webos.File.notify('remove', { file: this });
-		
-		Webos.File.clearCache(this.get('path'));
-		delete this;
+		this._unsupportedMethod(callback);
 	},
 	/**
 	 * Récupérer le contenu du fichier.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le contenu du fichier. Si c'est un dossier, un tableau de fichiers sera fournit.
 	 */
 	contents: function(callback) {
-		var that = this;
-		callback = Webos.Callback.toCallback(callback);
-		
-		if (this.get('is_dir')) {
-			new Webos.ServerCall({
-				'class': 'FileController',
-				method: 'getContents',
-				arguments: {
-					dir: this.get('path')
-				}
-			}).load(new Webos.Callback(function(response) {
-				var data = response.getData();
-				var list = [];
-				for(var key in data) {
-					var file = new Webos.File(data[key]);
-					if (Webos.File._cache[file.get('path')]) {
-						Webos.File._cache[file.get('path')].hydrate(file.data());
-						file = Webos.File._cache[file.get('path')];
-						Webos.File.notify('load', { file: file });
-					} else {
-						Webos.File._cache[file.get('path')] = file;
-					}
-					list.push(file);
-				}
-				callback.success(list);
-			}, function(response) {
-				callback.error(response);
-			}));
-		} else {
-			new Webos.ServerCall({
-				'class': 'FileController',
-				method: 'getContents',
-				arguments: {
-					file: that.get('path')
-				}
-			}).load(new Webos.Callback(function(response) {
-				callback.success(response.getStandardChannel(), that);
-			}, function(response) {
-				callback.error(response, that);
-			}));
-		}
+		this._unsupportedMethod(callback);
 	},
 	/**
 	 * Récupérer le contenu du fichier.
@@ -194,25 +86,23 @@ Webos.File.prototype = {
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera modifié.
 	 */
 	setContents: function(contents, callback) {
-		var that = this;
-		callback = Webos.Callback.toCallback(callback);
+		this._unsupportedMethod(callback);
+	},
+	can: function(auth) {
+		var attr = (auth == 'read') ? 'readable' : 'writable';
 		
-		if (this.get('is_dir')) {
-			callback.error();
+		return this.get(attr);
+	},
+	checkAuthorization: function(auth, callback) {
+		if (!this.can(auth)) {
+			callback = Webos.Callback.toCallback(callback);
+			
+			callback.error(Webos.Callback.Result.error('Vous n\'avez pas les droits requis pour ' + ((auth == 'read') ? 'ouvrir' : 'modifier') + ' le fichier "' + this.get('path') + '"'));
+			
+			return false;
 		}
 		
-		new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'setContents',
-			arguments: {
-				file: that.get('path'),
-				contents: contents
-			}
-		}).load(new Webos.Callback(function() {
-			callback.success();
-		}, function(response) {
-			callback.error(response);
-		}));
+		return true;
 	},
 	toString: function() {
 		return this.get('path');
@@ -244,6 +134,12 @@ Webos.File._mountedDevices = {};
  * @static
  */
 Webos.File.get = function(file, data) {
+	if (file instanceof File) { //Si c'est un objet natif File, on retorune un objet Webos.LocalFile
+		return new Webos.LocalFile(file);
+	} else if (Webos.isInstanceOf(file, Webos.File)) { //Si c'est déja un objet Webos.File, on le retourne directement
+		return file;
+	}
+	
 	path = String(file);
 	
 	//Le fichier est-il dans un volume monte ?
@@ -256,14 +152,13 @@ Webos.File.get = function(file, data) {
 	
 	if (Webos.File._cache[path]) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
-	} else if (file instanceof Webos.File) { //Si c'est déja un objet Webos.File, on le retourne directement
-		return file;
 	} else { //Sinon, on crée un nouvel objet
-		return new Webos.File($.extend({}, data, {
+		return new Webos.WebosFile($.extend({}, data, {
 			path: path
 		}));
 	}
 };
+
 /**
  * Charger les données sur un fichier.
  * @param {String} path Le chemin vers le fichier.
@@ -309,7 +204,7 @@ Webos.File.load = function(path, callback) {
 				file: path
 			}
 		}).load(new Webos.Callback(function(response) {
-			var file = new Webos.File(response.getData()); //On construit notre objet
+			var file = new Webos.WebosFile(response.getData()); //On construit notre objet
 			
 			//On le stocke dans le cache
 			addFileToCacheFn(file);
@@ -369,7 +264,7 @@ Webos.File.createFile = function(path, callback) {
 			file: path
 		}
 	}).load(new Webos.Callback(function(response) {
-		var file = new Webos.File(response.getData());
+		var file = new Webos.WebosFile(response.getData());
 		createFileCallback(file);
 		callback.success(file);
 	}, function(response) {
@@ -411,7 +306,7 @@ Webos.File.createFolder = function(path, callback) {
 			file: path
 		}
 	}).load(new Webos.Callback(function(response) {
-		var file = new Webos.File(response.getData());
+		var file = new Webos.WebosFile(response.getData());
 		createFolderCallback(file);
 		callback.success(file);
 	}, function(response) {
@@ -437,6 +332,8 @@ Webos.File.clearCache = function(path) {
  * @static
  */
 Webos.File.cleanPath = function(path) {
+	path = String(path);
+	
 	return path
 		.replace(/\/+/g, '/')
 		.replace('/./', '/')
@@ -567,6 +464,287 @@ Webos.File.registerDriver = function(driverName, data) {
 Webos.File.getDriverData = function(driverName) {
 	return Webos.File._drivers[driverName];
 };
+
+Webos.WebosFile = function WWebosFile(data) {
+	data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
+	if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
+		data.realpath = 'sbin/filecall.php?file='+data.path;
+	}
+	
+	if (typeof data.readable == 'undefined') {
+		data.readable = true;
+	}
+	if (typeof data.writable == 'undefined') {
+		data.writable = true;
+	}
+	
+	Webos.File.call(this, data); //On appelle la classe parente
+};
+Webos.WebosFile.prototype = {
+		/**
+	 * Charge les informations sur les fichiers.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que les informations seront chargées.
+	 */
+	load: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		Webos.File.clearCache(that.get('path'));
+		Webos.File.load(that.get('path'), new Webos.Callback(function(file) {
+			var updatedData = {};
+			for (var key in file.data()) {
+				if (that.get(key) !== file.data()[key]) {
+					updatedData[key] = file.data()[key];
+				}
+			}
+			that.hydrate(updatedData);
+			callback.success(that);
+			for (var key in updatedData) {
+				that.notify('update', { key: key, value: updatedData[key] });
+			}
+		}, function(response) {
+			callback.error(response, that);
+		}));
+	},
+	/**
+	 * Renomme le fichier.
+	 * @param {String} newName Le nouveau nom.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera renommé.
+	 */
+	rename: function(newName, callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		if (!this.checkAuthorization('write', callback)) {
+			return;
+		}
+		
+		new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'rename',
+			arguments: {
+				file: that.get('path'),
+				newName: newName
+			}
+		}).load([function() {
+			that.hydrate({
+				path: that.get('dirname')+'/'+newName
+			});
+			that.load([function() {
+				callback.success(that);
+			}, function(response) {
+				callback.error(response, that);
+			}]);
+		}, function(response) {
+			callback.error(response, that);
+		}]);
+	},
+	/**
+	 * Déplacer le fichier.
+	 * @param {String} dest La destination du fichier.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera déplacé.
+	 */
+	move: function(dest, callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		dest = String(dest);
+		
+		if (!this.checkAuthorization('read', callback)) {
+			return;
+		}
+		
+		new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'move',
+			arguments: {
+				file: that.get('path'),
+				dest: dest
+			}
+		}).load(new Webos.Callback(function() {
+			that._remove();
+			callback.success();
+		}, function(response) {
+			callback.error(response, that);
+		}));
+	},
+	/**
+	 * Supprimer le fichier.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera déplacé.
+	 */
+	remove: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		if (!this.checkAuthorization('write', callback)) {
+			return;
+		}
+		
+		new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'delete',
+			arguments: {
+				file: that.get('path')
+			}
+		}).load(new Webos.Callback(function() {
+			that._remove();
+			callback.success();
+		}, function(response) {
+			callback.error(response, that);
+		}));
+	},
+	_remove: function() {
+		this.notify('remove');
+		Webos.File.notify('remove', { file: this });
+		
+		Webos.File.clearCache(this.get('path'));
+		delete this;
+	},
+	/**
+	 * Récupérer le contenu du fichier.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le contenu du fichier. Si c'est un dossier, un tableau de fichiers sera fournit.
+	 */
+	contents: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		if (!this.checkAuthorization('read', callback)) {
+			return;
+		}
+		
+		if (this.get('is_dir')) {
+			new Webos.ServerCall({
+				'class': 'FileController',
+				method: 'getContents',
+				arguments: {
+					dir: this.get('path')
+				}
+			}).load(new Webos.Callback(function(response) {
+				var data = response.getData();
+				var list = [];
+				for(var key in data) {
+					var file = new Webos.WebosFile(data[key]);
+					if (Webos.File._cache[file.get('path')]) {
+						Webos.File._cache[file.get('path')].hydrate(file.data());
+						file = Webos.File._cache[file.get('path')];
+						Webos.File.notify('load', { file: file });
+					} else {
+						Webos.File._cache[file.get('path')] = file;
+					}
+					list.push(file);
+				}
+				callback.success(list);
+			}, function(response) {
+				callback.error(response);
+			}));
+		} else {
+			new Webos.ServerCall({
+				'class': 'FileController',
+				method: 'getContents',
+				arguments: {
+					file: that.get('path')
+				}
+			}).load(new Webos.Callback(function(response) {
+				callback.success(response.getStandardChannel(), that);
+			}, function(response) {
+				callback.error(response, that);
+			}));
+		}
+	},
+	/**
+	 * Récupérer le contenu du fichier.
+	 * @deprecated Depuis la version 1.0 alpha 3, il faut utiliser Webos.File#contents().
+	 */
+	getContents: function(callback) {
+		return this.contents(callback);
+	},
+	/**
+	 * Définir le contenu du fichier.
+	 * @param {String} contents Le contenu.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera modifié.
+	 */
+	setContents: function(contents, callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		if (this.get('is_dir')) {
+			this._unsupportedMethod(callback);
+			return;
+		}
+		
+		if (!this.checkAuthorization('write', callback)) {
+			return;
+		}
+		
+		new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'setContents',
+			arguments: {
+				file: that.get('path'),
+				contents: contents
+			}
+		}).load(new Webos.Callback(function() {
+			callback.success();
+		}, function(response) {
+			callback.error(response);
+		}));
+	}
+};
+Webos.inherit(Webos.WebosFile, Webos.File); //Héritage de Webos.File
+
+Webos.LocalFile = function WLocalFile(file) {
+	this._file = file;
+	
+	var data = {};
+	
+	data.basename = file.name || file.fileName;
+	data.path = data.basename;
+	data.dirname = '';
+	data.realpath = null;
+	data.is_dir = false;
+	data.size = file.size || file.fileSize;
+	data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
+	data.type = file.type;
+	
+	data.readable = true;
+	data.writable = false;
+	
+	Webos.File.call(this, data); //On appelle la classe parente
+};
+Webos.LocalFile.prototype = {
+	realpath: function() {
+		if (!this._get('realpath')) {
+			var myURL = window.URL || window.webkitURL;
+			if (myURL && myURL.createObjectURL) {
+				this.hydrate({
+					realpath: myURL.createObjectURL(this._file)
+				});
+			}
+		}
+		
+		return this._get('realpath');
+	},
+	contents: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		if (!window.FileReader) {
+			callback.error('La lecture de fichiers locaux n\'est pas support&eacute;e par votre navigateur');
+			return;
+		}
+		
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			callback.success(e.target.result);
+		};
+		reader.onerror = function(e) {
+			callback.error(e.target.result);
+		};
+		reader.readAsText(this._file);
+	}
+};
+Webos.inherit(Webos.LocalFile, Webos.File); //Héritage de Webos.File
+
+Webos.LocalFile.support = (window.File && window.FileReader) ? true : false;
 
 Webos.User.bind('login logout', function() {
 	//Lorsque l'utilisateur quitte sa session, on vide le cache

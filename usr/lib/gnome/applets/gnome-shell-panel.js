@@ -66,7 +66,7 @@ Webos.Dashboard.Applet.GnomeShellPanel = function WGnomeShellPanelApplet(data) {
 			var loadingImg = $('<div></div>', { 'class': 'loading' }).appendTo($appMenuTitle);
 			var $title = $('<span></span>', { 'class': 'title' }).html(thisWindow.window('option', 'title')).appendTo($appMenuTitle);
 			$appMenuContent = $('<ul></ul>').appendTo($appMenu);
-			$('<li>'+t.get('Quit ${app}', { app: thisWindow.window('option', 'title') })+'</li>').click(function() {
+			var $quitItem = $('<li>'+t.get('Quit ${app}', { app: thisWindow.window('option', 'title') })+'</li>').click(function() {
 				thisWindow.window('close');
 			}).appendTo($appMenuContent);
 			
@@ -82,6 +82,7 @@ Webos.Dashboard.Applet.GnomeShellPanel = function WGnomeShellPanelApplet(data) {
 			};
 			var changeTitleHandler = function() {
 				$title.html(thisWindow.window('option', 'title'));
+				$quitItem.html(t.get('Quit ${app}', { app: thisWindow.window('option', 'title') }));
 			};
 			thisWindow
 				.bind('windowloadingstart', loadingStartHandler)

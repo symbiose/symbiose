@@ -47,7 +47,14 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			that._file = file;
 			that._saved = true;
 			that._refreshTitle();
-			that._editable.html(contents);
+			
+			var xmlDoc = $.parseXML(contents), $xml = $(xmlDoc), $body = $xml.find('body');
+			if ($body.length == 1) {
+				that._editable.html($body.html());
+			} else {
+				that._editable.html(contents);
+			}
+			
 			that._window.window('loading', false);
 			that._container.scrollPane('reload');
 		}, function(response) {
@@ -126,9 +133,9 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			new NautilusFileSelectorWindow({
 				parentWindow: that._window,
 				exists: false
-			}, function(path) {
-				if (typeof path != 'undefined') {
-					W.File.load(path, new W.Callback(function(file) {
+			}, function(paths) {
+				if (paths.length) {
+					W.File.load(paths[0], new W.Callback(function(file) {
 						saveFn(file);
 					}, function(response) {
 						if (!(new RegExp('\.('+that.supportedExtensions.join('|')+')$')).test(path)) {
@@ -173,9 +180,9 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		new NautilusFileSelectorWindow({
 			parentWindow: that._window,
 			exists: false
-		}, function(path) {
-			if (typeof path != 'undefined') {
-				W.File.load(path, new W.Callback(function(file) {
+		}, function(paths) {
+			if (paths.length) {
+				W.File.load(paths[0], new W.Callback(function(file) {
 					saveFn(file);
 				}, function(response) {
 					if (!(new RegExp('\.('+that.supported.join('|')+')$')).test(path)) {
@@ -213,9 +220,9 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		.click(function() {
 			new NautilusFileSelectorWindow({
 				parentWindow: that._window
-			}, function(file) {
-				if (typeof file != 'undefined') {
-					that.open(file);
+			}, function(files) {
+				if (files.length) {
+					that.open(files[0]);
 				}
 			});
 		})

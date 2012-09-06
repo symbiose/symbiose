@@ -433,10 +433,13 @@
 			$('#desktop #shell .mode li.applications').addClass('active');
 			
 			var $list = this._$appsList;
+			$list.unbind('scrollpanescroll.shell.ui.webos');
 			$list.scrollPane({
 				autoReload: true
 			}).scrollPane('content').empty();
 			var $applications = $('<ul></ul>').appendTo($list.scrollPane('content'));
+			
+			var $icons = $();
 			
 			for (var key in list) {
 				(function(key, app) {
@@ -463,9 +466,12 @@
 						});
 					}
 					
-					$('<img />', { src: new W.Icon(app.get('icon'), 92), alt: app.get('title') }).appendTo(item);
+					var img = $.w.image(new W.Icon(app.get('icon'), 92), app.get('title')).appendTo(item);
+					img.image('option', 'loadHidden', false);
 					$('<br />').appendTo(item);
 					$('<span></span>', { 'class': 'title' }).html(app.get('title')).appendTo(item);
+					
+					$icons = $icons.add(img);
 					
 					var contextmenu = $.w.contextMenu(item);
 					$.webos.menuItem(t.get('New window')).click(function() {
@@ -487,6 +493,12 @@
 			}
 			
 			$list.scrollPane('reload');
+			
+			$list.bind('scrollpanescroll.shell.ui.webos', function(e, data) {
+				//$icons.image('load');
+			});
+			
+			$icons.image('load');
 		},
 		/**
 		 * Simuler un clic sur le premier raccourci (utile lors d'un recherche, si l'utilisateur appuie sur la touche entree).

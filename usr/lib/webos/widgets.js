@@ -100,7 +100,11 @@ var widgetProperties = {
 };
 $.webos.widget('widget', widgetProperties);
 $.webos.widgets = [];
-$.webos.getWidgets = function() {
+$.webos.getWidgets = function(widgetName) {
+	if (widgetName) {
+		return $.webos.widgets.filter(':weboswidgets-' + widgetName);
+	}
+	
 	return $.webos.widgets;
 };
 $.webos.extend = function(parent, child) {
@@ -108,9 +112,16 @@ $.webos.extend = function(parent, child) {
 	child._parent = function() {
 		return parent;
 	};
+	child._super = function(method) {
+		var args = [];
+		for (var i = 1; i < arguments.length; i++) {
+			args.push(arguments[i]);
+		}
+		return parent[method].apply(this, args);
+	};
 	var reportMethods = function(parentMethod, childMethod) {
 		return function() {
-			var args = new Array();
+			var args = [];
 			for (var i = 0; i < arguments.length; i++) {
 				args.push(arguments[i]);
 			}
@@ -684,16 +695,36 @@ $.webos.label = function(text) {
 var imageProperties = $.webos.extend($.webos.properties.get('widget'), {
 	options: {
 		src: '',
-		title: 'image'
+		title: 'image',
+		loadHidden: true,
+		img: null
 	},
 	_create: function() {
 		this.option('title', this.options.title);
 		this.option('src', this.options.src);
 	},
+	load: function() {
+		if (this.options.img) {
+			return;
+		}
+		
+		if (!this.options.loadHidden && this.element.is(':hidden')) {
+			return;
+		}
+		
+		var that = this;
+		
+		this.img = new Image();
+		this.img.onload = function() {
+			that.element.attr('src', that.options.src);
+		};
+		this.img.src = this.options.src;
+	},
 	_update: function(key, value) {
 		switch(key) {
 			case 'src':
-				this.element.attr('src', value);
+				this.options.src = String(value);
+				this.load();
 				break;
 			case 'title':
 				this.element.attr('alt', value).attr('title', value);
@@ -1835,6 +1866,247 @@ $.webos.menuItem = function(label, separator) {
 		label: label,
 		separator: separator
 	});
+};
+
+//Draggable
+var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
+	_name: 'draggable',
+	options: {
+		data: null,
+		dataType: 'text/plain',
+		sourceFile: null,
+		dragImage: $(),
+		revert: true,
+		iframeFix: false
+	},
+	_create: function() {
+		var that = this;
+		
+		this.element.bind('mousedown.draggable.widget.webos', function(e) {
+			if(that._trigger('start', e) === false) {
+				return;
+			}
+
+			var el, diffX, diffY;
+			if (that.options.dragImage && $(that.options.dragImage).length > 0) {
+				if ($(that.options.dragImage).closest('html').length == 0) {
+					$(that.options.dragImage).appendTo('body');
+				}
+				
+				el = $(that.options.dragImage)[0];
+				el.style.position = 'absolute';
+				
+				diffX = e.pageX - that.element.offset().left;
+				diffY = e.pageY - that.element.offset().top;
+				
+				$(el).css({
+					left: e.pageX - diffX,
+					top: e.pageY - diffY
+				});
+			} else {
+				el = that.element[0];
+				el.style.position = 'relative';
+				var actualX = parseInt(that.element.css('left').replace('px', '')), actualY = parseInt(that.element.css('top').replace('px', ''));
+				if (isNaN(actualX)) {
+					actualX = 0;
+				}
+				if (isNaN(actualY)) {
+					actualY = 0;
+				}
+				
+				diffX = e.pageX - (that.element.parent().offset().left + actualX);
+				diffY = e.pageY - (that.element.parent().offset().top + actualY);
+			}
+			
+			var actualZIndex = $(el).css('z-index');
+			
+			var posX = e.pageX - diffX, posY = e.pageY - diffY;
+			
+			$('body').bind('mousemove.drag.draggable.widget.webos', function(e) {
+				posX = e.pageX - diffX, posY = e.pageY - diffY;
+				
+				el.style.left = posX+'px';
+				el.style.top = posY+'px';
+				
+				$.webos.ddmanager.drag(that, e);
+				
+				e.preventDefault();
+			}).one('mousemove.dragstart.draggable.widget.webos', function(e) {
+				that._dragStart(el, e);
+			}).one('mouseup', function(e) {
+				$(this).unbind('mousemove.drag.draggable.widget.webos').unbind('mousemove.dragstart.draggable.widget.webos');
+				
+				$(el).removeClass('dragging cursor-move').css('z-index', actualZIndex);
+				
+				if (that.options.dragImage && $(that.options.dragImage).length > 0) {
+					$(that.options.dragImage).detach();
+				} else if (that.options.revert) {
+					$(el).css({
+						left: actualX,
+						top: actualY
+					});
+				}
+				
+				$.webos.ddmanager.dragStop(that, e);
+				$.webos.ddmanager.drop(that, e);
+				
+				e.preventDefault();
+			});
+			
+			e.preventDefault();
+		});
+	},
+	_dragStart: function(el, e) {
+		$.webos.ddmanager.prepareOffsets(this, e);
+
+		$.webos.ddmanager.current = this;
+		
+		$.webos.ddmanager.dragStart(this, e);
+		
+		// Iframe fix
+		$(this.options.iframeFix === true ? "iframe" : this.options.iframeFix).each(function() {
+			$('<div class="ui-draggable-iframeFix" style="background: #fff;"></div>')
+			.css({
+				width: this.offsetWidth+"px", height: this.offsetHeight+"px",
+				position: "absolute", opacity: "0.001", zIndex: 1000
+			})
+			.css($(this).offset())
+			.appendTo("body");
+		});
+		
+		$(el).css('z-index', 100000).addClass('dragging cursor-move');
+	}
+});
+$.webos.widget('draggable', draggableProperties);
+
+//Droppable
+var droppableProperties = $.webos.extend($.webos.properties.get('widget'), {
+	_name: 'droppable',
+	options: {
+		accept: null
+	},
+	_create: function() {
+		var that = this;
+		
+		$.webos.ddmanager.droppables.push(this);
+	},
+	_destroy: function() {
+		for (var i = 0; i < $.webos.ddmanager.droppables.length; i++) {
+			if ($.webos.ddmanager.droppables[i] == this) {
+				$.webos.ddmanager.droppables.splice(i, 1);
+			}
+		}
+	},
+	_activate: function(event) {
+		var draggable = $.webos.ddmanager.current;
+		(draggable && this._trigger('activate', event, { draggable: draggable.element, droppable: this.element }));
+	},
+	_deactivate: function(event) {
+		var draggable = $.webos.ddmanager.current;
+		(draggable && this._trigger('deactivate', event, { draggable: draggable.element, droppable: this.element }));
+	},
+	_over: function(event) {
+		var draggable = $.webos.ddmanager.current;
+		(draggable && this._trigger('over', event, { draggable: draggable.element, droppable: this.element }));
+	},
+	_out: function(event) {
+		var draggable = $.webos.ddmanager.current;
+		(draggable && this._trigger('out', event, { draggable: draggable.element, droppable: this.element }));
+	},
+	_drop: function(event) {
+		var draggable = $.webos.ddmanager.current;
+		(draggable && this._trigger('drop', event, { draggable: draggable.element, droppable: this.element }));
+	},
+	accept: function(el) {
+		if (!this.options.accept) {
+			return true;
+		}
+		
+		return (el.draggable('option', 'dataType') == this.options.accept);
+	}
+});
+$.webos.widget('droppable', droppableProperties);
+
+$.webos.ddmanager = {
+	current: null,
+	droppables: [],
+	prepareOffsets: function(t, event) {
+		var m = $.webos.ddmanager.droppables;
+		var type = event ? event.type : null;
+		var list = (t.currentItem || t.element).find(":data(droppable)").andSelf();
+		
+		droppablesLoop: for (var i = 0; i < m.length; i++) {
+			if(m[i].options.disabled || (t && !m[i].accept.call(m[i],(t.currentItem || t.element)))) continue;	//No disabled and non-accepted
+			if (m[i].element.is(t.currentItem || t.element)) { continue; }
+			for (var j=0; j < list.length; j++) { if(list[j] == m[i]) { m[i].proportions.height = 0; continue droppablesLoop; } }; //Filter out elements in the current dragged item
+			m[i].visible = m[i].element.css("display") != "none"; if(!m[i].visible) continue; 									//If the element is not visible, continue
+
+			if(type == "mousedown") m[i]._activate.call(m[i], event); //Activate the droppable if used directly from draggables
+
+			m[i].offset = m[i].element.offset();
+			m[i].proportions = { width: m[i].element[0].offsetWidth, height: m[i].element[0].offsetHeight };
+			m[i].isover = 0;
+		}
+	},
+	drop: function(draggable, event) {
+		var dropped = false;
+		$.each($.webos.ddmanager.droppables, function() {
+			if(!this.options) return;
+			
+			if (this.options.disabled || !this.visible) {
+				return;
+			}
+			
+			if (this.element.is(draggable.currentItem || draggable.element)) {
+				return;
+			}
+			
+			var intersects = (event.pageX > this.offset.left && 
+				event.pageY > this.offset.top && 
+				event.pageX < this.offset.left + this.proportions.width && 
+				event.pageY < this.offset.top + this.proportions.height);
+			
+			if (intersects)
+				dropped = this._drop.call(this, event) || dropped;
+
+			if (this.accept.call(this, (draggable.currentItem || draggable.element))) {
+				this.isout = 1; this.isover = 0;
+				this._deactivate.call(this, event);
+			}
+		});
+		return dropped;
+	},
+	dragStart: function( draggable, event ) {
+		//Listen for scrolling so that if the dragging causes scrolling the position of the droppables can be recalculated (see #5003)
+		//draggable.element.parentsUntil( "body" ).bind( "scroll.droppable", function() {
+		//	if( !draggable.options.refreshPositions ) $.webos.ddmanager.prepareOffsets( draggable, event );
+		//});
+	},
+	drag: function(draggable, event) {
+		//If you have a highly dynamic page, you might try this option. It renders positions every time you move the mouse.
+		if(draggable.options.refreshPositions) $.webos.ddmanager.prepareOffsets(draggable, event);
+		
+		//Run through all droppables and check their positions based on specific tolerance options
+		$.each($.webos.ddmanager.droppables, function() {
+			if(this.options.disabled || !this.visible) return;
+			
+			var intersects = (event.pageX > this.offset.left && 
+				event.pageY > this.offset.top && 
+				event.pageX < this.offset.left + this.proportions.width && 
+				event.pageY < this.offset.top + this.proportions.height);
+			
+			var c = (!intersects && this.isover == 1) ? 'isout' : ((intersects && this.isover == 0) ? 'isover' : null);
+			
+			if(!c) return;
+			this[c] = 1; this[(c == 'isout') ? 'isover' : 'isout'] = 0;
+			this[(c == "isover") ? "_over" : "_out"].call(this, event);
+		});
+	},
+	dragStop: function( draggable, event ) {
+		//draggable.element.parentsUntil( "body" ).unbind( "scroll.droppable" );
+		//Call prepareOffsets one final time since IE does not fire return scroll events when overflow was caused by drag (see #5003)
+		if( !draggable.options.refreshPositions ) $.webos.ddmanager.prepareOffsets( draggable, event );
+	}
 };
 
 //Keyboard

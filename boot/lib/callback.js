@@ -1,7 +1,7 @@
 /**
  * Crée une instance de Webos.Callback, contenant une fonction de rappel qui sera appelée en cas de succès et une fonction qui sera éxécutée en cas d'erreur.
  * @param {Function} successCallback La fonction qui sera éxécutée en cas de succès.
- * @paral {Function} errorCallback La fonction qui sera éxécutée en cas d'erreur.
+ * @param {Function} errorCallback La fonction qui sera éxécutée en cas d'erreur.
  * @since 1.0 alpha 1
  * @constructor
  */
@@ -138,4 +138,35 @@ Webos.Callback.toCallback = function(arg, replacement) {
 	}
 	
 	return new Webos.Callback();
+};
+
+Webos.Callback.Result = function WCallbackResult(data) {
+	data = $.extend({}, {
+		success: true,
+		out: null,
+		data: {}
+	}, data);
+	
+	this._data = data;
+};
+Webos.Callback.Result.prototype = {
+	isSuccess: function() {
+		return this._data.success;
+	},
+	triggerError: function() {
+		if (this.isSuccess()) {
+			return;
+		}
+		
+		Webos.Error.trigger(this._data.out);
+	},
+	toString: function() {
+		return this._data.out;
+	}
+};
+Webos.Callback.Result.error = function(msg) {
+	return new Webos.Callback.Result({
+		success: false,
+		out: msg
+	});
 };

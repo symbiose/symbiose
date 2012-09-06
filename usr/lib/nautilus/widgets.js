@@ -551,9 +551,6 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		if (file.get('is_dir')) {
 			var overIcon = that._getFileIcon(file, 'dropover');
 			item.droppable({
-				accept: '*',
-				scope: 'webos',
-				hoverClass: 'ui-droppable-hover',
 				drop: function(event, ui) {
 					if (overIcon != iconPath) {
 						icon.attr('src', iconPath);
@@ -582,16 +579,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 		
 		item.draggable({
-			stack: '#'+that.element.attr('id')+' li',
-			distance: 3,
-			scope: 'webos',
-			revert: 'invalid',
-			helper: 'clone',
-			scroll: false,
-			zIndex: false,
-			stop: function(event, ui) {
-				$(this).css('z-index','0');
-			}
+			sourceFile: file
 		});
 		
 		if (/^\./.test(file.get('basename'))) { //C'est un fichier cache, on ne l'affiche pas
@@ -1141,11 +1129,19 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 		
 		if (!this.options.exists) {
 			this.options._components.filename = $.w.textEntry('Nom du fichier :').prependTo(form);
+			var autoFill = '';
 			this.options._components.nautilus.bind('select', function(e) {
-				that.options._components.filename.textEntry('content').val($(e.target).data('file')().getAttribute('basename'));
+				if (that.options._components.filename.textEntry('value') == '') {
+					var filename = $(e.target).data('file')().getAttribute('basename');
+					that.options._components.filename.textEntry('value', filename);
+					autoFill = filename;
+				}
 			});
 			this.options._components.nautilus.bind('nautilusreadstart', function() {
-				that.options._components.filename.textEntry('content').val('');
+				if (that.options._components.filename.textEntry('value') == autoFill) {
+					that.options._components.filename.textEntry('value', '');
+					autoFill = '';
+				}
 			});
 		}
 		
@@ -1176,69 +1172,74 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 	_select: function() {
 		var that = this;
 		
-		if (!this.options.exists) {
-			var filename = that.options._components.filename.textEntry('content').val();
-			this.options._components.nautilus.nautilus('items').each(function() {
-				if ($(this).data('file')().getAttribute('basename') == filename) {
-					$(this).addClass('active');
-				}
-			});
-		}
-		
-		var selection = this.options._components.nautilus.nautilus('getFilesSelection');
-		
-		if (!this.options.selectDirs) {
-			for (var i = 0; i < selection.length; i++) {
-				var file = selection[i];
-				if (file.get('is_dir')) {
-					that.options._components.nautilus.nautilus('readDir', file.get('path'));
-					return;
-				}
-			}
-		}
-		if (!this.options.selectMultiple) {
-			selection = selection[0];
-		}
-		if (!this.options.exists) {
-			var filename = that.options._components.filename.textEntry('content').val();
-			if (!filename) {
-				filename = 'file';
-			}
-			selection = that.options._components.nautilus.nautilus('location')+'/'+filename;
-		}
-		if (typeof selection == 'undefined' || selection.length == 0) {
-			return;
-		}
-		if (this.options.extensions && this.options.extensions.length > 0) {
-			var checkExtsFn = function(file) {
-				for (var i = 0; i < that.options.extensions.length; i++) {
-					if (that.options.extensions[i] == file.get('extension')) {
-						return true;
+		var selectFn = function(selection) {
+			if (!that.options.selectDirs) {
+				for (var i = 0; i < selection.length; i++) {
+					var file = W.File.get(selection[i]);
+					if (file.get('is_dir')) {
+						that.options._components.nautilus.nautilus('readDir', file.get('path'));
+						return;
 					}
 				}
-				
-				return false;
-			};
+			}
 			
-			if (this.options.selectMultiple) {
+			if (that.options.extensions && that.options.extensions.length > 0) {
+				var checkExtsFn = function(file) {
+					file = W.File.get(file);
+					
+					for (var i = 0; i < that.options.extensions.length; i++) {
+						if (that.options.extensions[i] == file.get('extension')) {
+							return true;
+						}
+					}
+					
+					return false;
+				};
+
 				for (var i = 0; i < selection.length; i++) {
 					if (!checkExtsFn(selection[i])) {
 						return;
 					}
 				}
-			} else {
-				if (!checkExtsFn(selection)) {
+			}
+			
+			that._trigger('select', { type: 'select' }, { selection: selection, parentDir: that.options._components.nautilus.nautilus('location') });
+		};
+		
+		var selection = this.options._components.nautilus.nautilus('getFilesSelection');
+		
+		if (!this.options.exists) {
+			var filename = that.options._components.filename.textEntry('content').val();
+			
+			if (!filename) {
+				return;
+			}
+			
+			var selected = false;
+			this.options._components.nautilus.nautilus('items').each(function() {
+				if (selected) {
 					return;
 				}
+				
+				if ($(this).data('file')().get('basename') == filename) {
+					selectFn([$(this).data('file')()]);
+				}
+			});
+			if (selected) {
+				return;
 			}
+			
+			var path = that.options._components.nautilus.nautilus('location')+'/'+filename;
+			selectFn([path]);
+		} else {
+			selectFn(selection);
 		}
-		this._trigger('select', null, { selection: selection, parentDir: that.options._components.nautilus.nautilus('location') });
 	},
 	nautilus: function() {
 		return this.options._components.nautilus;
 	}
 });
-$.widget('webos.nautilusFileSelector', nautilusFileSelectorProperties);
+$.webos.widget('nautilusFileSelector', nautilusFileSelectorProperties);
 
 $.webos.nautilusFileSelector = function(options) {
 	return $('<div></div>').nautilusFileSelector(options);
@@ -1264,7 +1265,7 @@ var nautilusFileEntryProperties = $.webos.extend($.webos.properties.get('entry')
 		this.value(this.options.value);
 	}
 });
-$.widget('webos.nautilusFileEntry', nautilusFileEntryProperties);
+$.webos.widget('nautilusFileEntry', nautilusFileEntryProperties);
 
 $.webos.nautilusFileEntry = function(label, options) {
 	return $('<div></div>').nautilusFileEntry($.extend({}, options, {
@@ -1376,10 +1377,71 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 		Webos.File.unbind(this.options._umountCallback);
 	}
 });
-$.widget('webos.nautilusShortcuts', nautilusShortcutsProperties);
+$.webos.widget('nautilusShortcuts', nautilusShortcutsProperties);
 
 $.webos.nautilusShortcuts = function(fn) {
 	return $('<div></div>').nautilusShortcuts({
 		open: fn
 	});
+};
+
+var nautilusFileSelectorShortcutsProperties = $.webos.extend($.webos.properties.get('nautilusShortcuts'), {
+	_name: 'nautilusshortcuts',
+	options: {
+		exists: true,
+		select: function() {},
+		selectMultiple: false
+	},
+	_create: function() {
+		var that = this;
+		
+		if (Webos.LocalFile.support) {
+			if (this.options.exists) {
+				var item = $.w.listItem();
+				
+				var content = $('<div></div>').css('position', 'relative').appendTo(item.listItem('column', 0));
+				
+				content.append('<img src="'+new W.Icon('devices/display', 22)+'" alt=""/> Ordinateur');
+				
+				var input = $('<input />', {
+					type: 'file'
+				}).change(function() {
+					var files = this.files;
+					
+					if (!files || files.length == 0) {
+						return;
+					}
+					
+					var list = [];
+					for (var i = 0; i < files.length; i++) {
+						list.push(Webos.File.get(files[i]));
+					}
+					
+					that.options.select(list);
+				}).css({
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					height: '100%',
+					width: '100%',
+					margin: 0,
+					padding: 0,
+					opacity: 0
+				});
+				
+				if (this.options.selectMultiple) {
+					input.attr('multiple', 'multiple');
+				}
+				
+				input.appendTo(content);
+				
+				item.appendTo(this.options._content.list('content'));
+			}
+		}
+	}
+});
+$.webos.widget('nautilusFileSelectorShortcuts', nautilusFileSelectorShortcutsProperties);
+
+$.webos.nautilusFileSelectorShortcuts = function(opts) {
+	return $('<div></div>').nautilusFileSelectorShortcuts(opts);
 };

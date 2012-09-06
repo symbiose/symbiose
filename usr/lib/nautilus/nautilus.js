@@ -23,14 +23,23 @@ function NautilusFileSelectorWindow(options, userCallback) {
 	
 	this._nautilus = $.w.nautilusFileSelector({
 		select: function(event, data) {
-			that._window.window('close');
 			that._callbackCalled = true;
-			userCallback(data.selection);
+			that._window.window('close');
+			
+			var selection = data.selection;
+			if (!selection) {
+				selection = [];
+			}
+			if (!selection instanceof Array) {
+				selection = [selection];
+			}
+			
+			userCallback(selection);
 		},
 		cancel: function() {
-			that._window.window('close');
 			that._callbackCalled = true;
-			userCallback();
+			that._window.window('close');
+			userCallback([]);
 		},
 		selectDirs: options.selectDirs,
 		selectMultiple: options.selectMultiple,
@@ -40,15 +49,24 @@ function NautilusFileSelectorWindow(options, userCallback) {
 	
 	var nautilus = this._nautilus.nautilusFileSelector('nautilus');
 	
-	this._shortcuts = $.webos.nautilusShortcuts(function(path) {
-		nautilus.nautilus('readDir', path);
+	this._shortcuts = $.webos.nautilusFileSelectorShortcuts({
+		open: function(path) {
+			nautilus.nautilus('readDir', path);
+		},
+		select: function(files) {
+			that._callbackCalled = true;
+			that._window.window('close');
+			userCallback(files);
+		},
+		exists: options.exists,
+		selectMultiple: options.selectMultiple
 	}).appendTo(this._window.window('content'));
 	
 	this._nautilus.appendTo(this._window.window('content'));
 	
 	this._window.bind('windowclose', function() {
 		if (!that._callbackCalled) {
-			userCallback();
+			userCallback([]);
 		}
 	});
 	

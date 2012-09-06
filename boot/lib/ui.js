@@ -151,4 +151,5 @@ Webos.UserInterface.hideLoadingScreen = function() {
 	} else {
 		$('#webos-loading').fadeOut();
 	}
+	$('#webos-error').fadeOut();
 };

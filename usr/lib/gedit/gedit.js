@@ -10,15 +10,14 @@ new W.Stylesheet('/usr/share/css/codemirror/main.css');
 var geditProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'gedit',
 	options: {
-		file: false,
-		language: 'text'
+		language: null
 	},
 	_create: function() {
 		var that = this;
 		
 		this.options._components.codemirror = CodeMirror(this.element[0], {
 			value: '',
-			mode: 'text',
+			mode: 'null',
 			lineNumbers: true,
 			onChange: function(editor, change) {
 				that._trigger('change', { type: 'change' }, { editor: that.element, change: change });
@@ -27,49 +26,7 @@ var geditProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		this.element.addClass('cursor-text');
 		
-		this._setLanguage(this.options.language);
-		
-		if (typeof this.options.file != 'undefined' && this.options.file != false) {
-			this.openFile(this.options.file);
-		} else {
-			this.createEmptyFile();
-		}
-	},
-	createEmptyFile: function() {
-		this._trigger('createemptyfile');
-		this.option('file', false);		
-		this.options._components.codemirror.setValue('');
-		this.option('language', 'text');
-		this.options._components.codemirror.clearHistory();
-	},
-	openFile: function(file) {
-		var that = this;
-		
-		if (file.getAttribute('is_dir')) {
-			W.Error.trigger('Le fichier sp&eacute;cifi&eacute; est un dossier');
-			return;
-		}
-		
-		file.getContents(new W.Callback(function(contents) {
-			that.options.file = file;
-			that.options._components.codemirror.setValue(contents);
-			that.options._components.codemirror.clearHistory();
-			that._setLanguage($.webos.gedit.modeFromExt(file.getAttribute('extension')));
-			that._trigger('openfile');
-		}, function(response) {
-			W.Error.trigger('Impossible d\'ouvrir "'+file.getAttribute('path')+'"', response.getAllChannels());
-		}));
-	},
-	_setLanguage: function(language) {
-		if (jQuery.inArray(language, $.webos.gedit.modes()) == -1) {
-			return;
-		}
-		
-		$.webos.gedit.loadMode(language);
-		
-		this.options.language = language;
-		
-		this.options._components.codemirror.setOption('mode', language);
+		this.option('language', this.options.language);
 	},
 	undo: function() {
 		this.options._components.codemirror.undo();
@@ -97,7 +54,13 @@ var geditProperties = $.webos.extend($.webos.properties.get('container'), {
 	_update: function(key, value) {
 		switch (key) {
 			case 'language':
-				this._setLanguage(value);
+				if (value && jQuery.inArray(value, $.webos.gedit.modes()) == -1) {
+					return;
+				}
+				
+				$.webos.gedit.loadMode(value);
+
+				this.options._components.codemirror.setOption('mode', String(value));
 				break;
 		}
 	}
@@ -174,8 +137,7 @@ $.webos.gedit.modeFromExt = function(ext) {
 		'pl': 'perl',
 		'pm': 'perl',
 		'py': 'python',
-		'rb': 'ruby',
-		'txt': 'text'
+		'rb': 'ruby'
 	};
 	
 	if (jQuery.inArray(ext, $.webos.gedit.modes()) != -1) {
@@ -183,10 +145,14 @@ $.webos.gedit.modeFromExt = function(ext) {
 	} else if (jQuery.inArray(languages[ext], $.webos.gedit.modes()) != -1) {
 		return languages[ext];
 	} else {
-		return 'text';
+		return null;
 	}
 };
 $.webos.gedit.loadMode = function(mode) {
+	if (!mode) {
+		return;
+	}
+	
 	if (jQuery.inArray(mode, $.webos.gedit.modesLoaded) != -1) {
 		return;
 	}
@@ -214,13 +180,16 @@ function GEditWindow(file) {
 	});
 	
 	this._refreshTitle = function() {
-		var file = this._gedit.gedit('option', 'file');
+		var file = this._file;
 		
-		var title;
-		if (typeof file != 'undefined' && file != false) {
-			title = file.getAttribute('path');
+		var title = '';
+		if (!this._isSaved) {
+			title += '*';
+		}
+		if (file) {
+			title += file.get('path');
 		} else {
-			title = 'Nouveau fichier';
+			title += 'Nouveau fichier';
 		}
 		
 		title += ' - gedit';
@@ -239,35 +208,74 @@ function GEditWindow(file) {
 		aboutWindow.window('open');
 	};
 	
-	this.save = function(callback) {
-		var callback = W.Callback.toCallback(callback);
+	this.open = function(file, callback) {
+		callback = W.Callback.toCallback(callback);
+		file = W.File.get(file);
 		
-		var file = this._gedit.gedit('option', 'file');
+		if (file.get('is_dir')) {
+			W.Error.trigger('Le fichier sp&eacute;cifi&eacute; est un dossier');
+			return;
+		}
+		
+		file.contents(new W.Callback(function(contents) {
+			that._file = file;
+			that._gedit.gedit('contents', '');
+			that._gedit.gedit('option', 'language', $.webos.gedit.modeFromExt(file.get('extension')));
+			that._gedit.gedit('contents', contents);
+			that._gedit.gedit('codemirror', 'clearHistory');
+			that._content.scrollPane('reload');
+			
+			that._isSaved = true;
+			that._refreshTitle();
+			
+			callback.success();
+		}, callback.error));
+	};
+	
+	this.createEmptyFile = function() {
+		this._file = null;		
+		this._gedit.gedit('contents', '');
+		this._gedit.gedit('option', 'language', null);
+		this._gedit.gedit('codemirror', 'clearHistory');
+		this._content.scrollPane('reload');
+		
+		this._isSaved = true;
+		this._refreshTitle();
+	};
+	
+	this.save = function(callback) {
+		callback = W.Callback.toCallback(callback);
+		
+		var file = this._file;
 		var contents = this._gedit.gedit('contents');
+		
 		var saveFn = function(file) {
 			that._window.window('loading', true, {
 				lock: false
 			});
 			file.setContents(contents, new W.Callback(function() {
-				that._contents = contents;
-				that._refreshTitle();
 				that._window.window('loading', false);
+				if (!that._file) {
+					that._file = file;
+				}
 				that._isSaved = true;
+				that._refreshTitle();
 				callback.success(file);
 			}, function(response) {
 				that._window.window('loading', false);
-				response.triggerError('Impossible d\'enregistrer le fichier "'+file.getAttribute('path')+'"');
+				response.triggerError('Impossible d\'enregistrer le fichier "'+file.get('path')+'"');
 			}));
 		};
 		
-		if (typeof file != 'undefined' && file != false) {
+		if (file && file.can('write')) {
 			saveFn(file);
 		} else {
 			new NautilusFileSelectorWindow({
 				parentWindow: that._window,
 				exists: false
-			}, function(path) {
-				if (typeof path != 'undefined') {
+			}, function(paths) {
+				if (paths.length) {
+					var path = paths[0];
 					W.File.load(path, new W.Callback(function(file) {
 						saveFn(file);
 					}, function(response) {
@@ -291,22 +299,25 @@ function GEditWindow(file) {
 				lock: false
 			});
 			file.setContents(contents, new W.Callback(function() {
-				that._contents = contents;
-				that._refreshTitle();
 				that._window.window('loading', false);
-				that._isSaved = true;
+				if (!that._file) {
+					that._file = file;
+					that._isSaved = true;
+				}
+				that._refreshTitle();
 				callback.success(file);
 			}, function(response) {
 				that._window.window('loading', false);
-				response.triggerError('Impossible d\'enregistrer le fichier "'+file.getAttribute('path')+'"');
+				response.triggerError('Impossible d\'enregistrer le fichier "'+file.get('path')+'"');
 			}));
 		};
 		
 		new NautilusFileSelectorWindow({
 			parentWindow: that._window,
 			exists: false
-		}, function(path) {
-			if (typeof path != 'undefined') {
+		}, function(paths) {
+			if (paths.length) {
+				var path = paths[0];
 				W.File.load(path, new W.Callback(function(file) {
 					saveFn(file);
 				}, function(response) {
@@ -351,9 +362,9 @@ function GEditWindow(file) {
 		.click(function() {
 			new NautilusFileSelectorWindow({
 				parentWindow: that._window
-			}, function(file) {
-				if (typeof file != 'undefined') {
-					that._gedit.gedit('openFile', file);
+			}, function(files) {
+				if (files.length) {
+					that.open(files[0]);
 				}
 			});
 		})
@@ -433,9 +444,9 @@ function GEditWindow(file) {
 		.click(function() {
 			new NautilusFileSelectorWindow({
 				parentWindow: that._window
-			}, function(file) {
-				if (typeof file != 'undefined') {
-					that._gedit.gedit('openFile', file);
+			}, function(files) {
+				if (files.length) {
+					that._gedit.gedit('openFile', files[0]);
 				}
 			});
 		})
@@ -458,21 +469,11 @@ function GEditWindow(file) {
 	
 	this._content = $('<div></div>').appendTo(this._window.window('content'));
 	
-	this._gedit = $.w.gedit({
-		file: file
-	}).bind('geditopenfile', function() {
-		that._refreshTitle();
-		that._isSaved = true;
-	}).bind('geditcreateemptyfile', function() {
-		that._refreshTitle();
-		that._isSaved = false;
-		that._content.scrollPane('reload');
-	}).bind('geditchange', function() {
+	this._gedit = $.w.gedit().bind('geditchange', function() {
 		if (that._isSaved) {
 			that._isSaved = false;
+			that._refreshTitle();
 		}
-	}).bind('geditopenfile', function() {
-		that._content.scrollPane('reload');
 	}).bind('mousedown', function() {
 		var speed = 0.75;
 		var offset = that._content.offset(), dimentions = {
@@ -579,5 +580,12 @@ function GEditWindow(file) {
 	this._refreshTitle();
 	
 	this._window.window('open');
+	
+	if (file) {
+		this.open(file);
+	} else {
+		this.createEmptyFile();
+	}
+	
 	this._content.scrollPane('reload');
 }

@@ -43,7 +43,11 @@ function FirefoxWindow(url) {
 	
 	this.browse = function(location) {
 		var url = '';
-		if (typeof location == 'string') {
+		if (Webos.isInstanceOf(location, Webos.File)) {
+			url = file.get('realpath');
+			this.history.push(url);
+			this.historyLocation++;
+		} else if (typeof location == 'string') {
 			url = location;
 			this.history.push(url);
 			this.historyLocation++;
@@ -98,7 +102,7 @@ function FirefoxWindow(url) {
 	
 	this._window.window('open');
 	
-	if (typeof url != 'undefined') {
+	if (url) {
 		this.browse(url);
 	} else {
 		this.browse('about:startpage');
