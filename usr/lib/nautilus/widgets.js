@@ -491,7 +491,9 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					}
 				});
 				item.find('.filename').hide().after(input);
-				input.val(file.get('basename')).focus().setCursorPosition(0, file.get('basename').length);
+				
+				var pos = file.get('basename').length - ((file.get('extension')) ? (file.get('extension').length + 1) : 0);
+				input.val(file.get('basename')).focus().setCursorPosition(0, pos);
 			},
 			remove: function() {
 				item.data('file')().remove();
