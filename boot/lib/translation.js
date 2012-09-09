@@ -11,24 +11,30 @@ Webos.Translation.prototype = {
 		
 		if (typeof variables == 'object') {
 			var replaceVariablesFn = function(translation) {
-				return translation.replace(/\$\{(.+)\}/, function(match, str) {
-					var strArray = str.split('|', 3);
-					if (strArray.length > 1) {
-						isCondition = true;
-						var condition = strArray[0], ifValue = strArray[1], elseValue = strArray[2] || '';
-						if (variables[condition]) {
-							return replaceVariablesFn(ifValue);
+				while(/\$\{.+\}/.test(translation)) {
+					translation = translation.replace(/\$\{(.+?)\}/, function(match, str) {
+						var strArray = str.split('|', 3);
+						if (strArray.length > 1) {
+							isCondition = true;
+							var condition = strArray[0], ifValue = strArray[1], elseValue = strArray[2] || '';
+							if (typeof variables[condition] == 'undefined') {
+								return str;
+							} else if (variables[condition]) {
+								return replaceVariablesFn(ifValue);
+							} else {
+								return replaceVariablesFn(elseValue);
+							}
 						} else {
-							return replaceVariablesFn(elseValue);
+							if (typeof variables[str] != 'undefined') {
+								return variables[str];
+							} else {
+								return str;
+							}
 						}
-					} else {
-						if (typeof variables[str] != 'undefined') {
-							return variables[str];
-						} else {
-							return match;
-						}
-					}
-				});
+					});
+				}
+				
+				return translation;
 			};
 			
 			translation = replaceVariablesFn(translation);
@@ -49,7 +55,7 @@ Webos.Translation.parse = function(contents) {
 	var inComment = false;
 	
 	for (var i = 0; i < lines.length; i++) {
-		var line = lines[i];
+		var line = lines[i].replace(/\r$/, ''); //Important : sinon il y a un retour chariot a la fin de la chaine
 		
 		if (/\/\*/.test(line)) {
 			inComment = true;
@@ -105,7 +111,6 @@ Webos.Translation.load = function(callback, path, locale) {
 		var file = Webos.File.get('/usr/share/locale/' + locale + '/' + path + '.ini');
 		
 		if (locale == Webos.Locale._defaultLocale) {
-			
 			callback.success(new Webos.Translation());
 			return;
 		}
