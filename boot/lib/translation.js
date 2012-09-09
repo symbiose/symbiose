@@ -22,7 +22,6 @@ Webos.Translation.prototype = {
 							return replaceVariablesFn(elseValue);
 						}
 					} else {
-						console.log(str, variables[str], match);
 						if (typeof variables[str] != 'undefined') {
 							return variables[str];
 						} else {
@@ -297,7 +296,7 @@ Webos.TranslatedLibrary.prototype = {
 		}
 		
 		if (!this._translationsName) {
-			this.notify('translationsloaded');
+			this.notify('translationsloaded', { translations: new Webos.Translation() });
 			return;
 		}
 		
@@ -305,7 +304,7 @@ Webos.TranslatedLibrary.prototype = {
 		
 		Webos.Translation.load(function(t) {
 			that._translations = t;
-			that.notify('translationsloaded');
+			that.notify('translationsloaded', { translations: t });
 		}, this._translationsName);
 	}
 };
