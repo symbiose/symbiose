@@ -10,6 +10,11 @@ Webos.Stylesheet = function WStylesheet(path, container) {
 		path = '/'+path;
 	}
 	
+	if (Webos.Stylesheet._cache[path]) {
+		Webos.Stylesheet.insertCss(Webos.Stylesheet._cache[path], container);
+		return;
+	}
+	
 	new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'getContents',
@@ -20,10 +25,18 @@ Webos.Stylesheet = function WStylesheet(path, container) {
 	}).load(function(response) {
 		var css = response.getStandardChannel();
 		if (css) {
+			Webos.Stylesheet._cache[path] = css;
 			Webos.Stylesheet.insertCss(css, container);
 		}
 	});
 };
+
+/**
+ * Cache des feuilles de style.
+ * @private
+ * @static
+ */
+Webos.Stylesheet._cache = {};
 
 /**
  * Appliquer une feuille de style CSS.
