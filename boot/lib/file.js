@@ -142,21 +142,29 @@ Webos.File.get = function(file, data) {
 	
 	path = String(file);
 	
-	//Le fichier est-il dans un volume monte ?
-	var devices = Webos.File.mountedDevices();
-	for (var local in devices) {
-		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			return Webos[devices[local].get('driver')].get(path, devices[local], data);
-		}
-	}
-	
 	if (Webos.File._cache[path]) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
 	} else { //Sinon, on crée un nouvel objet
-		return new Webos.WebosFile($.extend({}, data, {
-			path: path
-		}));
+		file = null;
+		
+		//Le fichier est-il dans un volume monte ?
+		var devices = Webos.File.mountedDevices();
+		for (var local in devices) {
+			if (Webos.File.cleanPath(path).indexOf(local) == 0) {
+				file = Webos[devices[local].get('driver')].get(path, devices[local], data);
+			}
+		}
+		
+		if (!file) {
+			file = new Webos.WebosFile($.extend({}, data, {
+				path: path
+			}));
+		}
 	}
+	
+	Webos.File._cache[file.get('path')] = file;
+	
+	return file;
 };
 
 /**
@@ -611,6 +619,11 @@ Webos.WebosFile.prototype = {
 			return;
 		}
 		
+		if (typeof this._contents != 'undefined') {
+			callback.success(this._contents);
+			return;
+		}
+		
 		if (this.get('is_dir')) {
 			new Webos.ServerCall({
 				'class': 'FileController',
@@ -632,6 +645,7 @@ Webos.WebosFile.prototype = {
 					}
 					list.push(file);
 				}
+				that._contents = list;
 				callback.success(list);
 			}, function(response) {
 				callback.error(response);
@@ -644,9 +658,11 @@ Webos.WebosFile.prototype = {
 					file: that.get('path')
 				}
 			}).load(new Webos.Callback(function(response) {
-				callback.success(response.getStandardChannel(), that);
+				var contents = response.getStandardChannel();
+				that._contents = contents;
+				callback.success(contents);
 			}, function(response) {
-				callback.error(response, that);
+				callback.error(response);
 			}));
 		}
 	},
