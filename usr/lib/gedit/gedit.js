@@ -446,7 +446,7 @@ function GEditWindow(file) {
 				parentWindow: that._window
 			}, function(files) {
 				if (files.length) {
-					that._gedit.gedit('openFile', files[0]);
+					that.open(files[0]);
 				}
 			});
 		})
