@@ -8,6 +8,8 @@
 Webos.Callback = function WCallback(successCallback, errorCallback) {
 	var that = this;
 	
+	Webos.Observable.call(this);
+	
 	this.callbacks = { //Callbacks
 		success: {
 			callback: function() {}, //La fonction
@@ -22,6 +24,8 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 			context: null //Le contexte
 		}
 	};
+	
+	this.process = (Webos.Process && Webos.Process.current()) ? Webos.Process.current() : null;
 	
 	//Si une fonction de callback pour un succes est specifiée
 	if (typeof successCallback === 'function') {
@@ -44,11 +48,19 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 		}
 		args = args.concat(that.callbacks.success.arguments);
 		
+		if (this.process) {
+			Webos.Process.stack.push(this.process);
+		}
+		
 		//On éxécute le callback
 		try {
 			return that.callbacks.success.callback.apply(that.callbacks.success.context, args);
 		} catch(e) {
 			Webos.Error.catchError(e);
+		} finally {
+			if (this.process) {
+				Webos.Process.stack.pop();
+			}
 		}
 	};
 	/**
@@ -62,11 +74,19 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 		}
 		args = args.concat(that.callbacks.error.arguments);
 		
+		if (this.process) {
+			Webos.Process.stack.push(this.process);
+		}
+		
 		//On éxécute le callback
 		try {
 			return that.callbacks.error.callback.apply(that.callbacks.error.context, args);
 		} catch(e) {
 			Webos.Error.catchError(e);
+		} finally {
+			if (this.process) {
+				Webos.Process.stack.pop();
+			}
 		}
 	};
 };
@@ -105,6 +125,7 @@ Webos.Callback.prototype = {
 		this.callbacks[callback].context = context;
 	}
 };
+Webos.inherit(Webos.Callback, Webos.Observable);
 
 /**
  * Convertir n'importe quelle variable en objet Webos.Callback.
