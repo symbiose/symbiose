@@ -14,7 +14,7 @@ class CmdController extends \lib\ServerCallComponent {
 	 */
 	protected function execute($cmdText, $terminalId) {
 		if (!$this->webos->managers()->get('Terminal')->isTerminal($terminalId)) {
-			$terminal = new \lib\models\Terminal($this->webos, $id);
+			$terminal = new \lib\models\Terminal($this->webos, $terminalId);
 		} else {
 			$terminal = $this->webos->managers()->get('Terminal')->getTerminal($terminalId);
 		}
