@@ -64,7 +64,7 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 				$('<li>'+t.get('Logout...')+'</li>').click(function() {
 					W.Cmd.execute('gnome-logout');
 				}).appendTo(userMenu);
-				$('<li>'+t.get('Reboot')+'</li>').click(function() {
+				$('<li>'+t.get('Restart')+'</li>').click(function() {
 					W.Cmd.execute('gnome-reboot');
 				}).appendTo(userMenu);
 			} else {
@@ -74,7 +74,7 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 				var registerMenuItem = $('<li>'+t.get('Register')+'</li>').click(function() {
 					W.Cmd.execute('gnome-register');
 				}).hide().appendTo(userMenu);
-				$('<li>'+t.get('Reboot')+'</li>').click(function() {
+				$('<li>'+t.get('Restart')+'</li>').click(function() {
 					W.Cmd.execute('gnome-reboot');
 				}).appendTo(userMenu);
 				
@@ -88,7 +88,7 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 					}
 					
 					$.w.notification({
-						title: t.get('Welcome to ${webos}', { webos: Webos.name }),
+						title: t.get('Welcome to ${webos} !', { webos: Webos.name }),
 						message: t.get('To access your documents please login.'),
 						icon: '/usr/share/images/distributor/logo-48.png',
 						widgets: notificationsButtons
