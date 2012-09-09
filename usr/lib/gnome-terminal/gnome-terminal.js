@@ -10,6 +10,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 		callback: function() {},
 		_history: []
 	},
+	_translationsName: 'gnome-terminal',
 	_create: function() {
 		this.options.callback = W.Callback.toCallback(this.options.callback);
 		
@@ -23,11 +24,6 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 		that.element.one('terminalready', function() {
 			callback.success(that.element);
 		});
-		
-		Webos.Translation.load(function(t) {
-			that.options._translations = t;
-			that._trigger('translationsloaded');
-		}, 'gnome-terminal');
 	},
 	terminal: function() {
 		return this.options._terminal;
@@ -42,16 +38,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 			var data = that.options._terminal.data();
 			
 			if (data.username === false) {
-				var displayErrorFn = function() {
-					W.Error.trigger(that.options._translations.get('You are disconnected (the idle time is possibly exceeded)'));
-				};
-				if (!that.options._translations) {
-					that.element.bind('terminaltranslationsloaded', function() {
-						displayErrorFn();
-					});
-				} else {
-					displayErrorFn();
-				}
+				W.Error.trigger(that.translations().get('You are disconnected (the idle time is possibly exceeded)'));
 				return;
 			}
 			
