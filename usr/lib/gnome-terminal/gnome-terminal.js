@@ -14,21 +14,15 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 		this.options.callback = W.Callback.toCallback(this.options.callback);
 		
 		var that = this;
-		var userCallback = this.options.callback;
+		var callback = this.options.callback;
 		
-		var callback = new W.Callback(function() {
-			that._displayPrompt(); //On affiche l'invite de commande
-			
-			that.element.one('terminalready', function() {
-				userCallback.success(that.element);
-			});
-		}, function(response) {
-			that.element.remove();
-			
-			userCallback.error(response);
+		this.options._terminal = new W.Terminal();
+		
+		that._displayPrompt(); //On affiche l'invite de commande
+		
+		that.element.one('terminalready', function() {
+			callback.success(that.element);
 		});
-		
-		this.options._terminal = new W.Terminal(callback);
 		
 		Webos.Translation.load(function(t) {
 			that.options._translations = t;

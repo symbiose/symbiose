@@ -71,11 +71,8 @@ Webos.inherit(Webos.Cmd, Webos.Process); //Heritage de Webos.Process
 Webos.Cmd.execute = function(cmd, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	new Webos.Terminal(new Webos.Callback(function(terminal) {
-		terminal.enterCmd(cmd, callback);
-	}, function(response) {
-		callback.error(response);
-	}));
+	var terminal = new Webos.Terminal();
+	terminal.enterCmd(cmd, callback);
 };
 
 /**
@@ -84,12 +81,11 @@ Webos.Cmd.execute = function(cmd, callback) {
  * @since 1.0 alpha 1
  * @constructor
  */
-Webos.Terminal = function WTerminal(callback) {
+Webos.Terminal = function WTerminal() {
 	this._data = {};
+	this._initialized = false;
 	
 	this.id = Webos.Terminal.register(this);
-	
-	this.init(callback);
 };
 Webos.Terminal.prototype = {
 	/**
@@ -145,15 +141,19 @@ Webos.Terminal.prototype = {
 		
 		var that = this;
 		
-		new Webos.ServerCall({
-			'class': 'TerminalController',
-			method: 'getPromptData',
-			arguments: { 'terminal': this.getId() }
-		}).load(new Webos.Callback(function(response) {
-			that._data = response.getData();
-			
-			callback.success(that);
-		}, callback.error));
+		if (!this._initialized) {
+			this.init(callback);
+		} else {
+			new Webos.ServerCall({
+				'class': 'TerminalController',
+				method: 'getPromptData',
+				arguments: { 'terminal': this.getId() }
+			}).load(new Webos.Callback(function(response) {
+				that._data = response.getData();
+				
+				callback.success(that);
+			}, callback.error));
+		}
 	},
 	/**
 	 * Initialiser le terminal.
@@ -170,6 +170,7 @@ Webos.Terminal.prototype = {
 			arguments: { terminal: this.getId() }
 		}).load(new Webos.Callback(function(response) {
 			that._data = response.getData();
+			that._initialized = true;
 			
 			callback.success(that);
 		}, callback.error));

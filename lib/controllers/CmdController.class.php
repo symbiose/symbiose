@@ -14,9 +14,10 @@ class CmdController extends \lib\ServerCallComponent {
 	 */
 	protected function execute($cmdText, $terminalId) {
 		if (!$this->webos->managers()->get('Terminal')->isTerminal($terminalId)) {
-			throw new \InvalidArgumentException('Le terminal #'.$terminalId.' n\'existe pas');
+			$terminal = new \lib\models\Terminal($this->webos, $id);
+		} else {
+			$terminal = $this->webos->managers()->get('Terminal')->getTerminal($terminalId);
 		}
-		$terminal = $this->webos->managers()->get('Terminal')->getTerminal($terminalId);
 
 		$this->webos->managers()->get('Cmd')->execute($cmdText, $terminal);
 	}
