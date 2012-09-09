@@ -30,8 +30,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		display: 'icons',
 		showHiddenFiles: false
 	},
+	_translationsName: 'nautilus',
 	_create: function() {
 		var that = this;
+		var t = this.translations();
 		
 		this.element.scrollPane({
 			autoReload: true
@@ -108,7 +110,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 
 		if (this.options.display == 'list') {
-			this.options._content = $.w.list(['Nom', 'Taille', 'Type']).appendTo(this.options._components.container);
+			this.options._content = $.w.list([t.get('Name'), t.get('Size'), t.get('Type')]).appendTo(this.options._components.container);
 		}
 
 		this.content().click(function(event) {
@@ -183,6 +185,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	},
 	readDir: function(dir, userCallback) {
+		var that = this, t = this.translations();
+		
 		if (typeof this.options._components.contextmenu != 'undefined') {
 			this.options._components.contextmenu.contextMenu('destroy');
 		}
@@ -190,10 +194,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		dir = W.File.cleanPath(dir);
 		
 		userCallback = W.Callback.toCallback(userCallback, new W.Callback(function() {}, function(response) {
-			response.triggerError('Impossible de trouver « '+dir+' ».');
+			response.triggerError(t.get('Can\'t find « ${dir} ».', { dir: dir }));
 		}));
-		
-		var that = this;
 		
 		var callback = new W.Callback(function(files) {
 			that.options.directory = dir;
@@ -202,24 +204,24 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			that.options._components.contextmenu = contextmenu = $.w.contextMenu(that.element);
 			
-			$.webos.menuItem('Cr&eacute;er un dossier').click(function() {
-				that.createFile('Nouveau dossier', true);
+			$.webos.menuItem(t.get('Create a new folder')).click(function() {
+				that.createFile(t.get('New folder'), true);
 			}).appendTo(contextmenu);
-			$.webos.menuItem('Cr&eacute;er un fichier').click(function() {
-				that.createFile('Nouveau fichier');
+			$.webos.menuItem(t.get('Create a new file')).click(function() {
+				that.createFile(t.get('New file'));
 			}).appendTo(contextmenu);
-			$.webos.menuItem('T&eacute;l&eacute;charger', true).click(function() {
+			$.webos.menuItem(t.get('Download'), true).click(function() {
 				W.File.load(dir, new W.Callback(function(file) {
 					that._download(file);
 				}));
 			}).appendTo(contextmenu);
-			$.webos.menuItem('Envoyer un fichier').click(function() {
+			$.webos.menuItem(t.get('Upload a file')).click(function() {
 				that.openUploadWindow();
 			}).appendTo(contextmenu);
-			$.webos.menuItem('Rafra&icirc;chir', true).click(function() {
+			$.webos.menuItem(t.get('Refresh'), true).click(function() {
 				that.refresh();
 			}).appendTo(contextmenu);
-			$.webos.menuItem('Propri&eacute;t&eacute;s', true).click(function() {
+			$.webos.menuItem(t.get('Properties'), true).click(function() {
 				W.File.load(that.options.directory, new W.Callback(function(file) {
 					that._openProperties(file);
 				}));
@@ -238,44 +240,44 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				url: serverCall.url,
 				paramname: 'file',
 				data: serverCall.data,
-				error: function(event, ui) {
-					switch(ui.error) {
+				error: function(event, data) {
+					switch(data.error) {
 						case 'BrowserNotSupported':
-							W.Error.trigger('Votre navigateur ne supporte pas le glisser-d&eacute;poser. Veuillez envoyer vos fichiers via le formulaire classique');
+							W.Error.trigger(t.get('Your browser does not allow drag and drop. Please upload your files by using classical form.'));
 							break;
 						case 'TooManyFiles':
-							W.Error.trigger('Trop de fichiers envoy&eacute;s');
+							W.Error.trigger(t.get('Too many files sent'));
 							break;
 						case 'FileTooLarge':
-							W.Error.trigger('Le fichier "'+ui.file.name+'" est trop gros (taille du fichier : '+W.File.bytesToSize(ui.file.size)+', taille maximale : '+W.File.bytesToSize(that.element.filedrop('option', 'maxfilesize') * 1024 * 1024)+')');
+							W.Error.trigger(t.get('The size of the file "${name}" is too large (file size : ${fileSize}, maximum size : ${maxSize})', { name: data.file.name, fileSize: W.File.bytesToSize(data.file.size), maxSize: W.File.bytesToSize(that.element.filedrop('option', 'maxfilesize') * 1024 * 1024) }));
 							break;
 						default:
-							W.Error.trigger('Une erreur est survenue lors de l\'envoi du fichier : '+ui.error);
+							W.Error.trigger(t.get('An error occurred while uploading the file : ${error}', { error: data.error }));
 							break;
 					}
 				},
 				maxfiles: 25,
 				maxfilesize: 20,
-				uploadstarted: function(event, ui) {
-					uploadsIds[ui.index] = $.w.nautilus.progresses.add(0, 'Envoi de '+ui.file.name);
+				uploadstarted: function(event, data) {
+					uploadsIds[data.index] = $.w.nautilus.progresses.add(0, t.get('Uploading ${name}', { name: data.file.name }));
 				},
-				uploadfinished: function(event, ui) {
+				uploadfinished: function(event, data) {
 					var success = true;
-					if (!ui.response.isSuccess()) {
-						W.Error.trigger('Impossible d\'envoyer le fichier "'+ui.file.name+'"', ui.response.getAllChannels());
+					if (!data.response.isSuccess()) {
+						W.Error.trigger(t.get('Can\'t upload the file "${name}"', { name: data.file.name }), data.response.getAllChannels());
 						success = false;
-					} else if (!ui.response.getData().success) {
-						W.Error.trigger('Impossible d\'envoyer le fichier "'+ui.file.name+'"', ui.response.getData().msg);
+					} else if (!data.response.getData().success) {
+						W.Error.trigger(t.get('Can\'t upload the file "${name}"', { name: data.file.name }), data.response.getData().msg);
 						success = false;
 					}
 					
 					var msg;
 					if (success) {
-						msg = 'Envoi termin&eacute;.';
+						msg = t.get('Upload completed.');
 					} else {
-						msg = 'Erreur lors de l\'envoi.';
+						msg = t.get('Error while uploading.');
 					}
-					$.w.nautilus.progresses.update(uploadsIds[ui.index], 100, msg);
+					$.w.nautilus.progresses.update(uploadsIds[data.index], 100, msg);
 					
 					if (success) {
 						var newFile = new W.File(response.getData().file);
@@ -285,19 +287,19 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 						}
 						
 						$.w.notification({
-							title: 'Fichier envoy&eacute;',
-							message: 'Le fichier '+newFile.get('basename')+' a &eacute;t&eacute; envoy&eacute;.',
+							title: t.get('File uploaded'),
+							message: t.get('The file ${name} has been sent', { name: newFile.get('basename') }),
 							icon: that._getFileIcon(newFile),
-							widgets: [$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
-							          $.w.button('Ouvrir').click(function() { newItem.data('nautilus').open(); })]
+							widgets: [$.w.button(t.get('Open the parent folder')).click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
+							          $.w.button(t.get('Open')).click(function() { newItem.data('nautilus').open(); })]
 						});
 					}
 				},
-				progressupdated: function(event, ui) {
-					$.w.nautilus.progresses.update(uploadsIds[ui.index], ui.progress);
+				progressupdated: function(event, data) {
+					$.w.nautilus.progresses.update(uploadsIds[data.index], data.progress);
 				},
-				speedupdated: function(event, ui) {
-					$.w.nautilus.progresses.update(uploadsIds[ui.index], undefined, 'Envoi &agrave; '+ui.speed+' Kio/s...');
+				speedupdated: function(event, data) {
+					$.w.nautilus.progresses.update(uploadsIds[data.index], undefined, t.get('Uploading at ${speed} Kio/s...', { speed: data.speed }));
 				}
 			});
 			
@@ -401,7 +403,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 	_renderItem: function(file) {
 		this.options._files[file.get('path')] = file;
 		
-		var that = this, filepath = file.get('path'), item, icon, iconPath = this._getFileIcon(file);
+		var that = this, t = this.translations(), filepath = file.get('path'), item, icon, iconPath = this._getFileIcon(file);
 		
 		if (that.options.display == 'icons') {
 			item = $('<li></li>');
@@ -424,7 +426,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			var size;
 			if (file.get('is_dir')) {
-				size = file.get('size')+' &eacute;l&eacute;ment'+((file.get('size') > 1) ? 's' : '');
+				size = t.get('${nbr} element${nbr|s}', { nbr: file.get('size') });
 			} else {
 				size = W.File.bytesToSize(file.get('size'));
 			}
@@ -432,9 +434,9 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			var type;
 			if (file.get('is_dir')) {
-				type = 'Dossier';
+				type = t.get('Folder');
 			} else {
-				type = 'Fichier '+file.get('extension');
+				type = t.get('${extension} file', { extension: file.get('extension') });
 			}
 			item.listItem('addColumn', type);
 		} else {
@@ -515,34 +517,34 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		var contextmenu = $.w.contextMenu(item);
 		
-		$.webos.menuItem('Ouvrir').click(function() {
+		$.webos.menuItem(t.get('Open')).click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').open();
 			});
 		}).appendTo(contextmenu);
-		$.webos.menuItem('Ouvrir avec...').click(function() {
+		$.webos.menuItem(t.get('Open with...')).click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').openWith();
 			});
 		}).appendTo(contextmenu);
-		$.webos.menuItem('T&eacute;l&eacute;charger').click(function() {
+		$.webos.menuItem(t.get('Download')).click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').download();
 			});
 		}).appendTo(contextmenu);
-		$.webos.menuItem('Renommer...', true).click(function() {
+		$.webos.menuItem(t.get('Rename...'), true).click(function() {
 			item.data('nautilus').rename();
 		}).appendTo(contextmenu);
-		$.webos.menuItem('Supprimer').click(function() {
+		$.webos.menuItem(t.get('Delete')).click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').remove();
 			});
 		}).appendTo(contextmenu);
-		$.webos.menuItem('Propri&eacute;t&eacute;s', true).click(function() {
+		$.webos.menuItem(t.get('Properties'), true).click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').openProperties();
@@ -628,42 +630,25 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	},
 	_openProperties: function(file) {
+		var t = this.translations();
+		
 		var propertiesWindow = $.w.window({
-			title: 'Propri&eacute;t&eacute;s de '+file.get('basename'),
+			title: t.get('Properties of ${name}', { name: file.get('basename') }),
 			icon: this._getFileIcon(file),
 			resizable: false,
 			stylesheet: 'usr/share/css/nautilus/properties.css'
 		});
 		
-		var mtime = new Date(file.get('mtime') * 1000);
-		var mtimeDate = parseInt(mtime.getDate());
-		if (mtimeDate < 10) mtimeDate = '0'+mtimeDate;
-		var mtimeMonth = (parseInt(mtime.getMonth()) + 1);
-		if (mtimeMonth < 10) mtimeMonth = '0'+mtimeMonth;
-		var mtimeYear = mtime.getFullYear();
-		var mtimeHours = parseInt(mtime.getHours());
-		if (mtimeHours < 10) mtimeHours = '0'+mtimeHours;
-		var mtimeMinutes = parseInt(mtime.getMinutes());
-		if (mtimeMinutes < 10) mtimeMinutes = '0'+mtimeMinutes;
-		var atime = new Date(file.get('atime') * 1000);
-		var atimeDate = parseInt(atime.getDate());
-		if (atimeDate < 10) atimeDate = '0'+atimeDate;
-		var atimeMonth = (parseInt(atime.getMonth()) + 1);
-		if (atimeMonth < 10) atimeMonth = '0'+atimeMonth;
-		var atimeYear = atime.getFullYear();
-		var atimeHours = parseInt(atime.getHours());
-		if (atimeHours < 10) atimeHours = '0'+atimeHours;
-		var atimeMinutes = parseInt(atime.getMinutes());
-		if (atimeMinutes < 10) atimeMinutes = '0'+atimeMinutes;
-		var data = ['Nom : '+file.get('basename'),
-		            'Type : '+((file.get('is_dir')) ? 'dossier' : 'fichier '+file.get('extension')),
-		            'Emplacement : '+file.get('dirname'),
-		            'Derni&egrave;re modification : '+mtimeDate+'/'+mtimeMonth+'/'+mtimeYear+' '+mtimeHours+':'+mtimeMinutes,
-		            'Dernier acc&egrave;s : '+atimeDate+'/'+atimeMonth+'/'+atimeYear+' '+atimeHours+':'+atimeMinutes,
-		            ((file.get('is_dir')) ? 'Contenu' : 'Taille')+' : '+((file.get('is_dir')) ? file.get('size')+' fichier'+((file.get('size') > 1) ? 's' : '') : W.File.bytesToSize(file.get('size')))];
+		var mtime = new Date(file.get('mtime') * 1000), atime = new Date(file.get('atime') * 1000);
+		var data = [t.get('Name : ${name}', { name: file.get('basename') }),
+		            (file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : t.get('Type : ${extension} file', { extension: file.get('extension') }),
+		            t.get('Location : ${location}', { location: file.get('dirname') }),
+		            t.get('Last modification : ${date}', { date: Webos.Locale.current().completeDate(mtime) }),
+		            t.get('Last access : ${date}', { date: Webos.Locale.current().completeDate(atime) }),
+		            ((file.get('is_dir')) ? t.get('Contents : ${size} file${size|s}', { size: file.get('size') }) : t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }))];
 		propertiesWindow.window('content').append('<img src="'+this._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
 		var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
-		$.w.button('Fermer').appendTo(buttons).click(function() {
+		$.w.button(t.get('Close')).appendTo(buttons).click(function() {
 			propertiesWindow.window('close');
 		});
 		
@@ -690,6 +675,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 	},
 	openUploadWindow: function() {
 		var that = this;
+		var t = this.translations();
 		
 		if (typeof this.options._components.uploadWindow != 'undefined') {
 			this.options._components.uploadWindow.window('hideOrShowOrToForeground');
@@ -697,7 +683,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 		
 		var uploadWindow = this.options._components.uploadWindow = $.w.window({
-			title: 'Envoi de fichiers vers '+that.location(),
+			title: t.get('Upload files to ${location}', { location: that.location() }),
 			width: 370,
 			resizable: false,
 			stylesheet: 'usr/share/css/nautilus/upload.css',
@@ -711,9 +697,9 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		var content = uploadWindow.window('content');
 		
 		$('<img />', { src: new W.Icon('actions/document-save') }).addClass('upload-icon').appendTo(content);
-		$.w.label('Glissez-d&eacute;posez un fichier depuis votre ordinateur ou s&eacute;lectionnez un fichier &agrave; envoyer :').appendTo(content);
+		$.w.label(t.get('Drag and drop files from your computer or select a file to upload :')).appendTo(content);
 		
-		var uploadButton = $.w.button('Envoyer un fichier').appendTo(content);
+		var uploadButton = $.w.button(t.get('Upload a file')).appendTo(content);
 		
 		var serverCall = new W.ServerCall({
 			'class': 'FileController',
@@ -769,7 +755,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				}
 			},
 			onCancel: function(id, fileName){
-				$.w.nautilus.progresses.update(uploadsIds[id], 100, 'Envoi annul&eacute;.');
+				$.w.nautilus.progresses.update(uploadsIds[id], 100, t.get('Upload canceled.'));
 			},
 			// messages                
 			messages: {
@@ -777,7 +763,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				sizeError: "Le fichier <em>{file}</em> est trop gros, la taille maximum est {sizeLimit}.",
 				minSizeError: "Le fichier <em>{file}</em> est trop petit, la taille minimum est {minSizeLimit}.",
 				emptyError: "Le fichier <em>{file}</em> est vide, veuillez r&eacute;essayer.",
-				onLeave: "Des fichiers sont en cours de transfert, si vous quittez la page maintenant ils seront annul&eacute;s."            
+				onLeave: t.get('Files are being uploaded, if you leave this page now, they will be canceled.')
 			},
 			showMessage: function(message){
 				W.Error.trigger(message);
@@ -786,7 +772,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		var buttonContainer = $.w.buttonContainer().appendTo(content);
 		
-		$.w.button('Fermer').click(function() {
+		$.w.button(t.get('Close')).click(function() {
 			uploadWindow.window('close');
 		}).appendTo(buttonContainer);
 		
@@ -799,6 +785,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		return this.options.directory;
 	},
 	_getFileIcon: function(file, state) {
+		var t = this.translations();
+		
 		var iconName = 'mimes/unknown';
 		
 		var exts = ['png', 'gif', 'jpeg', 'jpg', 'bmp', 'ico', 'js', 'mp3', 'ogv', 'tiff', 'php', 'ogg', 'mp4', 'html', 'zip', 'txt'];
@@ -824,26 +812,30 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 		}
 		
+		if (file.get('path') == '~') {
+			iconName = 'places/folder-home';
+		}
+		
 		switch (file.get('path')) {
 			case '~':
 				iconName = 'places/folder-home';
 				break;
-			case '~/Documents':
+			case '~/'+t.get('Documents'):
 				iconName = 'places/folder-documents';
 				break;
-			case '~/Bureau':
+			case '~/'+t.get('Desktop'):
 				iconName = 'places/folder-desktop';
 				break;
-			case '~/Images':
+			case '~/'+t.get('Pictures'):
 				iconName = 'places/folder-pictures';
 				break;
-			case '~/Musique':
+			case '~/'+t.get('Music'):
 				iconName = 'places/folder-music';
 				break;
-			case '~/Vidéos':
+			case '~/'+t.get('Videos'):
 				iconName = 'places/folder-videos';
 				break;
-			case '~/Téléchargements':
+			case '~/'+t.get('Downloads'):
 				iconName = 'places/folder-downloads';
 				break;
 		}
@@ -865,7 +857,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				this.readDir(file.get('path'));
 			}
 		} else {
-			var that = this;
+			var that = this, t = this.translations();
 			
 			var runOpenerFn = function() {
 				Webos.Application.listOpeners(file.get('extension'), function(openers) {
@@ -879,7 +871,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			if (file.get('extension') == 'js') {
 				var exeWindow = $.w.window.dialog({
-					title: 'Ouverture de fichier',
+					title: t.get('File opening'),
 					icon: this._getFileIcon(file),
 					resizable: false,
 					hideable: false,
@@ -889,22 +881,22 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				var form = $.w.entryContainer().appendTo(exeWindow.window('content'));
 				
 				$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
-				$('<strong></strong>').html('Voulez-vous lancer « '+file.get('basename')+' » ou afficher son contenu ?').appendTo(form);
-				form.after('<p>« '+file.get('basename')+' » est un fichier texte exécutable.</p>');
+				$('<strong></strong>').html(t.get('Do you want to execute « ${name} » or to display his contents ?', { name: file.get('basename') })).appendTo(form);
+				form.after('<p>'+t.get('« ${name} » is an executable text file.', { name: file.get('basename') })+'</p>');
 				
 				var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(form);
-				$.w.button('Lancer dans un terminal').click(function() {
+				$.w.button(t.get('Run in a terminal')).click(function() {
 					exeWindow.window('close');
 					W.Cmd.execute('gnome-terminal "'+file.get('path')+'"');
 				}).appendTo(buttonContainer);
-				$.w.button('Afficher').click(function() {
+				$.w.button(t.get('Display')).click(function() {
 					exeWindow.window('close');
 					runOpenerFn();
 				}).appendTo(buttonContainer);
-				$.w.button('Annuler').click(function() {
+				$.w.button(t.get('Cancel')).click(function() {
 					exeWindow.window('close');
 				}).appendTo(buttonContainer);
-				$.w.button('Lancer', true).appendTo(buttonContainer);
+				$.w.button(t.get('Run'), true).appendTo(buttonContainer);
 				
 				form.submit(function() {
 					exeWindow.window('close');
@@ -918,11 +910,11 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	},
 	openFileWindow: function(file) {
-		var that = this;
+		var that = this, t = this.translations();
 		
 		var openFileWindowFn = function(apps) {
 			var fileOpenerWindow = $.w.window.dialog({
-				title: 'Ouverture de '+file.get('basename'),
+				title: t.get('Opening of ${name}', { name: file.get('basename') }),
 				icon: that._getFileIcon(file),
 				width: 400,
 				resizable: false
@@ -939,7 +931,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				W.Cmd.execute(chosenCmd+' "'+file.get('path')+'"');
 			}).appendTo(fileOpenerWindow.window('content'));
 			
-			content.append('<strong>Choisissez une application pour ouvrir '+file.get('basename')+'</strong>');
+			content.append('<strong>'+t.get('Select an application to open ${name}', { name: file.get('basename') })+'</strong>');
 			
 			var list = $.w.list().appendTo(content);
 			
@@ -954,10 +946,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 			
 			var buttonContainer = $.w.buttonContainer().appendTo(content);
-			$.w.button('Annuler').click(function() {
+			$.w.button(t.get('Cancel')).click(function() {
 				fileOpenerWindow.window('close');
 			}).appendTo(buttonContainer);
-			$.w.button('S&eacute;lectionner', true).appendTo(buttonContainer);
+			$.w.button(t.get('Select'), true).appendTo(buttonContainer);
 			
 			fileOpenerWindow.window('open');
 		};
@@ -1046,10 +1038,14 @@ $.w.nautilus.progresses.add = function(value, action, details) { //Ajouter une o
 };
 $.w.nautilus.progresses.defineWindow = function() {
 	$.w.nautilus.progresses.window = $.w.window.dialog({ //Fenetre de progression des operations sur les fichiers
-		title: 'Op&eacute;rations sur les fichiers',
+		title: 'File operations',
 		width: 300,
 		resizable: false
 	});
+	
+	Webos.Translation.load(function (t) {
+		$.w.nautilus.progresses.window.window('title', t.get('File operations'));
+	}, 'nautilus');
 };
 $.w.nautilus.progresses.update = function(id, value, details) { //Mettre a jour une operation en cours
 	if (typeof $.w.nautilus.progresses[id] == 'undefined') { //Si l'operation n'existe pas
@@ -1124,8 +1120,9 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 		exists: true,
 		extensions: null
 	},
+	_translationsName: 'nautilus',
 	_create: function() {
-		var that = this;
+		var that = this, t = this.translations();
 		
 		var form = $.w.entryContainer().submit(function() {
 			that._select();
@@ -1136,7 +1133,7 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 		}).appendTo(form);
 		
 		if (!this.options.exists) {
-			this.options._components.filename = $.w.textEntry('Nom du fichier :').prependTo(form);
+			this.options._components.filename = $.w.textEntry(t.get('File name :')).prependTo(form);
 			var autoFill = '';
 			this.options._components.nautilus.bind('select', function(e) {
 				if (that.options._components.filename.textEntry('value') == '') {
@@ -1162,10 +1159,10 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 		
 		this.options._components.buttons = {};
 		var buttonContainer = $.w.buttonContainer().appendTo(form);
-		this.options._components.buttons.cancel = $.w.button('Annuler').click(function() {
+		this.options._components.buttons.cancel = $.w.button(t.get('Cancel')).click(function() {
 			that._trigger('cancel');
 		}).appendTo(buttonContainer);
-		this.options._components.buttons.submit = $.w.button('Ouvrir', true).appendTo(buttonContainer);
+		this.options._components.buttons.submit = $.w.button(t.get('Open'), true).appendTo(buttonContainer);
 	},
 	_select: function() {
 		var that = this;
@@ -1276,8 +1273,9 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 	options: {
 		open: function() {}
 	},
+	_translationsName: 'nautilus',
 	_create: function() {
-		var that = this;
+		var that = this, t = this.translations();
 		
 		var thisProcess = W.Process.current(), canReadUserFiles = true, canReadSystemFiles = true;
 		if (thisProcess) {
@@ -1289,37 +1287,37 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 		var listContent = this.options._content.list('content');
 		
 		if (canReadUserFiles) {
-			$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> Dossier personnel']).bind('listitemselect', function() {
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> '+t.get('Private folder')]).bind('listitemselect', function() {
 				that.options.open('~');
 			}).appendTo(listContent);
 			
-			$.w.listItem(['<img src="'+new W.Icon('places/folder-desktop', 22)+'" alt=""/> Bureau']).bind('listitemselect', function() {
-				that.options.open('~/Bureau');
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-desktop', 22)+'" alt=""/> '+t.get('Desktop')]).bind('listitemselect', function() {
+				that.options.open('~/'+t.get('Desktop'));
 			}).appendTo(listContent);
 			
-			$.w.listItem(['<img src="'+new W.Icon('places/folder-documents', 22)+'" alt=""/> Documents']).bind('listitemselect', function() {
-				that.options.open('~/Documents');
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-documents', 22)+'" alt=""/> '+t.get('Documents')]).bind('listitemselect', function() {
+				that.options.open('~/'+t.get('Documents'));
 			}).appendTo(listContent);
 			
-			$.w.listItem(['<img src="'+new W.Icon('places/folder-pictures', 22)+'" alt=""/> Images']).bind('listitemselect', function() {
-				that.options.open('~/Images');
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-pictures', 22)+'" alt=""/> '+t.get('Pictures')]).bind('listitemselect', function() {
+				that.options.open('~/'+t.get('Pictures'));
 			}).appendTo(listContent);
 			
-			$.w.listItem(['<img src="'+new W.Icon('places/folder-music', 22)+'" alt=""/> Musique']).bind('listitemselect', function() {
-				that.options.open('~/Musique');
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-music', 22)+'" alt=""/> '+t.get('Music')]).bind('listitemselect', function() {
+				that.options.open('~/'+t.get('Music'));
 			}).appendTo(listContent);
 			
-			$.w.listItem(['<img src="'+new W.Icon('places/folder-videos', 22)+'" alt=""/> Vidéos']).bind('listitemselect', function() {
-				that.options.open('~/Vidéos');
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-videos', 22)+'" alt=""/> '+t.get('Videos')]).bind('listitemselect', function() {
+				that.options.open('~/'+t.get('Videos'));
 			}).appendTo(listContent);
 			
-			$.w.listItem(['<img src="'+new W.Icon('places/folder-downloads', 22)+'" alt=""/> Téléchargements']).bind('listitemselect', function() {
-				that.options.open('~/Téléchargements');
+			$.w.listItem(['<img src="'+new W.Icon('places/folder-downloads', 22)+'" alt=""/> '+t.get('Downloads')]).bind('listitemselect', function() {
+				that.options.open('~/'+t.get('Downloads'));
 			}).appendTo(listContent);
 		}
 		
 		if (canReadSystemFiles) {
-			$.w.listItem(['<img src="'+new W.Icon('devices/harddisk', 22)+'" alt=""/> Syst&egrave;me de fichiers']).bind('listitemselect', function() {
+			$.w.listItem(['<img src="'+new W.Icon('devices/harddisk', 22)+'" alt=""/> '+t.get('File system')]).bind('listitemselect', function() {
 				that.options.open('/');
 			}).appendTo(listContent);
 		}
@@ -1334,7 +1332,7 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 		});
 	},
 	_refreshDevices: function() {
-		var that = this;
+		var that = this, t = this.translations();
 		
 		if (this.options._devices) {
 			this.options._devices.remove();
@@ -1347,19 +1345,19 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 		for (var local in mountedDevices) {
 			(function(local, point) {
 				var driverData = Webos.File.getDriverData(point.get('driver'));
-				var item = $.w.listItem(['<img src="'+new W.Icon(driverData.icon, 22)+'" alt=""/> ' + driverData.title + ' sur ' + local]).bind('listitemselect', function() {
+				var item = $.w.listItem(['<img src="'+new W.Icon(driverData.icon, 22)+'" alt=""/> ' + t.get('${driver} on ${local}', { driver: driverData.title, local: local })]).bind('listitemselect', function() {
 					$(this).listItem('option', 'active', false);
 				}).click(function(e) {
 					if ($(e.target).is('.umount')) {
 						if (Webos.File.umount(local) === false) {
-							Webos.Error.trigger('Impossible de d&eacute;monter "'+driverData.title+'" sur "'+local+'"');
+							Webos.Error.trigger(t.get('Can\'t unmount "${driver}" on "${local}"', { driver: driverData.title, local: local }));
 						}
 						return;
 					}
 					
 					that.options.open(local);
 				});
-				$('<img />', { src: new W.Icon('actions/umount', 16), alt: '', title: 'D&eacute;monter le volume' }).addClass('umount').prependTo(item.listItem('column', 0));
+				$('<img />', { src: new W.Icon('actions/umount', 16), alt: '', title: t.get('Unmount volume') }).addClass('umount').prependTo(item.listItem('column', 0));
 				
 				item.appendTo(devicesShortcuts.list('content'));
 			})(local, mountedDevices[local]);
@@ -1391,7 +1389,7 @@ var nautilusFileSelectorShortcutsProperties = $.webos.extend($.webos.properties.
 		selectMultiple: false
 	},
 	_create: function() {
-		var that = this;
+		var that = this, t = this.translations();
 		
 		if (Webos.LocalFile.support) {
 			if (this.options.exists) {
@@ -1399,7 +1397,7 @@ var nautilusFileSelectorShortcutsProperties = $.webos.extend($.webos.properties.
 				
 				var content = $('<div></div>').css('position', 'relative').appendTo(item.listItem('column', 0));
 				
-				content.append('<img src="'+new W.Icon('devices/display', 22)+'" alt=""/> Ordinateur');
+				content.append('<img src="'+new W.Icon('devices/display', 22)+'" alt=""/> '+t.get('Computer'));
 				
 				var input = $('<input />', {
 					type: 'file'

@@ -49,6 +49,26 @@ $.webos.widget = function(widget, arg1, arg2) {
 	} else {
 		properties = arg1;
 	}
+	
+	if (properties._translationsName) {
+		var createFn = properties._create;
+		properties._create = function() {
+			if (!this._translations) {
+				var that = this;
+				
+				Webos.Translation.load(function(t) {
+					that._translations = t;
+					createFn.call(that);
+				}, this._translationsName);
+			} else {
+				createFn.call(this);
+			}
+		};
+		properties.translations = function() {
+			return this._translations;
+		};
+	}
+	
 	$.webos.properties.list[widget] = properties;
 	
 	$.widget('weboswidgets.'+widget, properties);
@@ -1883,6 +1903,10 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 		var that = this;
 		
 		this.element.bind('mousedown.draggable.widget.webos', function(e) {
+			if (e.button == 1 || e.button == 2) {
+				return;
+			}
+			
 			if(that._trigger('start', e) === false) {
 				return;
 			}
