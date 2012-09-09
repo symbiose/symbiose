@@ -446,14 +446,20 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		});
 		item.data('nautilus', {
 			open: function() {
-				var file = item.data('file')();
-				that._openFile(file);
-				item.trigger('open');
+				var event = jQuery.Event('open');
+				item.trigger(event);
+				if (!event.isDefaultPrevented()) {
+					var file = item.data('file')();
+					that._openFile(file);
+				}
 			},
 			openWith: function() {
-				var file = item.data('file')();
-				that.openFileWindow(file);
-				item.trigger('open');
+				var event = jQuery.Event('open');
+				item.trigger(event);
+				if (!event.isDefaultPrevented()) {
+					var file = item.data('file')();
+					that.openFileWindow(file);
+				}
 			},
 			download: function() {
 				that._download(item.data('file')());
@@ -1147,20 +1153,10 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 			});
 		}
 		
-		this.options._components.nautilus.bind('nautilusreadcomplete', function() {
-			$(this).nautilus('items').unbind('dblclick');
-			$(this).nautilus('items').dblclick(function() {
-				if ($(this).data('file')().getAttribute('is_dir')) {
-					that.options._components.nautilus.nautilus('readDir', $(this).data('file')().getAttribute('path'));
-				} else {
-					that._select();
-					return false;
-				}
-			});
-			if (that.options.selectMultiple) {
-				$(this).nautilus('items').click(function() {
-					$(this).toggleClass('active');
-				});
+		this.options._components.nautilus.bind('open', function(e) {
+			if (!$(e.target).data('file')().getAttribute('is_dir')) {
+				that._select();
+				e.preventDefault();
 			}
 		});
 		
