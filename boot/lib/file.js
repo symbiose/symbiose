@@ -215,15 +215,9 @@ Webos.File.load = function(path, callback) {
 	if (typeof Webos.File._cache[path] != 'undefined') { //Si le fichier est déja dans le cache, on le retourne
 		callback.success(Webos.File._cache[path]);
 	} else { //Sinon, on le charge
-		new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'getData',
-			arguments: {
-				file: path
-			}
-		}).load(new Webos.Callback(function(response) {
-			var file = new Webos.WebosFile(response.getData()); //On construit notre objet
-			
+		var file = Webos.File.get(path);
+		
+		file.load(new Webos.Callback(function() {
 			//On le stocke dans le cache
 			addFileToCacheFn(file);
 			
