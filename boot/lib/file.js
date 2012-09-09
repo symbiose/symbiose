@@ -31,6 +31,11 @@ Webos.File = function WFile(data) {
 	Webos.Model.call(this, data); //On appelle la classe parente
 };
 Webos.File.prototype = {
+	/**
+	 * Déclenche une erreur en raison de l'impossibilité d'effectuer une action sur ce type de fichier.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée.
+	 * @private
+	 */
 	_unsupportedMethod: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
@@ -88,11 +93,22 @@ Webos.File.prototype = {
 	setContents: function(contents, callback) {
 		this._unsupportedMethod(callback);
 	},
+	/**
+	 * Définir si l'utilisateur peut effectuer une action sur le fichier.
+	 * @param {String} auth L'autorisation. Peut etre "read" ou "write".
+	 * @returns {Boolean} Vrai si l'utilisateur a le droit d'effectuer l'action.
+	 */
 	can: function(auth) {
 		var attr = (auth == 'read') ? 'readable' : 'writable';
 		
 		return this.get(attr);
 	},
+	/**
+	 * Vérifier que l'utilisateur peut effectuer une action. Déclencher une erreur si non.
+	 * @param {String} auth L'autorisation. Peut etre "read" ou "write".
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée.
+	 * @returns {Boolean} Vrai si l'utilisateur a le droit d'effectuer l'action.
+	 */
 	checkAuthorization: function(auth, callback) {
 		if (!this.can(auth)) {
 			callback = Webos.Callback.toCallback(callback);
@@ -142,29 +158,23 @@ Webos.File.get = function(file, data) {
 	
 	path = String(file);
 	
-	if (Webos.File._cache[path]) { //Si le fichier est dans le cache, on le retourne
-		return Webos.File._cache[path];
-	} else { //Sinon, on crée un nouvel objet
-		file = null;
-		
-		//Le fichier est-il dans un volume monte ?
-		var devices = Webos.File.mountedDevices();
-		for (var local in devices) {
-			if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-				file = Webos[devices[local].get('driver')].get(path, devices[local], data);
-			}
-		}
-		
-		if (!file) {
-			file = new Webos.WebosFile($.extend({}, data, {
-				path: path
-			}));
+	//Le fichier est-il dans un volume monte ?
+	var devices = Webos.File.mountedDevices();
+	for (var local in devices) {
+		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
+			return Webos[devices[local].get('driver')].get(path, devices[local], data);
 		}
 	}
 	
-	Webos.File._cache[file.get('path')] = file;
-	
-	return file;
+	if (Webos.File._cache[path]) { //Si le fichier est dans le cache, on le retourne
+		return Webos.File._cache[path];
+	} else { //Sinon, on crée un nouvel objet
+		file = new Webos.WebosFile($.extend({}, data, {
+			path: path
+		}));
+		Webos.File._cache[file.get('path')] = file;
+		return file;
+	}
 };
 
 /**
@@ -322,7 +332,7 @@ Webos.File.createFolder = function(path, callback) {
 	}));
 };
 /**
- * Vider le cache interne de la bibliothéque des fichiers.
+ * Vider le cache interne de la bibliotheque des fichiers.
  * @param {String} [path] Si spécifié, seul le cache du fichier ayant ce chemin sera vidé.
  * @static
  */
@@ -349,7 +359,7 @@ Webos.File.cleanPath = function(path) {
 		.replace(/(.+)\/$/, '$1');
 };
 /**
- * Convertir une taille en octets vers une taille lisible par un étre humain (ex : 1024 -> 1 Kio).
+ * Convertir une taille en octets vers une taille lisible par un etre humain (ex : 1024 -> 1 Kio).
  * @param {Number} bytes La taille en octets a convertir.
  * @returns {String} La taille convertie, suivie de l'unité.
  * @static
@@ -364,6 +374,11 @@ Webos.File.bytesToSize = function(bytes) {
 			+ ' ' + sizes[i];
 };
 
+/**
+ * Représente un point de montage.
+ * @param {Object} data Les données sur le point de montage.
+ * @param {String} local Le chemin local du point de montage.
+ */
 Webos.File.MountPoint = function WMountPoint(data, local) {
 	Webos.Model.call(this, data);
 	
@@ -392,6 +407,11 @@ Webos.File.MountPoint.prototype = {
 };
 Webos.inherit(Webos.File.MountPoint, Webos.Model);
 
+/**
+ * Monter un volume.
+ * @param {Webos.File.MountPoint} point Le point de montage.
+ * @param {Webos.Callback} callback La fonction qui sera appelée suite au montage du volume.
+ */
 Webos.File.mount = function(point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -440,6 +460,10 @@ Webos.File.mount = function(point, callback) {
 	}
 };
 
+/**
+ * Récupérer la liste des volumes montés.
+ * @returns {Object} Un objet faisant correspondre les chemins locaux aux points de montage.
+ */
 Webos.File.mountedDevices = function() {
 	return Webos.File._mountedDevices;
 };
@@ -448,6 +472,10 @@ Webos.File.getMountData = function(local) {
 	return Webos.File._mountedDevices[local];
 };
 
+/**
+ * Démonter un volume.
+ * @param {Webos.File.MountPoint} point Le point de montage.
+ */
 Webos.File.umount = function(local) {
 	if (Webos.File._mountedDevices[local]) {
 		var point = Webos.File._mountedDevices[local], data = { local: point.get('local'), driver: point.get('driver'), remote: point.get('remote'), point: point };
@@ -473,6 +501,12 @@ Webos.File.getDriverData = function(driverName) {
 	return Webos.File._drivers[driverName];
 };
 
+/**
+ * Représente un fichier sur le systeme de fichiers du webos.
+ * @param {Object} data Les données sur le fichier.
+ * @since 1.0 beta 1
+ * @constructor
+ */
 Webos.WebosFile = function WWebosFile(data) {
 	data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
 	if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
@@ -489,7 +523,7 @@ Webos.WebosFile = function WWebosFile(data) {
 	Webos.File.call(this, data); //On appelle la classe parente
 };
 Webos.WebosFile.prototype = {
-		/**
+	/**
 	 * Charge les informations sur les fichiers.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que les informations seront chargées.
 	 */
@@ -707,6 +741,11 @@ Webos.WebosFile.prototype = {
 };
 Webos.inherit(Webos.WebosFile, Webos.File); //Héritage de Webos.File
 
+/**
+ * Représente un fichier local (sur l'ordinateur du client).
+ * @param {File} file L'objet natif File correspondant au fichier.
+ * @since 1.0 beta 1
+ */
 Webos.LocalFile = function WLocalFile(file) {
 	this._file = file;
 	
