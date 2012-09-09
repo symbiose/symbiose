@@ -10,9 +10,29 @@ Webos.Translation.prototype = {
 		}
 		
 		if (typeof variables == 'object') {
-			for (var index in variables) {
-				translation = translation.replace('${'+index+'}', variables[index]);
-			}
+			var replaceVariablesFn = function(translation) {
+				return translation.replace(/\$\{(.+)\}/, function(match, str) {
+					var strArray = str.split('|', 3);
+					if (strArray.length > 1) {
+						isCondition = true;
+						var condition = strArray[0], ifValue = strArray[1], elseValue = strArray[2] || '';
+						if (variables[condition]) {
+							return replaceVariablesFn(ifValue);
+						} else {
+							return replaceVariablesFn(elseValue);
+						}
+					} else {
+						console.log(str, variables[str], match);
+						if (typeof variables[str] != 'undefined') {
+							return variables[str];
+						} else {
+							return match;
+						}
+					}
+				});
+			};
+			
+			translation = replaceVariablesFn(translation);
 		}
 		
 		return translation;
