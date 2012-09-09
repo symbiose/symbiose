@@ -17,6 +17,7 @@
 	float: left;
 	text-align: center;
 	overflow: hidden;
+	margin-top: 3px;
 }
 .webos-nautilus ul.icons li img.icon {
 	opacity: 0.85;
