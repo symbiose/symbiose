@@ -525,10 +525,19 @@ Webos.WebosFile.prototype = {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
-		Webos.File.clearCache(that.get('path'));
-		Webos.File.load(that.get('path'), new Webos.Callback(function(file) {
+		Webos.File.clearCache(this.get('path'));
+		
+		new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'getData',
+			arguments: {
+				path: this.get('path')
+			}
+		}).load([function(response) {
+			var data = response.getData();
+			
 			var updatedData = {};
-			for (var key in file.data()) {
+			for (var key in data) {
 				if (that.get(key) !== file.data()[key]) {
 					updatedData[key] = file.data()[key];
 				}
@@ -540,7 +549,7 @@ Webos.WebosFile.prototype = {
 			}
 		}, function(response) {
 			callback.error(response, that);
-		}));
+		}]);
 	},
 	/**
 	 * Renomme le fichier.

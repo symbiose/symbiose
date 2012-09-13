@@ -175,39 +175,71 @@ var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 					remote: remote,
 					driver: selectedDriver
 				}, local);
-				that._window.window('loading', true, {
-					message: t.get('Mounting of ${driver} volume in progress...', { driver: that._drivers[selectedDriver].title })
-				});
 				
-				var displaySuccessFn = function() {
-					$.w.notification({
-						title: t.get('${driver} has been mounted', { driver: that._drivers[selectedDriver].title }),
-						message: t.get('${driver} has been mounted on « ${local} ».', { driver: that._drivers[selectedDriver].title, local: local }),
-						icon: that._drivers[selectedDriver].icon,
-						widgets: [$.w.button(t.get('Unmount')).click(function() { Webos.File.umount(local); }),
-						          $.w.button(t.get('Open')).click(function() { new NautilusWindow(local); })]
+				var mountFn = function() {
+					that._window.window('loading', true, {
+						message: t.get('Mounting of ${driver} volume in progress...', { driver: that._drivers[selectedDriver].title })
 					});
-				};
-				
-				Webos.File.mount(point, [function(point) {
-					if (permanent) {
-						that._window.window('loading', true, {
-							message: t.get('Adding persistant mounting...')
+					
+					var displaySuccessFn = function() {
+						$.w.notification({
+							title: t.get('${driver} has been mounted', { driver: that._drivers[selectedDriver].title }),
+							message: t.get('${driver} has been mounted on « ${local} ».', { driver: that._drivers[selectedDriver].title, local: local }),
+							icon: that._drivers[selectedDriver].icon,
+							widgets: [$.w.button(t.get('Unmount')).click(function() { Webos.File.umount(local); }),
+							          $.w.button(t.get('Open')).click(function() { new NautilusWindow(local); })]
 						});
-						Webos.File.fstab.add(point, [function() {
+					};
+					
+					Webos.File.mount(point, [function(point) {
+						if (permanent) {
+							that._window.window('loading', true, {
+								message: t.get('Adding persistant mounting...')
+							});
+							Webos.File.fstab.add(point, [function() {
+								that._window.window('close');
+								displaySuccessFn();
+							}, function(response) {
+								that._window.window('loading', false);
+								response.triggerError(t.get('Can\'t perform the persistant mounting'));
+							}]);
+						} else {
 							that._window.window('close');
 							displaySuccessFn();
-						}, function(response) {
-							that._window.window('loading', false);
-							response.triggerError(t.get('Can\'t perform the persistant mounting'));
-						}]);
-					} else {
-						that._window.window('close');
-						displaySuccessFn();
+						}
+					}, function() {
+						that._window.window('loading', false);
+						Webos.Error.trigger(t.get('Can\'t mount the volume'));
+					}]);
+				};
+				
+				that._window.window('loading', true, {
+					message: t.get('Checking the local folder "${local}"...', { local: local })
+				});
+				W.File.load(local, [function(file) {
+					if (!file.get('is_dir')) {
+						that._window.window('loading', false);
+						Webos.Error.trigger(t.get('Can\'t mount the volume on "${local}" : the specified file is not a folder', { local: local }));
+						return;
 					}
-				}, function() {
-					that._window.window('loading', false);
-					Webos.Error.trigger(t.get('Can\'t mount the volume'));
+					
+					if (!Webos.isInstanceOf(file, Webos.WebosFile)) {
+						that._window.window('loading', false);
+						Webos.Error.trigger(t.get('Can\'t mount the volume on "${local}" : the specified folder is in a mounted volume', { local: local }));
+						return;
+					}
+					
+					mountFn();
+				}, function(response) {
+					that._window.window('loading', true, {
+						message: t.get('Creating the local folder "${local}"...', { local: local })
+					});
+					W.File.createFolder(local, [function(file) {
+						mountFn();
+					}, function(response) {
+						that._window.window('loading', false);
+						response.triggerError(t.get('Can\'t create the local folder "${local}"', { local: local }));
+					}]);
 				}]);
 			}).appendTo(this._window.window('content'));
 			
