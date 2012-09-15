@@ -30,13 +30,9 @@
 	box-shadow: none;
 }
 
-.webos-window > .header {
-	border-bottom: 1px solid #c4c3c0;
-}
-
 /* BARRE DU HEADER */
 .webos-window .header .top {
-	background-color: #fdfdfd;
+	background-color: #ededed;
 	-moz-border-radius: 4px 4px 0px 0px;
 	-webkit-border-radius: 4px 4px 0px 0px;
 	border-radius: 4px 4px 0px 0px;
@@ -154,7 +150,7 @@
 
 /* CONTENU DE LA FENETRE */
 .webos-window .content {
-	background-color: #fdfdfd;
+	background-color: #ededed;
 	color: #4c4c4c;
 	overflow: auto;
 	min-width: 10px;
@@ -196,7 +192,7 @@
 
 /* HEADERS SPECIFIQUES */
 .webos-window .header .header-specific ul.webos-menuwindowheader {
-	background-color: #fdfdfd;
+	background-color: #ededed;
 	color: #303638;
 	height: 25px;
 	margin: 0;
@@ -212,11 +208,13 @@
 
 .webos-window .header .header-specific ul.webos-buttonwindowheader {
 	background: url('usr/share/images/themes/adwaita/windows/button-header.png') repeat-x;
-	height: 66px;
+	height: 65px;
 	padding-left: 13px;
 	margin:0;
 	overflow: hidden;
 	color: #303638;
+	border-top: 1px solid #969a96;
+	border-bottom: 1px solid #b8bcb8;
 }
 .webos-window .header .header-specific ul.webos-buttonwindowheader li {
 	height: 56px;
@@ -257,11 +255,13 @@
 
 .webos-window .header .header-specific ul.webos-toolbarwindowheader {
 	background: url('usr/share/images/themes/adwaita/windows/toolbar-header.png') repeat-x;
-	height: 41px;
+	height: 40px;
 	padding-left: 5px;
 	margin: 0;
 	overflow: hidden;
 	color: #303638;
+	border-top: 1px solid #969a96;
+	border-bottom: 1px solid #b8bcb8;
 }
 .webos-window .header .header-specific ul.webos-toolbarwindowheader li {
 	height: 19px;
