@@ -43,7 +43,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 			
 			var historyPos = that.options._history.length, typpedCmd = '';
-			that.options._components.prompt = $.w.textEntry(data.username+'@'+data.host+':'+data.location+'$ ')
+			that.options._components.prompt = $.w.textEntry(data.username+'@'+data.host+':'+data.location+((data.root) ? '#' : '$')+' ')
 				.appendTo(that.element)
 				.keydown(function(e) {
 					switch (e.keyCode) {

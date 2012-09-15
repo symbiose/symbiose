@@ -132,6 +132,19 @@ Webos.Terminal.prototype = {
 		this.cmd.run(Webos.Callback.toCallback(callback));
 		return this.cmd;
 	},
+	_refreshUserData: function(username, callback) {
+		callback = Webos.Callback.toCallback(callback);
+		
+		Webos.User.get([function(user) {
+			user.authorizations([function(auth) {
+				var model = auth.model();
+				var data = {
+					root: (model == 'admin')
+				};
+				callback.success(data);
+			}, callback.error]);
+		}, callback.error], username);
+	},
 	/**
 	 * Rafraichir les donnees sur le terminal.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que les donnees auront ete rafraichies.
@@ -151,7 +164,12 @@ Webos.Terminal.prototype = {
 			}).load(new Webos.Callback(function(response) {
 				that._data = response.getData();
 				
-				callback.success(that);
+				that._refreshUserData(that._data.username, [function(data) {
+					that._data = $.extend({}, that._data, data);
+					callback.success(that);
+				}, function() {
+					callback.success(that);
+				}]);
 			}, callback.error));
 		}
 	},
@@ -172,7 +190,12 @@ Webos.Terminal.prototype = {
 			that._data = response.getData();
 			that._initialized = true;
 			
-			callback.success(that);
+			that._refreshUserData(that._data.username, [function(data) {
+				that._data = $.extend({}, that._data, data);
+				callback.success(that);
+			}, function() {
+				callback.success(that);
+			}]);
 		}, callback.error));
 	}
 };
