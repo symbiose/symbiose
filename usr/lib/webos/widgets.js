@@ -1989,7 +1989,7 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 	_name: 'draggable',
 	options: {
 		data: null,
-		dataType: 'text/plain',
+		dataType: null,
 		sourceFile: null,
 		dragImage: $(),
 		revert: true,
@@ -2016,13 +2016,15 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 				el = $(that.options.dragImage)[0];
 				el.style.position = 'absolute';
 				
-				diffX = e.pageX - that.element.offset().left;
-				diffY = e.pageY - that.element.offset().top;
+				var dragImageWidth = $(el).width(), dragImageHeight = $(el).height();
+				
+				diffX = dragImageWidth / 2;
+				diffY = dragImageHeight / 2;
 				
 				$(el).css({
 					left: e.pageX - diffX,
 					top: e.pageY - diffY
-				});
+				}).hide();
 			} else {
 				el = that.element[0];
 				el.style.position = 'relative';
@@ -2042,7 +2044,7 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 			
 			var posX = e.pageX - diffX, posY = e.pageY - diffY;
 			
-			$('body').bind('mousemove.drag.draggable.widget.webos', function(e) {
+			$(document).bind('mousemove.drag.draggable.widget.webos', function(e) {
 				posX = e.pageX - diffX, posY = e.pageY - diffY;
 				
 				el.style.left = posX+'px';
@@ -2073,12 +2075,12 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 				e.preventDefault();
 			});
 			
+			$.webos.ddmanager.prepareOffsets(that, e);
+			
 			e.preventDefault();
 		});
 	},
 	_dragStart: function(el, e) {
-		$.webos.ddmanager.prepareOffsets(this, e);
-
 		$.webos.ddmanager.current = this;
 		
 		$.webos.ddmanager.dragStart(this, e);
@@ -2095,6 +2097,10 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 		});
 		
 		$(el).css('z-index', 100000).addClass('dragging cursor-move');
+		
+		if (this.options.dragImage && $(this.options.dragImage).length > 0) {
+			$(this.options.dragImage).show();
+		}
 	}
 });
 $.webos.widget('draggable', draggableProperties);
@@ -2139,6 +2145,9 @@ var droppableProperties = $.webos.extend($.webos.properties.get('widget'), {
 	},
 	accept: function(el) {
 		if (!this.options.accept) {
+			return true;
+		}
+		if (!el.draggable('option', 'dataType')) {
 			return true;
 		}
 		
