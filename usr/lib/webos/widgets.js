@@ -1888,6 +1888,102 @@ $.webos.menuItem = function(label, separator) {
 	});
 };
 
+
+//Tabs
+var tabsProperties = $.webos.extend($.webos.properties.get('container'), {
+	_name: 'tabs',
+	options: {
+		selectedTab: null
+	},
+	_create: function() {
+		var that = this;
+		
+		this.options._components.tabs = $('<ul></ul>', { 'class': 'tabs' }).appendTo(this.element);
+		this.options._components.content = $('<div></div>', { 'class': 'contents' }).appendTo(this.element);
+		
+		this.options._components.tabs.click(function(e) {
+			if ($(e.target).is('li')) {
+				that.option('selectedTab', $(e.target).index());
+			}
+		});
+	},
+	tab: function(arg0, arg1, arg2) {
+		var index, title, contents;
+		
+		if (typeof arg0 == 'undefined') {
+			index = 0;
+		} else if (typeof arg1 == 'undefined' && typeof arg0 == 'string') {
+			title = arg0;
+		} else if (typeof arg1 == 'undefined') {
+			index = arg0;
+		} else if (typeof arg2 == 'undefined' && typeof arg0 == 'string') {
+			title = arg0;
+			contents = arg1;
+		} else if (typeof arg2 == 'undefined') {
+			index = arg0;
+			contents = arg1;
+		} else {
+			index = arg0;
+			title = arg1;
+			contents = arg2;
+		}
+		
+		var tabTitle = $(), tabContents = $();
+		if (typeof index == 'undefined') {
+			tabTitle = $('<li></li>').appendTo(this.options._components.tabs);
+			tabContents = $('<div></div>').appendTo(this.options._components.content);
+			
+			if (this.options.selectedTab === null) {
+				this.options.selectedTab = 0;
+				tabTitle.addClass('active');
+				tabContents.addClass('active');
+			}
+		} else {
+			tabTitle = $(this.options._components.tabs.children('li')[index]);
+			tabContents = $(this.options._components.content.children('div')[index]);
+		}
+		
+		if (typeof title != 'undefined') {
+			tabTitle.html(title);
+		}
+		
+		if (typeof contents != 'undefined') {
+			tabContents.html(contents);
+		}
+		
+		return tabContents;
+	},
+	setTabs: function(tabs) {
+		var i = 0;
+		for (var title in tabs) {
+			this.tab(i, title, tabs[title]);
+			i++;
+		}
+	},
+	_update: function(key, value) {
+		switch (key) {
+			case 'selectedTab':
+				var index = parseInt(value);
+				if (isNaN(index)) {
+					index = 0;
+				}
+				
+				this.options._components.tabs.children('li.active').removeClass('active');
+				this.options._components.content.children('div.active').removeClass('active');
+				
+				$(this.options._components.tabs.children('li')[index]).addClass('active');
+				this.tab(index).addClass('active');
+				break;
+		}
+	}
+});
+$.webos.widget('tabs', tabsProperties);
+
+$.webos.tabs = function(tabs) {
+	return $('<div></div>').tabs().tabs('setTabs', tabs);
+};
+
+
 //Draggable
 var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 	_name: 'draggable',

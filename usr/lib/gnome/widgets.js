@@ -7,6 +7,7 @@
 
 //Window
 var windowProperties = $.webos.extend($.webos.properties.get('container'), {
+	_name: 'window',
 	options: {
 		title: 'Fen&ecirc;tre',
 		icon: undefined,
@@ -17,7 +18,6 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		parentWindow: $(),
 		childWindow: $()
 	},
-	_name: 'window',
 	_create: function() {
 		var that = this;
 		
