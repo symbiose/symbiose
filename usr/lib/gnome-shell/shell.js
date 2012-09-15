@@ -447,7 +447,10 @@
 						return;
 					}
 					
-					var item = $('<li></li>', { title: app.get('description') });
+					var item = $('<li></li>', { title: app.get('description') }).draggable({
+						data: app,
+						dragImage: $('<img />', { src: new W.Icon(app.get('icon'), 48) }).css({ height: '48px', width: '48px' })
+					});
 					
 					if (typeof that._cmds2Windows[app.get('command')] != 'undefined') {
 						item.addClass('active').click(function() {
@@ -607,10 +610,17 @@
 					return;
 				}
 				
+				var generateItemFn = function(data) {
+					return $('<li></li>').addClass('icon').draggable({
+						data: (data.app) ? data.app : null,
+						dragImage: $('<img />', { src: data.icon.realpath(48) }).css({ height: '48px', width: '48px' })
+					});
+				};
+				
 				var alreadyShowedWindows = []; //Fenetres affichees dans les favoris
 				for (var i = 0; i < favorites.length; i++) {
 					(function(i, app) {
-						var $item = $('<li></li>').appendTo(that._$launcher);
+						var $item = generateItemFn({ icon: new W.Icon(app.get('icon'), 48), app: app }).appendTo(that._$launcher);
 						
 						//On detecte les fenetres correspondant au favori
 						var appWindows = $();
@@ -685,7 +695,7 @@
 						}
 						
 						//Sinon, on affiche l'icone
-						var $item = $('<li></li>', { 'class': 'active' }).click(function() {
+						var $item = generateItemFn({ icon: thisWindow.window('option', 'icon') }).addClass('active').click(function() {
 							that.hide();
 							if (thisWindow.window('is', 'hidden')) {
 								thisWindow.window('show');
@@ -806,6 +816,93 @@
 				that._$searchEntry.attr('placeholder', t.get('Search...'));
 				that._$shell.find('.mode li.windows').html(t.get('Windows'));
 				that._$shell.find('.mode li.applications').html(t.get('Applications'));
+				
+				var insertEl = $('<li></li>', { 'class': 'insert' }), dragIndex = null;
+				that._$launcher.droppable({
+					over: function(e, data) {
+						var showInsertEl = function(e) {
+							var inserted = false, thisIndex = 0;
+							that._$launcher.children('li.icon').each(function() {
+								if (inserted) {
+									return;
+								}
+								if (data.draggable.is(this)) {
+									return;
+								}
+								
+								var offset = $(this).offset(), height = $(this).outerHeight(true);
+								if (e.pageY > offset.top - height / 2 && e.pageY < offset.top + height / 2) {
+									dragIndex = thisIndex;
+									insertEl.detach().insertBefore(this);
+									inserted = true;
+								}
+								if (e.pageY > offset.top + height / 2 && e.pageY < offset.top + height * 1.5) {
+									dragIndex = thisIndex + 1;
+									insertEl.detach().insertAfter(this);
+									inserted = true;
+								}
+								
+								thisIndex++;
+							});
+						};
+						
+						$(document).bind('mousemove.launcher.shell.ui.webos', function(e) {
+							showInsertEl(e);
+						});
+						
+						showInsertEl(e);
+						
+						insertEl.show();
+					},
+					out: function(e, data) {
+						$(document).unbind('mousemove.launcher.shell.ui.webos');
+						insertEl.hide();
+						dragIndex = null;
+					},
+					drop: function(e, data) {
+						$(document).unbind('mousemove.launcher.shell.ui.webos');
+						insertEl.hide();
+						
+						var dragData = data.draggable.draggable('option', 'data');
+						if (data.draggable.parent().is(that._$launcher)) {
+							if (dragIndex === null) {
+								return;
+							}
+							
+							var inserted = false, thisIndex = 0;
+							that._$launcher.children('li.icon').each(function() {
+								if (inserted) {
+									return;
+								}
+								if (data.draggable.is(this)) {
+									return;
+								}
+								
+								if (thisIndex == dragIndex) {
+									data.draggable.detach().insertBefore(this);
+									inserted = true;
+								}
+								
+								thisIndex++;
+							});
+							if (!inserted) {
+								data.draggable.detach().appendTo(that._$launcher);
+							}
+						}
+						
+						if (dragData instanceof Webos.Application) {
+							var app = dragData;
+							Webos.Application.listFavorites(function(favorites) {
+								app.set('favorite', dragIndex + 1);
+								app.sync([function() {
+									that._renderLauncher();
+								}, function(response) {
+									response.triggerError(t.get('Cannot add "${app}" to favorites', { 'app': app.get('title') }));
+								}]);
+							});
+						}
+					}
+				});
 			}, 'gnome-shell');
 			
 			this._initialized = true; //On marque le Shell comme initialise

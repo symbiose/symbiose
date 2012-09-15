@@ -282,27 +282,37 @@ body {
 	border-radius: 0 7px 7px 0;
 	background-color: rgba(0, 0, 0, 0.5);
 }
-#shell .launcher li {
+#shell .launcher li.icon {
 	width: 48px;
 	height: 48px;
 	padding: 2px;
 	margin: 3px;
 	text-align: center;
 }
-#shell .launcher li:hover {
+#shell .launcher li.icon:hover {
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
 	background-color: rgba(69, 69, 69, 0.3);
 }
-#shell .launcher li.active {
+#shell .launcher li.icon.active {
 	background-image: url('usr/share/images/themes/adwaita/shell/shadow.png');
 	background-position: center bottom;
 	background-repeat: no-repeat;
 }
-#shell .launcher li img {
+#shell .launcher li.icon img {
 	max-width: 48px;
 	height: 48px;
+}
+#shell .launcher li.insert {
+	width: 48px;
+	height: 27px;
+	background: url('usr/share/images/themes/adwaita/shell/launcher-placeholder.png') no-repeat center center;
+}
+#shell .launcher li.trash {
+	width: 48px;
+	height: 48px;
+	background-color: green;
 }
 
 #gnome-shell-overlay div .window-close {
