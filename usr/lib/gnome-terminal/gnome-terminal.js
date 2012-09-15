@@ -205,6 +205,13 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 		
 		this._terminal.bind('terminalexecute terminalready', function() {
 			scrollPane.scrollPane('reload');
+			
+			var data = that._terminal.terminal('terminal').data();
+			if (data.username !== false) {
+				that._window.window('option', 'title', data.username + '@' + data.host + ': ' + data.location);
+			} else {
+				that._window.window('option', 'title', t.get('Terminal'));
+			}
 		});
 		
 		//On ouvre la fenetre
