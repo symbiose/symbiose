@@ -42,8 +42,10 @@ Webos.Dashboard.Applet.GnomeShellPanel = function WGnomeShellPanelApplet(data) {
 			}
 		}).mousemove(function(e) {
 			if (mouseEntered && !shellToggled && e.pageX < 10 && e.pageY < 10) {
-				Shell.toggle();
-				shellToggled = true;
+				if (!$($.webos.window.getActive()).is('.dragging')) {
+					Shell.toggle();
+					shellToggled = true;
+				}
 			}
 		});
 		
