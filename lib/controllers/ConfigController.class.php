@@ -58,16 +58,33 @@ class ConfigController extends \lib\ServerCallComponent {
 
 			if ($authorisations->can($writeAuthorisation)) {
 				if (!$this->webos->managers()->get('File')->exists($path)) {
-					if (!empty($base)) {
-						$default = $this->webos->managers()->get('File')->get($base);
-						$default->copy($path);
-					} else {
-						$file = $this->webos->managers()->get('File')->createFile($path);
-						$file->setContents($config->saveXML());
+					if (strpos($path, '/', 1) !== false) {
+						$dirname = preg_replace('#/[^/]*/?$#', '', $path);
+					} else if (strpos($path, '/') === 0) {
+						$dirname = '/';
+					}
+					
+					$canCreateFile = true;
+					if (!$this->webos->managers()->get('File')->exists($dirname)) {
+						if ($authorisations->can($authorisations->getArgumentAuthorizations($dirname, 'file', 'write'))) {
+							$this->webos->managers()->get('File')->createDir($dirname);
+						} else {
+							$canCreateFile = false;
+						}
+					}
+					
+					if ($canCreateFile) {
+						if (!empty($base)) {
+							$default = $this->webos->managers()->get('File')->get($base);
+							$default->copy($path);
+						} else {
+							$file = $this->webos->managers()->get('File')->createFile($path);
+							$file->setContents($config->saveXML());
+						}
 					}
 				}
 
-				if ($authorisations->can($readAuthorisation)) {
+				if ($this->webos->managers()->get('File')->exists($path) && $authorisations->can($readAuthorisation)) {
 					$config->load($path);
 					$data = $config->getConfig();
 				} else {
