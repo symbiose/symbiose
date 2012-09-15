@@ -135,10 +135,33 @@ Webos.DropboxFile.prototype = {
 };
 Webos.inherit(Webos.DropboxFile, Webos.File); //Héritage de Webos.File
 
-Webos.DropboxFile.init = function(callback) {
+Webos.DropboxFile.mount = function(point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	dropbox.setup(callback);
+	if (!point.get('data')) {
+		dropbox.setup([function() {
+			point.set('data', {
+				requestToken: dropbox.getData('requestToken'),
+				requestTokenSecret: dropbox.getData('requestTokenSecret'),
+				accessToken: dropbox.getData('accessToken'),
+				accessTokenSecret: dropbox.getData('accessTokenSecret')
+			});
+			callback.success(point);
+		}, callback.error]);
+	} else {
+		var data = point.get('data');
+		dropbox.storeData('requestToken', data.requestToken);
+		dropbox.requestToken = data.requestToken;
+		dropbox.storeData('requestTokenSecret', data.requestTokenSecret);
+		dropbox.requestTokenSecret = data.requestTokenSecret;
+		dropbox.storeData('accessToken', data.accessToken);
+		dropbox.accessToken = data.accessToken;
+		dropbox.storeData('accessTokenSecret', data.accessTokenSecret);
+		dropbox.accessTokenSecret = data.accessTokenSecret;
+		dropbox.setup([function() {
+			callback.success(point);
+		}, callback.error]);
+	}
 };
 
 Webos.DropboxFile.get = function(file, point, data) {

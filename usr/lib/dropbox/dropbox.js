@@ -50,6 +50,12 @@ dropbox.consumerSecret = "0ix4v3nhxv6e7bd";
 dropbox.prefix = "webos_dropbox_";
 
 /**
+ * Set to false to disable data storage (via cookies or LocalStorage).
+ * @type {Boolean}
+ */
+dropbox.dataStorage = false;
+
+/**
  * Set to "dropbox" if your application has been given full Dropbox folder access or "sandbox" otherwise.
  * @type {String}
  */
@@ -205,6 +211,10 @@ dropbox.setup = function(callback) {
 				//Store token
 				dropbox.storeData("requestToken",dataArray['oauth_token']);
 				dropbox.storeData("requestTokenSecret",dataArray['oauth_token_secret']);
+				
+				//Update variables with tokens
+				dropbox.requestToken = dataArray['oauth_token'];
+				dropbox.requestTokenSecret = dataArray['oauth_token_secret'];
 				
 				//Redirect to autorisation page
 				var url = "https://api.dropbox.com/1/oauth/authorize?oauth_token=" + dataArray["oauth_token"] + "&oauth_callback=" + dropbox.authCallback;
@@ -504,22 +514,33 @@ dropbox.oauthPutRequest = function(param1,param2,body,callback) {
 };
 
 /**
+ * Dropbox API data.
+ * @type {Object}
+ * @private
+ */
+dropbox._data = {};
+
+/**
  * Function to store data (tokens/cache) using either cookies or HTML5, depending on choice.
  * @param {String} name The key.
  * @param {String} data The data.
  * @private
  */
 dropbox.storeData = function(name,data) {
-	//Escape data to be saved
-	data = escape(data);
-	
-	//If using HTML5 local storage mode
-	if (dropbox.authHTML5 == true) {
-		localStorage.setItem(dropbox.prefix + name,data);
-	} else {
-		//Store data in cookie
-		document.cookie = dropbox.prefix + name + "=" + data + "; expires=" + dropbox.cookieExpire + "; path=/";
+	if (dropbox.dataStorage) {
+		//Escape data to be saved
+		data = escape(data);
+		
+		//If using HTML5 local storage mode
+		if (dropbox.authHTML5 == true) {
+			localStorage.setItem(dropbox.prefix + name,data);
+		} else {
+			//Store data in cookie
+			document.cookie = dropbox.prefix + name + "=" + data + "; expires=" + dropbox.cookieExpire + "; path=/";
+		}
 	}
+	
+	dropbox._data[name] = data;
 };
 
 /**
@@ -529,24 +550,28 @@ dropbox.storeData = function(name,data) {
  * @private
  */
 dropbox.getData = function(name) {
-	//If using HTML5 local storage mode
-	if (dropbox.authHTML5 == true) {
-		return unescape(localStorage.getItem(dropbox.prefix + name));
-	} else {
-		//Get cookies
-		cookies = document.cookie;
-		cookies = cookies.split(";");
-		
-		//Loop through cookies to find the right one
-		for (i in cookies) {
-			c = cookies[i];
-			while (c.charAt(0) == ' ') c = c.substring(1);
-			c = c.split("=");
-			if (c[0] == dropbox.prefix + name) {
-				return unescape(c[1]);
+	if (dropbox.dataStorage) {
+		//If using HTML5 local storage mode
+		if (dropbox.authHTML5 == true) {
+			return unescape(localStorage.getItem(dropbox.prefix + name));
+		} else {
+			//Get cookies
+			cookies = document.cookie;
+			cookies = cookies.split(";");
+			
+			//Loop through cookies to find the right one
+			for (i in cookies) {
+				c = cookies[i];
+				while (c.charAt(0) == ' ') c = c.substring(1);
+				c = c.split("=");
+				if (c[0] == dropbox.prefix + name) {
+					return unescape(c[1]);
+				}
 			}
 		}
 	}
+	
+	return dropbox._data[name];
 };
 
 /*    PUBLIC FUNCTIONS    */
