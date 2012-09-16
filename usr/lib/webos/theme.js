@@ -7,9 +7,13 @@ Webos.Theme = function WTheme(configFile) {
 		desktop: '',
 		icons: '',
 		background: '',
-		animations: false
+		animations: 0
 	};
 	data = $.extend({}, defaults, data);
+	
+	if (typeof data.animations == 'string') {
+		data.animations = parseInt(data.animations) || 0;
+	}
 	
 	Webos.Model.call(this, data);
 	
