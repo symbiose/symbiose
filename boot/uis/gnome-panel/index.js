@@ -20,9 +20,9 @@ var resizeDesktopFn = function() {
 $(window).resize(resizeDesktopFn);
 
 //On cree 2 espaces de travail
-var workspaceId = new SWorkspace().id;
-new SWorkspace();
-SWorkspace.switchTo(workspaceId);
+var workspaceId = new $.w.window.workspace().getId();
+new $.w.window.workspace();
+$.w.window.workspace.switchTo(workspaceId);
 
 W.User.getLogged(new W.Callback(function(user) {
 	//Si l'utilisateur n'est pas connecte, on n'affiche pas son bureau

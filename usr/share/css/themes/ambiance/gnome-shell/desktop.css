@@ -174,7 +174,7 @@ body {
 	padding: 0px;
 	margin: 0px;
 	font-size: 14px;
-	font-family: Ubuntu, Verdana, serif;
+	font-family: Cantarell, 'Droid Sans', Ubuntu, 'DejaVu Sans', Arial, sans-serif;
 	background-color: #27001f;
 	overflow: hidden;
 	position: absolute;
@@ -260,7 +260,7 @@ body {
 	background-color: rgba(0, 0, 0, 0.6);
 }
 
-#shell .launcher, #shell .content {
+#shell .side-box, #shell .content {
 	/* on permet à ces éléments de s'aligner verticalement */
 	display: inline-block;
 	vertical-align: middle;
@@ -271,38 +271,50 @@ body {
 	width: 90%;
 }
 
-#shell .launcher {
+#shell .side-box {
 	list-style: none;
 	margin: 0;
-	padding-left: 3px;
 	border: 1px solid #333433;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+#shell .launcher {
+	padding-left: 3px;
 	border-left: none;
 	-moz-border-radius: 0 7px 7px 0;
 	-webkit-border-radius: 0 7px 7px 0;
 	border-radius: 0 7px 7px 0;
-	background-color: rgba(0, 0, 0, 0.5);
 }
-#shell .launcher li {
+#shell .launcher li.icon {
 	width: 48px;
 	height: 48px;
 	padding: 2px;
 	margin: 3px;
 	text-align: center;
 }
-#shell .launcher li:hover {
+#shell .launcher li.icon:hover {
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
 	background-color: rgba(69, 69, 69, 0.3);
 }
-#shell .launcher li.active {
+#shell .launcher li.icon.active {
 	background-image: url('usr/share/images/themes/adwaita/shell/shadow.png');
 	background-position: center bottom;
 	background-repeat: no-repeat;
 }
-#shell .launcher li img {
+#shell .launcher li.icon img {
 	max-width: 48px;
 	height: 48px;
+}
+#shell .launcher li.insert {
+	width: 48px;
+	height: 27px;
+	background: url('usr/share/images/themes/adwaita/shell/launcher-placeholder.png') no-repeat center center;
+}
+#shell .launcher li.trash {
+	width: 48px;
+	height: 48px;
+	background-color: green;
 }
 
 #gnome-shell-overlay div .window-close {
@@ -485,6 +497,27 @@ body {
 }
 #shell .shortcuts .list ul li .title {
 	color: white;
+}
+
+#shell .workspaces {
+	height: 85%;
+	width: 165px;
+	padding: 6px;
+	border-right: none;
+	-moz-border-radius: 7px 0 0 7px;
+	-webkit-border-radius: 7px 0 0 7px;
+	border-radius: 7px 0 0 7px;
+}
+#shell .workspaces li {
+	border: 2px solid transparent;
+	font-size: 1px;
+}
+#shell .workspaces li.active {
+	border: 2px solid white;
+}
+#shell .workspaces li canvas {
+	font-size: 60px;
+	text-align: center;
 }
 
 .ui-selectable-helper {

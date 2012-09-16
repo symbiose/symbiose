@@ -1,6 +1,10 @@
 (function() {
-	//On charge la bibliotheque pour gerer les applications
-	new Webos.ScriptFile('usr/lib/webos/applications.js');
+	//On charge les bibliotheques
+	W.ScriptFile.load(
+		'/usr/lib/webos/applications.js',
+		'/usr/lib/html2canvas/html2canvas.min.js',
+		'/usr/lib/html2canvas/jquery.html2canvas.js'
+	);
 	
 	/**
 	 * Shell est la bibliotheque du Shell.
@@ -28,6 +32,11 @@
 		 * @var jQuery
 		 */
 		_$launcher: $('#shell .launcher'),
+		/**
+		 * Le selecteur d'espace de travail.
+		 * @var jQuery
+		 */
+		_$workspaces: $('#shell .workspaces'),
 		/**
 		 * L'entree de recherche du Shell.
 		 * @var jQuery
@@ -69,10 +78,12 @@
 			this._shown = true;
 			$('#desktop > .webos-nautilus').hide();
 			this._$shell.show();
-			$('#shell .content').width(this._$shell.innerWidth() - this._$launcher.outerWidth());
+			$('#shell .content').width(this._$shell.innerWidth() - this._$launcher.outerWidth() - this._$workspaces.outerWidth());
 			this._renderLauncher();
 			this._renderWindowsThumbnails(animate);
 			SNotification.showContainer();
+			
+			this._generateWorkspaces();
 			
 			var that = this;
 			$(window).bind('keydown.search.shell.webos', function(e) {
@@ -121,13 +132,14 @@
 		 */
 		_renderWindowsThumbnails: function(animate) {
 			this._hideShortcuts(); //On cache les raccourcis.
+			this._showWorkspaces();
 			
 			var shellX = 150,
 				shellY = 100,
-				shellWidth = this._$shell.width() - this._$launcher.outerWidth() - shellX,
+				shellWidth = this._$shell.width() - this._$launcher.outerWidth() - this._$workspaces.outerWidth() - shellX,
 				shellHeight = this._$shell.height() - $('#header').outerHeight() - shellY;
 			
-			var windows = SWorkspace.getCurrent().getWindows(); //Fenetres a afficher
+			var windows = $.w.window.workspace.getCurrent().getWindows(); //Fenetres a afficher
 			
 			if (windows.length == 0) { //Si on n'a aucune fenetre a afficher, pas besoin d'aller plus loin
 				return;
@@ -292,7 +304,7 @@
 				duration = 0;
 			}
 			
-			var windows = SWorkspace.getCurrent().getWindows();
+			var windows = $.w.window.workspace.getCurrent().getWindows();
 			for (var i = 0; i < windows.length; i++) {
 				if ($.support.transition) {
 					var endState;
@@ -336,9 +348,10 @@
 		 */
 		showWindows: function() {
 			this._hideShortcuts(); //On cache les raccourcis
+			this._showWorkspaces();
 			
 			if ($.support.transition) {
-				var windows = SWorkspace.getCurrent().getWindows();
+				var windows = $.w.window.workspace.getCurrent().getWindows();
 				for (var i = 0; i < windows.length; i++) {
 					windows[i].show();
 				}
@@ -352,7 +365,7 @@
 		 */
 		_hideWindows: function() {
 			if ($.support.transition) {
-				var windows = SWorkspace.getCurrent().getWindows();
+				var windows = $.w.window.workspace.getCurrent().getWindows();
 				for (var i = 0; i < windows.length; i++) {
 					windows[i].hide();
 				}
@@ -428,6 +441,7 @@
 			var t = this.translations();
 			
 			this._hideWindows();
+			this._hideWorkspaces();
 			$('#shell .shortcuts').show();
 			$('#desktop #shell .mode li.windows.active').removeClass('active');
 			$('#desktop #shell .mode li.applications').addClass('active');
@@ -454,8 +468,11 @@
 					
 					if (typeof that._cmds2Windows[app.get('command')] != 'undefined') {
 						item.addClass('active').click(function() {
-							that.hide();
 							var appWindow = that._cmds2Windows[app.get('command')];
+							if (appWindow.window('workspace').id() != $.w.window.workspace.getCurrent().id()) {
+								$.w.window.workspace.switchTo(appWindow.window('workspace').id());
+							}
+							that.hide();
 							if (appWindow.window('is', 'hidden')) {
 								appWindow.window('show');
 							} else {
@@ -602,7 +619,7 @@
 				
 				that._$launcher.empty(); //On vide le lanceur
 				
-				var windows = SWorkspace.getCurrent().getWindows();
+				var windows = $.w.window.workspace.getCurrent().getWindows();
 				
 				//Si rien n'est ouvert et qu'il n'y a aucun favori, on cache le lanceur et on s'arrete la
 				if (favorites.length == 0 && windows.length == 0) {
@@ -642,6 +659,9 @@
 							});
 							
 							$item.addClass('active').click(function() {
+								if (appWindow.window('workspace').id() != $.w.window.workspace.getCurrent().id()) {
+									$.w.window.workspace.switchTo(appWindow.window('workspace').id());
+								}
 								that.hide();
 								if (appWindow.window('is', 'hidden')) {
 									appWindow.window('show');
@@ -696,6 +716,9 @@
 						
 						//Sinon, on affiche l'icone
 						var $item = generateItemFn({ icon: thisWindow.window('option', 'icon') }).addClass('active').click(function() {
+							if (thisWindow.window('workspace').id() != $.w.window.workspace.getCurrent().id()) {
+								$.w.window.workspace.switchTo(thisWindow.window('workspace').id());
+							}
 							that.hide();
 							if (thisWindow.window('is', 'hidden')) {
 								thisWindow.window('show');
@@ -711,9 +734,175 @@
 				
 				if (isFirstRendering) { //Si c'est la premiere initialisation, la position du launcher est buggee
 					//Il faut modifier les dimentions du shell mettre a jour sa position
-					$('#shell .content').width(that._$shell.innerWidth() - that._$launcher.outerWidth());
+					$('#shell .content').width(that._$shell.innerWidth() - that._$launcher.outerWidth()- that._$workspaces.outerWidth());
 				}
 			});
+		},
+		_drawWorkspace: function($item, workspace) {
+			$item.html('<canvas>'+((workspace) ? workspace.id() + 1 : '+')+'</canvas>');
+			
+			var canvas = $item.children('canvas')[0];
+			
+			if (canvas.getContext) {
+				var desktopWidth = $('#desktop').outerWidth(), desktopHeight = $('#desktop').outerHeight();
+				var canvasWidth = 160;
+				var desktopFactorX = desktopWidth / canvasWidth;
+				var canvasHeight = desktopHeight / desktopFactorX;
+				var desktopFactorY = desktopHeight / canvasHeight;
+				canvas.setAttribute('width', canvasWidth);
+				canvas.setAttribute('height', canvasHeight);
+				
+				var ctx = canvas.getContext("2d");
+				
+				//Fond blanc
+				ctx.fillStyle = 'white';
+				ctx.fillRect(0, 0, 160, 100);
+				
+				//Image d'arriere-plan
+				var url = Webos.File.get(Webos.Theme.current().get('background')).get('realpath');
+				var img = new Image();
+				img.onload = function() {
+					ctx.drawImage(img, 0, 0, 160, 100);
+					
+					//Fenetres
+					if (workspace) {
+						var windows = workspace.getWindows();
+						if (!windows.length) {
+							return;
+						}
+						
+						for (var i = 0; i < windows.length; i++) {
+							(function(thisWindow) {
+								if (thisWindow.window('is', 'hidden') || thisWindow.is(':hidden')) {
+									return;
+								}
+								if (thisWindow.window('is', 'maximized')) {
+									var rectX = 0, rectY = 0;
+									var rectWidth = canvas.getAttribute('width'), rectHeight = canvas.getAttribute('height');
+								} else {
+									var dim = thisWindow.window('dimentions'), pos = thisWindow.window('position');
+									var rectX = pos.left / desktopFactorX, rectY = pos.top / desktopFactorY;
+									var rectWidth = dim.width / desktopFactorX, rectHeight = dim.height / desktopFactorY;
+								}
+								
+								if (!$.fx.off) {
+									thisWindow.html2canvas({
+										proxy: null,
+										onrendered: function(canvas) {
+											ctx.drawImage(canvas, rectX, rectY, rectWidth, rectHeight);
+										}
+									});
+								} else {
+									ctx.fillStyle = 'white';
+									ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+									ctx.fillStyle = 'black';
+									ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+									
+									var icon = thisWindow.window('option', 'icon');
+									var url = icon.realpath(48);
+									var img = new Image();
+									img.src = url;
+									
+									var padding = 5;
+									var originalImgWidth = 48, originalImgHeight = 48;
+									var imgFactorX = rectWidth / originalImgWidth, imgFactorY = rectHeight / originalImgHeight;
+									var imgFactor;
+									if (imgFactorX < imgFactorY) {
+										imgFactor = imgFactorX;
+									} else {
+										imgFactor = imgFactorY;
+									}
+									var imgWidth = originalImgWidth * imgFactor - padding, imgHeight = originalImgHeight * imgFactor - padding;
+									if (imgWidth > originalImgWidth) { imgWidth = originalImgWidth; }
+									if (imgHeight > originalImgHeight) { imgHeight = originalImgHeight; }
+									var imgX = rectX + (rectWidth - imgWidth) / 2, imgY = rectY + (rectHeight - imgHeight) / 2;
+									
+									ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+								}
+							})(windows[i]);
+						}
+					}
+				};
+				img.src = url;
+			}
+		},
+		_generateWorkspaces: function() {
+			var that = this;
+			
+			var lastWorkspaceFilled = false, previousWorkspaceFilled = false, isWorkspaceEmpty = false;
+			var list = $.w.window.workspace.getList();
+			for (var i = 0; i < list.length; i++) {
+				(function(workspace) {
+					previousWorkspaceFilled = lastWorkspaceFilled;
+					lastWorkspaceFilled = (workspace.windows().length > 0);
+					
+					var found = false, regenerate = true, $item;
+					that._$workspaces.children('li.workspace').each(function() {
+						if ($(this).data('workspaceId') == workspace.id()) {
+							found = true;
+							$item = $(this);
+						}
+					});
+					
+					if (!lastWorkspaceFilled && !previousWorkspaceFilled && list.length > 1 && $.w.window.workspace.getCurrent().id() != workspace.id()) {
+						if (found) {
+							$item.remove();
+						}
+						$.w.window.workspace.remove(workspace.id());
+						return;
+					}
+					
+					if (!isWorkspaceEmpty) {
+						isWorkspaceEmpty = (workspace.windows().length == 0);
+					}
+					
+					if (found && workspace.id() != $.w.window.workspace.getCurrent().id()) {
+						$item.removeClass('active');
+						return;
+					}
+					
+					if (!found) {
+						$item = $('<li></li>', { 'class': 'workspace' });
+						$item.appendTo(that._$workspaces);
+						$item.data('workspaceId', workspace.id());
+					}
+					
+					if (workspace.id() == $.w.window.workspace.getCurrent().id()) {
+						$item.addClass('active');
+					}
+					
+					$item.click(function() {
+						$.w.window.workspace.switchTo(workspace.id());
+						that._$workspaces.children('li.active').removeClass('active');
+						$item.addClass('active');
+					});
+					
+					that._drawWorkspace($item, workspace);
+				})(list[i]);
+			}
+			
+			if (that._$workspaces.children('li.create-workspace').length > 0) {
+				that._$workspaces.children('li.create-workspace').remove();
+			}
+			if (!isWorkspaceEmpty) {
+				var $item = $('<li></li>', { 'class': 'create-workspace' });
+				$item.click(function() {
+					var id = new $.w.window.workspace().id();
+					$.w.window.workspace.switchTo(id);
+					that._$workspaces.children('li.active').removeClass('active');
+					that._generateWorkspaces();
+				});
+				$item.appendTo(that._$workspaces);
+				that._drawWorkspace($item);
+			}
+		},
+		_hideWorkspaces: function() {
+			this._$workspaces.hide();
+			$('#shell .content').width(this._$shell.innerWidth() - this._$launcher.outerWidth());
+		},
+		_showWorkspaces: function() {
+			this._$workspaces.show();
+			$('#shell .content').width(this._$shell.innerWidth() - this._$launcher.outerWidth() - this._$workspaces.outerWidth());
 		},
 		/**
 		 * Recuperer les traductions de GNOME Shell.
@@ -734,7 +923,7 @@
 			//On redimentionne le Shell lorsque la fenetre l'est
 			$(window).bind('resize', function(e) {
 				if (!$(e.target).is('*') && that.shown()) { //Si c'est la fenetre
-					$('#shell .content').width(that._$shell.innerWidth() - that._$launcher.outerWidth());
+					$('#shell .content').width(that._$shell.innerWidth() - that._$launcher.outerWidth() - that._$workspaces.outerWidth());
 				}
 			});
 			
@@ -763,6 +952,16 @@
 					that._restoreWindows(false);
 					that._renderWindowsThumbnails(false);
 					that._renderLauncher();
+					that._generateWorkspaces();
+				}
+			});
+			
+			$.w.window.workspace.bind('switch', function() {
+				if (that.shown()) {
+					//On met a jour l'affichage des fenetres
+					that._restoreWindows(false);
+					that._renderWindowsThumbnails(false);
+					that._generateWorkspaces();
 				}
 			});
 			

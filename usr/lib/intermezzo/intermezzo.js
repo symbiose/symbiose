@@ -48,7 +48,7 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 		this.options._components.player = this.element.find('.jp-jplayer').jPlayer({
 			swfPath: 'usr/lib/intermezzo/swf',
 			supplied: supplied,
-			solution: 'flash, html',
+			solution: 'html,flash',
 			cssSelectorAncestor: '#'+that.element.attr('id')+' .jp-'+that.options.type,
 			ready: function() {
 				var hideCursorTimeout, mousePosition = [];
@@ -288,9 +288,9 @@ function IntermezzoWindow(options) {
 		.click(function() {
 			new NautilusFileSelectorWindow({
 				parentWindow: that.window
-			}, function(file) {
-				if (typeof file != 'undefined') {
-					that.player.intermezzo('open', file);
+			}, function(files) {
+				if (files.length) {
+					that.player.intermezzo('open', files[0]);
 				}
 			});
 		})
@@ -321,7 +321,7 @@ function IntermezzoWindow(options) {
 		that.player.intermezzo('player').jPlayer('option', 'size', { cssClass: cssClass });
 	};
 	
-	this.window.bind('resizestop', resizeFn);
+	this.window.bind('windowresize', resizeFn);
 
 	this.player.appendTo(this.window.window('content'));
 	

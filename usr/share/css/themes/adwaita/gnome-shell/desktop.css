@@ -260,7 +260,7 @@ body {
 	background-color: rgba(0, 0, 0, 0.6);
 }
 
-#shell .launcher, #shell .content {
+#shell .side-box, #shell .content {
 	/* on permet à ces éléments de s'aligner verticalement */
 	display: inline-block;
 	vertical-align: middle;
@@ -271,16 +271,18 @@ body {
 	width: 90%;
 }
 
-#shell .launcher {
+#shell .side-box {
 	list-style: none;
 	margin: 0;
-	padding-left: 3px;
 	border: 1px solid #333433;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+#shell .launcher {
+	padding-left: 3px;
 	border-left: none;
 	-moz-border-radius: 0 7px 7px 0;
 	-webkit-border-radius: 0 7px 7px 0;
 	border-radius: 0 7px 7px 0;
-	background-color: rgba(0, 0, 0, 0.5);
 }
 #shell .launcher li.icon {
 	width: 48px;
@@ -495,6 +497,27 @@ body {
 }
 #shell .shortcuts .list ul li .title {
 	color: white;
+}
+
+#shell .workspaces {
+	height: 85%;
+	width: 165px;
+	padding: 6px;
+	border-right: none;
+	-moz-border-radius: 7px 0 0 7px;
+	-webkit-border-radius: 7px 0 0 7px;
+	border-radius: 7px 0 0 7px;
+}
+#shell .workspaces li {
+	border: 2px solid transparent;
+	font-size: 1px;
+}
+#shell .workspaces li.active {
+	border: 2px solid white;
+}
+#shell .workspaces li canvas {
+	font-size: 60px;
+	text-align: center;
 }
 
 .ui-selectable-helper {

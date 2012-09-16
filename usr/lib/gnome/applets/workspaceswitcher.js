@@ -7,5 +7,5 @@
 Webos.Dashboard.Applet.WorkspaceSwitcher = function WWorkspaceSwitcherApplet(data) {
 	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
-	this.content.append(SWorkspace.switcher.attr('id', 'workspace-switcher'));
+	this.content.append($.w.window.workspace.switcher.attr('id', 'workspace-switcher'));
 };

@@ -9,8 +9,8 @@ Webos.Dashboard.Applet.DesktopButton = function WDesktopButtonApplet(data) {
 	
 	var showed = {};
 	var button = $('<span></span>', { 'class': 'desktop-button' }).click(function() {
-		var list = SWorkspace.getCurrent().getWindows();
-		var workspaceId = SWorkspace.getCurrent().getId();
+		var list = $.w.window.workspace.getCurrent().getWindows();
+		var workspaceId = $.w.window.workspace.getCurrent().getId();
 		if (typeof showed[workspaceId] == 'undefined') {
 			showed[workspaceId] = true;
 		}

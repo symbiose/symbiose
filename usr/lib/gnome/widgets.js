@@ -130,7 +130,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 		
 		if (typeof this.options.workspace == 'undefined') {
-			this.options.workspace = SWorkspace.getCurrent();
+			this.options.workspace = $.w.window.workspace.getCurrent();
 		}
 		
 		this.draggable(true);
@@ -925,19 +925,19 @@ $.webos.window.requestZIndex = function() {
 };
 
 $.webos.window.hideAll = function() { //Cacher toutes les fenetres
-	var list = SWorkspace.getCurrent().getWindows();
+	var list = $.w.window.workspace.getCurrent().getWindows();
 	for(var i = 0; i < list.length; i++) {
 		list[i].window('hide');
 	}
 };
 $.webos.window.showAll = function() { //Afficher toutes les fenetres
-	var list = SWorkspace.getCurrent().getWindows();
+	var list = $.w.window.workspace.getCurrent().getWindows();
 	for(var i = 0; i < list.length; i++) {
 		list[i].window('show');
 	}
 };
 $.webos.window.hideOrShowAll = function() { //Afficher ou cacher ttes les fenetres
-	var list = SWorkspace.getCurrent().getWindows();
+	var list = $.w.window.workspace.getCurrent().getWindows();
 	for(var i = 0; i < list.length; i++) {
 		list[i].window('hideOrShow');
 	}
@@ -959,13 +959,13 @@ $.webos.window.getActive = function() { //Recuperer la fenetre active
 	}
 };
 $.webos.window.allToBackground = function() { //Envoyer toutes les fenetres a l'arriere-plan
-	var list = SWorkspace.getCurrent().getWindows();
+	var list = $.w.window.workspace.getCurrent().getWindows();
 	for(var i = 0; i < list.length; i++) {
 		list[i].window('toBackground');
 	}
 };
 $.webos.window.allToBackGroundExcluding = function(excludedWindow) { //Envoyer ttes les fenetres a l'arriere-plan sauf la fenetre specifiee
-	var list = SWorkspace.getCurrent().getWindows();
+	var list = $.w.window.workspace.getCurrent().getWindows();
 	for(var i = 0; i < list.length; i++) {
 		if (list[i].window('id') != excludedWindow.window('id')) {
 			list[i].window('toBackground');
