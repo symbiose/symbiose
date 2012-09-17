@@ -136,6 +136,14 @@ Webos.Terminal.prototype = {
 		callback = Webos.Callback.toCallback(callback);
 		
 		Webos.User.get([function(user) {
+			if (!user) {
+				var data = {
+					root: false
+				};
+				callback.success(data);
+				return;
+			}
+			
 			user.authorizations([function(auth) {
 				var model = auth.model();
 				var data = {
