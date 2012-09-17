@@ -45,9 +45,7 @@ $.w.window.workspace = function WWindowWorkspace() {
 		}
 		
 		for(var i=0; i < windowsList.length; i++) {
-			if (!windowsList[i].window('is', 'hidden')) {
-				doWindowEffectFn(windowsList[i]);
-			}
+			doWindowEffectFn(windowsList[i]);
 		}
 	};
 
