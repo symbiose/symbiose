@@ -53,12 +53,6 @@ class UserInterfaceManager_files extends UserInterfaceManager {
 		$uis = $xml->getElementsByTagName('ui');
 
 		foreach ($uis as $ui) {
-			$list[] = array(
-				'name' => $ui->getAttribute('name'),
-				'type' => $ui->getAttribute('type'),
-				'default' => ($ui->hasAttribute('default') && (int) $ui->getAttribute('default') == 1)
-			);
-
 			if ($ui->getAttribute('name') == $name) {
 				if (!$ui->hasAttribute('default')) {
 					$default = $xml->createAttribute('default');
@@ -70,6 +64,50 @@ class UserInterfaceManager_files extends UserInterfaceManager {
 
 				$file->setContents($xml->saveXML());
 
+				return;
+			}
+		}
+
+		throw new \InvalidArgumentException('L\'interface "'.$name.'" est introuvable');
+	}
+	
+	public function add($uiName) {
+		$file = $this->dao->get('/etc/uis.xml');
+		$xml = new \DOMDocument;
+		$xml->loadXML($file->contents());
+
+		$root = $xml->getElementsByTagName('uis')->item(0);
+		
+		$element = $xml->createElement('ui');
+		$root->appendChild($element);
+		
+		$name = $xml->createAttribute('name');
+		$name->appendChild($xml->createTextNode($uiName));
+		$element->appendChild($name);
+		
+		$type = $xml->createAttribute('type');
+		$type->appendChild($xml->createTextNode('ui'));
+		$element->appendChild($type);
+		
+		$default = $xml->createAttribute('default');
+		$default->appendChild($xml->createTextNode('0'));
+		$element->appendChild($default);
+		
+		$file->setContents($xml->saveXML());
+	}
+	
+	public function remove($name) {
+		$file = $this->dao->get('/etc/uis.xml');
+		$xml = new \DOMDocument;
+		$xml->loadXML($file->contents());
+		
+		$root = $xml->getElementsByTagName('uis')->item(0);
+		$uis = $xml->getElementsByTagName('ui');
+
+		foreach ($uis as $ui) {
+			if ($ui->getAttribute('name') == $name) {
+				$root->removeChild($ui);
+				$file->setContents($xml->saveXML());
 				return;
 			}
 		}

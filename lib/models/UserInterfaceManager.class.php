@@ -4,8 +4,8 @@ namespace lib\models;
 /**
  * UserInterfaceManager gere les interfaces utilisateur (UIs).
  * @author $imon
- * @version 1.0
- * @since 1.0 - 26 nov. 2011
+ * @version 1.1
+ * @since 1.0 alpha 1 - 26 nov. 2011
  */
 abstract class UserInterfaceManager extends \lib\Manager {
 	/**
@@ -26,4 +26,16 @@ abstract class UserInterfaceManager extends \lib\Manager {
 	 * @param bool $value Vrai si l'interface doit etre marquee comme par defaut.
 	 */
 	abstract public function setDefault($name, $value);
+	
+	/**
+	 * Ajouter une interface a la liste.
+	 * @param string $name Le nom de l'interface.
+	 */
+	abstract public function add($name);
+	
+	/**
+	 * Supprimer une interface de la liste.
+	 * @param string $name Le nom de l'interface.
+	 */
+	abstract public function remove($name);
 }

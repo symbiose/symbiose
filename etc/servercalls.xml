@@ -42,6 +42,12 @@
 		<method name="setDefault">
 			<authorization action="file.system.write"/>
 		</method>
+		<method name="setEnabled">
+			<authorization action="file.system.write"/>
+		</method>
+		<method name="getInstalled">
+			<authorization action="file.system.read"/>
+		</method>
 	</class>
 	<class name="UserController">
 		<method name="connect"></method>

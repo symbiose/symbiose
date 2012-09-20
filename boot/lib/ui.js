@@ -130,6 +130,32 @@ Webos.UserInterface.setDefault = function(ui, value, callback) {
 		callback.error(response);
 	}));
 };
+Webos.UserInterface.setEnabled = function(ui, value, callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	new Webos.ServerCall({
+		'class': 'UserInterfaceController',
+		method: 'setEnabled',
+		arguments: {
+			ui: ui,
+			value: value
+		}
+	}).load(new Webos.Callback(function(response) {
+		callback.success();
+	}, function(response) {
+		callback.error(response);
+	}));
+};
+Webos.UserInterface.getInstalled = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	new Webos.ServerCall({
+		'class': 'UserInterfaceController',
+		method: 'getInstalled'
+	}).load([function(response) {
+		callback.success(response.getData());
+	}, callback.error]);
+};
 Webos.UserInterface._loadingScreenTimerId = null;
 Webos.UserInterface.showLoadingScreen = function() {
 	$('#webos-error p').empty();
