@@ -1,6 +1,6 @@
 /**
  * Visionneuse d'images Eye Of Symbiose.
- * @version 1.3
+ * @version 1.3.1
  * @author $imon
  */
 
@@ -161,12 +161,13 @@ function EyeOfSymbiose(image) {
 				.width(dimentions.width)
 				.height(dimentions.height)
 				.css({
-					'-moz-transform-origin': '0 0',
-					'-webkit-transform-origin': '0 0',
-					'-o-transform-origin': '0 0',
-					'-ms-transform-origin': '0 0',
-					'transform-origin': '0 0'
-				}).transition({ scale: value });
+					transformOrigin: 'center center'
+				})
+				.transition({
+					scale: value,
+					x: dimentions.width / (value * 100), // But why does it work ? xD
+					y: dimentions.height / (value * 100) // Why 100 ?
+				});
 		};
 		
 		this.zoomIn = function() {
@@ -210,7 +211,7 @@ function EyeOfSymbiose(image) {
 		this.openAboutWindow = function() {
 			$.w.window.about({
 				name: t.get('Image viewer'),
-				version: '1.3',
+				version: '1.3.1',
 				description: t.get('GNOME\'s image viewer.'),
 				author: '$imon',
 				icon: new W.Icon('applications/eos')
