@@ -1,4 +1,8 @@
 (function() {
+	if (window.Shell) {
+		return;
+	}
+	
 	//On charge les bibliotheques
 	W.ScriptFile.load(
 		'/usr/lib/webos/applications.js',
@@ -37,6 +41,14 @@
 		 * @var jQuery
 		 */
 		_$workspaces: $('#shell .workspaces'),
+		/**
+		 * Le cache de l'image d'arriere-plan pour les miniatures des espaces de travail.
+		 */
+		_backgroundImageData: null,
+		/**
+		 * Donnees pour identifier les caracteristiques du cache de l'arriere-plan pour les miniatures des espaces de travail.
+		 */
+		_backgroundImageId: null,
 		/**
 		 * L'entree de recherche du Shell.
 		 * @var jQuery
@@ -739,32 +751,38 @@
 			});
 		},
 		_drawWorkspace: function($item, workspace) {
+			var that = this;
+			
 			$item.html('<canvas>'+((workspace) ? workspace.id() + 1 : '+')+'</canvas>');
 			
 			var canvas = $item.children('canvas')[0];
 			
 			if (canvas.getContext) {
 				var desktopWidth = $('#desktop').outerWidth(), desktopHeight = $('#desktop').outerHeight();
-				var canvasWidth = 160;
-				var desktopFactorX = desktopWidth / canvasWidth;
-				var canvasHeight = desktopHeight / desktopFactorX;
+				var availableWidth = that._$workspaces.innerWidth(), availableHeight = that._$workspaces.innerHeight();
+				var nbrWorkspaces = $.w.window.workspace.getList().length;
+				
+				var maxCanvasHeight = Math.round(availableHeight / nbrWorkspaces);
+				var canvasHeight = (maxCanvasHeight > 110) ? 110 : maxCanvasHeight;
+				
 				var desktopFactorY = desktopHeight / canvasHeight;
+				var canvasWidth = Math.round(desktopWidth / desktopFactorY);
+				var desktopFactorX = desktopWidth / canvasWidth;
+				
+				if (canvasWidth > 160) {
+					canvasWidth = 160;
+					desktopFactorX = desktopWidth / canvasWidth;
+					canvasHeight = Math.round(desktopHeight / desktopFactorX);
+					desktopFactorY = desktopHeight / canvasHeight;
+				}
+				
 				canvas.setAttribute('width', canvasWidth);
 				canvas.setAttribute('height', canvasHeight);
 				
-				var ctx = canvas.getContext("2d");
+				var ctx = canvas.getContext('2d');
 				
-				//Fond blanc
-				ctx.fillStyle = 'white';
-				ctx.fillRect(0, 0, 160, 100);
-				
-				//Image d'arriere-plan
-				var url = Webos.File.get(Webos.Theme.current().get('background')).get('realpath');
-				var img = new Image();
-				img.onload = function() {
-					ctx.drawImage(img, 0, 0, 160, 100);
-					
-					//Fenetres
+				//Fenetres
+				var drawWindows = function() {
 					if (workspace) {
 						var windows = workspace.getWindows();
 						if (!windows.length) {
@@ -823,7 +841,41 @@
 						}
 					}
 				};
-				img.src = url;
+				
+				var url = Webos.File.get(Webos.Theme.current().get('background')).get('realpath');
+				
+				//Image d'arriere-plan
+				if (this._backgroundImageData && this._backgroundImageURL == url && this._backgroundImageData.width == canvasWidth && this._backgroundImageData.height == canvasHeight) {
+					ctx.putImageData(this._backgroundImageData, 0, 0);
+					
+					drawWindows();
+				} else {
+					//Fond blanc
+					ctx.fillStyle = 'white';
+					ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+					
+					var url = Webos.File.get(Webos.Theme.current().get('background')).get('realpath');
+					var img = new Image();
+					img.onload = function() {
+						var imgFactorX = canvasWidth / img.width, imgFactorY = canvasHeight / img.height;
+						var imgFactor;
+						if (imgFactorX > imgFactorY) {
+							imgFactor = imgFactorX;
+						} else {
+							imgFactor = imgFactorY;
+						}
+						var imgWidth = img.width * imgFactor, imgHeight = img.height * imgFactor;
+						var imgX = (canvasWidth - imgWidth) / 2, imgY = (canvasHeight - imgHeight) / 2;
+						
+						ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+						
+						that._backgroundImageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+						that._backgroundImageURL = url;
+						
+						drawWindows();
+					};
+					img.src = url;
+				}
 			}
 		},
 		_generateWorkspaces: function() {
