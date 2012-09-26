@@ -1700,7 +1700,7 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 		this.options._components.on = $('<div></div>', { 'class': 'label-on' }).html('I').appendTo(this.options._components.labels);
 		this.options._components.off = $('<div></div>', { 'class': 'label-off' }).html('O').appendTo(this.options._components.labels);
 		this.options._components.slider = $('<div></div>', { 'class': 'slider' }).appendTo(this.options._content);
-		this.options._components.slider.draggable({
+		this.options._components.slider.ui_draggable({
 			containment: 'parent',
 			axis: 'x',
 			stop: function(event, ui) {
@@ -2104,6 +2104,7 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 	}
 });
 $.webos.widget('draggable', draggableProperties);
+$.widget.bridge('ui_draggable', $.ui.draggable);
 
 //Droppable
 var droppableProperties = $.webos.extend($.webos.properties.get('widget'), {
