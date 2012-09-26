@@ -95,7 +95,7 @@ $.w.window.workspace.list = []; //Liste de tous les espaces de travail
 $.w.window.workspace.current = undefined; //Espace de travail courrant
 $.w.window.workspace.get = function(id) {
 	for (var i = 0; i < $.w.window.workspace.list.length; i++) {
-		if ($.w.window.workspace.list[i].id() == id) {
+		if ($.w.window.workspace.list[i].id() === id) {
 			return $.w.window.workspace.list[i];
 		}
 	}

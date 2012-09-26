@@ -780,7 +780,7 @@
 								}
 
 								var isHidden = false;
-								if (thisWindow.is(':hidden')) {
+								if (thisWindow.css('display') == 'none') {
 									isHidden = true;
 									thisWindow.show();
 								}
@@ -1070,7 +1070,7 @@
 				}
 			}).bind('keydown', function(e) {
 				if (e.keyCode == 13) {
-					clickOnFirstShortcut();
+					that._clickOnFirstShortcut();
 					e.preventDefault();
 				}
 			}).bind('keyup', function(event) {
