@@ -538,8 +538,8 @@ Webos.WebosFile.prototype = {
 			
 			var updatedData = {};
 			for (var key in data) {
-				if (that.get(key) !== file.data()[key]) {
-					updatedData[key] = file.data()[key];
+				if (that.get(key) !== data[key]) {
+					updatedData[key] = data[key];
 				}
 			}
 			that.hydrate(updatedData);

@@ -630,27 +630,45 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	},
 	_openProperties: function(file) {
-		var t = this.translations();
+		var t = this.translations(), that = this;
 		
 		var propertiesWindow = $.w.window({
 			title: t.get('Properties of ${name}', { name: file.get('basename') }),
 			icon: this._getFileIcon(file),
 			resizable: false,
+			width: 400,
 			stylesheet: 'usr/share/css/nautilus/properties.css'
 		});
-		
-		var mtime = new Date(file.get('mtime') * 1000), atime = new Date(file.get('atime') * 1000);
-		var data = [t.get('Name : ${name}', { name: file.get('basename') }),
-		            (file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : t.get('Type : ${extension} file', { extension: file.get('extension') }),
-		            t.get('Location : ${location}', { location: file.get('dirname') }),
-		            t.get('Last modification : ${date}', { date: Webos.Locale.current().completeDate(mtime) }),
-		            t.get('Last access : ${date}', { date: Webos.Locale.current().completeDate(atime) }),
-		            ((file.get('is_dir')) ? t.get('Contents : ${size} file${size|s}', { size: file.get('size') }) : t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }))];
-		propertiesWindow.window('content').append('<img src="'+this._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
-		var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
-		$.w.button(t.get('Close')).appendTo(buttons).click(function() {
-			propertiesWindow.window('close');
-		});
+
+		var displayPropertiesFn = function displayPropertiesFn(file) {
+			var mtime = new Date(file.get('mtime') * 1000), atime = new Date(file.get('atime') * 1000);
+			var data = [t.get('Name : ${name}', { name: file.get('basename') }),
+			            (file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : t.get('Type : ${extension} file', { extension: file.get('extension') }),
+			            t.get('Location : ${location}', { location: file.get('dirname') }),
+			            t.get('Last modification : ${date}', { date: Webos.Locale.current().completeDate(mtime) }),
+			            t.get('Last access : ${date}', { date: Webos.Locale.current().completeDate(atime) }),
+			            ((file.get('is_dir')) ? t.get('Contents : ${size} file${size|s}', { size: file.get('size') }) : t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }))];
+			propertiesWindow.window('content').append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
+			var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
+			$.w.button(t.get('Close')).appendTo(buttons).click(function() {
+				propertiesWindow.window('close');
+			});
+		};
+
+		if (file.exists('atime')) {
+			displayPropertiesFn(file);
+		} else {
+			propertiesWindow.window('loading', true);
+
+			file.load([function(file) {
+				propertiesWindow.window('loading', false);
+
+				displayPropertiesFn(file);
+			}, function(response) {
+				propertiesWindow.window('close');
+				response.triggerError();
+			}]);
+		}
 		
 		propertiesWindow.window('open');
 	},
