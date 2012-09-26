@@ -46,9 +46,9 @@
 		 */
 		_backgroundImageData: null,
 		/**
-		 * Donnees pour identifier les caracteristiques du cache de l'arriere-plan pour les miniatures des espaces de travail.
+		 * URL de l'arriere-plan en cache pour les miniatures des espaces de travail.
 		 */
-		_backgroundImageId: null,
+		_backgroundImageURL: null,
 		/**
 		 * L'entree de recherche du Shell.
 		 * @var jQuery
@@ -750,50 +750,41 @@
 				}
 			});
 		},
-		_drawWorkspace: function($item, workspace) {
+		_drawWorkspace: function($item, canvasDimentions, desktopFactors, workspace) {
 			var that = this;
 			
 			$item.html('<canvas>'+((workspace) ? workspace.id() + 1 : '+')+'</canvas>');
 			
 			var canvas = $item.children('canvas')[0];
 			
+			var canvasWidth = canvasDimentions.width, canvasHeight = canvasDimentions.height;
+			var desktopFactorX = desktopFactors.x, desktopFactorY = desktopFactors.y;
+			
+			canvas.setAttribute('width', canvasWidth);
+			canvas.setAttribute('height', canvasHeight);
+			
 			if (canvas.getContext) {
-				var desktopWidth = $('#desktop').outerWidth(), desktopHeight = $('#desktop').outerHeight();
-				var availableWidth = that._$workspaces.innerWidth(), availableHeight = that._$workspaces.innerHeight();
-				var nbrWorkspaces = $.w.window.workspace.getList().length;
-				
-				var maxCanvasHeight = Math.round(availableHeight / nbrWorkspaces);
-				var canvasHeight = (maxCanvasHeight > 110) ? 110 : maxCanvasHeight;
-				
-				var desktopFactorY = desktopHeight / canvasHeight;
-				var canvasWidth = Math.round(desktopWidth / desktopFactorY);
-				var desktopFactorX = desktopWidth / canvasWidth;
-				
-				if (canvasWidth > 160) {
-					canvasWidth = 160;
-					desktopFactorX = desktopWidth / canvasWidth;
-					canvasHeight = Math.round(desktopHeight / desktopFactorX);
-					desktopFactorY = desktopHeight / canvasHeight;
-				}
-				
-				canvas.setAttribute('width', canvasWidth);
-				canvas.setAttribute('height', canvasHeight);
-				
 				var ctx = canvas.getContext('2d');
 				
 				//Fenetres
 				var drawWindows = function() {
 					if (workspace) {
-						var windows = workspace.getWindows();
+						var windows = workspace.windows();
 						if (!windows.length) {
 							return;
 						}
-						
 						for (var i = 0; i < windows.length; i++) {
 							(function(thisWindow) {
-								if (thisWindow.window('is', 'hidden') || thisWindow.is(':hidden')) {
+								if (thisWindow.window('is', 'hidden')) {
 									return;
 								}
+
+								var isHidden = false;
+								if (thisWindow.is(':hidden')) {
+									isHidden = true;
+									thisWindow.show();
+								}
+
 								if (thisWindow.window('is', 'maximized')) {
 									var rectX = 0, rectY = 0;
 									var rectWidth = canvas.getAttribute('width'), rectHeight = canvas.getAttribute('height');
@@ -807,10 +798,17 @@
 									thisWindow.html2canvas({
 										proxy: null,
 										onrendered: function(canvas) {
+											if (isHidden) {
+												thisWindow.hide();
+											}
 											ctx.drawImage(canvas, rectX, rectY, rectWidth, rectHeight);
 										}
 									});
 								} else {
+									if (isHidden) {
+										thisWindow.hide();
+									}
+
 									ctx.fillStyle = 'white';
 									ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
 									ctx.fillStyle = 'black';
@@ -881,8 +879,32 @@
 		_generateWorkspaces: function() {
 			var that = this;
 			
-			var lastWorkspaceFilled = false, previousWorkspaceFilled = false, isWorkspaceEmpty = false;
 			var list = $.w.window.workspace.getList();
+			
+			var lastWorkspaceFilled = false;
+			if (list.length) {
+				lastWorkspaceFilled = (list[list.length - 1].windows().length > 0);
+			}
+			
+			var desktopWidth = $('#desktop').outerWidth(), desktopHeight = $('#desktop').outerHeight();
+			var availableWidth = that._$workspaces.width(), availableHeight = that._$workspaces.height();
+			var nbrWorkspaces = $.w.window.workspace.getList().length + ((lastWorkspaceFilled) ? 1 : 0);
+			
+			var maxCanvasHeight = Math.round((availableHeight - nbrWorkspaces * 4) / nbrWorkspaces);
+			var canvasHeight = (maxCanvasHeight > 110) ? 110 : maxCanvasHeight;
+			
+			var desktopFactorY = desktopHeight / canvasHeight;
+			var canvasWidth = Math.round(desktopWidth / desktopFactorY);
+			var desktopFactorX = desktopWidth / canvasWidth;
+			
+			if (canvasWidth > 160) {
+				canvasWidth = 160;
+				desktopFactorX = desktopWidth / canvasWidth;
+				canvasHeight = Math.round(desktopHeight / desktopFactorX);
+				desktopFactorY = desktopHeight / canvasHeight;
+			}
+			
+			var lastWorkspaceFilled = false, previousWorkspaceFilled = false, isWorkspaceEmpty = false;
 			for (var i = 0; i < list.length; i++) {
 				(function(workspace) {
 					previousWorkspaceFilled = lastWorkspaceFilled;
@@ -910,26 +932,27 @@
 					
 					if (found && workspace.id() != $.w.window.workspace.getCurrent().id()) {
 						$item.removeClass('active');
-						return;
+						if ($item.children('canvas').width() == canvasWidth && $item.children('canvas').height() == canvasHeight) {
+							return;
+						}
 					}
 					
 					if (!found) {
 						$item = $('<li></li>', { 'class': 'workspace' });
 						$item.appendTo(that._$workspaces);
 						$item.data('workspaceId', workspace.id());
+						$item.click(function() {
+							$.w.window.workspace.switchTo(workspace.id());
+							that._$workspaces.children('li.active').removeClass('active');
+							$item.addClass('active');
+						});
 					}
 					
 					if (workspace.id() == $.w.window.workspace.getCurrent().id()) {
 						$item.addClass('active');
 					}
 					
-					$item.click(function() {
-						$.w.window.workspace.switchTo(workspace.id());
-						that._$workspaces.children('li.active').removeClass('active');
-						$item.addClass('active');
-					});
-					
-					that._drawWorkspace($item, workspace);
+					that._drawWorkspace($item, { width: canvasWidth, height: canvasHeight }, { x: desktopFactorX, y: desktopFactorY }, workspace);
 				})(list[i]);
 			}
 			
@@ -945,7 +968,7 @@
 					that._generateWorkspaces();
 				});
 				$item.appendTo(that._$workspaces);
-				that._drawWorkspace($item);
+				that._drawWorkspace($item, { width: canvasWidth, height: canvasHeight }, { x: desktopFactorX, y: desktopFactorY });
 			}
 		},
 		_hideWorkspaces: function() {
