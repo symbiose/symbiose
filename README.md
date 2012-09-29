@@ -1,16 +1,44 @@
-Symbiose 1.0 alpha 3
-====================
+[Symbiose 1.0 alpha 3](http://symbiose.fr.cr/)
+==============================================
 
 This version (alpha) is unstable.  
 Cette version (alpha) n'est pas stable.
 
+Quick start
+-----------
+
+Clone the repo, `git clone git://github.com/symbiose/symbiose.git`, or [download the latest release](https://github.com/symbiose/symbiose/zipball/master).
+
+Bug tracker
+-----------
+
+Have a bug ? Please create an issue here on GitHub : https://github.com/twitter/bootstrap/issues.
+
+Installing
+----------
+
+To install Symbiose you just need to unzip files on your web server.
 
 Software requirements
 ---------------------
 
-* Server : PHP >= 5.3
-* Client : a fast and modern web browser (e.g. Mozilla Firefox)
+* Server : 
+ * PHP >= 5.3
+ * No database required
+* Client : a fast and modern web browser (e.g. *Mozilla Firefox*)
 
+Authors
+-------
+
+**$imon**
++ http://simonser.fr.nf/
++ http://github.com/simonser
+
+**Codel**
++ https://github.com/Codel
+
+**Doppelganger**
++ https://github.com/Doppelganger-Symbiose
 
 Copyright
 ---------
