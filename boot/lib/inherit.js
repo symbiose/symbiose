@@ -18,6 +18,10 @@ Webos.inherit = function(C, P) {
  * @returns {Boolean} Vrai si l'objet est une instance de la classe spécifiée.
  */
 Webos.isInstanceOf = function(instance, obj) {
+	if (!instance || typeof instance != 'object' || !obj) {
+		return false;
+	}
+
 	var current;
 	do {
 		if (current) {
