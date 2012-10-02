@@ -48,7 +48,7 @@ Webos.Error.catchError = function(error) {
 			}
 		}
 	}
-	if (typeof Webos.Error.callback != 'undefined') {
+	if (typeof Webos.Error.callback == 'function') {
 		Webos.Error.callback(error);
 	}
 };
