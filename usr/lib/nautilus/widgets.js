@@ -640,7 +640,102 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			stylesheet: 'usr/share/css/nautilus/properties.css'
 		});
 
+		var tabs = $.webos.tabs().appendTo(propertiesWindow.window('content'));
+		var dataTab = tabs.tabs('tab', 'General');
+
 		var displayPropertiesFn = function displayPropertiesFn(file) {
+			if (!file.get('is_dir')) {
+				var openTab = tabs.tabs('tab', t.get('Open with...'));
+
+				var openTabGenerated = false;
+				tabs.bind('tabsselect', function(e, data) {
+					if (data.tab == 1 && !openTabGenerated) { //Open with...
+						$.w.label(t.get('Select an application to open this file and other files of the same type :')).appendTo(openTab);
+						var list = $.w.list().appendTo(openTab);
+
+						var selectedApp;
+						
+						var showAppsFn = function() {
+							selectedApp = null, preferedItem = null;
+							list.list('content').empty();
+							defineDefaultBtn.button('option', 'disabled', true);
+							removeDefaultBtn.button('option', 'disabled', true);
+							propertiesWindow.window('loading', true);
+							Webos.Application.listOpeners(file.get('extension'), function(openers) {
+								for (var i = 0; i < openers.length; i++) {
+									(function(app) {
+										var title = '<img src="'+W.Icon.toIcon(app.get('icon')).realpath(20)+'" style="height: 20px; width: 20px;" alt=""/> '+app.get('title'), prefered = false;
+										if ($.inArray(file.get('extension'), app.get('preferedOpen')) != -1) {
+											prefered = true;
+											title = '<strong>'+title+' '+t.get('(by default)')+'</strong>';
+										}
+
+										var item = $.w.listItem([title]);
+
+										item.bind('listitemselect', function() {
+											selectedApp = app;
+											defineDefaultBtn.button('option', 'disabled', prefered);
+											removeDefaultBtn.button('option', 'disabled', !prefered);
+										});
+
+										if (prefered) {
+											if (preferedItem) {
+												item.insertAfter(preferedItem);
+											} else {
+												preferedItem = item;
+												item.prependTo(list.list('content'));
+											}
+										} else {
+											item.appendTo(list.list('content'));
+										}
+									})(openers[i]);
+								}
+								propertiesWindow.window('loading', false);
+							});
+						};
+
+						var buttons = $.w.buttonContainer().appendTo(openTab);
+						var defineDefaultBtn = $.w.button(t.get('Define by default')).click(function() {
+							if (!selectedApp || $.inArray(file.get('extension'), selectedApp.get('preferedOpen')) != -1) {
+								return;
+							}
+
+							selectedApp.addPreferedOpen(file.get('extension'));
+
+							propertiesWindow.window('loading', true);
+							selectedApp.sync(function() {
+								propertiesWindow.window('loading', false);
+								showAppsFn();
+							});
+						}).appendTo(buttons);
+						var removeDefaultBtn = $.w.button(t.get('Remove')).click(function() {
+							if (!selectedApp || $.inArray(file.get('extension'), selectedApp.get('preferedOpen')) == -1) {
+								return;
+							}
+
+							var currentExts = selectedApp.get('preferedOpen'), newExts = [];
+							for (var i = 0; i < currentExts.length; i++) {
+								if (currentExts[i] != file.get('extension')) {
+									newExts.push(currentExts[i]);
+								}
+							}
+
+							selectedApp.setPreferedOpen(newExts);
+
+							propertiesWindow.window('loading', true);
+							selectedApp.sync(function() {
+								propertiesWindow.window('loading', false);
+								showAppsFn();
+							});
+						}).appendTo(buttons);
+
+						showAppsFn();
+
+						openTabGenerated = true;
+					}
+				});
+			}
+
 			var mtime = new Date(file.get('mtime') * 1000), atime = new Date(file.get('atime') * 1000);
 			var data = [t.get('Name : ${name}', { name: file.get('basename') }),
 			            (file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : t.get('Type : ${extension} file', { extension: file.get('extension') }),
@@ -648,7 +743,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			            t.get('Last modification : ${date}', { date: Webos.Locale.current().completeDate(mtime) }),
 			            t.get('Last access : ${date}', { date: Webos.Locale.current().completeDate(atime) }),
 			            ((file.get('is_dir')) ? t.get('Contents : ${size} file${size|s}', { size: file.get('size') }) : t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }))];
-			propertiesWindow.window('content').append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
+			dataTab.append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
 			var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
 			$.w.button(t.get('Close')).appendTo(buttons).click(function() {
 				propertiesWindow.window('close');
@@ -669,7 +764,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				response.triggerError();
 			}]);
 		}
-		
+
 		propertiesWindow.window('open');
 	},
 	_download: function(file) {
@@ -880,7 +975,16 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			var runOpenerFn = function() {
 				Webos.Application.listOpeners(file.get('extension'), function(openers) {
 					if (openers.length > 0) {
-						W.Cmd.execute(openers[0].get('command')+' "'+file.get('path')+'"');
+						var prefered = openers[0];
+
+						for (var i = 0; i < openers.length; i++) {
+							if ($.inArray(file.get('extension'), openers[i].get('preferedOpen')) != -1) {
+								prefered = openers[i];
+								break;
+							}
+						}
+
+						W.Cmd.execute(prefered.get('command')+' "'+file.get('path')+'"');
 					} else {
 						that.openFileWindow(file);
 					}
@@ -949,17 +1053,36 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				W.Cmd.execute(chosenCmd+' "'+file.get('path')+'"');
 			}).appendTo(fileOpenerWindow.window('content'));
 			
-			content.append('<strong>'+t.get('Select an application to open ${name}', { name: file.get('basename') })+'</strong>');
+			content.append('<strong>'+t.get('Select an application to open ${name}', { name: file.get('basename') })+' : </strong>');
 			
 			var list = $.w.list().appendTo(content);
-			
+			var preferedItem = null;
+
 			for (var i = 0; i < apps.length; i++) {
 				(function(app) {
-					$.w.listItem([app.get('title')]).appendTo(list.list('content')).bind('listitemselect', function() {
+					var title = '<img src="'+W.Icon.toIcon(app.get('icon')).realpath(20)+'" style="height: 20px; width: 20px;" alt=""/> '+app.get('title'), prefered = false;
+					if ($.inArray(file.get('extension'), app.get('preferedOpen')) != -1) {
+						prefered = true;
+						title = '<strong>'+title+' '+t.get('(by default)')+'</strong>';
+					}
+
+					var item = $.w.listItem([title]).bind('listitemselect', function() {
 						chosenCmd = app.get('command');
 					}).bind('listitemunselect', function() {
 						chosenCmd = '';
 					});
+
+					if (prefered) {
+						if (preferedItem) {
+							item.insertAfter(preferedItem);
+						} else {
+							preferedItem = item;
+							item.prependTo(list.list('content'));
+							item.listItem('option', 'active', true);
+						}
+					} else {
+						item.appendTo(list.list('content'));
+					}
 				})(apps[i]);
 			}
 			

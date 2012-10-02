@@ -46,6 +46,15 @@ class ConfigController extends \lib\ServerCallComponent {
 		$config = new Config($this->webos);
 		$data = array();
 
+		if (is_array($base)) {
+			$data = $base;
+			$base = null;
+
+			foreach ($data as $attribute => $value) {
+				$config->set($attribute, $value);
+			}
+		}
+
 		if (!$this->webos->getUser()->isConnected()) {
 			if (!empty($base)) {
 				$config->load($base);

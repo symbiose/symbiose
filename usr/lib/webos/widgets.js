@@ -1973,6 +1973,8 @@ var tabsProperties = $.webos.extend($.webos.properties.get('container'), {
 				
 				$(this.options._components.tabs.children('li')[index]).addClass('active');
 				this.tab(index).addClass('active');
+
+				this._trigger('select', { type: 'select' }, { tab: index });
 				break;
 		}
 	}

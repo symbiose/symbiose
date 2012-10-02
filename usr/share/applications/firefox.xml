@@ -7,4 +7,5 @@
 	<attribute name="menu" value="applications"/>
 	<attribute name="category" value="internet"/>
 	<attribute name="open" value="html,htm"/>
+	<attribute name="type" value="web-browser"/>
 </shortcut>

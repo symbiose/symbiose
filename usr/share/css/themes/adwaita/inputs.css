@@ -147,7 +147,7 @@ input[type="submit"][disabled]:active,
 
 .webos-button-container {
 	padding: 2px;
-	float: right;
+	text-align: right;
 }
 
 .webos-spoiler {

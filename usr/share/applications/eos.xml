@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
-	<attribute name="title" value="Visionneur d'images"/>
+	<attribute name="title" value="Visionneuse d'images"/>
 	<attribute name="description" value="Afficher des images"/>
 	<attribute name="command" value="eos"/>
 	<attribute name="icon" value="applications/eos"/>
 	<attribute name="category" value="accessories"/>
 	<attribute name="open" value="png,jpeg,jpg,gif"/>
+	<attribute name="type" value="image-viewer"/>
 </shortcut>

@@ -1,6 +1,8 @@
 <?php
 namespace lib\controllers;
 
+use lib\models\Config;
+
 /**
  * Permet d'effectuer des actions sur les raccourcis des applications.
  * @author $imon
@@ -28,6 +30,20 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 	 * Recuperer tous les raccourcis.
 	 */
 	protected function get() {
+		if ($this->webos->getUser()->isConnected()) {
+			$path = '~/.config/prefered-openers.xml';
+
+			$config = new Config($this->webos);
+
+			if (!$this->webos->managers()->get('File')->exists($path)) {
+				$file = $this->webos->managers()->get('File')->createFile($path);
+				$file->setContents($config->saveXML());
+			}
+
+			$config->load($path);
+			$preferedOpeners = $config->getConfig();
+		}
+
 		//On recupere la liste des raccourcis
 		$applications = $this->webos->managers()->get('File')->get('/usr/share/applications/')->contents();
 		//On initialise la liste
@@ -47,6 +63,18 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 			$attributesList = array();
 			foreach ($attributes as $attribute) {
 				$attributesList[$attribute->getAttribute('name')] = $attribute->getAttribute('value');
+			}
+
+			$attributesList['prefered_open'] = '';
+			if (array_key_exists($shortcut->filename(), $preferedOpeners)) {
+				$opens = $preferedOpeners[$shortcut->filename()];
+				$attributesList['prefered_open'] = $opens;
+
+				if (array_key_exists('open', $attributesList)) {
+					$attributesList['open'] .= ',' . $opens;
+				} else {
+					$attributesList['open'] = $opens;
+				}
 			}
 
 			if (array_key_exists('visible', $attributesList) && (int) $attributesList['visible'] == 0)

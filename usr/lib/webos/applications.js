@@ -8,10 +8,31 @@ Webos.Application.prototype = {
 		return this._name;
 	},
 	open: function() {
-		return (this.exists('open')) ? this._get('open').split(',') : [];
+		return (this.exists('open') && this._get('open')) ? this._get('open').split(',') : [];
 	},
-	setOpen: function() {
-		return false;
+	preferedOpen: function() {
+		return (this.exists('prefered_open') && this._get('prefered_open')) ? this._get('prefered_open').split(',') : [];
+	},
+	setPreferedOpen: function(exts) {
+		this._set('prefered_open', String(exts));
+		return true;
+	},
+	addPreferedOpen: function(ext) {
+		ext = String(ext);
+
+		if (this.get('preferedOpen').length) {
+			if ($.inArray(ext, this.get('preferedOpen'))) {
+				return true;
+			}
+			this._set('prefered_open', this.get('preferedOpen').join(',') + ',' + ext);
+			console.log(this._get('prefered_open'));
+		} else {
+			this._set('prefered_open', ext);
+		}
+		return true;
+	},
+	type: function() {
+		return (this.exists('type')) ? this._get('type').split(',') : [];
 	},
 	favorite: function() {
 		var favorite = this._get('favorite');
@@ -56,7 +77,7 @@ Webos.Application.prototype = {
 					that._data['favorite'] = that._unsynced['favorite'].value;
 					delete that._unsynced['favorite'];
 					that.notify('update', { key: 'favorite', value: that._data[key].value });
-					callback.success(that);
+					callback.success();
 				}, callback.error));
 			} else {
 				new Webos.ServerCall({
@@ -68,10 +89,22 @@ Webos.Application.prototype = {
 				}).load(new Webos.Callback(function() {
 					that._data['favorite'] = that._unsynced['favorite'].value;
 					delete that._unsynced['favorite'];
-					that.notify('update', { key: 'favorite', value: that._data[key].value });
-					callback.success(that);
+					that.notify('update', { key: 'favorite', value: that._data['favorite'].value });
+					callback.success();
 				}, callback.error));
 			}
+		}
+
+		if (typeof data.prefered_open != 'undefined') {
+			Webos.ConfigFile.loadUserConfig('~/.config/prefered-openers.xml', null, [function(config) {
+				config.set(that.get('name'), data.prefered_open);
+				config.sync([function() {
+					that._data['prefered_open'] = that._unsynced['prefered_open'].value;
+					delete that._unsynced['prefered_open'];
+					that.notify('update', { key: 'prefered_open', value: that._data['prefered_open'].value });
+					callback.success();
+				}, callback.error]);
+			}, callback.error]);
 		}
 	}
 };
@@ -103,11 +136,19 @@ Webos.Application.list = function(callback) {
 			var app = new Webos.Application(data.applications[key], key);
 			
 			var openers = app.get('open');
+			var processedExts = [];
 			for (var i = 0; i < openers.length; i++) {
-				if (!Webos.Application._openers[openers[i]]) {
-					Webos.Application._openers[openers[i]] = [];
+				var ext = openers[i];
+
+				if ($.inArray(ext, processedExts) != -1) {
+					continue;
 				}
-				Webos.Application._openers[openers[i]].push(key);
+
+				if (!Webos.Application._openers[ext]) {
+					Webos.Application._openers[ext] = [];
+				}
+				Webos.Application._openers[ext].push(key);
+				processedExts.push(ext);
 			}
 			
 			Webos.Application._applications[key] = app;
@@ -126,8 +167,16 @@ Webos.Application.list = function(callback) {
 Webos.Application.get = function(name, callback) {
 	name = String(name);
 	callback = Webos.Callback.toCallback(callback);
-	
-	return Webos.Application._applications[name];
+
+	if (!Webos.Application._loaded) {
+		Webos.Application.list([function() {
+			callback.success(Webos.Application._applications[name]);
+		}, callback.error]);
+	} else {
+		var app = Webos.Application._applications[name];
+		callback.success(app);
+		return app;
+	}
 };
 Webos.Application.listByCategory = function(cat, callback, apps) {
 	callback = Webos.Callback.toCallback(callback);
@@ -241,6 +290,22 @@ Webos.Application.listOpeners = function(extension, callback) {
 	}, callback.error]);
 };
 
+Webos.Application.listByType = function(type, callback) {
+	callback = W.Callback.toCallback(callback);
+	
+	Webos.Application.list([function(apps) {
+		var list = [];
+		for (var key in apps) {
+			var app = apps[key];
+			if (app.exists('type') && $.inArray(type, app.get('type')) != -1) {
+				list.push(app);
+				return;
+			}
+		}
+		callback.success([]);
+	}, callback.error]);
+};
+
 Webos.Application.categories = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -257,11 +322,33 @@ Webos.Application.category = function(name, callback) {
 	}, callback.error]);
 };
 
-Webos.Application.getDefault = function(type, callback) {
+Webos.Application.getPrefered = function(type, callback) {
 	type = String(type);
 	callback = Webos.Callback.toCallback(callback);
 	
 	Webos.Application.list([function() {
-		callback.success(Webos.Application.get('firefox'));
+		Webos.ConfigFile.loadUserConfig('~/.config/prefered-apps.xml', null, [function(config) {
+			if (config.exists(type)) {
+				callback.success(Webos.Application.get(config.get(type)));
+			} else {
+				callback.success(null);
+			}
+		}, callback.error]);
+	}, callback.error]);
+};
+Webos.Application.setPrefered = function(app, type, callback) {
+	if (Webos.isInstanceOf(app, Webos.Application)) {
+		app = app.get('command');
+	} else {
+		app = String(app);
+	}
+	type = String(type);
+	callback = Webos.Callback.toCallback(callback);
+	
+	Webos.ConfigFile.loadUserConfig('~/.config/prefered-apps.xml', null, [function(config) {
+		config.set(type, app);
+		config.sync([function() {
+			callback.success();
+		}, callback.error]);
 	}, callback.error]);
 };

@@ -7,4 +7,5 @@
 	<attribute name="menu" value="applications"/>
 	<attribute name="category" value="soundandvideo"/>
 	<attribute name="open" value="mp3,oga,mp4,m4v,ogg,ogv"/>
+	<attribute name="type" value="music-player,video-player"/>
 </shortcut>

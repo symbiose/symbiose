@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category>
+	<define name="name" value="prefered-apps"/>
+	<define name="title" value="Applications préférées"/>
+	<define name="icon" value="status/starred"/>
+	<define name="description" value="Définir les applications par défaut"/>
+</category>
