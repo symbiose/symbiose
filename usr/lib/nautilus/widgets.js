@@ -641,7 +641,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		});
 
 		var tabs = $.webos.tabs().appendTo(propertiesWindow.window('content'));
-		var dataTab = tabs.tabs('tab', 'General');
+		var dataTab = tabs.tabs('tab', t.get('General'));
 
 		var displayPropertiesFn = function displayPropertiesFn(file) {
 			if (!file.get('is_dir')) {
@@ -1004,7 +1004,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				
 				$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
 				$('<strong></strong>').html(t.get('Do you want to execute « ${name} » or to display his contents ?', { name: file.get('basename') })).appendTo(form);
-				form.after('<p>'+t.get('« ${name} » is an executable text file.', { name: file.get('basename') })+'</p>');
+				form.append('<p>'+t.get('« ${name} » is an executable text file.', { name: file.get('basename') })+'</p>');
 				
 				var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(form);
 				$.w.button(t.get('Run in a terminal')).click(function() {
