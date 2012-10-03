@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="PackageController">
+	<method name="getAvailable">
+		<authorization action="package.read"/>
+	</method>
+	<method name="getPackage">
+		<authorization action="package.read"/>
+	</method>
+	<method name="getFromCategory">
+		<authorization action="package.read"/>
+	</method>
+	<method name="getLastPackages">
+		<authorization action="package.read"/>
+	</method>
+	<method name="getInstalled">
+		<authorization action="package.read"/>
+	</method>
+	<method name="getLastInstalled">
+		<authorization action="package.read"/>
+	</method>
+	<method name="searchPackages">
+		<authorization action="package.read"/>
+	</method>
+	<method name="install">
+		<argument id="0" type="package" action="manage"/>
+	</method>
+	<method name="remove">
+		<argument id="0" type="package" action="manage"/>
+	</method>
+	<method name="getUpdates">
+		<authorization action="package.read"/>
+	</method>
+	<method name="updateCache">
+		<authorization action="package.read"/>
+	</method>
+	<method name="upgrade">
+		<authorization action="package.manage"/>
+	</method>
+	<method name="getRepositories">
+		<authorization action="package.read"/>
+	</method>
+	<method name="removeRepository">
+		<authorization action="package.write"/>
+	</method>
+	<method name="addRepository">
+		<authorization action="package.write"/>
+	</method>
+</class>

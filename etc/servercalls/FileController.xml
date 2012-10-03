@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="FileController">
+	<method name="getContents">
+		<argument id="0" type="file" action="read"/>
+	</method>
+	<method name="readDir">
+		<argument id="0" type="file" action="read"/>
+	</method>
+	<method name="getData">
+		<argument id="0" type="file" action="read"/>
+	</method>
+	<method name="rename">
+		<argument id="0" type="file" action="write"/>
+	</method>
+	<method name="move">
+		<argument id="0" type="file" action="read"/>
+		<argument id="1" type="file" action="write"/>
+	</method>
+	<method name="delete">
+		<argument id="0" type="file" action="write"/>
+	</method>
+	<method name="createFile">
+		<argument id="0" type="file" action="write"/>
+	</method>
+	<method name="createFolder">
+		<argument id="0" type="file" action="write"/>
+	</method>
+	<method name="setContents">
+		<argument id="0" type="file" action="write"/>
+	</method>
+	<method name="upload">
+		<argument id="0" type="file" action="write"/>
+	</method>
+	<method name="download">
+		<argument id="0" type="file" action="read"/>
+	</method>
+</class>

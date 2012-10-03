@@ -72,33 +72,38 @@ class Authorization extends \lib\WebosComponent {
 	 * @param $providedArguments les arguments fournis.
 	 */
 	protected function _getActionAuthorization($className, $methodName, array $providedArguments) {
+		$path = '/etc/servercalls/'.$className.'.xml';
+		$manager = $this->webos->managers()->get('File');
+
+		if (!$manager->exists($path)) {
+			throw new \RuntimeException('Impossible de r&eacute;cup&eacute;rer les autorisations de la classe "'.$className.'"');
+		}
+
+		$file = $manager->get($path);
+
 		$xml = new \DOMDocument;
-		$xml->load('etc/servercalls.xml');
-		$classes = $xml->getElementsByTagName('class');
-		foreach ($classes as $class) {
-			if ($class->getAttribute('name') == $className) {
-				$methods = $class->getElementsByTagName('method');
-				foreach($methods as $method) {
-					if ($method->getAttribute('name') == $methodName) {
-						$requiredAuthorizations = array();
+		$xml->loadXML($file->contents());
+		$methods = $xml->getElementsByTagName('method');
+		foreach($methods as $method) {
+			if ($method->getAttribute('name') == $methodName) {
+				$requiredAuthorizations = array();
 
-						$methodAuthorizations = $method->getElementsByTagName('authorization');
-						foreach($methodAuthorizations as $methodAuthorization) {
-							$requiredAuthorizations[] = $methodAuthorization->getAttribute('action');
-						}
-
-						$arguments = $method->getElementsByTagName('argument');
-						foreach($arguments as $argument) {
-							$providedArgument = null;
-							if (array_key_exists((int) $argument->getAttribute('id'), $providedArguments)) {
-								$providedArgument = $providedArguments[(int) $argument->getAttribute('id')];
-							}
-
-							$requiredAuthorizations[] = $this->getArgumentAuthorizations($providedArgument, $argument->getAttribute('type'), $argument->getAttribute('action'));
-						}
-						return $requiredAuthorizations;
-					}
+				$methodAuthorizations = $method->getElementsByTagName('authorization');
+				foreach($methodAuthorizations as $methodAuthorization) {
+					$requiredAuthorizations[] = $methodAuthorization->getAttribute('action');
 				}
+
+				$arguments = $method->getElementsByTagName('argument');
+				foreach($arguments as $argument) {
+					$providedArgument = null;
+					if (array_key_exists((int) $argument->getAttribute('id'), $providedArguments)) {
+						$providedArgument = $providedArguments[(int) $argument->getAttribute('id')];
+					}
+
+					$requiredAuthorizations[] = $this->getArgumentAuthorizations($providedArgument, $argument->getAttribute('type'), $argument->getAttribute('action'));
+				}
+				
+				return $requiredAuthorizations;
 			}
 		}
 

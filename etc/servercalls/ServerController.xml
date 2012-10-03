@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="ServerController">
+	<method name="getHost"></method>
+	<method name="getWebosVersion"></method>
+	<method name="getSystemData"></method>
+</class>

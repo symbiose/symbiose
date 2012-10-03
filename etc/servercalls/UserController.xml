@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="UserController">
+	<method name="connect"></method>
+	<method name="disconnect"></method>
+	<method name="connectAsGuest"></method>
+	<method name="getAttribute">
+		<argument id="0" type="user" action="read"/>
+	</method>
+	<method name="setAttribute">
+		<argument id="2" type="user" action="edit"/>
+	</method>
+	<method name="setMultipleAttributes">
+		<argument id="1" type="user" action="edit"/>
+	</method>
+	<method name="setPassword">
+		<argument id="2" type="user" action="edit"/>
+	</method>
+	<method name="getAttributes">
+		<argument id="0" type="user" action="read"/>
+	</method>
+	<method name="getLogged"></method>
+	<method name="getList">
+		<authorization action="user.read"/>
+	</method>
+	<method name="getAuthorizations">
+		<argument id="0" type="user" action="read"/>
+	</method>
+	<method name="setAuthorizations">
+		<argument id="1" type="user" action="manage"/>
+	</method>
+	<method name="remove">
+		<argument id="0" type="user" action="edit"/>
+	</method>
+	<method name="create">
+		<authorization action="user.manage"/>
+	</method>
+	<method name="register"></method>
+	<method name="canRegister"></method>
+</class>

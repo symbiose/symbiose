@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="UserInterfaceController">
+	<method name="loadUI"></method>
+	<method name="getUIsList"></method>
+	<method name="setDefault">
+		<authorization action="file.system.write"/>
+	</method>
+	<method name="setEnabled">
+		<authorization action="file.system.write"/>
+	</method>
+	<method name="getInstalled">
+		<authorization action="file.system.read"/>
+	</method>
+</class>

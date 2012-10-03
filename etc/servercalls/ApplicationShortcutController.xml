@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class name="ApplicationShortcutController">
+	<method name="get"></method>
+	<method name="setFavorite"></method>
+	<method name="removeFavorite"></method>
+</class>
