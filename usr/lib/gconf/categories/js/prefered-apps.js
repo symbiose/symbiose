@@ -3,22 +3,28 @@ var content = confWindow.window('content');
 
 var types = {
 	'web-browser': {
-		title: 'Websites'
+		title: 'Websites',
+		icon: 'apps/web-browser'
 	},
 	'email-client': {
-		title: 'E-mails'
+		title: 'E-mails',
+		icon: 'apps/email-client'
 	},
 	'calendar': {
-		title: 'Calendar'
+		title: 'Calendar',
+		icon: 'apps/calendar'
 	},
-	'music-player': {
-		title: 'Music'
+	'audio-player': {
+		title: 'Music',
+		icon: 'apps/audio-player'
 	},
 	'video-player': {
-		title: 'Videos'
+		title: 'Videos',
+		icon: 'apps/video-player'
 	},
 	'image-viewer': {
-		title: 'Pictures'
+		title: 'Pictures',
+		icon: 'apps/image-viewer'
 	}
 };
 
@@ -26,7 +32,7 @@ confWindow.window('loading', true);
 W.Application.list([function(apps) {
 	for (var key in types) {
 		(function(key, type) {
-			var item = $.w.selectButton(type.title), choices = {}, nbrChoices = 0;
+			var item = $.w.selectButton('<img src="'+new W.Icon(type.icon).realpath(22)+'" alt="" style="width: 22px; height: 22px;"/> '+type.title), choices = {}, nbrChoices = 0;
 
 			item.bind('selectbuttonchange', function(e, data) {
 				confWindow.window('loading', true);
