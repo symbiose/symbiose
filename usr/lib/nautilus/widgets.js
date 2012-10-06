@@ -196,12 +196,13 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		userCallback = W.Callback.toCallback(userCallback, new W.Callback(function() {}, function(response) {
 			response.triggerError(t.get('Can\'t find « ${dir} ».', { dir: dir }));
 		}));
-		
-		var callback = new W.Callback(function(files) {
+
+		this._trigger('readstart', {}, { location: dir });
+
+		W.File.listDir(dir, [function(files) {
 			that.options.directory = dir;
 			
 			var contextmenu;
-			
 			that.options._components.contextmenu = contextmenu = $.w.contextMenu(that.element);
 			
 			$.webos.menuItem(t.get('Create a new folder')).click(function() {
@@ -211,9 +212,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				that.createFile(t.get('New file'));
 			}).appendTo(contextmenu);
 			$.webos.menuItem(t.get('Download'), true).click(function() {
-				W.File.load(dir, new W.Callback(function(file) {
-					that._download(file);
-				}));
+				that._download(W.File.get(dir));
 			}).appendTo(contextmenu);
 			$.webos.menuItem(t.get('Upload a file')).click(function() {
 				that.openUploadWindow();
@@ -222,9 +221,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				that.refresh();
 			}).appendTo(contextmenu);
 			$.webos.menuItem(t.get('Properties'), true).click(function() {
-				W.File.load(that.options.directory, new W.Callback(function(file) {
-					that._openProperties(file);
-				}));
+				that._openProperties(W.File.get(dir));
 			}).appendTo(contextmenu);
 			
 			var serverCall = new W.ServerCall({
@@ -349,11 +346,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			that._trigger('readerror', {}, { location: that.location() });
 			
 			userCallback.error(response);
-		});
-		
-		this._trigger('readstart', {}, { location: dir });
-		
-		W.File.listDir(dir, callback);
+		}]);
 	},
 	_render: function(files) {
 		var that = this;
@@ -376,17 +369,19 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		this.element.scrollPane('reload');
 		
-		var createFileCallbackId = Webos.File.bind('create', function(data) {
+		var createFileCallbackId = Webos.File.bind('load', function(data) {
 			var newFile = data.file;
 			
 			if (newFile.get('dirname') != that.location()) {
 				return;
 			}
 			
-			that.options._files[newFile.get('path')] = newFile;
-			var newItem = that._renderItem(newFile);
-			that._insertItem(newItem);
-			that.element.scrollPane('reload');
+			if (!that.options._files[newFile.get('path')]) {
+				that.options._files[newFile.get('path')] = newFile;
+				var newItem = that._renderItem(newFile);
+				that._insertItem(newItem);
+				that.element.scrollPane('reload');
+			}
 		});
 		var umountCallbackId = Webos.File.bind('umount', function(data) {
 			if (that.location().indexOf(data.local) != 0) {
@@ -611,6 +606,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			item = newItem;
 		});
 		var removeCallbackId = file.bind('remove', function() {
+			delete that.options._files[filepath];
 			item.remove();
 		});
 		
@@ -736,13 +732,20 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				});
 			}
 
-			var mtime = new Date(file.get('mtime') * 1000), atime = new Date(file.get('atime') * 1000);
 			var data = [t.get('Name : ${name}', { name: file.get('basename') }),
 			            (file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : t.get('Type : ${extension} file', { extension: file.get('extension') }),
 			            t.get('Location : ${location}', { location: file.get('dirname') }),
-			            t.get('Last modification : ${date}', { date: Webos.Locale.current().completeDate(mtime) }),
-			            t.get('Last access : ${date}', { date: Webos.Locale.current().completeDate(atime) }),
 			            ((file.get('is_dir')) ? t.get('Contents : ${size} file${size|s}', { size: file.get('size') }) : t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }))];
+			
+			if (file.get('atime')) {
+				var atime = new Date(file.get('atime') * 1000);
+				data.push(t.get('Last access : ${date}', { date: Webos.Locale.current().completeDate(atime) }));
+			}
+			if (file.get('mtime')) {
+				var mtime = new Date(file.get('mtime') * 1000);
+				data.push(t.get('Last modification : ${date}', { date: Webos.Locale.current().completeDate(mtime) }));
+			}
+
 			dataTab.append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
 			var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
 			$.w.button(t.get('Close')).appendTo(buttons).click(function() {
@@ -750,7 +753,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			});
 		};
 
-		if (file.exists('atime')) {
+		if (file.exists('is_dir')) {
 			displayPropertiesFn(file);
 		} else {
 			propertiesWindow.window('loading', true);

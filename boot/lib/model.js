@@ -13,10 +13,11 @@ Webos.Model = function WModel(data) {
 };
 Webos.Model.prototype = {
 	/**
-	 * Définir les données du modèle.
+	 * Définir les données internes du modèle.
 	 * @param {Object} data Les données.
+	 * @private
 	 */
-	hydrate: function(data) {
+	_hydrate: function(data) {
 		if (!data) {
 			return;
 		}
@@ -24,6 +25,13 @@ Webos.Model.prototype = {
 		for (var key in data) {
 			this._data[key] = data[key];
 		}
+	},
+	/**
+	 * Définir les données du modèle.
+	 * @param {Object} data Les données.
+	 */
+	hydrate: function(data) {
+		return this._hydrate(data);
 	},
 	/**
 	 * Récupérer une valeur associée à une clef dans les données du modèle.

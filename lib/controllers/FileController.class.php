@@ -26,6 +26,19 @@ class FileController extends \lib\ServerCallComponent {
 	}
 
 	/**
+	 * Recuperer le contenu d'un fichier binaire.
+	 * @param string $file le fichier.
+	 */
+	protected function getAsBinary($file) {
+		$file = $this->webos->managers()->get('File')->get($file);
+		if ($file->isDir()) {
+			throw new \InvalidArgumentException('Le fichier "'.$file->path().'" est un dossier, impossible de retourner son contenu binaire');
+		}
+
+		return base64_encode($file->contents());
+	}
+
+	/**
 	 * Recuperer les informations sur un fichier.
 	 * @param string $file Le fichier.
 	 */
@@ -63,7 +76,20 @@ class FileController extends \lib\ServerCallComponent {
 		if (!$this->webos->managers()->get('File')->exists($file->dirname()))
 			throw new \InvalidArgumentException('Impossible de renommer "'.$path.'" en "'.$newName.'" : ce nom de fichier est d&eacute;j&agrave; utilis&eacute;');
 
-		$file->move($newPath);
+		$new = $file->move($newPath);
+
+		return $this->getData($new->path());
+	}
+
+	/**
+	 * Copier un fichier.
+	 * @param string $old Le chemin vers le fichier a copier.
+	 * @param string $new Le nouveau chemin du fichier, ou le chemin du dossier ou le fichier sera copie.
+	 */
+	protected function copy($old, $new) {
+		$new = $this->webos->managers()->get('File')->get($old)->copy($new);
+
+		return $this->getData($new->path());
 	}
 
 	/**
@@ -72,7 +98,9 @@ class FileController extends \lib\ServerCallComponent {
 	 * @param string $new Le nouveau chemin du fichier, ou le chemin du dossier ou le fichier sera deplace.
 	 */
 	protected function move($old, $new) {
-		$this->webos->managers()->get('File')->get($old)->move($new);
+		$new = $this->webos->managers()->get('File')->get($old)->move($new);
+
+		return $this->getData($new->path());
 	}
 
 	/**
@@ -88,7 +116,12 @@ class FileController extends \lib\ServerCallComponent {
 	 * @param string $path Le chemin vers le fichier a creer.
 	 */
 	protected function createFile($path) {
-		$this->webos->managers()->get('File')->createFile($path);
+		if (!$this->webos->managers()->get('File')->exists($path)) {
+			$this->webos->managers()->get('File')->createFile($path);
+		} elseif ($this->webos->managers()->get('File')->get($path)->isDir()) {
+			throw new \RuntimeException('Impossible de cr&eacute;er le fichier "'.$path.'" : ce fichier est un dossier');
+		}
+
 		return $this->getData($path);
 	}
 
@@ -97,7 +130,12 @@ class FileController extends \lib\ServerCallComponent {
 	 * @param string $path Le chemin vers le dossier a creer.
 	 */
 	protected function createFolder($path) {
-		$this->webos->managers()->get('File')->createDir($path);
+		if (!$this->webos->managers()->get('File')->exists($path)) {
+			$this->webos->managers()->get('File')->createDir($path);
+		} elseif (!$this->webos->managers()->get('File')->get($path)->isDir()) {
+			throw new \RuntimeException('Impossible de cr&eacute;er le dossier "'.$path.'" : ce fichier existe');
+		}
+		
 		return $this->getData($path);
 	}
 
@@ -107,7 +145,28 @@ class FileController extends \lib\ServerCallComponent {
 	 * @param string $contents Le nouveau contenu du fichier.
 	 */
 	protected function setContents($path, $contents) {
+		if (!$this->webos->managers()->get('File')->exists($path)) {
+			$this->webos->managers()->get('File')->createFile($path);
+		}
+
 		$this->webos->managers()->get('File')->get($path)->setContents($contents);
+
+		return $this->getData($path);
+	}
+
+	/**
+	 * Definir le contenu d'un fichier binaire.
+	 * @param string $path Le chemin vers le fichier a modifier.
+	 * @param string $contents Le nouveau contenu du fichier, encode en base 64.
+	 */
+	protected function setContentsAsBinary($path, $contents) {
+		if (!$this->webos->managers()->get('File')->exists($path)) {
+			$this->webos->managers()->get('File')->createFile($path);
+		}
+
+		$this->webos->managers()->get('File')->get($path)->setContents(base64_decode($contents));
+
+		return $this->getData($path);
 	}
 
 	/**

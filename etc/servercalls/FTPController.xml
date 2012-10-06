@@ -3,7 +3,9 @@
 	<method name="connect"></method>
 	<method name="getMetadata"></method>
 	<method name="getFile"></method>
+	<method name="getFileAsBinary"></method>
 	<method name="putFile"></method>
+	<method name="putFileAsBinary"></method>
 	<method name="getFileList"></method>
 	<method name="createFile"></method>
 	<method name="createFolder"></method>

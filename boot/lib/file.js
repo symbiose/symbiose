@@ -4,6 +4,146 @@
  * @since 1.0 alpha 1
  */
 
+ /**
+*
+*  Base64 encode / decode
+*  http://www.webtoolkit.info/
+*
+**/
+ 
+Webos.base64 = {
+	// private property
+	_keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+ 
+	// public method for encoding
+	encode: function (input) {
+		var output = "";
+		var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+		var i = 0;
+ 
+		input = Webos.base64.utf8_encode(input);
+ 
+		while (i < input.length) {
+ 
+			chr1 = input.charCodeAt(i++);
+			chr2 = input.charCodeAt(i++);
+			chr3 = input.charCodeAt(i++);
+ 
+			enc1 = chr1 >> 2;
+			enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+			enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+			enc4 = chr3 & 63;
+ 
+			if (isNaN(chr2)) {
+				enc3 = enc4 = 64;
+			} else if (isNaN(chr3)) {
+				enc4 = 64;
+			}
+ 
+			output = output +
+			this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
+			this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
+ 
+		}
+ 
+		return output;
+	},
+ 
+	// public method for decoding
+	decode: function (input) {
+		var output = "";
+		var chr1, chr2, chr3;
+		var enc1, enc2, enc3, enc4;
+		var i = 0;
+ 
+		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+ 
+		while (i < input.length) {
+ 
+			enc1 = this._keyStr.indexOf(input.charAt(i++));
+			enc2 = this._keyStr.indexOf(input.charAt(i++));
+			enc3 = this._keyStr.indexOf(input.charAt(i++));
+			enc4 = this._keyStr.indexOf(input.charAt(i++));
+ 
+			chr1 = (enc1 << 2) | (enc2 >> 4);
+			chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+			chr3 = ((enc3 & 3) << 6) | enc4;
+ 
+			output = output + String.fromCharCode(chr1);
+ 
+			if (enc3 != 64) {
+				output = output + String.fromCharCode(chr2);
+			}
+			if (enc4 != 64) {
+				output = output + String.fromCharCode(chr3);
+			}
+ 
+		}
+ 
+		output = Webos.base64.utf8_decode(output);
+ 
+		return output;
+	},
+ 
+	// method for UTF-8 encoding
+	utf8_encode: function (string) {
+		string = string.replace(/\r\n/g,"\n");
+		var utftext = "";
+ 
+		for (var n = 0; n < string.length; n++) {
+ 
+			var c = string.charCodeAt(n);
+ 
+			if (c < 128) {
+				utftext += String.fromCharCode(c);
+			}
+			else if((c > 127) && (c < 2048)) {
+				utftext += String.fromCharCode((c >> 6) | 192);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+			else {
+				utftext += String.fromCharCode((c >> 12) | 224);
+				utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+ 
+		}
+ 
+		return utftext;
+	},
+ 
+	// method for UTF-8 decoding
+	utf8_decode: function (utftext) {
+		var string = "";
+		var i = 0;
+		var c = c1 = c2 = 0;
+ 
+		while ( i < utftext.length ) {
+ 
+			c = utftext.charCodeAt(i);
+ 
+			if (c < 128) {
+				string += String.fromCharCode(c);
+				i++;
+			}
+			else if((c > 191) && (c < 224)) {
+				c2 = utftext.charCodeAt(i+1);
+				string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+				i += 2;
+			}
+			else {
+				c2 = utftext.charCodeAt(i+1);
+				c3 = utftext.charCodeAt(i+2);
+				string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+				i += 3;
+			}
+ 
+		}
+ 
+		return string;
+	}
+};
+
 /**
  * Représente un fichier.
  * @param {Object} data Les données sur le fichier.
@@ -11,26 +151,95 @@
  * @constructor
  */
 Webos.File = function WFile(data) {
-	if (!data.dirname) { //On définit automatiquement le dossier parent si non présent
-		if (data.path.indexOf('/', 1) != -1) {
-			data.dirname = data.path.replace(/\/[^\/]*\/?$/, '');
-		} else if (data.path.indexOf('/') == 0) {
-			data.dirname = '/';
-		}
-	}
-	if (!data.basename) { //On définit automatiquement le nom du fichier si non présent
-		data.basename = data.path.replace(/^.*[\/\\]/g, '');
-	}
-	if (data.is_dir === false && !data.extension) { //On définit automatiquement l'extension du fichier si non présent et que le fichier n'est pas un dossier
-		data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
-	}
-	
-	data.readable = (data.readable) ? true : false;
-	data.writable = (data.writable) ? true : false;
-	
 	Webos.Model.call(this, data); //On appelle la classe parente
 };
 Webos.File.prototype = {
+	hydrate: function(data) {
+		var path = (data.path || this.get('path'));
+		if (path) {
+			if (!data.dirname) { //On définit automatiquement le dossier parent si non présent
+				if (path.indexOf('/', 1) != -1) {
+					data.dirname = path.replace(/\/[^\/]*\/?$/, '');
+				} else if (path.indexOf('/') == 0) {
+					data.dirname = '/';
+				}
+			}
+			if (!data.basename) { //On définit automatiquement le nom du fichier si non présent
+				data.basename = path.replace(/^.*[\/\\]/g, '');
+			}
+			if (data.is_dir === false && !data.extension) { //On définit automatiquement l'extension du fichier si non présent et que le fichier n'est pas un dossier
+				data.extension = (/[.]/.exec(path)) ? /[^.]+$/.exec(path)[0] : null;
+			}
+		}
+
+		if (typeof data.is_binary == 'undefined') {
+			if (data.mime_type) {
+				data.is_binary = (data.mime_type.indexOf('text/') != 0);
+			} else if (!this.exists('is_binary')) {
+				data.is_binary = true;
+			}
+		}
+
+		return Webos.Model.prototype.hydrate.call(this, data);
+	},
+	_updateData: function(data) {
+		var updatedData = {};
+		for (var key in data) {
+			if (this.get(key) !== data[key]) {
+				updatedData[key] = data[key];
+			}
+		}
+
+		this.hydrate(updatedData);
+
+		var parentDirPath = this.get('dirname');
+		if (parentDirPath != this.get('path')) { //Dossier racine ?
+			if (Webos.File.isCached(parentDirPath)) {
+				var parentDir = Webos.File.get(parentDirPath);
+				if (parentDir._contents) {
+					var found = false;
+					for (var i = 0; i < parentDir._contents.length; i++) {
+						if (parentDir._contents[i].get('path') == this.get('path')) {
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						parentDir._contents.push(this);
+					}
+				}
+			}
+		}
+
+		for (var key in updatedData) {
+			this.notify('update', { key: key, value: updatedData[key] });
+		}
+
+		Webos.File.notify('load', { file: this });
+	},
+	_remove: function() {
+		this.notify('remove');
+		Webos.File.notify('remove', { file: this });
+
+		var parentDirPath = this.get('dirname');
+		if (parentDirPath != this.get('path')) { //Dossier racine ?
+			if (Webos.File.isCached(parentDirPath)) {
+				var parentDir = Webos.File.get(parentDirPath);
+				if (parentDir._contents) {
+					var list = [];
+					for (var i = 0; i < parentDir._contents.length; i++) {
+						if (parentDir._contents[i].get('path') != this.get('path')) {
+							list.push(parentDir._contents[i]);
+						}
+					}
+					parentDir._contents = list;
+				}
+			}
+		}
+		
+		Webos.File.clearCache(this.get('path'));
+		delete this;
+	},
 	/**
 	 * Déclenche une erreur en raison de l'impossibilité d'effectuer une action sur ce type de fichier.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée.
@@ -57,18 +266,17 @@ Webos.File.prototype = {
 		this._unsupportedMethod(callback);
 	},
 	/**
-	 * Déplacer le fichier.
-	 * @param {String} dest La destination du fichier.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera déplacé.
-	 */
-	move: function(dest, callback) {
-		this._unsupportedMethod(callback);
-	},
-	/**
 	 * Supprimer le fichier.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera déplacé.
 	 */
 	remove: function(callback) {
+		this._unsupportedMethod(callback);
+	},
+	/**
+	 * Récupérer le contenu du fichier sous forme de texte.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le contenu du fichier. Si c'est un dossier, un tableau de fichiers sera fournit.
+	 */
+	readAsText: function(callback) {
 		this._unsupportedMethod(callback);
 	},
 	/**
@@ -87,11 +295,20 @@ Webos.File.prototype = {
 	},
 	/**
 	 * Définir le contenu du fichier.
-	 * @param {String} contents Le contenu.
+	 * @param {String} contents Le contenu sous forme de texte.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera modifié.
 	 */
-	setContents: function(contents, callback) {
+	writeAsText: function(contents, callback) {
 		this._unsupportedMethod(callback);
+	},
+	/**
+	 * Définir le contenu du fichier.
+	 * @param {String} contents Le contenu.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera modifié.
+	 * @deprecated Depuis la version 1.0 beta 1, il faut utiliser Webos.File#writeAsText().
+	 */
+	setContents: function(contents, callback) {
+		return this.writeAsText(contents, callback);
 	},
 	/**
 	 * Définir si l'utilisateur peut effectuer une action sur le fichier.
@@ -155,20 +372,27 @@ Webos.File.get = function(file, data) {
 	} else if (Webos.isInstanceOf(file, Webos.File)) { //Si c'est déja un objet Webos.File, on le retourne directement
 		return file;
 	}
-	
+
 	path = String(file);
 	
 	//Le fichier est-il dans un volume monte ?
 	var devices = Webos.File.mountedDevices();
 	for (var local in devices) {
 		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			return Webos[devices[local].get('driver')].get(path, devices[local], data);
+			if (Webos.File.isCached(path)) { //Si le fichier est dans le cache
+				return Webos.File._cache[path];
+			} else {
+				file = Webos[devices[local].get('driver')].get(path, devices[local], data);
+				Webos.File._cache[file.get('path')] = file;
+				return file;
+			}
 		}
 	}
 	
-	if (Webos.File._cache[path]) { //Si le fichier est dans le cache, on le retourne
+	if (Webos.File.isCached(path)) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
-	} else { //Sinon, on crée un nouvel objet
+	} else {
+		//Sinon, on crée un nouvel objet
 		file = new Webos.WebosFile($.extend({}, data, {
 			path: path
 		}));
@@ -190,11 +414,11 @@ Webos.File.load = function(path, callback) {
 	//Ajouter un fichier au cache
 	var addFileToCacheFn = function(file) {
 		if (typeof Webos.File._cache[file.get('path')] != 'undefined') {
-			Webos.File._cache[file.get('path')].hydrate(file.data());
+			Webos.File._cache[file.get('path')]._hydrate(file.data());
 			file = Webos.File._cache[file.get('path')];
 			Webos.File.notify('load', { file: file });
 		} else {
-			Webos.File._cache[file.getAttribute('path')] = file;
+			Webos.File._cache[file.get('path')] = file;
 		}
 	};
 	
@@ -212,7 +436,7 @@ Webos.File.load = function(path, callback) {
 		}
 	}
 	
-	if (typeof Webos.File._cache[path] != 'undefined') { //Si le fichier est déja dans le cache, on le retourne
+	if (Webos.File.isCached(path)) { //Si le fichier est déja dans le cache, on le retourne
 		callback.success(Webos.File._cache[path]);
 	} else { //Sinon, on le charge
 		var file = Webos.File.get(path);
@@ -250,18 +474,12 @@ Webos.File.listDir = function(path, callback) {
 Webos.File.createFile = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	var createFileCallback = function(file) {
-		Webos.File._cache[file.get('path')] = file;
-		Webos.File.notify('create', { file: file });
-	};
-	
 	//Le fichier est-il dans un volume monte ?
 	var devices = Webos.File.mountedDevices();
 	for (var local in devices) {
 		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
 			(function(point) {
 				Webos[point.get('driver')].createFile(path, point, [function(file) {
-					createFileCallback(file);
 					callback.success(file);
 				}, callback.error]);
 			})(devices[local]);
@@ -269,19 +487,17 @@ Webos.File.createFile = function(path, callback) {
 		}
 	}
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'createFile',
 		arguments: {
 			file: path
 		}
-	}).load(new Webos.Callback(function(response) {
-		var file = new Webos.WebosFile(response.getData());
-		createFileCallback(file);
+	}).load([function(response) {
+		var file = Webos.File.get(path);
+		file._updateData(response.getData());
 		callback.success(file);
-	}, function(response) {
-		callback.error(response);
-	}));
+	}, callback.error]);
 };
 /**
  * Créer un nouveau dossier.
@@ -292,18 +508,12 @@ Webos.File.createFile = function(path, callback) {
 Webos.File.createFolder = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	var createFolderCallback = function(file) {
-		Webos.File._cache[file.get('path')] = file;
-		Webos.File.notify('create', { file: file });
-	};
-	
 	//Le fichier est-il dans un volume monte ?
 	var devices = Webos.File.mountedDevices();
 	for (var local in devices) {
 		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
 			(function(point) {
 				Webos[point.get('driver')].createFolder(path, point, [function(file) {
-					createFolderCallback(file);
 					callback.success(file);
 				}, callback.error]);
 			})(devices[local]);
@@ -311,19 +521,215 @@ Webos.File.createFolder = function(path, callback) {
 		}
 	}
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'createFolder',
 		arguments: {
 			file: path
 		}
-	}).load(new Webos.Callback(function(response) {
-		var file = new Webos.WebosFile(response.getData());
-		createFolderCallback(file);
+	}).load([function(response) {
+		var file = Webos.File.get(path);
+		file._updateData(response.getData());
 		callback.success(file);
-	}, function(response) {
-		callback.error(response);
-	}));
+	}, callback.error]);
+};
+Webos.File.copy = function(source, dest, callback) {
+	source = Webos.File.get(source);
+	dest = Webos.File.get(dest);
+	callback = Webos.Callback.toCallback(callback);
+
+	//Copie cote serveur entre fichiers du webos
+	if (Webos.isInstanceOf(source, Webos.WebosFile) && Webos.isInstanceOf(dest, Webos.WebosFile)) {
+		return new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'copy',
+			arguments: {
+				source: source.get('path'),
+				dest: dest.get('path')
+			}
+		}).load([function(response) {
+			dest._contents = source._contents;
+			dest._updateData(response.getData());
+			callback.success(dest);
+		}, callback.error]);
+	}
+
+	//Copie cote serveur entre fichiers du meme volume
+	if (source.get('mountPoint') && dest.get('mountPoint')) {
+		if (source.get('mountPoint') === dest.get('mountPoint')) {
+			var point = source.get('mountPoint');
+
+			if (typeof Webos[point.get('driver')].copy == 'function') {
+				return Webos[point.get('driver')].copy(source, dest, point, callback);
+			}
+		}
+	}
+
+	//Copie entre volumes differents -> copie "hardcore" en full-JS
+
+	var copyDirFn = function(source, dest, callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		var filesList, dirCreated = false;
+		var createChildFilesFn = function() {
+			if (!filesList || !dirCreated) {
+				return;
+			}
+			if (filesList.length == 0) {
+				callback.success();
+				return;
+			}
+
+			var copiedFilesNbr = 0, errorsNbr = 0, errorRes;
+
+			var triggerCallbackFn = function() {
+				if (copiedFilesNbr == filesList.length) {
+					callback.success(dest);
+				} else if (errorRes && errorsNbr == 1) {
+					callback.error(errorRes);
+				}
+			};
+
+			for (var i = 0; i < filesList.length; i++) {
+				(function(file) {
+					copyFn(file, dest.get('path') + '/' + file.get('basename'), [function(newFile) {
+						copiedFilesNbr++;
+						triggerCallbackFn();
+					}, function(response) {
+						errorsNbr++;
+						errorRes = response;
+						triggerCallbackFn();
+					}]);
+				})(filesList[i]);
+			}
+		};
+
+		source.contents([function(list) {
+			filesList = list;
+			createChildFilesFn();
+		}, callback.error]);
+
+		if (dest.get('is_dir')) {
+			dirCreated = true;
+			createChildFilesFn();
+		} else {
+			dest.load([function(dest) {
+				copyDirFn(source, dest, callback);
+			}, function() {
+				Webos.File.createFolder(dest, [function(dest) {
+					dirCreated = true;
+					createChildFilesFn();
+				}, callback.error]);
+			}]);
+		}
+	};
+
+	var copyTextFileFn = function(source, dest, callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		source.readAsText([function(contents) {
+			dest.writeAsText(contents, [function() {
+				callback.success(dest);
+			}, callback.error]);
+		}, callback.error]);
+	};
+
+	var copyBinaryFileFn = function(source, dest, callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		source.readAsBinary([function(contents) {
+			dest.writeAsBinary(contents, [function() {
+				callback.success(dest);
+			}, callback.error]);
+		}, callback.error]);
+	};
+
+	var copyFn = function(source, dest, callback) {
+		source = Webos.File.get(source);
+		dest = Webos.File.get(dest);
+
+		if (source.get('is_dir')) {
+			copyDirFn(source, dest, callback);
+		} else if (source.get('is_dir') === false) {
+			if (source.get('is_binary') && typeof source.readAsBinary == 'function' && typeof dest.writeAsBinary == 'function') {
+				copyBinaryFileFn(source, dest, callback);
+			} else {
+				copyTextFileFn(source, dest, callback);
+			}
+		} else {
+			source.load([function(source) {
+				copyFn(source, dest, callback);
+			}, callback.error]);
+		}
+	};
+
+	copyFn(source, dest, callback);
+};
+/**
+ * Déplacer un fichier vers un autre.
+ * @param {Webos.File} source Le fichier source.
+ * @param {Webos.File} dest Le fichier de destination.
+ * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera déplacé.
+ */
+Webos.File.move = function(source, dest, callback) {
+	source = Webos.File.get(source);
+	dest = Webos.File.get(dest);
+	callback = Webos.Callback.toCallback(callback);
+
+	//Deplacement cote serveur entre fichiers du webos
+	if (Webos.isInstanceOf(source, Webos.WebosFile) && Webos.isInstanceOf(dest, Webos.WebosFile)) {
+		return new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'move',
+			arguments: {
+				source: source.get('path'),
+				dest: dest.get('path')
+			}
+		}).load([function(response) {
+			dest._contents = source._contents;
+			dest._updateData(response.getData());
+
+			source._remove();
+			delete source;
+			
+			callback.success(dest);
+		}, callback.error]);
+	}
+
+	//Deplacement cote serveur entre fichiers du meme volume
+	if (source.get('mountPoint') && dest.get('mountPoint')) {
+		if (source.get('mountPoint') === dest.get('mountPoint')) {
+			var point = source.get('mountPoint');
+
+			if (typeof Webos[point.get('driver')].move == 'function') {
+				return Webos[point.get('driver')].move(source, dest, point, [function() {
+					dest._contents = source._contents;
+					dest._updateData(response.getData());
+
+					source._remove();
+					delete source;
+					
+					callback.success(dest);
+				}, callback.error]);
+			}
+		}
+	}
+
+	//Deplacement de fichiers de volumes differents -> deplacement "hardcore" en full-JS
+	Webos.File.copy(source, dest, [function() {
+		source.remove([function() {
+			callback.success(dest);
+		}, callback.error]);
+	}, callback.error]);
+};
+/**
+ * Determiner si un fichier est actuellement en cache.
+ * @param {String} path Le chemin vers le fichier.
+ * @returns {Boolean} Vrai si le fichier est dans le cache interne de la bibliotheque des fichiers.
+ * @static
+ */
+Webos.File.isCached = function(path) {
+	return (typeof Webos.File._cache[path] != 'undefined');
 };
 /**
  * Vider le cache interne de la bibliotheque des fichiers.
@@ -502,21 +908,27 @@ Webos.File.getDriverData = function(driverName) {
  * @constructor
  */
 Webos.WebosFile = function WWebosFile(data) {
-	data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
-	if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
-		data.realpath = 'sbin/filecall.php?file='+data.path;
-	}
-	
-	if (typeof data.readable == 'undefined') {
-		data.readable = true;
-	}
-	if (typeof data.writable == 'undefined') {
-		data.writable = true;
-	}
-	
 	Webos.File.call(this, data); //On appelle la classe parente
 };
 Webos.WebosFile.prototype = {
+	hydrate: function(data) {
+		if (data.path) {
+			data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
+
+			if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
+				data.realpath = 'sbin/filecall.php?file='+data.path;
+			}
+		}
+		
+		if (typeof data.readable == 'undefined') {
+			data.readable = true;
+		}
+		if (typeof data.writable == 'undefined') {
+			data.writable = true;
+		}
+
+		return Webos.File.prototype.hydrate.call(this, data);
+	},
 	/**
 	 * Charge les informations sur les fichiers.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que les informations seront chargées.
@@ -525,9 +937,7 @@ Webos.WebosFile.prototype = {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
-		Webos.File.clearCache(this.get('path'));
-		
-		new Webos.ServerCall({
+		return new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'getData',
 			arguments: {
@@ -535,21 +945,11 @@ Webos.WebosFile.prototype = {
 			}
 		}).load([function(response) {
 			var data = response.getData();
-			
-			var updatedData = {};
-			for (var key in data) {
-				if (that.get(key) !== data[key]) {
-					updatedData[key] = data[key];
-				}
-			}
-			that.hydrate(updatedData);
+
+			that._updateData(data);
+
 			callback.success(that);
-			for (var key in updatedData) {
-				that.notify('update', { key: key, value: updatedData[key] });
-			}
-		}, function(response) {
-			callback.error(response, that);
-		}]);
+		}, callback.error]);
 	},
 	/**
 	 * Renomme le fichier.
@@ -561,56 +961,23 @@ Webos.WebosFile.prototype = {
 		callback = Webos.Callback.toCallback(callback);
 		
 		if (!this.checkAuthorization('write', callback)) {
-			return;
+			return false;
 		}
 		
-		new Webos.ServerCall({
+		return new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'rename',
 			arguments: {
 				file: that.get('path'),
 				newName: newName
 			}
-		}).load([function() {
-			that.hydrate({
-				path: that.get('dirname')+'/'+newName
-			});
-			that.load([function() {
-				callback.success(that);
-			}, function(response) {
-				callback.error(response, that);
-			}]);
-		}, function(response) {
-			callback.error(response, that);
-		}]);
-	},
-	/**
-	 * Déplacer le fichier.
-	 * @param {String} dest La destination du fichier.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera déplacé.
-	 */
-	move: function(dest, callback) {
-		var that = this;
-		callback = Webos.Callback.toCallback(callback);
-		dest = String(dest);
-		
-		if (!this.checkAuthorization('read', callback)) {
-			return;
-		}
-		
-		new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'move',
-			arguments: {
-				file: that.get('path'),
-				dest: dest
-			}
-		}).load(new Webos.Callback(function() {
-			that._remove();
-			callback.success();
-		}, function(response) {
-			callback.error(response, that);
-		}));
+		}).load([function(response) {
+			var data = response.getData();
+
+			that._updateData(data);
+
+			callback.success(that);
+		}, callback.error]);
 	},
 	/**
 	 * Supprimer le fichier.
@@ -621,28 +988,51 @@ Webos.WebosFile.prototype = {
 		callback = Webos.Callback.toCallback(callback);
 		
 		if (!this.checkAuthorization('write', callback)) {
-			return;
+			return false;
 		}
 		
-		new Webos.ServerCall({
+		return new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'delete',
 			arguments: {
 				file: that.get('path')
 			}
-		}).load(new Webos.Callback(function() {
+		}).load([function() {
 			that._remove();
 			callback.success();
-		}, function(response) {
-			callback.error(response, that);
-		}));
+		}, callback.error]);
 	},
-	_remove: function() {
-		this.notify('remove');
-		Webos.File.notify('remove', { file: this });
+	/**
+	 * Récupérer le contenu du fichier, sous forme de texte.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le contenu du fichier.
+	 */
+	readAsText: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
 		
-		Webos.File.clearCache(this.get('path'));
-		delete this;
+		if (!this.checkAuthorization('read', callback)) {
+			return false;
+		}
+		
+		if (typeof this._contents != 'undefined') {
+			callback.success(this._contents);
+			return;
+		}
+		
+		return new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'getContents',
+			arguments: {
+				file: that.get('path')
+			}
+		}).load([function(response) {
+			var contents = response.getStandardChannel();
+			that._contents = contents;
+			callback.success(contents);
+
+			that.notify('updatecontents', { contents: contents });
+			Webos.File.notify('load', { file: that });
+		}, callback.error]);
 	},
 	/**
 	 * Récupérer le contenu du fichier.
@@ -653,7 +1043,7 @@ Webos.WebosFile.prototype = {
 		callback = Webos.Callback.toCallback(callback);
 		
 		if (!this.checkAuthorization('read', callback)) {
-			return;
+			return false;
 		}
 		
 		if (typeof this._contents != 'undefined') {
@@ -662,60 +1052,73 @@ Webos.WebosFile.prototype = {
 		}
 		
 		if (this.get('is_dir')) {
-			new Webos.ServerCall({
+			return new Webos.ServerCall({
 				'class': 'FileController',
 				method: 'getContents',
 				arguments: {
 					dir: this.get('path')
 				}
-			}).load(new Webos.Callback(function(response) {
+			}).load([function(response) {
 				var data = response.getData();
 				var list = [];
-				for(var key in data) {
-					var file = new Webos.WebosFile(data[key]);
-					if (Webos.File._cache[file.get('path')]) {
-						Webos.File._cache[file.get('path')].hydrate(file.data());
-						file = Webos.File._cache[file.get('path')];
-						Webos.File.notify('load', { file: file });
+				for (var key in data) {
+					var webosFile = new Webos.WebosFile(data[key]);
+					var file = Webos.File.get(webosFile.get('path'));
+					if (Webos.isInstanceOf(file, Webos.WebosFile)) {
+						file._updateData(webosFile.data());
 					} else {
-						Webos.File._cache[file.get('path')] = file;
+						file._updateData({
+							is_dir: webosFile.get('is_dir')
+						});
 					}
 					list.push(file);
 				}
+
 				that._contents = list;
+
 				callback.success(list);
-			}, function(response) {
-				callback.error(response);
-			}));
+
+				that.notify('updatecontents', { contents: list });
+				Webos.File.notify('load', { file: that });
+			}, callback.error]);
 		} else {
-			new Webos.ServerCall({
-				'class': 'FileController',
-				method: 'getContents',
-				arguments: {
-					file: that.get('path')
-				}
-			}).load(new Webos.Callback(function(response) {
-				var contents = response.getStandardChannel();
-				that._contents = contents;
-				callback.success(contents);
-			}, function(response) {
-				callback.error(response);
-			}));
+			return this.readAsText(callback);
 		}
 	},
 	/**
-	 * Récupérer le contenu du fichier.
-	 * @deprecated Depuis la version 1.0 alpha 3, il faut utiliser Webos.File#contents().
+	 * Récupérer le contenu du fichier, encode en base 64.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée avec en argument le contenu du fichier. Si c'est un dossier, un tableau de fichiers sera fournit.
 	 */
-	getContents: function(callback) {
-		return this.contents(callback);
+	readAsBinary: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+
+		if (this.get('is_dir')) {
+			this._unsupportedMethod(callback);
+			return;
+		}
+		
+		if (!this.checkAuthorization('read', callback)) {
+			return false;
+		}
+
+		return new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'getAsBinary',
+			arguments: {
+				file: that.get('path')
+			}
+		}).load([function(response) {
+			var contents = response.getStandardChannel();
+			callback.success(contents);
+		}, callback.error]);
 	},
 	/**
-	 * Définir le contenu du fichier.
+	 * Définir le contenu du fichier, sous forme de texte.
 	 * @param {String} contents Le contenu.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera modifié.
 	 */
-	setContents: function(contents, callback) {
+	writeAsText: function(contents, callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
@@ -725,21 +1128,56 @@ Webos.WebosFile.prototype = {
 		}
 		
 		if (!this.checkAuthorization('write', callback)) {
-			return;
+			return false;
 		}
 		
-		new Webos.ServerCall({
+		return new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'setContents',
 			arguments: {
 				file: that.get('path'),
 				contents: contents
 			}
-		}).load(new Webos.Callback(function() {
+		}).load([function(response) {
+			that._contents = contents;
+
+			that.notify('updatecontents', { contents: contents });
+
+			that._updateData(response.getData());
+
 			callback.success();
-		}, function(response) {
-			callback.error(response);
-		}));
+		}, callback.error]);
+	},
+	/**
+	 * Définir le contenu du fichier, encode en base 64.
+	 * @param {String} contents Le contenu en base 64.
+	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera modifié.
+	 */
+	writeAsBinary: function(contents, callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		if (this.get('is_dir')) {
+			this._unsupportedMethod(callback);
+			return;
+		}
+		
+		if (!this.checkAuthorization('write', callback)) {
+			return false;
+		}
+		
+		return new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'setContentsAsBinary',
+			arguments: {
+				file: that.get('path'),
+				contents: contents
+			}
+		}).load([function(response) {
+			that._updateData(response.getData());
+
+			callback.success();
+		}, callback.error]);
 	}
 };
 Webos.inherit(Webos.WebosFile, Webos.File); //Héritage de Webos.File
@@ -781,7 +1219,12 @@ Webos.LocalFile.prototype = {
 		
 		return this._get('realpath');
 	},
-	contents: function(callback) {
+	load: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		callback.success(this);
+	},
+	readAsText: function(callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
@@ -798,6 +1241,24 @@ Webos.LocalFile.prototype = {
 			callback.error(e.target.result);
 		};
 		reader.readAsText(this._file);
+	},
+	readAsBinary: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		if (!window.FileReader) {
+			callback.error('La lecture de fichiers locaux n\'est pas support&eacute;e par votre navigateur');
+			return;
+		}
+		
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			callback.success(e.target.result);
+		};
+		reader.onerror = function(e) {
+			callback.error(e.target.result);
+		};
+		reader.readAsBinaryString(this._file);
 	}
 };
 Webos.inherit(Webos.LocalFile, Webos.File); //Héritage de Webos.File
@@ -807,8 +1268,9 @@ Webos.LocalFile.support = (window.File && window.FileReader) ? true : false;
 Webos.User.bind('login logout', function() {
 	//Lorsque l'utilisateur quitte sa session, on vide le cache
 	Webos.File.clearCache();
-	
-	//Et on demonte tous les volumes
+});
+Webos.User.bind('logout', function() {
+	//On demonte tous les volumes
 	for (var local in Webos.File.mountedDevices()) {
 		Webos.File.umount(local);
 	}

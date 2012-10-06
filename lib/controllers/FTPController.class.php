@@ -72,7 +72,22 @@ class FTPController extends \lib\ServerCallComponent {
 		
 		if ($result !== false) { 
 			rewind($tempHandle); 
-			return array('contents' => stream_get_contents($tempHandle)); 
+			return array('contents' => stream_get_contents($tempHandle));
+	    } else {
+	    	throw new Exception('Impossible d\'acc&eacute;der au fichier "'.$file.'"');
+	    }
+	}
+
+	protected function getFileAsBinary($loginData, $file) {
+		$conn = $this->_getConnexion($loginData);
+		
+		$tempHandle = fopen('php://temp', 'r+');
+		
+		$result = @ftp_fget($conn, $tempHandle, $file, FTP_BINARY);
+		
+		if ($result !== false) { 
+			rewind($tempHandle); 
+			return array('contents' => base64_encode(stream_get_contents($tempHandle))); 
 	    } else {
 	    	throw new Exception('Impossible d\'acc&eacute;der au fichier "'.$file.'"');
 	    }
@@ -90,6 +105,24 @@ class FTPController extends \lib\ServerCallComponent {
 		if ($result === false) { 
 	    	throw new Exception('Impossible d\'&eacute;crire dans le fichier "'.$file.'"');
 	    }
+
+	    return $this->getMetadata($loginData, $file);
+	}
+
+	protected function putFileAsBinary($loginData, $file, $contents) {
+		$conn = $this->_getConnexion($loginData);
+		
+		$tempHandle = fopen('php://temp', 'r+');
+		fwrite($tempHandle, base64_decode($contents));
+		rewind($tempHandle);
+		
+		$result = @ftp_fput($conn, $file, $tempHandle,  FTP_BINARY);
+		
+		if ($result === false) { 
+	    	throw new Exception('Impossible d\'&eacute;crire dans le fichier "'.$file.'"');
+	    }
+
+	    return $this->getMetadata($loginData, $file);
 	}
 	
 	protected function getFileList($loginData, $dir) {
@@ -101,14 +134,21 @@ class FTPController extends \lib\ServerCallComponent {
 		
 		foreach($raw as $rawfile) {
 			$info = preg_split("/[\s]+/", $rawfile, 9);
-			$list[] = array(
+			$data = array(
 				'path'   => $dir . '/' . $info[8],
 				'basename' => $info[8],
 				'is_dir' => ($info[0]{0} == 'd'),
-				'size'   => $info[4],
-				'mtime'  => strtotime($info[6] . ' ' . $info[5] . ' ' . $info[7]),
+				'readable' => ($info[0]{1} == 'r'),
+				'writable' => ($info[0]{2} == 'w'),
+				'size'   => (int) $info[4],
+				'mtime'  => strtotime($info[6] . ' ' . $info[5] . ' ' . ((strpos($info[7], ':') === false) ? $info[7] : date('Y') . ' ' . $info[7]) ),
 				'raw'    => $info
 			);
+
+			if ($data['basename'] == '.' || $data['basename'] == '..')
+				continue;
+
+			$list[] = $data;
 		}
 		
 		return $list;
@@ -142,6 +182,8 @@ class FTPController extends \lib\ServerCallComponent {
 		if ($result === false) {
 			throw new Exception('Impossible de renommer le fichier "'.$file.'"');
 		}
+
+		return $this->getMetadata($loginData, $file);
 	}
 	
 	protected function delete($loginData, $file) {

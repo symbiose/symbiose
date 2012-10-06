@@ -76,6 +76,15 @@ class File extends FileBase {
 		return $finfo->file($this->realpath());
 	}
 
+	/**
+	 * Definir si le fichier est un fichier binaire.
+	 * @return bool Vrai si le fichier est binaire.
+	 */
+	public function isBinary() {
+		$mime = $this->mime();
+		return (substr($mime, 0, 5) != 'text/');
+	}
+
 	// SETTERS
 	/**
 	 * Definir le contenu du fichier.

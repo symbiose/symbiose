@@ -3,6 +3,9 @@
 	<method name="getContents">
 		<argument id="0" type="file" action="read"/>
 	</method>
+	<method name="getAsBinary">
+		<argument id="0" type="file" action="read"/>
+	</method>
 	<method name="readDir">
 		<argument id="0" type="file" action="read"/>
 	</method>
@@ -12,8 +15,12 @@
 	<method name="rename">
 		<argument id="0" type="file" action="write"/>
 	</method>
-	<method name="move">
+	<method name="copy">
 		<argument id="0" type="file" action="read"/>
+		<argument id="1" type="file" action="write"/>
+	</method>
+	<method name="move">
+		<argument id="0" type="file" action="write"/>
 		<argument id="1" type="file" action="write"/>
 	</method>
 	<method name="delete">
@@ -26,6 +33,9 @@
 		<argument id="0" type="file" action="write"/>
 	</method>
 	<method name="setContents">
+		<argument id="0" type="file" action="write"/>
+	</method>
+	<method name="setContentsAsBinary">
 		<argument id="0" type="file" action="write"/>
 	</method>
 	<method name="upload">
