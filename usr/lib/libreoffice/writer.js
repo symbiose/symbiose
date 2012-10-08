@@ -41,26 +41,40 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			W.Error.trigger('Type de fichier incorrect');
 			return;
 		}
+
+		file = W.File.get(file);
 		
-		that._window.window('loading', true);
-		file.getContents(new W.Callback(function(contents) {
+		that._window.window('loading', true, {
+			message: 'Ouverture de « '+file.get('path')+' »...'
+		});
+		file.readAsText([function(contents) {
 			that._file = file;
 			that._saved = true;
 			that._refreshTitle();
 			
-			var xmlDoc = $.parseXML(contents), $xml = $(xmlDoc), $body = $xml.find('body');
-			if ($body.length == 1) {
-				that._editable.html($body.html());
-			} else {
-				that._editable.html(contents);
+			try {
+				var xmlDoc = $.parseXML(contents), $xml = $(xmlDoc), $body = $xml.find('body');
+
+				if ($body.length == 1) {
+					that._editable.html($body.html());
+				} else {
+					that._editable.html($xml);
+				}
+			} catch (e) {
+				try {
+					$xml = $(contents);
+					that._editable.html($xml);
+				} catch (e) {
+					Webos.Error.trigger('Impossible d\'ouvrir "'+file.get('path')+'" : le fichier est corrompu', e.getMessage());
+				}
+			} finally {
+				that._window.window('loading', false);
+				that._container.scrollPane('reload');
 			}
-			
-			that._window.window('loading', false);
-			that._container.scrollPane('reload');
 		}, function(response) {
 			that._window.window('loading', false);
-			response.triggerError('Impossible d\'ouvrir "'+file.getAttribute('path')+'"');
-		}));
+			response.triggerError('Impossible d\'ouvrir "'+file.get('path')+'"');
+		}]);
 	};
 	this.newFile = function(contents) {
 		if (typeof contents == 'undefined') {

@@ -220,7 +220,12 @@ function GEditWindow(file) {
 				return;
 			}
 			
+			that._window.window('loading', true, {
+				lock: false
+			});
 			file.contents(new W.Callback(function(contents) {
+				that._window.window('loading', false);
+
 				that._file = file;
 				that._gedit.gedit('contents', '');
 				that._gedit.gedit('option', 'language', $.webos.gedit.modeFromExt(file.get('extension')));
@@ -232,7 +237,10 @@ function GEditWindow(file) {
 				that._refreshTitle();
 				
 				callback.success();
-			}, callback.error));
+			}, function(response) {
+				that._window.window('loading', false);
+				callback.error(response);
+			}));
 		};
 		
 		this.createEmptyFile = function() {
