@@ -560,14 +560,28 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					if (overIcon != iconPath) {
 						icon.attr('src', iconPath);
 					}
-					
-					if (typeof ui.draggable.data('file') == 'undefined') {
+
+					if (!ui.draggable.draggable('option', 'sourceFile')) {
 						return;
 					}
-					
-					ui.draggable.data('file')().move(item.data('file')(), new W.Callback(function() {
+
+					var source = ui.draggable.draggable('option', 'sourceFile'), dest = item.data('file')();
+
+					if (source.get('path') == dest.get('path')) {
+						return false;
+					}
+
+					var operation = 'move';
+					if (source.get('mountPoint') || dest.get('mountPoint')) {
+						if (source.get('mountPoint') != dest.get('mountPoint')) {
+							operation = 'copy';
+						}
+					}
+
+					that['_'+operation](source, dest, function() {
+						delete that.options._files[source.get('path')];
 						ui.draggable.remove();
-					}));
+					});
 					return false;
 				},
 				over: function() {
@@ -584,7 +598,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 		
 		item.draggable({
-			sourceFile: file
+			sourceFile: file,
+			dragImage: icon.clone().css({ 'max-width': '48px', 'max-height': '48px' })
 		});
 		
 		if (/^\./.test(file.get('basename'))) { //C'est un fichier cache, on ne l'affiche pas
@@ -916,20 +931,12 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		if (file.get('is_dir')) {
 			iconName = 'mimes/folder';
 			
-			if (state == 'dropover') {
-				iconName = 'mimes/folder-open';
-			}
-			
 			var mountedDevices = Webos.File.mountedDevices();
 			if (mountedDevices[file.get('path')]) {
 				var mountData = Webos.File.getMountData(file.get('path'));
 				var driverData = Webos.File.getDriverData(mountData.get('driver'));
 				iconName = driverData.icon;
 			}
-		}
-		
-		if (file.get('path') == '~') {
-			iconName = 'places/folder-home';
 		}
 		
 		switch (file.get('path')) {
@@ -954,6 +961,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			case '~/'+t.get('Downloads'):
 				iconName = 'places/folder-downloads';
 				break;
+		}
+
+		if (file.get('is_dir') && state == 'dropover') {
+			iconName = 'mimes/folder-open';
 		}
 		
 		var size = 22;
@@ -1162,6 +1173,36 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			selectedFiles.push($(this).data('file')());
 		});
 		return selectedFiles;
+	},
+	_copy: function(source, dest, callback) {
+		callback = W.Callback.toCallback(callback);
+
+		var progressId = $.w.nautilus.progresses.add(0, 'Copie de '+source.get('basename')+' vers '+dest.get('basename'));
+
+		W.File.copy(source, dest, [function() {
+			$.w.nautilus.progresses.update(progressId, 100, 'Copie termin&eacute;.');
+
+			callback.success();
+		}, function(response) {
+			$.w.nautilus.progresses.update(progressId, 100, 'Erreur lors de la copie.');
+
+			callback.error(response);
+		}]);
+	},
+	_move: function(source, dest, callback) {
+		callback = W.Callback.toCallback(callback);
+
+		var progressId = $.w.nautilus.progresses.add(0, 'D&eacute;placement de '+source.get('basename')+' vers '+dest.get('basename'));
+
+		W.File.move(source, dest, [function() {
+			$.w.nautilus.progresses.update(progressId, 100, 'D&eacute;placement termin&eacute;.');
+
+			callback.success();
+		}, function(response) {
+			$.w.nautilus.progresses.update(progressId, 100, 'Erreur lors du d&eacute;placement.');
+
+			callback.error(response);
+		}]);
 	}
 });
 $.webos.widget('nautilus', nautilusProperties);
@@ -1248,7 +1289,7 @@ $.w.nautilus.progresses.update = function(id, value, details) { //Mettre a jour 
 				$.w.nautilus.progresses.window.window('open');
 			}
 			delete $.w.nautilus.progresses.windowOpenTimeout;
-		}, 000);
+		}, 1500);
 	}
 	//Si il n'y a aucune operation en cours et que la fenetre est ouverte, on la ferme
 	if (nbrProgresses == 0 && $.w.nautilus.progresses.window.window('is', 'opened')) {

@@ -1767,9 +1767,9 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 			this.options.disabled = (value) ? true : false;
 			
 			if (this.options.disabled) {
-				this.options._components.slider.draggable('disable');
+				this.options._components.slider.ui_draggable('disable');
 			} else {
-				this.options._components.slider.draggable('enable');
+				this.options._components.slider.ui_draggable('enable');
 			}
 		}
 	}

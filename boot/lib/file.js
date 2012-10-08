@@ -190,6 +190,8 @@ Webos.File.prototype = {
 			}
 		}
 
+		var oldPath = this.get('path');
+
 		this.hydrate(updatedData);
 
 		var parentDirPath = this.get('dirname');
@@ -211,11 +213,23 @@ Webos.File.prototype = {
 			}
 		}
 
-		for (var key in updatedData) {
-			this.notify('update', { key: key, value: updatedData[key] });
-		}
+		if (oldPath != this.get('path')) {
+			var file = Webos.File.get(this.get('path'));
+			if (Webos.isInstanceOf(file, this.constructor)) {
+				file._updateData(this.data());
+			} else {
+				file._updateData({
+					is_dir: this.get('is_dir')
+				});
+			}
+			this._remove();
+		} else {
+			for (var key in updatedData) {
+				this.notify('update', { key: key, value: updatedData[key] });
+			}
 
-		Webos.File.notify('load', { file: this });
+			Webos.File.notify('load', { file: this });
+		}
 	},
 	_remove: function() {
 		this.notify('remove');
@@ -538,6 +552,21 @@ Webos.File.copy = function(source, dest, callback) {
 	dest = Webos.File.get(dest);
 	callback = Webos.Callback.toCallback(callback);
 
+	var updateMetadataFn = function(source, dest, data) {
+		var metadataFile = new dest.constructor(data);
+		var file = Webos.File.get(metadataFile.get('path'));
+		if (Webos.isInstanceOf(file, metadataFile.constructor)) {
+			file._updateData(metadataFile.data());
+		} else {
+			file._updateData({
+				is_dir: metadataFile.get('is_dir')
+			});
+		}
+		file._contents = source._contents;
+		
+		return file;
+	};
+
 	//Copie cote serveur entre fichiers du webos
 	if (Webos.isInstanceOf(source, Webos.WebosFile) && Webos.isInstanceOf(dest, Webos.WebosFile)) {
 		return new Webos.ServerCall({
@@ -548,9 +577,9 @@ Webos.File.copy = function(source, dest, callback) {
 				dest: dest.get('path')
 			}
 		}).load([function(response) {
-			dest._contents = source._contents;
-			dest._updateData(response.getData());
-			callback.success(dest);
+			var file = updateMetadataFn(source, dest, response.getData());
+
+			callback.success(file);
 		}, callback.error]);
 	}
 
@@ -560,7 +589,11 @@ Webos.File.copy = function(source, dest, callback) {
 			var point = source.get('mountPoint');
 
 			if (typeof Webos[point.get('driver')].copy == 'function') {
-				return Webos[point.get('driver')].copy(source, dest, point, callback);
+				return Webos[point.get('driver')].copy(source, dest, point, [function (data) {
+					var file = updateMetadataFn(source, dest, data);
+
+					callback.success(file);
+				}, callback.error]);
 			}
 		}
 	}
@@ -571,7 +604,7 @@ Webos.File.copy = function(source, dest, callback) {
 		callback = Webos.Callback.toCallback(callback);
 
 		var filesList, dirCreated = false;
-		var createChildFilesFn = function() {
+		var createChildFilesFn = function(dest) {
 			if (!filesList || !dirCreated) {
 				return;
 			}
@@ -604,21 +637,23 @@ Webos.File.copy = function(source, dest, callback) {
 			}
 		};
 
-		source.contents([function(list) {
+		W.File.listDir(source, [function(list) {
 			filesList = list;
-			createChildFilesFn();
+			createChildFilesFn(dest);
 		}, callback.error]);
 
 		if (dest.get('is_dir')) {
-			dirCreated = true;
-			createChildFilesFn();
+			dest = W.File.get(dest.get('path') + '/' + source.get('basename'));
+			copyDirFn(source, dest, callback);
+		} else if (dest.get('is_dir') === false) {
+			dest._unsupportedMethod(callback);
 		} else {
 			dest.load([function(dest) {
 				copyDirFn(source, dest, callback);
 			}, function() {
 				Webos.File.createFolder(dest, [function(dest) {
 					dirCreated = true;
-					createChildFilesFn();
+					createChildFilesFn(dest);
 				}, callback.error]);
 			}]);
 		}
@@ -676,6 +711,21 @@ Webos.File.move = function(source, dest, callback) {
 	dest = Webos.File.get(dest);
 	callback = Webos.Callback.toCallback(callback);
 
+	var updateMetadataFn = function(source, dest, data) {
+		var metadataFile = new dest.constructor(data);
+		var file = Webos.File.get(metadataFile.get('path'));
+		if (Webos.isInstanceOf(file, metadataFile.constructor)) {
+			file._updateData(metadataFile.data());
+		} else {
+			file._updateData({
+				is_dir: metadataFile.get('is_dir')
+			});
+		}
+		file._contents = source._contents;
+		
+		return file;
+	};
+
 	//Deplacement cote serveur entre fichiers du webos
 	if (Webos.isInstanceOf(source, Webos.WebosFile) && Webos.isInstanceOf(dest, Webos.WebosFile)) {
 		return new Webos.ServerCall({
@@ -686,13 +736,11 @@ Webos.File.move = function(source, dest, callback) {
 				dest: dest.get('path')
 			}
 		}).load([function(response) {
-			dest._contents = source._contents;
-			dest._updateData(response.getData());
+			var file = updateMetadataFn(source, dest, response.getData());
 
 			source._remove();
-			delete source;
-			
-			callback.success(dest);
+
+			callback.success(file);
 		}, callback.error]);
 	}
 
@@ -702,14 +750,12 @@ Webos.File.move = function(source, dest, callback) {
 			var point = source.get('mountPoint');
 
 			if (typeof Webos[point.get('driver')].move == 'function') {
-				return Webos[point.get('driver')].move(source, dest, point, [function() {
-					dest._contents = source._contents;
-					dest._updateData(response.getData());
+				return Webos[point.get('driver')].move(source, dest, point, [function(data) {
+					var file = updateMetadataFn(source, dest, data);
 
 					source._remove();
-					delete source;
 					
-					callback.success(dest);
+					callback.success(file);
 				}, callback.error]);
 			}
 		}

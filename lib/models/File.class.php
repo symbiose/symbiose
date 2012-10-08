@@ -143,6 +143,7 @@ class File extends FileBase {
 
 		if (!rename($this->realpath(), $this->realpath($dest)))
 			throw new \RuntimeException('Impossible de d&eacute;placer "'.$this->path().'" vers "'.$this->path($dest).'"');
+		
 		return $this->webos->managers()->get('File')->get($dest);
 	}
 

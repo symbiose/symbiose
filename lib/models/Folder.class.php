@@ -141,7 +141,6 @@ class Folder extends FileBase {
 				$this->webos->managers()->get('File')->checkAvailableSpace($folder->path(), $file->size());
 			}
 			$file->move($this->path($dest).'/'.$file->basename());
-			$file->delete();
 		}
 
 		$this->delete();
