@@ -1,15 +1,18 @@
 (function() {
 	if (window.Shell) {
+		if ($('#shell') != Shell._$shell) {
+			Shell.reload();
+		}
 		return;
 	}
-	
+
 	//On charge les bibliotheques
 	W.ScriptFile.load(
 		'/usr/lib/webos/applications.js',
 		'/usr/lib/html2canvas/html2canvas.min.js',
 		'/usr/lib/html2canvas/jquery.html2canvas.js'
 	);
-	
+
 	/**
 	 * Shell est la bibliotheque du Shell.
 	 * @author $imon
@@ -1180,6 +1183,18 @@
 			}, 'gnome-shell');
 			
 			this._initialized = true; //On marque le Shell comme initialise
+		},
+		reload: function() {
+			this._$shell = $('#shell');
+			this._$launcher = $('#shell .launcher');
+			this._$workspaces = $('#shell .workspaces');
+			this._$searchEntry = $('#shell .content input.search-entry');
+			this._$overlay = $();
+			this._$appsCategories = $('#shell .shortcuts .filters');
+			this._$appsList = $('#shell .shortcuts .list');
+
+			this._initialized = false;
+			this.init();
 		}
 	};
 	
