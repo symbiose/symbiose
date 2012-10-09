@@ -217,6 +217,40 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			$.webos.menuItem(t.get('Upload a file')).click(function() {
 				that.openUploadWindow();
 			}).appendTo(contextmenu);
+			if (Webos.Clipboard) {
+				var pasteItem = $.webos.menuItem(t.get('Paste'), true).click(function() {
+					var item = Webos.Clipboard.get();
+					if (item && item.is(Webos.File)) {
+						item.paste(function(file) {
+							if (item.operation() == 'cut') {
+								Webos.File.move(file, dir, function(dest) {
+									item.setData(dest);
+									item.pasted();
+								});
+							} else {
+								Webos.File.copy(file, dir, function() {
+									item.pasted();
+								});
+							}
+						}, true);
+					}
+				}).appendTo(contextmenu);
+
+				var clipboardItem = Webos.Clipboard.get();
+				pasteItem.menuItem('option', 'disabled', !(clipboardItem && clipboardItem.is(Webos.File)));
+
+				var copyCallbackId = Webos.Clipboard.bind('copy cut', function(data) {
+					var item = Webos.Clipboard.get();
+					pasteItem.menuItem('option', 'disabled', !(item && item.is(Webos.File)));
+				});
+				var clearCallbackId = Webos.Clipboard.bind('clear', function() {
+					pasteItem.menuItem('option', 'disabled', true);
+				});
+				that.element.one('readstart', function() {
+					Webos.Clipboard.unbind(copyCallbackId);
+					Webos.Clipboard.unbind(clearCallbackId);
+				});
+			}
 			$.webos.menuItem(t.get('Refresh'), true).click(function() {
 				that.refresh();
 			}).appendTo(contextmenu);
@@ -539,6 +573,14 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				$(this).data('nautilus').remove();
 			});
 		}).appendTo(contextmenu);
+		if (Webos.Clipboard) {
+			$.webos.menuItem(t.get('Copy'), true).click(function() {
+				Webos.Clipboard.copy(file);
+			}).appendTo(contextmenu);
+			$.webos.menuItem(t.get('Cut')).click(function() {
+				Webos.Clipboard.cut(file);
+			}).appendTo(contextmenu);
+		}
 		$.webos.menuItem(t.get('Properties'), true).click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
 			files.each(function() {

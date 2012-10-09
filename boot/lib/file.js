@@ -712,6 +712,9 @@ Webos.File.move = function(source, dest, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
 	var updateMetadataFn = function(source, dest, data) {
+		var contents = source._contents;
+		source._remove();
+
 		var metadataFile = new dest.constructor(data);
 		var file = Webos.File.get(metadataFile.get('path'));
 		if (Webos.isInstanceOf(file, metadataFile.constructor)) {
@@ -721,7 +724,7 @@ Webos.File.move = function(source, dest, callback) {
 				is_dir: metadataFile.get('is_dir')
 			});
 		}
-		file._contents = source._contents;
+		file._contents = contents;
 		
 		return file;
 	};
@@ -738,8 +741,6 @@ Webos.File.move = function(source, dest, callback) {
 		}).load([function(response) {
 			var file = updateMetadataFn(source, dest, response.getData());
 
-			source._remove();
-
 			callback.success(file);
 		}, callback.error]);
 	}
@@ -752,8 +753,6 @@ Webos.File.move = function(source, dest, callback) {
 			if (typeof Webos[point.get('driver')].move == 'function') {
 				return Webos[point.get('driver')].move(source, dest, point, [function(data) {
 					var file = updateMetadataFn(source, dest, data);
-
-					source._remove();
 					
 					callback.success(file);
 				}, callback.error]);
