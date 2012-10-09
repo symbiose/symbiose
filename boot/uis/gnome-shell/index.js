@@ -28,15 +28,17 @@ W.User.getLogged(new W.Callback(function(user) {
 		return;
 	}
 	
-	//On charge le contenu du bureau
-	var desktopFiles = $.w.nautilus({
-		multipleWindows: true,
-		directory: '~/Bureau'
-	});
-	desktopFiles.one('nautilusreadcomplete', function() {
-		$(window).trigger('resize');
-	});
-	$('#desktop-files').replaceWith(desktopFiles);
+	Webos.Translation.load(function(t) {
+		//On charge le contenu du bureau
+		var desktopFiles = $.w.nautilus({
+			multipleWindows: true,
+			directory: t.get('~/Desktop')
+		});
+		desktopFiles.one('nautilusreadcomplete', function() {
+			resizeDesktopFn();
+		});
+		$('#desktop-files').replaceWith(desktopFiles);
+	}, 'gnome-shell');
 }, function() {}));
 
 //On initialise les tableaux de bord
