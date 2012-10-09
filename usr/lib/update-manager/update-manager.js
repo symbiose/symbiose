@@ -14,7 +14,7 @@ function UpdateManager() {
 		this.updates = {};
 		
 		this.window = $.w.window({
-			title: t.get('Updates manager'),
+			title: t.get('Update manager'),
 			icon: new W.Icon('apps/update-manager'),
 			width: 600,
 			stylesheet: 'usr/share/css/update-manager/main.css',
@@ -26,7 +26,7 @@ function UpdateManager() {
 		this.components = {};
 		
 		$('<div></div>').addClass('upgrade-icon').appendTo(windowContent);
-		this.components.title = $('<strong></strong>').html(t.get('Updates manager')).appendTo(windowContent);
+		this.components.title = $('<strong></strong>').html(t.get('Update manager')).appendTo(windowContent);
 		windowContent.append('<br />');
 		this.components.msg = $.w.label().appendTo(windowContent);
 		this.components.list = $.w.container().addClass('list').appendTo(windowContent);
@@ -226,7 +226,7 @@ function UpdateManager() {
 	Webos.TranslatedLibrary.call(this);
 }
 UpdateManager.prototype = {
-	_translationsName: 'eos'
+	_translationsName: 'update-manager'
 };
 Webos.inherit(UpdateManager, Webos.Observable);
 Webos.inherit(UpdateManager, Webos.TranslatedLibrary);
