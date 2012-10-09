@@ -88,6 +88,12 @@
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
 }
+.webos-scrollpane .drag:hover {
+	background: #828586;
+}
+.webos-scrollpane .drag:active, .webos-scrollpane .dragging .drag {
+	background: #4a90d9;
+}
 
 .webos-scrollpane .vertical-bar .track,
 .webos-scrollpane .horizontal-bar .drag-container
@@ -120,18 +126,14 @@
 	height: 100%;
 }
 
-.webos-scrollpane .vertical-bar .arrow:focus
-{
-	outline: none;
-}
-.webos-scrollpane:active
+.webos-scrollpane:active, .webos-scrollpane:focus
 {
 	outline: none;
 }
 
 .webos-scrollpane .corner
 {
-	background: #d6d6d6;
+	background-color: #d6d6d6;
 	float: right;
 }
 
@@ -172,7 +174,10 @@
 	-webkit-border-radius: 7px;
 	border-radius: 7px;
 }
-#shell .webos-scrollpane .drag:hover
+#shell .webos-scrollpane .drag:hover, #shell .webos-scrollpane .dragging .drag
 {
 	background: #292929;
+}
+.webos-scrollpane .corner {
+	background-color: transparent;
 }

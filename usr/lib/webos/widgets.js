@@ -214,6 +214,8 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 	_create: function() {
 		var originalScrollTop = this.element.scrollTop(), originalScrollLeft = this.element.scrollLeft();
 		
+		this.element.attr('tabindex', 0);
+
 		this.options._components.container = $('<div></div>', { 'class': 'container' });
 		this.options._content = $('<div></div>', { 'class': 'pane' });
 		this.element.wrapInner(this.options._components.container);
@@ -276,9 +278,16 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 
 			var startY = e.pageY - that.options._components.verticalBar.find('.drag-container').position().top;
 
+			$this = $(this);
 			$('html').bind('mousemove.scrollpane.widget.webos', function(e) {
 				that.positionDragY(e.pageY - startY, false);
-			}).bind('mouseup.scrollpane.widget.webos mouseleave.scrollpane.widget.webos', cancelDrag);
+			}).bind('mouseup.scrollpane.widget.webos mouseleave.scrollpane.widget.webos', function() {
+				$this.removeClass('dragging');
+				cancelDrag();
+			});
+
+			$(this).addClass('dragging');
+
 			e.preventDefault();
 		}).bind('click.scrollpane.widget.webos', function(e) {
 			e.preventDefault();
@@ -292,9 +301,16 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 
 			var startX = e.pageX - that.options._components.horizontalBar.find('.drag-container').position().left;
 
+			$this = $(this);
 			$('html').bind('mousemove.scrollpane.widget.webos', function(e) {
 				that.positionDragX(e.pageX - startX, false);
-			}).bind('mouseup.scrollpane.widget.webos mouseleave.scrollpane.widget.webos', cancelDrag);
+			}).bind('mouseup.scrollpane.widget.webos mouseleave.scrollpane.widget.webos', function() {
+				$this.removeClass('dragging');
+				cancelDrag();
+			});
+
+			$(this).addClass('dragging');
+
 			e.preventDefault();
 		}).bind('click.scrollpane.widget.webos', function(e) {
 			e.preventDefault();
@@ -555,27 +571,30 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 	reload: function() {
 		this._trigger('beforereload', { type: 'beforereload' });
 		
-		var data = {};var that = this;
+		var data = {}, that = this;
 		this.element.data('scrollpane', data);
 		
 		this.element.css({
 			overflow: 'hidden',
 			padding: 0
 		});
-		
-		data.containerWidth = this.element.outerWidth();
-		data.containerHeight = this.element.outerHeight();
-		
-		this.element.css('overflow', 'auto');
-		data.paneWidth = this.content()[0].scrollWidth;
-		data.paneHeight = this.content()[0].scrollHeight;
-		
+		this.content().css({
+			width: 'auto',
+			height: 'auto'
+		});
+
 		setTimeout(function() { //Delay for Mozilla
+			data.containerWidth = that.element.width();
+			data.containerHeight = that.element.height();
+
+			data.paneWidth = that.content().outerWidth(true);
+			data.paneHeight = that.content().outerHeight(true);
+
 			data.percentInViewH = data.paneWidth / data.containerWidth;
 			data.percentInViewV = data.paneHeight / data.containerHeight,
 			data.isScrollableV = (data.percentInViewV > 1);
 			data.isScrollableH = (data.percentInViewH > 1);
-			
+
 			if (!(data.isScrollableH || data.isScrollableV)) {
 				that.element.removeClass('scrollable');
 				
@@ -677,7 +696,6 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			that._trigger('reload', { type: 'reload' }, data);
 		}, 0);
-		that.element.css('overflow', 'hidden');
 	}
 });
 $.webos.widget('scrollPane', scrollPaneProperties);

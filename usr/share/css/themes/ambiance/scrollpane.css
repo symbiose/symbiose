@@ -120,11 +120,7 @@
 	height: 100%;
 }
 
-.webos-scrollpane .vertical-bar .arrow:focus
-{
-	outline: none;
-}
-.webos-scrollpane:active
+.webos-scrollpane:active, .webos-scrollpane:focus
 {
 	outline: none;
 }
@@ -172,7 +168,10 @@
 	-webkit-border-radius: 7px;
 	border-radius: 7px;
 }
-#shell .webos-scrollpane .drag:hover
+#shell .webos-scrollpane .drag:hover, #shell .webos-scrollpane .dragging .drag
 {
 	background: #292929;
+}
+.webos-scrollpane .corner {
+	background-color: transparent;
 }

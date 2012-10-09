@@ -42,6 +42,8 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 
 			$config->load($path);
 			$preferedOpeners = $config->getConfig();
+		} else {
+			$preferedOpeners = array();
 		}
 
 		//On recupere la liste des raccourcis
