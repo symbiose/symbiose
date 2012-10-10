@@ -798,15 +798,17 @@
 								}
 								
 								if (!$.fx.off) {
-									thisWindow.html2canvas({
-										proxy: null,
-										onrendered: function(canvas) {
-											if (isHidden) {
-												thisWindow.hide();
+									try {
+										thisWindow.html2canvas({
+											proxy: null,
+											onrendered: function(canvas) {
+												if (isHidden) {
+													thisWindow.hide();
+												}
+												ctx.drawImage(canvas, rectX, rectY, rectWidth, rectHeight);
 											}
-											ctx.drawImage(canvas, rectX, rectY, rectWidth, rectHeight);
-										}
-									});
+										});
+									} catch (e) {}
 								} else {
 									if (isHidden) {
 										thisWindow.hide();
