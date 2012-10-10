@@ -790,7 +790,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 
 			var data = [t.get('Name : ${name}', { name: file.get('basename') }),
-			            (file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : t.get('Type : ${extension} file', { extension: file.get('extension') }),
+			            (file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : ((file.get('mime_type')) ? t.get('MIME type : ${mime}', { mime: file.get('mime_type') }) : t.get('Type : ${extension} file', { extension: file.get('extension') })),
 			            t.get('Location : ${location}', { location: file.get('dirname') }),
 			            ((file.get('is_dir')) ? t.get('Contents : ${size} file${size|s}', { size: file.get('size') }) : t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }))];
 			
