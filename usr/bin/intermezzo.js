@@ -15,23 +15,13 @@
 */
 new W.ScriptFile('usr/lib/intermezzo/intermezzo.js');
 
- // on récupère les arguments passées en paramètres (console etc ...)
+ // On récupère les arguments passées en paramètres (console, etc ...)
 var IntermezzoPlayerFile = args.getParam(0);
-var file; // variable qui enregistre le fichier wfile à lancer
-if (typeof IntermezzoPlayerFile == 'string') { // si ce n'est pas un objet wfile on en cré un
-	W.File.load(IntermezzoPlayerFile, new W.Callback(function(file) {
-		new IntermezzoWindow({ // on lance Intermezzo
-			file: file
-		});
-	}));
-} else if (typeof IntermezzoPlayerFile == 'object') { // si c'est un objet (wfile) on ne le crée pas
-	file = IntermezzoPlayerFile;
-} else { // sinon on met false
-	file = false;
-}
-
-if (typeof file != 'undefined') {
-	new IntermezzoWindow({ // on lance Intermezzo
+var file = (IntermezzoPlayerFile) ? W.File.get(IntermezzoPlayerFile) : null;
+if (file) {
+	new IntermezzoWindow({
 		file: file
 	});
+} else {
+	new IntermezzoWindow();
 }

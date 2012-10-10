@@ -66,6 +66,23 @@ class File extends FileBase {
 			case 'html':
 				return 'text/html';
 		}
+
+		$htaccessPath = '/.htaccess';
+		if ($this->webos->managers()->get('File')->exists($htaccessPath)) {
+			$contents = $this->webos->managers()->get('File')->get($htaccessPath)->contents();
+			$lines = explode("\n", $contents);
+
+			foreach ($lines as $line) {
+				$line = trim($line);
+				if (stripos($line, 'AddType ') === 0) {
+					$data = explode(' ', $line);
+					if ($data[2] == $this->extension()) {
+						return $data[1];
+					}
+				}
+			}
+		}
+
 		if (!class_exists('finfo')) {
 			return 'application/octet-stream';
 		}

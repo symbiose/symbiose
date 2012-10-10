@@ -6,3 +6,18 @@ RewriteEngine on
 
 RewriteRule ^([a-zA-Z0-9-_.]+)\.html$                index.php?ui=$1 [L,QSA]
 RewriteRule ^(bin|boot|etc|home|tmp|usr|var)/(.*)$   sbin/filecall.php?file=/$1/$2 [L,QSA]
+
+# AddType TYPE/SUBTYPE EXTENSION
+ 
+AddType audio/mpeg mp3
+AddType audio/mp4 m4a
+AddType audio/ogg oga
+AddType audio/webm webma
+AddType audio/wav wav
+ 
+AddType video/mp4 mp4
+AddType video/mp4 m4v
+AddType video/ogg ogv
+AddType video/ogg ogg
+AddType video/webm webm
+AddType video/webm webmv

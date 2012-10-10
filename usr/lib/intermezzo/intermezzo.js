@@ -7,23 +7,26 @@ new W.ScriptFile('usr/lib/intermezzo/jquery.jplayer.min.js');
 new W.ScriptFile('usr/lib/webos/fullscreen.js');
 new W.Stylesheet('usr/share/css/intermezzo/main.css');
 
-var intermezzoProperties = $.webos.extend(containerProperties, {
+var intermezzoProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'intermezzo',
 	options: {
 		file: undefined
 	},
+	_translationsName: 'intermezzo',
 	_create: function() {
-		if (this.options.file instanceof W.File) {
+		if (Webos.isInstanceOf(this.options.file, W.File)) {
 			this.open(this.options.file);
 		} else {
 			this.loadEmpty();
 		}
 	},
 	_loadProfile: function(type, callback) {
-		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		var that = this, t = this.translations();
 		
-		if (typeof type == 'undefined') {
-			W.Error.trigger('Profil du lecteur inconnu');
+		if (!type) {
+			callback.error(new Webos.Callback.Result.error(t.get('Unknown driver')));
+			return;
 		}
 		
 		this.options.type = type;
@@ -32,19 +35,17 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 			url: 'usr/lib/intermezzo/html/'+type+'.html',
 			success: function(response) {
 				that.element.html(response);
-				if (typeof callback != 'undefined') {
-					callback();
-				}
+				callback.success();
 				that._trigger('loadprofile');
 			},
 			error: function() {
-				W.Error.trigger('Impossible de charger le profil "'+type+'" du lecteur');
+				callback.error(new Webos.Callback.Result.error(t.get('Can\'t load media player\'s profile "${type}"', { type: type })));
 			}
 		});
 	},
 	_initPlayer: function(supplied, userCallback) {
-		var that = this;
-		
+		var that = this, t = this.translations();
+
 		this.options._components.player = this.element.find('.jp-jplayer').jPlayer({
 			swfPath: 'usr/lib/intermezzo/swf',
 			supplied: supplied,
@@ -75,10 +76,7 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 				that.element.find('.jp-video .jp-jplayer').mousemove(mousemoveFn);
 				
 				that.element.find('.jp-full-screen').click(function() {
-					if (fullScreenApi.supportsFullScreen) {
-						if (fullScreenApi.isFullScreen()) {
-							fullScreenApi.cancelFullScreen();
-						}
+					if (Webos.fullscreen.support) {
 						that.element.find('.jp-video').requestFullScreen();
 					} else {
 						$('#header').animate({
@@ -91,8 +89,8 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 				});
 				
 				that.element.find('.jp-restore-screen').click(function() {
-					if (fullScreenApi.supportsFullScreen) {
-						fullScreenApi.cancelFullScreen();
+					if (Webos.fullscreen.support) {
+						Webos.fullscreen.cancel();
 					} else {
 						$('#header').animate({
 							top: '+=25px'
@@ -110,28 +108,28 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 				}
 			},
 			error: function(e) {
-				var mess = 'Une erreur est survenue avec le lecteur multim&eacute;dia jPlayer';
+				var mess = t.get('An error has occurred with the multimedia player jPlayer');
 				switch (e.jPlayer.error.type) {
 					case $.jPlayer.error.FLASH:
-						mess = 'Une erreur est survenue lors de l\'insertion de la vid&eacute;o avec le greffon Flash';
+						mess = t.get('An error occurred while inserting the video with Flash plugin');
 						break;
 					case $.jPlayer.error.FLASH_DISABLED:
-						mess = 'Une erreur est survenue avec le greffon Flash, qui a &eacute;t&eacute; d&eacute;sactiv&eacute;';
+						mess = t.get('An error has occurred with the Flash plugin, which has been disabled');
 						break;
 					case $.jPlayer.error.NO_SOLUTION:
-						mess = 'Impossible de lire le m&eacute;dia, votre navigateur Internet n\'est pas &agrave; jour';
+						mess = t.get('Can\'t read the media, your browser is outdated');
 						break;
 					case $.jPlayer.error.NO_SUPPORT:
-						mess = 'Impossible de lire le m&eacute;dia, le format du fichier n\'est pas support&eacute;';
+						mess = t.get('Can\'t read the media, file format not supported');
 						break;
 					case $.jPlayer.error.URL:
-						mess = 'Impossible de lire le m&eacute;dia, le chemin vers le fichier est invalide';
+						mess = t.get('Can\'t read the media, the file path is invalid');
 						break;
 					case $.jPlayer.error.URL_NOT_SET:
 						return;
 						break;
 					case $.jPlayer.error.VERSION:
-						mess = 'Votre version de Javascript et de Flash n\'est pas support&eacute;e';
+						mess = t.get('Your Javascript and Flash version is not supported');
 						break;
 				}
 				W.Error.trigger(mess, e.jPlayer.error.message+"\n"+e.jPlayer.error.hint);
@@ -150,9 +148,9 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 			fileObject = {},
 			type = 'audio',
 			supplied = '',
-			filepath = this.options.file.getAttribute('realpath');
+			filepath = this.options.file.get('realpath');
 		
-		switch (this.options.file.getAttribute('extension')) { // selon les types MIME, on cré une playlist différente
+		switch (this.options.file.get('extension')) { // selon les types MIME, on cré une playlist différente
 			case 'mp3':
 				fileObject = {
 					mp3: filepath
@@ -162,7 +160,7 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 			break;
 			case 'oga':
 				fileObject = {
-					oga:filepath
+					oga: filepath
 				};
 				supplied = "oga";
 				type = 'audio';
@@ -183,28 +181,28 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 			break;
 			case 'mp4':
 				fileObject = {
-					mp4:filepath
+					mp4: filepath
 				};
 				supplied = "m4v";
 				type = 'video';
 			break;
 			case 'm4v':
 				fileObject = {
-					m4v:filepath
+					m4v: filepath
 				};
 				supplied = "m4v";
 				type = 'video';
 			break;
 			case 'm4a':
 				fileObject = {
-					m4a:filepath
+					m4a: filepath
 				};
 				supplied = "m4a";
 				type = 'audio';
 			break;
 			case 'wav':
 				fileObject = {
-					wav:filepath
+					wav: filepath
 				};
 				supplied = "wav";
 			break;
@@ -235,11 +233,11 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 		
 		this.options.type = type;
 		
-		var that = this;
+		var that = this, t = this.translations();
 		
 		this._loadProfile(type, function() {
 			if (!supported) {
-				W.Error.trigger('Impossible d\'ouvrir le fichier "'+that.options.file.getAttribute('basename')+'"', 'Ce type de fichier n\'est pas support&eacute;');
+				W.Error.trigger(t.get('Can\'t open file "${basename}"', { basename: that.options.file.get('basename') }), t.get('Unsupported file type'));
 				that.loadEmpty();
 				return;
 			}
@@ -263,73 +261,86 @@ var intermezzoProperties = $.webos.extend(containerProperties, {
 		return this.options._components.player;
 	}
 });
-$.widget('webos.intermezzo', intermezzoProperties);
+$.webos.widget('intermezzo', intermezzoProperties);
 
 $.webos.intermezzo = function(options) {
 	return $('<div></div>').intermezzo(options);
 };
 
 // Application sous forme de classe
-function IntermezzoWindow(options) {
-	this.window = $.w.window({
-		title : 'Lecteur audio et vid&eacute;o Intermezzo',
-		icon: new W.Icon('applications/intermezzo')
-	});
-	var that = this;
+window.IntermezzoWindow = function IntermezzoWindow(options) {
+	Webos.Observable.call(this);
 	
-	var headers = this.window.window('header');
-	
-	this._menu = $.w.menuWindowHeader().appendTo(headers);
-	
-	var fileItem = $.w.menuItem('Fichier').appendTo(this._menu);
-	fileItemContent = fileItem.menuItem('content');
-	
-	$.w.menuItem('Ouvrir')
-		.click(function() {
-			new NautilusFileSelectorWindow({
-				parentWindow: that.window
-			}, function(files) {
-				if (files.length) {
-					that.player.intermezzo('open', files[0]);
-				}
-			});
-		})
-		.appendTo(fileItemContent);
-	
-	$.w.menuItem('Quitter')
-		.click(function() {
-			that.window.window('close');
-		})
-		.appendTo(fileItemContent);
+	this.bind('translationsloaded', function() {
+		var that = this, t = this._translations;
 
-	this.player = $.webos.intermezzo({
-		file: options.file
-	});
-	
-	var resizeFn = function() {
-		var windowsContent = that.window.window('content'),
-			windowsWidth = windowsContent.innerWidth(),
-			cssClass;
+		this.window = $.w.window({
+			title : t.get('Intermezzo multimedia player'),
+			icon: new W.Icon('applications/intermezzo')
+		});
 		
-		if (windowsWidth < 480) {
-			cssClass = '';
-		} else if (windowsWidth < 640) {
-			cssClass = 'jp-video-270p';
-		} else {
-			cssClass = 'jp-video-360p';
-		}
-		that.player.intermezzo('player').jPlayer('option', 'size', { cssClass: cssClass });
-	};
-	
-	this.window.bind('windowresize', resizeFn);
+		var headers = this.window.window('header');
+		
+		this._menu = $.w.menuWindowHeader().appendTo(headers);
+		
+		var fileItem = $.w.menuItem(t.get('File')).appendTo(this._menu);
+		fileItemContent = fileItem.menuItem('content');
+		
+		$.w.menuItem(t.get('Open'))
+			.click(function() {
+				new NautilusFileSelectorWindow({
+					parentWindow: that.window
+				}, function(files) {
+					if (files.length) {
+						that.player.intermezzo('open', files[0]);
+					}
+				});
+			})
+			.appendTo(fileItemContent);
+		
+		$.w.menuItem(t.get('Quit'))
+			.click(function() {
+				that.window.window('close');
+			})
+			.appendTo(fileItemContent);
 
-	this.player.appendTo(this.window.window('content'));
-	
-	this.window.window('open');
-	
-	this.player.bind('intermezzoloadprofile', function() {
-		that.window.window('center');
+		this.player = $.webos.intermezzo({
+			file: options.file
+		});
+		
+		var resizeFn = function() {
+			var windowsContent = that.window.window('content'),
+				windowsWidth = windowsContent.innerWidth(),
+				cssClass;
+			
+			if (windowsWidth < 480) {
+				cssClass = '';
+			} else if (windowsWidth < 640) {
+				cssClass = 'jp-video-270p';
+			} else {
+				cssClass = 'jp-video-360p';
+			}
+			that.player.intermezzo('player').jPlayer('option', 'size', { cssClass: cssClass });
+		};
+		
+		this.window.bind('windowresize', resizeFn);
+
+		this.player.appendTo(this.window.window('content'));
+		
+		this.window.window('open');
+		
+		this.player.bind('intermezzoloadprofile', function() {
+			that.window.window('center');
+		});
+		
+		resizeFn();
+		this.notify('ready');
 	});
 	
-	resizeFn();
-}
+	Webos.TranslatedLibrary.call(this);
+};
+IntermezzoWindow.prototype = {
+	_translationsName: 'intermezzo'
+};
+Webos.inherit(IntermezzoWindow, Webos.Observable);
+Webos.inherit(IntermezzoWindow, Webos.TranslatedLibrary);

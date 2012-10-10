@@ -52,7 +52,8 @@ class FileController extends \lib\ServerCallComponent {
 			'atime' => $file->atime(),
 			'mtime' => $file->mtime(),
 			'size' => $file->size(),
-			'is_dir' => $file->isDir()
+			'is_dir' => $file->isDir(),
+			'mime_type' => $file->mime()
 		);
 		if (!$file->isDir()) {
 			$data['extension'] = $file->extension();

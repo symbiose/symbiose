@@ -2,6 +2,8 @@ var browserPrefixes = 'webkit moz o ms khtml'.split(' ');
 
 Webos.fullscreen = {
 	support: false,
+	_stack: [],
+	_stackLength: 0,
 	isFullScreen: function() { return false; },
 	request: function() {},
 	cancel: function() {},
@@ -38,11 +40,28 @@ if (Webos.fullscreen.support) {
 				return document[this.prefix + 'FullScreen'];
 		}
 	};
-	Webos.fullscreen.request = function(el) {
+	Webos.fullscreen._request = function(el) {
 		return (this.prefix === '') ? el.requestFullScreen() : el[this.prefix + 'RequestFullScreen']();
 	};
-	Webos.fullscreen.cancel = function() {
+	Webos.fullscreen.request = function(el) {
+		el = $(el)[0];
+		if (Webos.fullscreen.isFullScreen()) {
+			Webos.fullscreen._cancel();
+		}
+		Webos.fullscreen._stack.push(el);
+		Webos.fullscreen._stackLength++;
+		return Webos.fullscreen._request(el);
+	};
+	Webos.fullscreen._cancel = function() {
 		return (this.prefix === '') ? document.cancelFullScreen() : document[this.prefix + 'CancelFullScreen']();
+	};
+	Webos.fullscreen.cancel = function() {
+		Webos.fullscreen._cancel();
+		Webos.fullscreen._stack.pop();
+		Webos.fullscreen._stackLength--;
+		if (Webos.fullscreen._stackLength) {
+			Webos.fullscreen._request(Webos.fullscreen._stack[Webos.fullscreen._stackLength - 1]);
+		}
 	};
 }
 

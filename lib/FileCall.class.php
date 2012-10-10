@@ -196,6 +196,7 @@ class FileCall extends Webos {
 		$cacheOffset = 7 * 24 * 3600;
 		$this->getHTTPResponse()->addHeader('Content-Type: '.$file->mime());
 		$this->getHTTPResponse()->addHeader('Content-Transfer-Encoding: binary');
+		$this->getHTTPResponse()->addHeader('Content-Length: ' . $file->size());
 		$this->getHTTPResponse()->addHeader('Cache-Control: max-age=' . $cacheOffset . ', must-revalidate');
 		$this->getHTTPResponse()->addHeader('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cacheOffset) . ' GMT');
 		$this->getHTTPResponse()->removeHeader('Pragma');
@@ -203,12 +204,13 @@ class FileCall extends Webos {
 		//Desactivation de la compression des reponses
 		if (false && preg_match('#^(image|audio|video)/#', $file->mime())) {
 			ob_start('ob_gzhandler');
-		} else {
-			ob_start();
 		}
+
 		readfile($file->realpath());
-		$this->getHTTPResponse()->addHeader('Content-Length: ' . ob_get_length());
-		ob_end_flush();
+
+		if (false) {
+			ob_end_flush();
+		}
 
 		//On envoie la reponse HTTP
 		$this->getHTTPResponse()->send();
