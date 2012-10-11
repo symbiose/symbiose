@@ -272,9 +272,13 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			that._trigger('maximize', { type: 'maximize' }, { window: that.element });
 			that._trigger('resize', { type: 'resize' }, { window: that.element });
 		});
+
+		if (this.options.resizable) {
+			this.element.resizable('disable');
+		}
+
 		this.element
 			.draggable('disable')
-			.resizable('disable')
 			.children('.title-window').css('cursor','auto');
 	},
 	minimize: function() {
@@ -308,10 +312,13 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				that.options.states.maximized = false;
 				that._trigger('resize', { type: 'resize' }, { window: that.element });
 			});
+
+			if (this.options.resizable) {
+				this.element.resizable('enable');
+			}
 			
 			this.element
 				.draggable('enable')
-				.resizable('enable')
 				.children('.title-window').css('cursor','move');
 		}
 	},
@@ -600,7 +607,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 					that._trigger('resize', { type: 'resize' }, { window: that.element });
 				}
 			});
-		} else {
+		} else if (this.element.is(':ui-resizable')) {
 			this.element.resizable('destroy');
 		}
 	},
@@ -787,9 +794,9 @@ $.webos.window.dialog = function(opts) {
 	var dialog = $.webos.window($.extend({
 		resizable: false
 	}, opts));
-	
+
 	dialog.window('content').css('padding', '5px');
-	
+
 	return dialog;
 };
 

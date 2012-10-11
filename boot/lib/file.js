@@ -192,7 +192,8 @@ Webos.File.prototype = {
 
 		var oldPath = this.get('path');
 
-		this.hydrate(updatedData);
+		//Il FAUT creer une copie de l'objet "updatedData" sinon il sera modifie par la fonction "this.hydrate"
+		this.hydrate($.extend({}, updatedData));
 
 		var parentDirPath = this.get('dirname');
 		if (parentDirPath != this.get('path')) { //Dossier racine ?
@@ -215,14 +216,16 @@ Webos.File.prototype = {
 
 		if (oldPath != this.get('path')) {
 			var file = Webos.File.get(this.get('path'));
+			var thisData = this.data();
+			this._remove();
+
 			if (Webos.isInstanceOf(file, this.constructor)) {
-				file._updateData(this.data());
+				file._updateData(thisData);
 			} else {
 				file._updateData({
-					is_dir: this.get('is_dir')
+					is_dir: thisData.is_dir
 				});
 			}
-			this._remove();
 		} else {
 			for (var key in updatedData) {
 				this.notify('update', { key: key, value: updatedData[key] });
@@ -350,6 +353,14 @@ Webos.File.prototype = {
 		}
 		
 		return true;
+	},
+	bind: function(event, fn) {
+		console.log(this._observers.length, 'bind', this, event, fn);
+		return Webos.Model.prototype.bind.call(this, event, fn);
+	},
+	notify: function(event, data) {
+		console.log(this._observers.length, 'notify', this, event, data);
+		return Webos.Model.prototype.notify.call(this, event, data);
 	},
 	toString: function() {
 		return this.get('path');

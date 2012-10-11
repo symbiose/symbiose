@@ -564,10 +564,10 @@ function GEditWindow(file) {
 				return;
 			}
 			
-			var file = that._gedit.gedit('option', 'file');
-			if (!that.saved() && that._gedit.gedit('contents') != '') {
+			var file = that._file;
+			if (!that.saved()) {
 				closeStackLength++;
-				var filename = (typeof file != 'undefined' && file != false) ? file.getAttribute('basename') : 'Nouveau fichier';
+				var filename = (Webos.isInstanceOf(file, Webos.File)) ? file.get('basename') : 'Nouveau fichier';
 				var confirm = $.w.window.confirm({
 					title: t.get('Save changes'),
 					label: t.get('Do you want to save changes of the file « ${filename} » before closing it ?', { filename: filename }),

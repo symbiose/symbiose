@@ -657,6 +657,9 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				filepath = file.get('path');
 			}
 			that.options._files[filepath] = file;
+
+			file.unbind('update', updateCallbackId);
+			file.unbind('remove', removeCallbackId);
 			
 			var newItem = that._renderItem(file);
 			item.replaceWith(newItem);
@@ -1027,7 +1030,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 		} else {
 			var that = this, t = this.translations();
-			
+
 			var runOpenerFn = function() {
 				Webos.Application.listOpeners(file.get('extension'), function(openers) {
 					if (openers.length > 0) {
