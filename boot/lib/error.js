@@ -37,7 +37,7 @@ Webos.Error.catchError = function(error) {
 		if (error instanceof W.Error) {
 			consoleMsg = error.name+': '+error.text+"\n"+error.stack.join("\n");
 		} else {
-			consoleMsg = error.stack;
+			consoleMsg = error.name + ' : ' + error.message + "\nStack trace :\n" + error.stack;
 		}
 		
 		if (typeof console != 'undefined') {

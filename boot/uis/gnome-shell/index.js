@@ -51,7 +51,8 @@ Webos.Error.setErrorHandler(function(error) {
 		message = error.html.message;
 		details = error.toString();
 	} else {
-		message = details = error.name + ' : ' + error.message;
+		message = error.name + ' : ' + error.message;
+		details = error.name + ' : ' + error.message + "<br />Stack trace :<br />" + error.stack;
 	}
 	
 	var openWindowFn = function() {
