@@ -354,14 +354,6 @@ Webos.File.prototype = {
 		
 		return true;
 	},
-	bind: function(event, fn) {
-		console.log(this._observers.length, 'bind', this, event, fn);
-		return Webos.Model.prototype.bind.call(this, event, fn);
-	},
-	notify: function(event, data) {
-		console.log(this._observers.length, 'notify', this, event, data);
-		return Webos.Model.prototype.notify.call(this, event, data);
-	},
 	toString: function() {
 		return this.get('path');
 	}

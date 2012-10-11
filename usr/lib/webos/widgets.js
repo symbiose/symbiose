@@ -30,7 +30,7 @@ $.webos.properties.list = {};
 */
 $.webos.properties.get = function(widget) {
 	if (typeof $.webos.properties.list[widget] == 'undefined') {
-		return {};
+		return null;
 	}
 	
 	return $.webos.properties.list[widget];
@@ -67,6 +67,10 @@ $.webos.widget = function(widget, arg1, arg2) {
 		properties.translations = function() {
 			return this._translations;
 		};
+	}
+
+	if ($.webos.properties.get(widget) === properties) {
+		return;
 	}
 	
 	$.webos.properties.list[widget] = properties;

@@ -65,12 +65,11 @@ var geditProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	}
 });
-$.widget('webos.gedit', geditProperties);
+$.webos.widget('gedit', geditProperties);
 
 $.webos.gedit = function(options) {
 	return $('<div></div>').gedit(options);
 };
-
 $.webos.gedit.modes = function() {
 	return ['clike',
             'clojure',
@@ -480,7 +479,9 @@ function GEditWindow(file) {
 		
 		this._content = $('<div></div>').appendTo(this._window.window('content'));
 		
-		this._gedit = $.w.gedit().bind('geditchange', function() {
+		this._gedit = $.w.gedit();
+
+		this._gedit.bind('geditchange', function() {
 			if (that._isSaved) {
 				that._isSaved = false;
 				that._refreshTitle();
