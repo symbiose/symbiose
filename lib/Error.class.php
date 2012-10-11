@@ -46,7 +46,12 @@ abstract class Error extends \lib\WebosComponent {
 		$this->file = $file;
 		$this->line = $line;
 
-		$log = new \lib\models\ErrorLog($this); //On enregistre l'erreur dans un log
+		//On enregistre l'erreur dans un log
+		if ($this instanceof ExceptionError) {
+			$log = new \lib\models\ExceptionLog($this);
+		} else {
+			$log = new \lib\models\ErrorLog($this);
+		}
 		$log->save();
 	}
 
