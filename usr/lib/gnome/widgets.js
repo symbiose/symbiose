@@ -277,9 +277,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			this.element.resizable('disable');
 		}
 
-		this.element
-			.draggable('disable')
-			.children('.title-window').css('cursor','auto');
+		this.element.children('.title-window').css('cursor','auto');
 	},
 	minimize: function() {
 		if (this.is('minimized')) {
@@ -317,9 +315,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				this.element.resizable('enable');
 			}
 			
-			this.element
-				.draggable('enable')
-				.children('.title-window').css('cursor','move');
+			this.element.children('.title-window').css('cursor','move');
 		}
 	},
 	minimizeOrMaximize: function() {
