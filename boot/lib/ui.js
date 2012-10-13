@@ -20,15 +20,20 @@ Webos.UserInterface = function WUserInterface(data) {
 	
 	this.callLoaded = true;
 	this.loaded = function() {
+		Webos.UserInterface.setLoadingScreenText('Cleaning terrain...');
 		for (var i = 0; i < Webos.UserInterface.list.length; i++) {
 			if (typeof Webos.UserInterface.list[i] != 'undefined' && Webos.UserInterface.list[i].element.length > 0 && Webos.UserInterface.list[i].id() != this.id()) {
 				Webos.UserInterface.list[i].element.remove();
 			}
 		}
+
+		Webos.UserInterface.setLoadingScreenText('Interface loaded.');
 		Webos.UserInterface.hideLoadingScreen();
 	};
 	
 	this.load = function() {
+		Webos.UserInterface.setLoadingScreenText('Applying stylesheets...');
+
 		this.element = $('<div></div>', { id: 'userinterface-'+this.id() })
 			.css('height', '100%')
 			.css('width', '100%')
@@ -42,6 +47,8 @@ Webos.UserInterface = function WUserInterface(data) {
 		for (var index in this._attributes.data.css) {
 			Webos.Stylesheet.insertCss(this._attributes.data.css[index], '#userinterface-'+this.id());
 		}
+
+		Webos.UserInterface.setLoadingScreenText('Initialising interface...');
 		
 		//Chargement du Javascript
 		for (var index in this._attributes.data.js) {
@@ -49,12 +56,16 @@ Webos.UserInterface = function WUserInterface(data) {
 				if (!js) {
 					return;
 				}
-				
+
+				Webos.UserInterface.setLoadingScreenText('Running '+index+'...');
+
 				js = 'try {'+js+"\n"+'} catch(error) { Webos.Error.catchError(error); }';
 				Webos.Script.run(js); //On execute le code
 			})(this._attributes.data.js[index]);
 		}
-		
+
+		Webos.UserInterface.setLoadingScreenText('Initialising interface...');
+
 		if (this.callLoaded) {
 			this.loaded();
 		}
@@ -71,7 +82,7 @@ Webos.UserInterface.load = function(name) {
 	
 	Webos.Error.setErrorHandler(function(error) {
 		if ($('#webos-error').is(':hidden')) {
-			$('#webos-error p').html('<strong>Une erreur est survenue lors du chargement de l\'interface.</strong><br />');
+			$('#webos-error p').html('<strong>An error occured while loading user interface.</strong><br />');
 			$('#webos-error').show();
 		}
 		
@@ -90,6 +101,8 @@ Webos.UserInterface.load = function(name) {
 	});
 	
 	Webos.UserInterface.showLoadingScreen();
+
+	Webos.UserInterface.setLoadingScreenText('Retrieving interface...');
 	
 	new Webos.ServerCall({
 		'class': 'UserInterfaceController',
@@ -168,6 +181,9 @@ Webos.UserInterface.showLoadingScreen = function() {
 			$('#webos-loading').fadeIn();
 		}
 	}
+};
+Webos.UserInterface.setLoadingScreenText = function(msg) {
+	$('#webos-loading p').html(msg);
 };
 Webos.UserInterface.hideLoadingScreen = function() {
 	if ($('#webos-loading').is(':animated')) {
