@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config>
+	<attribute name="desktop" value="adwaita"/>
+	<attribute name="icons" value="humanity"/>
+	<attribute name="background" value="/usr/share/images/backgrounds/default.jpg"/>
+	<attribute name="animations" value="1"/>
+</config>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<attribute name="nautilus" value="1"/>
+	<attribute name="gnome-terminal" value="2"/>
+	<attribute name="gedit" value="4"/>
+	<attribute name="software-center" value="5"/>
+<attribute name="gnome-translate" value="5"/><attribute name="gcalctool" value="3"/></config>
