@@ -8,16 +8,20 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
 	var that = this;
-	
+
+	var content = $('<ul></ul>', { 'class': 'menu' });
+	that.content.append(content);
+	var menu = $('<li></li>').attr('class','memenu').appendTo(content);
+	var userBox = $('<a></a>', { href: '#' }).html('User').appendTo(menu);
+	var userMenu = $('<ul></ul>').appendTo(menu);
+
+	var firstRun = true;
 	Webos.Translation.load(function(t) {
-		var content = $('<ul></ul>', { 'class': 'menu' });
-		that.content.append(content);
-		
-		var menu = $('<li></li>').attr('id','memenu').appendTo(content);
-		var userBox = $('<a></a>', { href: '#' }).html(t.get('User')).appendTo(menu);
-		var userMenu = $('<ul></ul>').appendTo(menu);
-		
-		var callback = new W.Callback(function(user) {
+		userBox.html(t.get('User'));
+
+		var generateMenu = function(user) {
+			userMenu.empty();
+			
 			var realname = t.get('Guest');
 			if (typeof user != 'undefined') {
 				realname = user.get('realname');
@@ -79,8 +83,10 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 				}).appendTo(userMenu);
 				
 				Webos.User.canRegister(function(canRegister) {
-					var notificationsButtons = [$.w.button(t.get('Register')).click(function() { W.Cmd.execute('gnome-register'); }),
-					                            $.w.button(t.get('Login...')).click(function() { W.Cmd.execute('gnome-login'); })];
+					var notificationsButtons = [
+						$.w.button(t.get('Register')).click(function() { W.Cmd.execute('gnome-register'); }),
+						$.w.button(t.get('Login...')).click(function() { W.Cmd.execute('gnome-login'); })
+					];
 					if (canRegister) {
 						registerMenuItem.show();
 					} else {
@@ -95,9 +101,28 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 					});
 				});
 			}
-			userBox.text(realname);
-		}, function() {});
-	
-		W.User.get(callback);
+
+			if (!firstRun) {
+				userBox.animate({
+					opacity: 0
+				}, 'normal', function() {
+					userBox.text(realname);
+					userBox.animate({
+						opacity: 1
+					});
+				});
+			} else {
+				userBox.text(realname);
+				firstRun = false;
+			}
+		};
+
+		W.User.get(new W.Callback(function(user) {
+			generateMenu(user);
+		}, function() {}));
+
+		Webos.User.bind('login logout', function(data) {
+			generateMenu(data.user);
+		});
 	}, 'gnome-shell');
 };

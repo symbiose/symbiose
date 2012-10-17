@@ -22,24 +22,37 @@ $(window).resize(resizeDesktopFn);
 //On cree 1 espace de travail
 new $.w.window.workspace();
 
-W.User.getLogged(new W.Callback(function(user) {
-	//Si l'utilisateur n'est pas connecte, on n'affiche pas son bureau
-	if (!user) {
-		return;
-	}
-	
-	Webos.Translation.load(function(t) {
+Webos.Translation.load(function(t) {
+	var desktopFiles = $('#desktop-files');
+	var loadDesktopFn = function(user) {
+		//Si l'utilisateur n'est pas connecte, on n'affiche pas son bureau
+		if (!user) {
+			emptyDesktopFiles = $('<div id="desktop-files"></div>');
+			desktopFiles.replaceWith(emptyDesktopFiles);
+			desktopFiles = emptyDesktopFiles;
+			return;
+		}
+
 		//On charge le contenu du bureau
-		var desktopFiles = $.w.nautilus({
+		var nautilusDesktopFiles = $.w.nautilus({
 			multipleWindows: true,
 			directory: t.get('~/Desktop')
 		});
-		desktopFiles.one('nautilusreadcomplete', function() {
+		nautilusDesktopFiles.one('nautilusreadcomplete', function() {
 			resizeDesktopFn();
 		});
-		$('#desktop-files').replaceWith(desktopFiles);
-	}, 'gnome-shell');
-}, function() {}));
+		desktopFiles.replaceWith(nautilusDesktopFiles);
+		desktopFiles = nautilusDesktopFiles;
+	};
+
+	Webos.User.bind('login logout', function(data) {
+		loadDesktopFn(data.user);
+	});
+
+	Webos.User.getLogged([function(user) {
+		loadDesktopFn(user);
+	}, function() {}]);
+}, 'gnome-shell');
 
 //On initialise les tableaux de bord
 Webos.Dashboard.init();

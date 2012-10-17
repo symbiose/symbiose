@@ -25,7 +25,6 @@ $.w.button('Se d&eacute;connecter')
 		logoutWindow.window('loading', true);
 		Webos.User.logout(new W.Callback(function() {
 			logoutWindow.window('close');
-			W.UserInterface.load();
 		}));
 	})
 	.appendTo(buttonContainer);

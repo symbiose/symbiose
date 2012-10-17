@@ -33,10 +33,10 @@ Webos.Translation.load(function(t) {
 			var callback = new W.Callback(function() {
 				loginWindow.window('close');
 				var ui = uiSelector.selectButton('value');
-				if (ui == '') {
+				if (ui === '') {
 					ui = undefined;
 				}
-				W.UserInterface.load(ui);
+				//W.UserInterface.load(ui);
 			}, function(response) {
 				loginWindow.window('loading', false);
 				response.triggerError(t.get('The connection failed'));
@@ -50,7 +50,7 @@ Webos.Translation.load(function(t) {
 	var spoiler = $.w.spoiler(t.get('Options')).one('spoilershow', function() {
 		W.UserInterface.getList(new W.Callback(function(data) {
 			var uis = {};
-			var defaultUI = undefined;
+			var defaultUI;
 			for (var index in data) {
 				(function(ui) {
 					if (ui.type == 'ui') { //Si c'est une interface de travail, pas une interface de connexion
