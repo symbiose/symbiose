@@ -1,8 +1,8 @@
-[Symbiose 1.0 alpha 3](http://symbiose.fr.cr/)
+[Symbiose 1.0 beta 1](http://symbiose.fr.cr/)
 ==============================================
 
-This version (alpha) is unstable.  
-Cette version (alpha) n'est pas stable.
+This version (beta) is unstable.  
+Cette version (beta) n'est pas stable.
 
 Quick start
 -----------
@@ -17,7 +17,7 @@ Have a bug ? Please create an issue here on GitHub : https://github.com/twitter/
 Installing
 ----------
 
-To install Symbiose you just need to unzip files on your web server.
+To install Symbiose you just need to unzip files on your web server, and chmod all of them to 0777.
 
 Software requirements
 ---------------------
