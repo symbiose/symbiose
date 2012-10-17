@@ -185,7 +185,7 @@ Webos.File.prototype = {
 	_updateData: function(data) {
 		var updatedData = {};
 		for (var key in data) {
-			if (this.get(key) !== data[key]) {
+			if (this._get(key) !== data[key]) {
 				updatedData[key] = data[key];
 			}
 		}
@@ -214,10 +214,16 @@ Webos.File.prototype = {
 			}
 		}
 
-		if (oldPath != this.get('path')) {
-			var file = Webos.File.get(this.get('path'));
-			var thisData = this.data();
+		var newPath = this.get('path');
+
+		if (oldPath != newPath) {
+			var thisData = $.extend({}, this.data());
+			this.hydrate({
+				path: oldPath
+			});
 			this._remove();
+
+			var file = Webos.File.get(newPath);
 
 			if (Webos.isInstanceOf(file, this.constructor)) {
 				file._updateData(thisData);
@@ -255,6 +261,7 @@ Webos.File.prototype = {
 		}
 		
 		Webos.File.clearCache(this.get('path'));
+
 		delete this;
 	},
 	/**

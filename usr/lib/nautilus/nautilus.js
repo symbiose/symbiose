@@ -101,7 +101,7 @@ var NautilusFileSelectorWindow = function NautilusFileSelectorWindow(options, us
 				for(var i = 0; i < location.length; i++) {
 					stack += location[i]+'/';
 					var userDir = location[i];
-					if (userDir == '') {
+					if (userDir === '') {
 						userDir = '/';
 					}
 					if (userDir == '~') {
@@ -132,7 +132,7 @@ var NautilusFileSelectorWindow = function NautilusFileSelectorWindow(options, us
 	});
 	
 	Webos.TranslatedLibrary.call(this);
-}
+};
 Webos.inherit(NautilusFileSelectorWindow, Webos.Observable); //Heritage de Webos.Observable
 Webos.inherit(NautilusFileSelectorWindow, Webos.TranslatedLibrary); //Heritage de Webos.TranslatedLibrary
 
@@ -265,9 +265,10 @@ var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 							selectDriverFn(name);
 						})
 						.appendTo(list);
-					 if (driver == name) {
-					 	item.iconsListItem('active', true);
-					 }
+
+					if (driver == name) {
+						item.iconsListItem('active', true);
+					}
 				})(name, this._drivers[name]);
 			}
 			
@@ -314,7 +315,7 @@ var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 	});
 	
 	Webos.TranslatedLibrary.call(this);
-}
+};
 Webos.inherit(NautilusDeviceMounterWindow, Webos.Observable); //Heritage de Webos.Observable
 Webos.inherit(NautilusDeviceMounterWindow, Webos.TranslatedLibrary); //Heritage de Webos.TranslatedLibrary
 
@@ -365,7 +366,7 @@ var NautilusWindow = function NautilusWindow(dir, userCallback) {
 			var location = dir.split('/');
 			
 			var lastDir = location[location.length - 1];
-			if (lastDir == '') {
+			if (lastDir === '') {
 				lastDir = '/';
 			}
 			this.window.window('option', 'title', lastDir+' - '+t.get('File manager'));
@@ -387,7 +388,7 @@ var NautilusWindow = function NautilusWindow(dir, userCallback) {
 				for(var i = 0; i < location.length; i++) {
 					stack += location[i]+'/';
 					var userDir = location[i];
-					if (userDir == '') {
+					if (userDir === '') {
 						userDir = '/';
 					}
 					if (userDir == '~') {
@@ -518,7 +519,7 @@ var NautilusWindow = function NautilusWindow(dir, userCallback) {
 						});
 					});
 				var textEntry = $.w.textEntry(t.get('Pattern (regex) :')).appendTo(form);
-				$.w.label('<strong>'+t.get('Samples')+'</strong> : <em>\.png$</em>, <em>fich</em>, <em>^\.</em>...').appendTo(form);
+				$.w.label('<strong>'+t.get('Samples')+'</strong> : <em>.png$</em>, <em>fich</em>, <em>^.</em>...').appendTo(form);
 				var buttons = $.w.buttonContainer().appendTo(form);
 				$.w.button('Valider', true).appendTo(buttons);
 				
@@ -583,6 +584,6 @@ var NautilusWindow = function NautilusWindow(dir, userCallback) {
 	});
 	
 	Webos.TranslatedLibrary.call(this);
-}
+};
 Webos.inherit(NautilusWindow, Webos.Observable); //Heritage de Webos.Observable
 Webos.inherit(NautilusWindow, Webos.TranslatedLibrary); //Heritage de Webos.TranslatedLibrary

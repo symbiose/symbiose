@@ -33,9 +33,9 @@ Webos.Script.run = function runScript(js) {
 //Charger un script
 Webos.Script.load = function(path) {
 	$.ajax({
-	  url: path,
-	  dataType: "script",
-	  async: false
+		url: path,
+		dataType: "script",
+		async: false
 	});
 };
 
@@ -65,8 +65,8 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 	
 	new Webos.ServerCall({
 		'class': 'FileController',
-		method: 'getContents',
-		arguments: {
+		'method': 'getContents',
+		'arguments': {
 			file: path
 		},
 		async: false
@@ -84,8 +84,8 @@ Webos.ScriptFile.load = function() {
 	for (var i = 0; i < arguments.length; i++) {
 		group.add(new Webos.ServerCall({
 			'class': 'FileController',
-			method: 'getContents',
-			arguments: {
+			'method': 'getContents',
+			'arguments': {
 				file: arguments[i]
 			}
 		}), function(response) {
@@ -112,7 +112,7 @@ function include(path, args, thisObj) {
 		dataType: 'text',
 		success: function(data, textStatus, jqXHR) {
 			if (typeof args == 'undefined') { //Si les arguments sont vides
-				args = new W.Arguments({});      
+				args = new W.Arguments({});
 			}
 			
 			var fn = new Function('args', data);
