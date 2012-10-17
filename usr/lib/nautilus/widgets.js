@@ -28,7 +28,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		multipleWindows: false,
 		uploads: [],
 		display: 'icons',
-		showHiddenFiles: false
+		showHiddenFiles: false,
+		_items: {}
 	},
 	_translationsName: 'nautilus',
 	_create: function() {
@@ -44,7 +45,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			this.options._content = $('<ul></ul>').addClass('icons').appendTo(this.options._components.container);
 			
 			that.content().mousedown(function(e) {
-				if(e.button != 0) {
+				if(e.button !== 0) {
 					return;
 				}
 				
@@ -67,9 +68,9 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 						.appendTo(that.content());
 					
 					$(document).bind('mousemove.'+that.id()+'.nautilus.widget.webos', function(e) {
-						var x1 = pos[0], y1 = pos[1], x2 = e.pageX - diff[0], y2 = e.pageY - diff[1];
-						if (x1 > x2) { var tmp = x2; x2 = x1; x1 = tmp; }
-						if (y1 > y2) { var tmp = y2; y2 = y1; y1 = tmp; }
+						var x1 = pos[0], y1 = pos[1], x2 = e.pageX - diff[0], y2 = e.pageY - diff[1], tmp;
+						if (x1 > x2) { tmp = x2; x2 = x1; x1 = tmp; }
+						if (y1 > y2) { tmp = y2; y2 = y1; y1 = tmp; }
 						if (x1 < 0) { x1 = 0; }
 						if (y1 < 0) { y1 = 0; }
 						if (x2 > dimentions.width) { x2 = dimentions.width; }
@@ -173,7 +174,11 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				elementToSelect.addClass('active').trigger('select');
 			}
 		});
-		
+
+		//Webos.User.bind('login logout', function() {
+		//	that.refresh();
+		//});
+
 		this.readDir(this.options.directory);
 	},
 	items: function() {
@@ -260,8 +265,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			var serverCall = new W.ServerCall({
 				'class': 'FileController',
-				method: 'upload',
-				arguments: {
+				'method': 'upload',
+				'arguments': {
 					dest: dir
 				}
 			});
@@ -351,7 +356,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 							return;
 						}
 						
-						ui.draggable.data('file')().move(file, new W.Callback(function() {		
+						ui.draggable.data('file')().move(file, new W.Callback(function() {
 							ui.draggable.remove();
 							that.reload();
 						}));
@@ -367,14 +372,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			userCallback.success(that);
 		}, function(response) {
-			var files = [];
-			
-			for (var path in that.options._files) {
-				var file = that.options._files[path];
-				files.push(file);
-			}
-			
-			that._render(files);
+			that._render([]);
 			
 			that._trigger('readcomplete', {}, { location: that.location() });
 			that._trigger('readerror', {}, { location: that.location() });
@@ -385,14 +383,14 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 	_render: function(files) {
 		var that = this;
 		
-		this.options._files = {};
-		
 		if (this.options.display == 'icons') {
 			this.content().empty();
 		}
 		if (this.options.display == 'list') {
 			this.content().list('content').empty();
 		}
+
+		this.options._items = {};
 		
 		for (var i = 0; i < files.length; i++) {
 			(function(file) {
@@ -410,15 +408,26 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				return;
 			}
 			
-			if (!that.options._files[newFile.get('path')]) {
-				that.options._files[newFile.get('path')] = newFile;
+			if (!that.options._items[newFile.get('path')]) {
 				var newItem = that._renderItem(newFile);
 				that._insertItem(newItem);
 				that.element.scrollPane('reload');
 			}
 		});
+		var removeFileCallbackId = Webos.File.bind('remove', function(data) {
+			var oldFile = data.file;
+			
+			if (oldFile.get('dirname') != that.location()) {
+				return;
+			}
+			
+			if (that.options._items[oldFile.get('path')]) {
+				that.options._items[oldFile.get('path')].remove();
+				delete that.options._items[oldFile.get('path')];
+			}
+		});
 		var umountCallbackId = Webos.File.bind('umount', function(data) {
-			if (that.location().indexOf(data.local) != 0) {
+			if (that.location().indexOf(data.local) !== 0) {
 				return;
 			}
 			
@@ -426,12 +435,11 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		});
 		this.element.one('nautilusreadstart', function() {
 			Webos.File.unbind(createFileCallbackId);
+			Webos.File.unbind(removeFileCallbackId);
 			Webos.File.unbind(umountCallbackId);
 		});
 	},
 	_renderItem: function(file) {
-		this.options._files[file.get('path')] = file;
-		
 		var that = this, t = this.translations(), filepath = file.get('path'), item, icon, iconPath = this._getFileIcon(file);
 		
 		if (that.options.display == 'icons') {
@@ -473,7 +481,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 		
 		item.data('file', function() {
-			return that.options._files[filepath];
+			return Webos.File.get(filepath);
 		});
 		item.data('nautilus', {
 			open: function() {
@@ -510,7 +518,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				};
 				
 				var onDocClickFn = function(event) {
-					if (!input.parents().filter(event.target).length == 0) {
+					if (!input.parents().filter(event.target).length === 0) {
 						$(document).unbind('click', onDocClickFn);
 						renameFn();
 					}
@@ -547,19 +555,19 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		var contextmenu = $.w.contextMenu(item);
 		
 		$.webos.menuItem(t.get('Open')).click(function() {
-			var files = (that.getSelection().length == 0) ? item : that.getSelection();
+			var files = (that.getSelection().length === 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').open();
 			});
 		}).appendTo(contextmenu);
 		$.webos.menuItem(t.get('Open with...')).click(function() {
-			var files = (that.getSelection().length == 0) ? item : that.getSelection();
+			var files = (that.getSelection().length === 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').openWith();
 			});
 		}).appendTo(contextmenu);
 		$.webos.menuItem(t.get('Download')).click(function() {
-			var files = (that.getSelection().length == 0) ? item : that.getSelection();
+			var files = (that.getSelection().length === 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').download();
 			});
@@ -568,7 +576,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			item.data('nautilus').rename();
 		}).appendTo(contextmenu);
 		$.webos.menuItem(t.get('Delete')).click(function() {
-			var files = (that.getSelection().length == 0) ? item : that.getSelection();
+			var files = (that.getSelection().length === 0) ? item : that.getSelection();
 			files.each(function() {
 				$(this).data('nautilus').remove();
 			});
@@ -621,7 +629,6 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					}
 
 					that['_'+operation](source, dest, function() {
-						delete that.options._files[source.get('path')];
 						ui.draggable.remove();
 					});
 					return false;
@@ -652,28 +659,19 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 		
 		var updateCallbackId = file.bind('update', function(data) {
-			if (filepath != file.get('path')) {
-				delete that.options._files[filepath];
-				filepath = file.get('path');
-			}
-			that.options._files[filepath] = file;
-
 			file.unbind('update', updateCallbackId);
-			file.unbind('remove', removeCallbackId);
-			
+
 			var newItem = that._renderItem(file);
 			item.replaceWith(newItem);
 			item = newItem;
-		});
-		var removeCallbackId = file.bind('remove', function() {
-			delete that.options._files[filepath];
-			item.remove();
+			that.options._items[filepath] = newItem;
 		});
 		
 		this.element.one('nautilusreadcomplete', function() {
 			file.unbind('update', updateCallbackId);
-			file.unbind('remove', removeCallbackId);
 		});
+
+		this.options._items[filepath] = item;
 		
 		return item;
 	},
@@ -833,8 +831,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 	_download: function(file) {
 		var serverCall = new W.ServerCall({
 			'class': 'FileController',
-			method: 'download',
-			arguments: {
+			'method': 'download',
+			'arguments': {
 				file: file.get('path')
 			}
 		});
@@ -879,8 +877,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		var serverCall = new W.ServerCall({
 			'class': 'FileController',
-			method: 'upload',
-			arguments: {
+			'method': 'upload',
+			'arguments': {
 				dest: that.options.directory
 			}
 		});
@@ -933,7 +931,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			onCancel: function(id, fileName){
 				$.w.nautilus.progresses.update(uploadsIds[id], 100, t.get('Upload canceled.'));
 			},
-			// messages                
+			// messages
 			messages: {
 				typeError: "Le type du fichier <em>{file}</em> est incorrect. Seules les extensions {extensions} sont autoris&eacute;es.",
 				sizeError: "Le fichier <em>{file}</em> est trop gros, la taille maximum est {sizeLimit}.",
@@ -1162,7 +1160,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					var openers = [];
 					
 					for (var key in apps) {
-						if (apps[key].get('open').length == 0) {
+						if (apps[key].get('open').length === 0) {
 							continue;
 						}
 						
@@ -1183,8 +1181,9 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			filename = nameArray.join('.');
 		}
 		
+		var path;
 		do {
-			for (var path in this.options._files) {
+			for (path in this.options._files) {
 				var file = this.options._files[path];
 				if (file.get('basename') == name) {
 					exists = true;
@@ -1200,7 +1199,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 		} while (exists);
 		
-		var path = this.options.directory+'/'+name;
+		path = this.options.directory+'/'+name;
 		
 		if (is_dir) {
 			W.File.createFolder(path);
@@ -1248,6 +1247,9 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 
 			callback.error(response);
 		}]);
+	},
+	_destroy: function() {
+		
 	}
 });
 $.webos.widget('nautilus', nautilusProperties);
@@ -1337,7 +1339,7 @@ $.w.nautilus.progresses.update = function(id, value, details) { //Mettre a jour 
 		}, 1500);
 	}
 	//Si il n'y a aucune operation en cours et que la fenetre est ouverte, on la ferme
-	if (nbrProgresses == 0 && $.w.nautilus.progresses.window.window('is', 'opened')) {
+	if (nbrProgresses === 0 && $.w.nautilus.progresses.window.window('is', 'opened')) {
 		$.w.nautilus.progresses.window.window('close');
 	}
 };
@@ -1366,7 +1368,7 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 			this.options._components.filename = $.w.textEntry(t.get('File name :')).prependTo(form);
 			var autoFill = '';
 			this.options._components.nautilus.bind('select', function(e) {
-				if (that.options._components.filename.textEntry('value') == '') {
+				if (that.options._components.filename.textEntry('value') === '') {
 					var filename = $(e.target).data('file')().getAttribute('basename');
 					that.options._components.filename.textEntry('value', filename);
 					autoFill = filename;
@@ -1634,7 +1636,7 @@ var nautilusFileSelectorShortcutsProperties = $.webos.extend($.webos.properties.
 				}).change(function() {
 					var files = this.files;
 					
-					if (!files || files.length == 0) {
+					if (!files || files.length === 0) {
 						return;
 					}
 					

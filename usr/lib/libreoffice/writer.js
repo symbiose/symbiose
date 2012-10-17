@@ -39,7 +39,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			}
 			this._window.window('option', 'title', filename+' - '+t.get('LibreOffice Writer'));
 		};
-		this.open = function(file) {
+		this._open = function(file) {
 			if (jQuery.inArray(file.get('extension'), that.supportedExtensions) == -1) {
 				W.Error.trigger(t.get('Incorrect file type'));
 				return;
@@ -79,6 +79,16 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 				response.triggerError(t.get('Can\'t open "{path}"', { path: file.get('path') }));
 			}]);
 		};
+		this.open = function() {
+			new NautilusFileSelectorWindow({
+				parentWindow: that._window,
+				title: 'Open...'
+			}, function(files) {
+				if (files.length) {
+					that._open(files[0]);
+				}
+			});
+		};
 		this.newFile = function(contents) {
 			if (typeof contents == 'undefined') {
 				contents = '';
@@ -108,12 +118,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 					callback.success();
 				},
 				confirm: function() {
-					closeStackLength = 0;
-					that.save(new W.Callback(function() {
-						callback.success();
-					}, function() {
-						callback.error();
-					}));
+					that.save(callback);
 				},
 				cancelLabel: t.get('Close without saving'),
 				confirmLabel: t.get('Save')
@@ -149,6 +154,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			} else {
 				new NautilusFileSelectorWindow({
 					parentWindow: that._window,
+					title: t.get('Save'),
 					exists: false
 				}, function(paths) {
 					if (paths.length) {
@@ -196,6 +202,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			
 			new NautilusFileSelectorWindow({
 				parentWindow: that._window,
+				title: t.get('Save as...'),
 				exists: false
 			}, function(paths) {
 				if (paths.length) {
@@ -222,7 +229,72 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		};
 		
 		var headers = this._window.window('header');
+
+		this._menu = $.w.menuWindowHeader().appendTo(headers);
+
+		var fileItem = $.w.menuItem(t.get('File')).appendTo(this._menu);
+		fileItemContent = fileItem.menuItem('content');
 		
+		$.w.menuItem(t.get('New document'))
+			.click(function() {
+				new LibreOffice.Writer();
+			})
+			.appendTo(fileItemContent);
+		
+		$.w.menuItem(t.get('Open...'))
+			.click(function() {
+				that.open();
+			})
+			.appendTo(fileItemContent);
+		
+		$.w.menuItem(t.get('Save'), true)
+			.click(function() {
+				that.save();
+			})
+			.appendTo(fileItemContent);
+		
+		$.w.menuItem(t.get('Save as...'))
+			.click(function() {
+				that.saveAs();
+			})
+			.appendTo(fileItemContent);
+		
+		$.w.menuItem(t.get('Export to PDF'))
+			.click(function() {
+				that.exportTo('pdf');
+			})
+			.appendTo(fileItemContent);
+		
+		$.w.menuItem(t.get('Quit'), true)
+			.click(function() {
+				that._window.window('close');
+			})
+			.appendTo(fileItemContent);
+
+		var editItem = $.w.menuItem(t.get('Edit')).appendTo(this._menu);
+		editItemContent = editItem.menuItem('content');
+
+		$.w.menuItem(t.get('Undo'), true)
+			.click(function() {
+				that.command('undo');
+			})
+			.appendTo(editItemContent);
+
+		$.w.menuItem(t.get('Redo'), true)
+			.click(function() {
+				that.command('redo');
+			})
+			.appendTo(editItemContent);
+
+		var helpItem = $.w.menuItem(t.get('Help')).appendTo(this._menu);
+		helpItemContent = helpItem.menuItem('content');
+		
+		$.w.menuItem(t.get('About'))
+			.click(function() {
+				that.openAboutWindow();
+			})
+			.appendTo(helpItemContent);
+
 		var toolbar = $.w.toolbarWindowHeader().appendTo(headers);
 		
 		this._buttons = {};
@@ -235,13 +307,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		
 		this._buttons.open = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/document-open', 'button'))
 			.click(function() {
-				new NautilusFileSelectorWindow({
-					parentWindow: that._window
-				}, function(files) {
-					if (files.length) {
-						that.open(files[0]);
-					}
-				});
+				that.open();
 			})
 			.appendTo(toolbar);
 		
@@ -351,7 +417,85 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 	Webos.TranslatedLibrary.call(this);
 };
 LibreOffice.Writer.prototype = {
-	_translationsName: 'libreoffice.writer'
+	_translationsName: 'libreoffice.writer',
+	openAboutWindow: function() {
+		var t = this._translations;
+		return $.w.window.about({
+			name: 'LibreOffice Writer',
+			version: '0.2',
+			description: t.get('${app} allows you to write letters, reports, documents and web pages.', { app: 'LibreOffice Writer' }),
+			author: '$imon',
+			icon: new W.Icon('applications/libreoffice-writer')
+		}).window('open');
+	},
+	exportTo: function(type) {
+		switch (type.toLowerCase()) {
+			case 'pdf':
+				return this.exportToPDF();
+				break;
+		}
+	},
+	_loadLibPDF: function() {
+		Webos.ScriptFile.load(
+			'/usr/lib/jspdf/jspdf.js',
+			'/usr/lib/jspdf/jspdf.standard_fonts_metrics.js',
+			'/usr/lib/jspdf/jspdf.split_text_to_size.js',
+			'/usr/lib/jspdf/jspdf.from_html.js'
+		);
+	},
+	_exportToPDF: function() {
+		this._loadLibPDF();
+		var editable = this._editable[0];
+		var pdf = new jsPDF('p','in','letter');
+		pdf.fromHTML(editable, 0.5, 0.5, {
+			width: 7.5,
+			elementHandlers: {}
+		});
+		var uriString = pdf.output('datauristring');
+		return uriString.replace(/data:application\/pdf;base64,/, '');
+	},
+	exportToPDF: function(callback) {
+		var that = this, t = this._translations;
+		callback = W.Callback.toCallback(callback);
+		
+		new NautilusFileSelectorWindow({
+			parentWindow: this._window,
+			title: t.get('Export to PDF'),
+			exists: false
+		}, function(paths) {
+			if (paths.length) {
+				var path = paths[0];
+
+				if (!/\.pdf$/.test(path)) {
+					path += '.pdf';
+				}
+
+				var file = Webos.File.get(path);
+				
+				that._window.window('loading', true, {
+					message: t.get('Converting to PDF...')
+				});
+
+				var pdfContents = that._exportToPDF();
+
+				that._window.window('loading', true, {
+					message: t.get('Saving file...')
+				});
+
+				file.writeAsBinary(pdfContents, new W.Callback(function() {
+					that._saved = true;
+					that._window.window('loading', false);
+					callback.success(file);
+				}, function(response) {
+					that._window.window('loading', false);
+					response.triggerError(t.get('Can\'t save the file "${path}"', { path: file.get('path') }));
+					callback.error(file);
+				}));
+			} else {
+				callback.error();
+			}
+		});
+	}
 };
 Webos.inherit(LibreOffice.Writer, Webos.Observable);
 Webos.inherit(LibreOffice.Writer, Webos.TranslatedLibrary);
