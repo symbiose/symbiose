@@ -49,7 +49,9 @@ class Version {
 	public function isNewerThan(Version $version) {
 		$otherFetchedVersion = $version->getFetchedVersion();
 		foreach ($this->fetchedVersion as $id => $no) {
-			if ($no == $otherFetchedVersion[$id])
+			if (!array_key_exists($id, $otherFetchedVersion))
+				return true;
+			elseif ($no == $otherFetchedVersion[$id])
 				continue;
 			elseif ($no > $otherFetchedVersion[$id])
 				return true;
