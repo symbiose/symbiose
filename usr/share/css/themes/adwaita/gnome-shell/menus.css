@@ -3,7 +3,8 @@ ul.menu, ul.menu ul,
 ul.menuwindowheader, ul.webos-menuwindowheader ul { /* Liste */
 	padding: 0; /* pas de marge intérieure */
 	margin: 0; /* ni extérieure */
-	list-style: none; /* on supprime le style par défaut de la liste */
+	list-style-type: none; /* on supprime le style par défaut de la liste */
+	list-style-position: inside;
 	line-height: 19px; /* on définit une hauteur pour chaque élément */
 	text-align: center; /* on centre le texte qui se trouve dans la liste */
 }
@@ -174,7 +175,7 @@ ul.webos-menuwindowheader > li {
 	float: left;
 }
 ul.menu > li > a {
-	margin: 0 10px;
+	margin: 0;
 	font-weight: bold;
 	text-shadow: black 0 0 2px;
 }

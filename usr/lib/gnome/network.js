@@ -1,9 +1,12 @@
 Webos.Translation.load(function(t) {
 	var item = $('<li></li>');
 	
-	var label = $('<a href="#"></a>').appendTo(item);
-	
-	var icon = $('<img />', { 'class': 'icon', src: new W.Icon('status/network-idle', 24, 'ubuntu-mono-dark'), title: t.get('No network activity') }).appendTo(label);
+	var label = $('<a href="#" style="position: relative;"></a>').appendTo(item);
+
+	var icons = {
+		idle: $('<img />', { 'class': 'icon', src: new W.Icon('status/network-idle-symbolic', 16), title: t.get('No network activity') }).appendTo(label),
+		transmit_receive: $('<img />', { 'class': 'icon', src: new W.Icon('status/network-transmit-receive-symbolic', 16), title: t.get('Loading, please wait...') }).css('position', 'absolute').hide().appendTo(label)
+	};
 	
 	var networkData = {
 		total: W.ServerCall.getNbrPendingCalls(),
@@ -34,18 +37,14 @@ Webos.Translation.load(function(t) {
 	};
 	
 	var serverCallStart = function() {
-		icon
-			.attr('src', new W.Icon('status/network-transmit-receive', 24, 'ubuntu-mono-dark'))
-			.attr('title', t.get('Loading, please wait...'));
+		icons.transmit_receive.stop().fadeIn('fast');
 	};
 	W.ServerCall.bind('start', serverCallStart);
 	if (W.ServerCall.getNbrPendingCalls() > 0) {
 		serverCallStart();
 	}
 	W.ServerCall.bind('complete', function() {
-		icon
-			.attr('src', new W.Icon('status/network-idle', 24, 'ubuntu-mono-dark'))
-			.attr('title', t.get('No network activity'));
+		icons.transmit_receive.stop().fadeOut('fast');
 	});
 	
 	W.ServerCall.bind('callstart', function() {

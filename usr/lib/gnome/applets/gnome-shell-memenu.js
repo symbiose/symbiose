@@ -12,7 +12,9 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 	var content = $('<ul></ul>', { 'class': 'menu' });
 	that.content.append(content);
 	var menu = $('<li></li>').attr('class','memenu').appendTo(content);
-	var userBox = $('<a></a>', { href: '#' }).html('User').appendTo(menu);
+	var userItem = $('<a></a>', { href: '#' }).appendTo(menu);
+	$('<img src="'+new W.Icon('status/avatar-default-symbolic').realpath(16)+'" class="icon" style="margin-right: 3px;"/>').appendTo(userItem);
+	var userBox = $('<span></span>').html('User').appendTo(userItem);
 	var userMenu = $('<ul></ul>').appendTo(menu);
 
 	var firstRun = true;
