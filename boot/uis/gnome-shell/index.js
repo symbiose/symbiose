@@ -5,12 +5,20 @@ $(document).scroll(function() {
 	$('body').scrollTop(0);
 });
 
-//Chargement du theme
-W.Theme.get(new W.Callback(function(theme) {
-	theme.load();
-}, function(response) {
-	response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
-}));
+var loadThemeFn = function() {
+	//Chargement du theme
+	W.Theme.get(new W.Callback(function(theme) {
+		theme.load();
+	}, function(response) {
+		response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
+	}));
+};
+
+Webos.User.bind('login logout', function() {
+	loadThemeFn();
+});
+
+loadThemeFn();
 
 //On definit la hauteur du bureau
 var resizeDesktopFn = function() {
