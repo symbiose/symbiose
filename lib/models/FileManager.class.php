@@ -106,6 +106,18 @@ class FileManager extends \lib\Manager {
 	}
 
 	/**
+	 * Retourner un dossier temporaire.
+	 * @return Folder Le dossier temporaire.
+	 */
+	public function tmpDir() {
+		$path = '/tmp/';
+		if (!$this->exists($path)) {
+			$this->createDir($path);
+		}
+		return $this->get($path);
+	}
+
+	/**
 	 * Convertir une taille en octets vers une taille lisible.
 	 * @param int $bytes La taille en octets.
 	 * @return string La taille lisible.

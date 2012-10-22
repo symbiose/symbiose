@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<attribute name="enabled" value="1"/>
+	<attribute name="maxFileSize" value="-1"/>
+	<attribute name="allowedExtensions" value="jpg;jpeg;gif;png;pdf;html;js;odt;ods;odp"/>
+</config>

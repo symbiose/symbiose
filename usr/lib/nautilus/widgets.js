@@ -316,7 +316,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					$.w.nautilus.progresses.update(uploadsIds[data.index], 100, msg);
 					
 					if (success) {
-						var newFile = new W.File(response.getData().file);
+						var newFile = new W.File(data.response.getData().file);
 						var newItem = that._renderItem(newFile);
 						if (that.location() == newFile.get('dirname')) {
 							that._insertItem(newItem);
@@ -326,8 +326,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 							title: t.get('File uploaded'),
 							message: t.get('The file ${name} has been sent', { name: newFile.get('basename') }),
 							icon: that._getFileIcon(newFile),
-							widgets: [$.w.button(t.get('Open the parent folder')).click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
-							          $.w.button(t.get('Open')).click(function() { newItem.data('nautilus').open(); })]
+							widgets: [
+								$.w.button(t.get('Open the parent folder')).click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
+								$.w.button(t.get('Open')).click(function() { newItem.data('nautilus').open(); })
+							]
 						});
 					}
 				},
@@ -923,8 +925,10 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 						title: 'Fichier envoy&eacute;',
 						message: 'Le fichier '+newFile.get('basename')+' a &eacute;t&eacute; envoy&eacute;.',
 						icon: that._getFileIcon(newFile),
-						widgets: [$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
-						          $.w.button('Ouvrir').click(function() { newItem.data('nautilus').open(); })]
+						widgets: [
+							$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
+							$.w.button('Ouvrir').click(function() { newItem.data('nautilus').open(); })
+						]
 					});
 				}
 			},
@@ -1276,7 +1280,7 @@ $.w.nautilus.progresses.defineWindow = function() {
 	});
 	
 	Webos.Translation.load(function (t) {
-		$.w.nautilus.progresses.window.window('title', t.get('File operations'));
+		$.w.nautilus.progresses.window.window('option', 'title', t.get('File operations'));
 	}, 'nautilus');
 };
 $.w.nautilus.progresses.update = function(id, value, details) { //Mettre a jour une operation en cours
@@ -1328,11 +1332,11 @@ $.w.nautilus.progresses.update = function(id, value, details) { //Mettre a jour 
 	};
 	
 	var nbrProgresses = countNbrProgressesFn();
-	
+
 	//Si la fenetre n'est pas affichee et que plus d'une operation sont en cours
-	if (nbrProgresses > 0 && !$.w.nautilus.progresses.window.closest('html').length && typeof $.w.nautilus.progresses.windowOpenTimeout == 'undefined') {
+	if (nbrProgresses > 0 && !$.w.nautilus.progresses.window.window('is', 'opened') && typeof $.w.nautilus.progresses.windowOpenTimeout == 'undefined') {
 		$.w.nautilus.progresses.windowOpenTimeout = setTimeout(function() { //On affiche la fenetre au bout de deux secondes, si les operations ne se sont pas terminees avant
-			if (countNbrProgressesFn() > 0 && !$.w.nautilus.progresses.window.closest('html').length) {
+			if (countNbrProgressesFn() > 0 && !$.w.nautilus.progresses.window.window('is', 'opened')) {
 				$.w.nautilus.progresses.window.window('open');
 			}
 			delete $.w.nautilus.progresses.windowOpenTimeout;

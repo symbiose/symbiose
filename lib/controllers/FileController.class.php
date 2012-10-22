@@ -176,6 +176,18 @@ class FileController extends \lib\ServerCallComponent {
 	 * @return array Un tableau contenant des informations sur le traitement : "success" vaut faux si une erreur est survenue, dans ce cas "message" contient le message d\'erreur.
 	 */
 	protected function upload($dest) {
+		//Chargement de la configuration
+		$config = new \lib\models\Config($this->webos);
+		$config->load('/etc/uploads.xml');
+		$enabled = (int) $config->get('enabled');
+		$maxFileSize = (int) $config->get('maxFileSize');
+		$allowedExtensions = explode(';', $config->get('allowedExtensions'));
+
+		//L'envoi de fichiers est-il desactive ?
+		if (!$enabled) {
+			return array('success' => false, 'msg' => 'L\'envoi de fichiers a &eacute;t&eacute; d&eacute;sactiv&eacute;');
+		}
+
 		//La destination existe-t-elle ?
 		if (!$this->webos->managers()->get('File')->exists($dest)) {
 			return array('success' => false, 'msg' => 'Dossier de destination inexistant');
@@ -186,9 +198,12 @@ class FileController extends \lib\ServerCallComponent {
 			return array('success' => false, 'msg' => 'Dossier de destination incorrect');
 		}
 
+
 		if ($this->webos->getHTTPRequest()->getExists('file')) {
+			$tmpDir = $this->webos->managers()->get('File')->tmpDir();
+
 			$input = fopen('php://input', 'r');
-			$tempName = 'tmp/'.$this->webos->getHTTPRequest()->getData('file');
+			$tempName = $tmpDir->realpath().'/'.time().'_'.$this->webos->getHTTPRequest()->getData('file');
 			$temp = fopen($tempName, 'w');
 			$realSize = stream_copy_to_stream($input, $temp);
 			fclose($input);
@@ -225,11 +240,10 @@ class FileController extends \lib\ServerCallComponent {
 			return array('success' => false, 'msg' => $msg);
 		}
 
-		/*
 		// La taille max est-elle ateinte ?
-		if ($_FILES['file']['size'] > $maxsize) {
+		if ($maxFileSize >= 0 && $_FILES['file']['size'] > $maxsize) {
 			return array('success' => false, 'msg' => 'Taille du fichier trop importante');
-		}*/
+		}
 
 		//L'espace disponible est-il assez important ?
 		try {
@@ -244,7 +258,7 @@ class FileController extends \lib\ServerCallComponent {
 		//Le type de fichier est-il autorise ?
 		$allowedExts = array('jpg' , 'jpeg' , 'gif' , 'png', 'pdf', 'html', 'js', 'odt', 'ods', 'odp');
 		$extension = strtolower(substr(strrchr($_FILES['file']['name'], '.'), 1));
-		if (!in_array($extension, $allowedExts)) {
+		if (!in_array('*', $allowedExtensions) && !in_array($extension, $allowedExtensions)) {
 			if (isset($tempName)) {
 				unlink($tempName);
 			}
