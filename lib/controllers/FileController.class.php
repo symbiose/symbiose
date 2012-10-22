@@ -241,7 +241,7 @@ class FileController extends \lib\ServerCallComponent {
 		}
 
 		// La taille max est-elle ateinte ?
-		if ($maxFileSize >= 0 && $_FILES['file']['size'] > $maxsize) {
+		if ($maxFileSize >= 0 && $_FILES['file']['size'] > $maxFileSize) {
 			return array('success' => false, 'msg' => 'Taille du fichier trop importante');
 		}
 
@@ -256,7 +256,6 @@ class FileController extends \lib\ServerCallComponent {
 		}
 
 		//Le type de fichier est-il autorise ?
-		$allowedExts = array('jpg' , 'jpeg' , 'gif' , 'png', 'pdf', 'html', 'js', 'odt', 'ods', 'odp');
 		$extension = strtolower(substr(strrchr($_FILES['file']['name'], '.'), 1));
 		if (!in_array('*', $allowedExtensions) && !in_array($extension, $allowedExtensions)) {
 			if (isset($tempName)) {
