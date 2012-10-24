@@ -12,7 +12,7 @@ function EyeOfSymbiose(image) {
 	this.bind('translationsloaded', function() {
 		var that = this, t = this._translations;
 		
-		this.window = $.w.window({
+		this.window = $.w.window.main({
 			title: t.get('Image viewer'),
 			icon: new W.Icon('applications/eos'),
 			width: 500,

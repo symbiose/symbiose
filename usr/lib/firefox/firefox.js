@@ -1,5 +1,5 @@
 function FirefoxWindow(url) {
-	this._window = $.w.window({
+	this._window = $.w.window.main({
 		title: 'Firefox',
 		icon: new W.Icon('applications/firefox'),
 		width: 500,

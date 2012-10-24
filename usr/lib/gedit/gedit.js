@@ -173,7 +173,7 @@ function GEditWindow(file) {
 	this.bind('translationsloaded', function() {
 		var that = this, t = this._translations;;
 		
-		this._window = $.w.window({
+		this._window = $.w.window.main({
 			title: t.get('Gedit text editor'),
 			icon: new W.Icon('apps/text-editor'),
 			width: 500,

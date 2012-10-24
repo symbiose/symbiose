@@ -16,7 +16,8 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		hideable: true,
 		opened: false,
 		parentWindow: $(),
-		childWindow: $()
+		childWindow: $(),
+		dialog: false
 	},
 	_create: function() {
 		var that = this;
@@ -132,6 +133,8 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		if (typeof this.options.workspace == 'undefined') {
 			this.options.workspace = $.w.window.workspace.getCurrent();
 		}
+
+		this.dialog(this.options.dialog);
 		
 		this.draggable(true);
 		
@@ -164,6 +167,33 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			case 'top':
 				this.element.css('top', value);
 				break;
+		}
+	},
+	_destroy: function() {
+		if (this.is('closed')) {
+			this.element.empty().remove();
+			return;
+		}
+
+		this._trigger('beforeclose', { type: 'beforeclose' }, { window: this.element });
+
+		this._trigger('close', { type: 'close' }, { window: this.element });
+		this.options.states.opened = false;
+
+		if (typeof this.options.childWindow != 'undefined' && this.options.childWindow.length > 0) {
+			this.options.childWindow.window('destroy');
+		}
+
+		if (typeof this.options.parentWindow != 'undefined' && this.options.parentWindow.length > 0) {
+			this.options.parentWindow.window('option', 'childWindow', []);
+		}
+
+		this._trigger('afterclose', { type: 'afterclose' }, { window: this.element });
+
+		this.element.empty().remove();
+
+		if (typeof $.webos.window.getActive() != 'undefined') {
+			$.webos.window.getActive().window('toForeground');
 		}
 	},
 	open: function() {
@@ -712,6 +742,13 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		} else {
 			new W.Stylesheet(stylesheet, this.selector());
 		}
+	},
+	dialog: function(value) {
+		if (typeof value == 'undefined') {
+			return this.element.is('.dialog');
+		} else {
+			this.element.toggleClass('dialog', value);
+		}
 	}
 });
 $.webos.widget('window', windowProperties);
@@ -727,6 +764,17 @@ $.webos.window.states = [
 	['maximized', 'minimized'],
 	['loading', 'ready']
 ];
+
+$.webos.window.main = function(options) {
+	return $('<div></div>').one('windowafterclose', function() {
+		if (typeof $(this).window('pid') == 'number') {
+			var process = Webos.Process.get($(this).window('pid'));
+			if (process) {
+				process.stop();
+			}
+		}
+	}).window(options);
+};
 
 $.webos.window.about = function(opts) {
 	//Options par defaut
@@ -791,7 +839,7 @@ $.webos.window.dialog = function(opts) {
 		resizable: false
 	}, opts));
 
-	dialog.window('content').css('padding', '5px');
+	dialog.window('dialog', true);
 
 	return dialog;
 };

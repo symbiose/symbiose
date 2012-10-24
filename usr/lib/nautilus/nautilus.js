@@ -321,30 +321,30 @@ Webos.inherit(NautilusDeviceMounterWindow, Webos.TranslatedLibrary); //Heritage 
 
 var NautilusWindow = function NautilusWindow(dir, userCallback) {
 	Webos.Observable.call(this);
-	
+
 	this._translationsName = 'nautilus';
-	
+
 	this.bind('translationsloaded', function(data) {
 		var t = data.translations;
-		
-		this.window = $.w.window({
+
+		this.window = $.w.window.main({
 			title: t.get('File manager'),
 			width: 600,
 			height: 400,
 			icon: new W.Icon('apps/filemanager'),
 			stylesheet: 'usr/share/css/nautilus/window.css'
 		});
-		
+
 		var that = this;
-		
+
 		if (typeof dir == 'undefined') {
 			dir = '~';
 		}
-		
+
 		this.nautilus = $.w.nautilus({
 			directory: dir
 		});
-	
+
 		this.nautilus.bind('nautilusreadstart', function(e, data) {
 			that._refreshHeader(data.location);
 			that.window.window('loading', true, {

@@ -1,5 +1,5 @@
 //On initialise la fenetre de connexion
-var loginWindow = $.w.window({
+var loginWindow = $.w.window.main({
 	icon: 'actions/keys',
 	title: 'Login',
 	width: 350,

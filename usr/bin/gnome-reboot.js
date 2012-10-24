@@ -1,5 +1,5 @@
 //On initialise la fenetre de deconnexion
-var rebootWindow = $.w.window({
+var rebootWindow = $.w.window.main({
 	icon: new W.Icon('actions/reload'),
 	title: 'Red&eacute;marrer',
 	width: 350,

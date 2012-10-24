@@ -13,7 +13,8 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			icon: new W.Icon('applications/libreoffice-writer'),
 			width: 550,
 			height: 400,
-			stylesheet: 'usr/share/css/libreoffice/writer.css'
+			stylesheet: 'usr/share/css/libreoffice/writer.css',
+			maximized: true
 		});
 		
 		this._container = $('<div></div>').scrollPane({
@@ -21,18 +22,13 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			expand: true,
 			keyUpResize: true
 		}).appendTo(this._window.window('content'));
-		this._editable = $('<div></div>', { 'class': 'editor', contenteditable: 'true' })
-			.keyup(function() {
-				that._container.scrollPane('reload');
-			})
-			.appendTo(this._container.scrollPane('content'));
 		
 		this.supportedExtensions = ['html', 'htm'];
 		this._file = null;
 		this._saved = false;
 		this._refreshTitle = function() {
 			var filename;
-			if (this._file != null) {
+			if (this._file) {
 				filename = this._file.get('basename');
 			} else {
 				filename = t.get('New document');
@@ -55,24 +51,25 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 				that._saved = true;
 				that._refreshTitle();
 				
+				var pageContents = '';
 				try {
 					var xmlDoc = $.parseXML(contents), $xml = $(xmlDoc), $body = $xml.find('body');
 
 					if ($body.length == 1) {
-						that._editable.html($body.html());
+						pageContents = $body.html();
 					} else {
-						that._editable.html($xml);
+						pageContents = $xml;
 					}
-				} catch (e) {
+				} catch (e1) {
 					try {
 						$xml = $(contents);
-						that._editable.html($xml);
-					} catch (e) {
-						Webos.Error.trigger(t.get('Can\'t open "{path}"', { path: file.get('path') })+' : '+t.get('the file is corrupted'), e.getMessage());
+						pageContents = $xml;
+					} catch (e2) {
+						Webos.Error.trigger(t.get('Can\'t open "{path}"', { path: file.get('path') })+' : '+t.get('the file is corrupted'), e2.getMessage());
 					}
 				} finally {
 					that._window.window('loading', false);
-					that._container.scrollPane('reload');
+					that._setContents(pageContents);
 				}
 			}, function(response) {
 				that._window.window('loading', false);
@@ -98,8 +95,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 				that._file = null;
 				that._saved = false;
 				that._refreshTitle();
-				that._editable.html(contents);
-				that._container.scrollPane('reload');
+				that._setContents(contents);
 			}, function() {}));
 		};
 		this.closeFile = function(callback) {
@@ -128,7 +124,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		this.save = function(callback) {
 			callback = W.Callback.toCallback(callback);
 			
-			var contents = this._editable.html();
+			var contents = this.contents();
 			var saveFn = function(file) {
 				if (jQuery.inArray(file.get('extension'), that.supportedExtensions) == -1) {
 					W.Error.trigger(t.get('Incorrect file type'));
@@ -180,7 +176,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		this.saveAs = function(callback) {
 			callback = W.Callback.toCallback(callback);
 			
-			var contents = this._editable.html();
+			var contents = this.contents();
 			var saveFn = function(file) {
 				if (jQuery.inArray(file.get('extension'), that.supportedExtensions) == -1) {
 					W.Error.trigger(t.get('Incorrect file type'));
@@ -226,6 +222,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 		};
 		this.command = function(command, param) {
 			document.execCommand(command, null, param);
+			that._currentPage.focus();
 		};
 		
 		var headers = this._window.window('header');
@@ -329,7 +326,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			})
 			.appendTo(toolbar);
 		
-		var toolbar = $.w.toolbarWindowHeader().appendTo(headers);
+		toolbar = $.w.toolbarWindowHeader().appendTo(headers);
 		
 		this._buttons.bold = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-text-bold', 'button'))
 			.click(function() {
@@ -400,17 +397,21 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			e.preventDefault();
 		};
 		this._window.one('windowbeforeclose', windowBeforeCloseFn);
-		
+
 		this._window.window('open');
+
+		this.setPaperFormat('A4');
+
 		if (typeof file != 'undefined') {
-			this.open(file);
+			this._open(file);
 		} else {
 			this._refreshTitle();
 		}
-		
+
 		if (!this.supported()) {
 			W.Error.trigger(t.get('Your browser is not supported, falling back to "read only" mode.'), t.get('The support of the "contenteditable" HTML5 property is required to edit the documents.'));
 		}
+
 		this.notify('ready');
 	});
 	
@@ -418,6 +419,8 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 };
 LibreOffice.Writer.prototype = {
 	_translationsName: 'libreoffice.writer',
+	_pages: $(),
+	_currentPage: $(),
 	openAboutWindow: function() {
 		var t = this._translations;
 		return $.w.window.about({
@@ -432,7 +435,10 @@ LibreOffice.Writer.prototype = {
 		switch (type.toLowerCase()) {
 			case 'pdf':
 				return this.exportToPDF();
-				break;
+			case 'odt':
+				return;
+			case 'doc':
+				return;
 		}
 	},
 	_loadLibPDF: function() {
@@ -495,7 +501,117 @@ LibreOffice.Writer.prototype = {
 				callback.error();
 			}
 		});
+	},
+	contents: function(contents) {
+		if (typeof contents != 'undefined') {
+			this._setContents(contents);
+		} else {
+			contents = '';
+			this._pages.each(function() {
+				contents += $(this).html();
+			});
+			return contents;
+		}
+	},
+	_setContents: function(contents) {
+		this._pages.empty().remove();
+		this._pages = $();
+
+		var page = this._addPage();
+		page.html(contents);
+	},
+	goToPage: function(page) {
+		if (typeof page == 'undefined') {
+			page = this._currentPage;
+		} else if (typeof page == 'number') {
+			page = this._pages[page];
+		}
+
+		$(page).focus();
+	},
+	_getPageDimentions: function() {
+		var format = LibreOffice.Writer.paperFormat(this._paperFormat);
+
+		if (!format) {
+			return {};
+		}
+
+		var docWidth = 800;
+		var docHeight = (format.height * docWidth) / format.width;
+
+		return {
+			width: docWidth,
+			height: docHeight
+		};
+	},
+	setPaperFormat: function(name) {
+		var format = LibreOffice.Writer.paperFormat(name);
+		
+		if (!format) {
+			return;
+		}
+
+		this._paperFormat = format;
+
+		this._pages.css(this._getPageDimentions());
+
+		this._container.scrollPane('reload');
+	},
+	_addPage: function() {
+		var that = this;
+
+		var page = $('<div></div>', { 'class': 'page cursor-text', contenteditable: 'true' });
+		page
+			.css(this._getPageDimentions())
+			.keyup(function(e) {
+				if (page[0].scrollHeight > page[0].clientHeight) {
+					if (page.index() == that._pages.last().index()) { //Last page, add one more
+						var newPage = that._addPage();
+						newPage.focus();
+					} else {
+						that.goToPage(page.index() + 1);
+					}
+				}
+			})
+			.focus(function() {
+				that._currentPage = $(this);
+			})
+			.appendTo(this._container.scrollPane('content'));
+
+		this._pages = this._pages.add(page);
+
+		this._container.scrollPane('reload');
+
+		return page;
+	},
+	_removePage: function(page) {
+		if (typeof page == 'undefined') {
+			page = this._currentPage;
+		} else if (typeof page == 'number') {
+			page = this._pages[page];
+		}
+		$page = $(page);
+
+		this._currentPage = this._pages[$page.index() - 1];
+		this._pages = this._pages.not($page);
+
+		$page.empty().remove();
+
+		this._container.scrollPane('reload');
+
+		this.goToPage();
 	}
 };
 Webos.inherit(LibreOffice.Writer, Webos.Observable);
 Webos.inherit(LibreOffice.Writer, Webos.TranslatedLibrary);
+
+LibreOffice.Writer._paperFormats = {
+	'A4': {
+		width: 2480,
+		height: 3508,
+		resolution: 300
+	}
+};
+LibreOffice.Writer.paperFormat = function(name) {
+	return LibreOffice.Writer._paperFormats[name] || null;
+};

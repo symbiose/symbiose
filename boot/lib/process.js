@@ -5,10 +5,15 @@ Webos.Process = function WProcess(options) {
 	if (typeof options.args != 'undefined') { //Si les arguments ne sont pas vides
 		this.args = options.args;
 	}
-	
-	this.running = false;
+
+	this._state = 0; // 0 -> ready; 1 -> running; 2 -> idle; 3 -> killed.
 	this.main = new Function('args', options.fn);
-	Webos.Process.list[this.pid] = this;
+
+	if (typeof this.pid != 'undefined') {
+		Webos.Process.list[this.pid] = this;
+	}
+
+	Webos.Observable.call(this);
 };
 Webos.Process.prototype = {
 	main: function() {},
@@ -19,7 +24,7 @@ Webos.Process.prototype = {
 		return this.authorizations;
 	},
 	run: function() {
-		if (this.running) {
+		if (this.state() != 'ready') {
 			return;
 		}
 		
@@ -28,8 +33,13 @@ Webos.Process.prototype = {
 			args = new Webos.Arguments();
 		}
 		
-		this.running = true;
+		this._state = 1;
 		Webos.Process.stack.push(this);
+
+		this.notify('start');
+		Webos.Process.notify('start', {
+			process: this
+		});
 		
 		try {
 			this.main(args);
@@ -37,17 +47,42 @@ Webos.Process.prototype = {
 			Webos.Error.catchError(error);
 		}
 		
+		this._state = 2;
 		Webos.Process.stack.pop();
+
+		this.notify('idle');
+		Webos.Process.notify('idle', {
+			process: this
+		});
 	},
 	stop: function() {
-		this.running = false;
+		if (this.state() != 'running' && this.state() != 'idle') {
+			return;
+		}
+
+		this._state = 3;
+
+		this.notify('stop');
+		Webos.Process.notify('stop', {
+			process: this
+		});
+
 		delete Webos.Process.list[this.getPid()];
 		delete this;
+	},
+	state: function() {
+		var states = ['ready', 'running', 'idle', 'killed'];
+
+		return states[this._state];
+	},
+	isRunning: function() {
+		return (this._state == 1 || this._state == 2);
 	},
 	toString: function() {
 		return '[WProcess #'+this.pid+']';
 	}
 };
+Webos.inherit(Webos.Process, Webos.Observable);
 
 Webos.Process.list = {};
 Webos.Process.stack = [];
@@ -57,6 +92,8 @@ Webos.Process.get = function(pid) {
 Webos.Process.current = function() {
 	return Webos.Process.stack[Webos.Process.stack.length - 1];
 };
+
+Webos.Observable.build(Webos.Process);
 
 
 Webos.Authorizations = function WAuthorizations(authorizations) {

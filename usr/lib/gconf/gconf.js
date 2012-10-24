@@ -8,7 +8,7 @@ function GConf(category) {
 	this.bind('translationsloaded', function() {
 		var that = this, t = this._translations;
 	
-		this._window = $.w.window({
+		this._window = $.w.window.main({
 			title: t.get('System settings'),
 			resizable: false,
 			icon: new W.Icon('apps/administration'),

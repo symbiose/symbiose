@@ -1,8 +1,18 @@
-.editor {
-	min-width: 100%;
-	min-height: 100%;
+.page {
+	width: 800px;
+	height: 1000px;
+	margin: 37px auto;
+	border: 1px solid #edeceb;
+	background-color: white;
+	font-family: "Times New Roman";
+	font-size: 14px;
+	padding: 75px;
+	overflow: hidden;
+	-moz-box-shadow: 0 0 5px #c0bebe;
+	-webkit-box-shadow: 0 0 5px #c0bebe;
+	box-shadow: 0 0 5px #c0bebe;
 }
 
-.editor:focus {
+.page:focus {
 	outline: none;
 }

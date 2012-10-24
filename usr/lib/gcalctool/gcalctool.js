@@ -87,7 +87,7 @@ function GCalcTool() {
 	Webos.Translation.load(function(t) {
 		gcalctool.translations = t;
 		
-		gcalctool.window = $.w.window({
+		gcalctool.window = $.w.window.main({
 			title: t.get('Calculator'),
 			icon: new W.Icon('apps/calculator'),
 			width: 370,

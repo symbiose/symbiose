@@ -35,14 +35,19 @@ Webos.Cmd.prototype = {
 			'method': 'execute',
 			'arguments': { 'cmd': this.cmdText, 'terminal': this.terminal.getId() }
 		}).load(new Webos.Callback(function(response) {
+			var out = response.getAllChannels();
+			if (out) {
+				that.getTerminal().echo(out);
+			}
+
 			if (!response.isJavascriptEmpty()) { //Si il y a du code JS a executer, on l'execute
 				var data = response.getData();
-				
+
 				var auth = new Webos.Authorizations();
 				for (var index in data.authorizations) {
 					auth.add(data.authorizations[index]);
 				}
-				
+
 				Webos.Process.call(that, {
 					pid: data.pid,
 					key: data.key,
@@ -50,12 +55,19 @@ Webos.Cmd.prototype = {
 					fn: response.getJavascript()
 				});
 				Webos.Cmd.uber.run.call(that);
-				
-				callback.success(response, that);
+
+				callback.success(that);
 			} else {
-				callback.success(response);
+				this.stop();
+
+				callback.success(that);
 			}
 		}, function(response) {
+			var out = response.getAllChannels();
+			if (out) {
+				that.getTerminal().echo(out);
+			}
+
 			callback.error(response);
 		}));
 	}
@@ -84,8 +96,11 @@ Webos.Cmd.execute = function(cmd, callback) {
 Webos.Terminal = function WTerminal() {
 	this._data = {};
 	this._initialized = false;
+	this._output = '';
 	
 	this.id = Webos.Terminal.register(this);
+
+	Webos.Observable.call(this);
 };
 Webos.Terminal.prototype = {
 	/**
@@ -119,12 +134,24 @@ Webos.Terminal.prototype = {
 		callback.success(this.get('location')+'/'+path);
 	},
 	/**
+	 * 
+	 */
+	echo: function(contents) {
+		this._output += contents;
+		this.notify('echo', {
+			contents: contents,
+			output: this._output,
+			cmd: this.cmd
+		});
+	},
+	/**
 	 * Executer une commande dans le terminal.
 	 * @param {String} cmd La commande a executer.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que la commande aura ete executee.
 	 * @returns {Webos.Cmd} La commande.
 	 */
 	enterCmd: function(cmd, callback) {
+		this._output = '';
 		this.cmd = new Webos.Cmd({
 			cmd: cmd,
 			terminal: this
@@ -207,6 +234,7 @@ Webos.Terminal.prototype = {
 		}, callback.error));
 	}
 };
+Webos.inherit(Webos.Terminal, Webos.Observable);
 
 /**
  * La liste des terminaux.

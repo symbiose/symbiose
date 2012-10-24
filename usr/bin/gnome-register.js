@@ -1,9 +1,10 @@
 //On initialise la fenetre
-var registerWindow = $.w.window.dialog({
+var registerWindow = $.w.window.main({
 	icon: new W.Icon('stock/person'),
 	title: 'Register',
 	width: 450,
-	resizable: false
+	resizable: false,
+	dialog: true
 });
 
 //On ouvre la fenetre

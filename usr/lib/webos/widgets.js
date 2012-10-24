@@ -94,9 +94,18 @@ var widgetProperties = {
 		pid: null
 	},
 	_create: function() {
+		var that = this;
+
 		this.options.id = $.webos.widgets.push(this.element) - 1;
 		if (typeof Webos.Process.current() != 'undefined') {
 			this.options.pid = Webos.Process.current().getPid();
+			Webos.Process.current().bind('stop', function() {
+				var el = $(that.element);
+
+				if (el.length) {
+					$(el).empty().remove();
+				}
+			});
 		}
 		this.element.addClass('webos-'+this._name);
 		this.element.attr('id', 'webos-widget-'+this.options.id);
@@ -110,7 +119,6 @@ var widgetProperties = {
 	destroy: function() {
 		this._destroy();
 		delete $.webos.widgets[this.options.id];
-		$.Widget.prototype.destroy.call(this);
 	},
 	_destroy: function() {},
 	_setOption: function(key, value) {
@@ -143,36 +151,24 @@ $.webos.extend = function(parent, child) {
 		}
 		return parent[method].apply(this, args);
 	};
-	var reportMethods = function(parentMethod, childMethod) {
-		return function() {
-			var args = [];
-			for (var i = 0; i < arguments.length; i++) {
-				args.push(arguments[i]);
-			}
-			parentMethod.apply(this, args);
-			return childMethod.apply(this, args);
-		};
-	};
 	for (var attr in child) {
 		if (typeof child[attr] == 'function' && typeof parent[attr] == 'function') {
-			child[attr] = reportMethods(parent[attr], child[attr]);
+			child[attr] = (function(parentMethod, childMethod) {
+				return function() {
+					var args = [];
+					for (var i = 0; i < arguments.length; i++) {
+						args.push(arguments[i]);
+					}
+					parentMethod.apply(this, args);
+					return childMethod.apply(this, args);
+				};
+			})(parent[attr], child[attr]);
 		}
 		if (child[attr] instanceof Array && parent[attr] instanceof Array) {
 			child[attr] = parent[attr].concat(child[attr]);
 		}
 	}
 	return child;
-};
-/*
-* TODO: Enlever les widgets crees par le processus.
-*/
-$.webos.stopProcess = function(proc) {
-	var widgets = $.webos.getWidgets();
-	for (var i = 0; i < widgets.length; i++) {
-		//On enleve les widgets crees par le processus correspondant.
-		// ...
-		// Not yet implemented
-	}
 };
 
 //Container

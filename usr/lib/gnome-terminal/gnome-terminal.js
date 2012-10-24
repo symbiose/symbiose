@@ -13,14 +13,18 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 	_translationsName: 'gnome-terminal',
 	_create: function() {
 		this.options.callback = W.Callback.toCallback(this.options.callback);
-		
+
 		var that = this;
 		var callback = this.options.callback;
-		
+
 		this.options._terminal = new W.Terminal();
-		
+
+		this.terminal().bind('echo', function(data) {
+			that._print(data.contents);
+		});
+
 		that._displayPrompt(); //On affiche l'invite de commande
-		
+
 		that.element.one('terminalready', function() {
 			callback.success(that.element);
 		});
@@ -33,6 +37,8 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 	},
 	_displayPrompt: function() { //Affiche l'invite de commande
 		var that = this;
+
+		this.options._components.out = $();
 		
 		this.options._terminal.refreshData(new W.Callback(function() {
 			var data = that.options._terminal.data();
@@ -109,19 +115,17 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 			that._trigger('ready');
 		}));
 	},
-	_displayResponse: function(response) { //Afficher la reponse d'une commande
-		$('<p></p>')
-			.html(response.getAllChannels())
-			.appendTo(this.element);
-		
-		this._trigger('finished');
-		
-		this._displayPrompt();
+	_print: function(contents) {
+		if (!this.options._components.out.length) {
+			this.options._components.out = $('<p></p>').appendTo(this.element);
+		}
+
+		this.options._components.out.append(contents);
 	},
 	enterCmd: function(cmd) { //Entrer une commande
 		var that = this;
 		
-		if (typeof this.options._terminal == 'undefined' || typeof that.options._runningCmd != 'undefined') {
+		if (!this.options._terminal || that.options._runningCmd) {
 			this.element.bind('terminalready', function() {
 				that.enterCmd(cmd);
 			});
@@ -132,22 +136,34 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 		this.options._components.prompt.after(lastCmd);
 		this.options._components.prompt.remove();
 		
-		if (cmd == '' || typeof cmd == 'undefined') {
+		if (!cmd) {
 			this._displayPrompt();
 			return;
 		}
 		
 		this._trigger('execute');
 		
-		var callback = new W.Callback(function(response) {
-			that.options._runningCmd = undefined;
+		that.options._runningCmd = this.options._terminal.enterCmd(cmd, [function(response) {
+			var onStopFn = function() {
+				that.options._runningCmd = null;
+				that._trigger('finished');
+				that._displayPrompt();
+			};
+
 			that.options._history.push(cmd);
-			that._displayResponse(response);
+
+			if (that.options._runningCmd.isRunning()) {
+				that.options._runningCmd.bind('stop', function() {
+					onStopFn();
+				});
+			} else {
+				onStopFn()
+			}
 		}, function(response) {
-			that.options._runningCmd = undefined;
-			that._displayResponse(response);
-		});
-		that.options._runningCmd = this.options._terminal.enterCmd(cmd, callback);
+			that.options._runningCmd = null;
+			that._trigger('finished');
+			that._displayPrompt();
+		}]);
 	}
 });
 $.webos.widget('terminal', terminalProperties);
@@ -171,7 +187,7 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 		var t = this._translations;
 		
 		//On initialise la fenetre
-		this._window = $.w.window({
+		this._window = $.w.window.main({
 			title: t.get('Terminal'),
 			icon: new W.Icon('apps/terminal'),
 			width: 400,

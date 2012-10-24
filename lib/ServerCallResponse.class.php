@@ -39,7 +39,7 @@ class ServerCallResponse extends HTTPResponse {
 	public function __construct() {
 		//On demarre la temporisation de sortie
 		//Permet de recuperer les donnees renvoyees par le script PHP
-		ob_implicit_flush();
+		//ob_implicit_flush();
 		ob_start(array($this, 'addToStandardChannel'));
 	}
 
@@ -48,7 +48,7 @@ class ServerCallResponse extends HTTPResponse {
 	 */
 	public function send() {
 		//On arrete la temporisation de sortie
-		ob_end_clean();
+		ob_end_flush();
 
 		//On definit le contenu de la reponse
 		$this->contents = json_encode(array(
@@ -115,6 +115,7 @@ class ServerCallResponse extends HTTPResponse {
 	 */
 	public function addToStandardChannel($text) {
 		$this->addContent($text, 1);
+		return ''; //On renvoie une chaine vide pour ne rien afficher
 	}
 
 	/**

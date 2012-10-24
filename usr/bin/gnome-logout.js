@@ -1,5 +1,5 @@
 //On initialise la fenetre de deconnexion
-var logoutWindow = $.w.window({
+var logoutWindow = $.w.window.main({
 	icon: new W.Icon('actions/logout'),
 	title: 'Se d&eacute;connecter',
 	width: 350,

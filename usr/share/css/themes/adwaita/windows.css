@@ -156,6 +156,10 @@
 	min-width: 10px;
 }
 
+.webos-window.dialog .content {
+	padding: 5px;
+}
+
 .webos-window.ui-resizable-resizing .content,
 .webos-window.animating .content {
 	overflow: hidden;
