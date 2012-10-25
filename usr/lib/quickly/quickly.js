@@ -2,13 +2,13 @@ new W.ScriptFile('usr/lib/apt/apt.js');
 
 /**
  * Quickly permet de creer rapidement et simplement des paquets.
- * @version 1.1
+ * @version 1.1.1
  * @author $imon
  */
-function QuicklyWindow() {
+window.QuicklyWindow = function QuicklyWindow() {
 	var that = this;
 	
-	this._window = $.w.window({
+	this._window = $.w.window.main({
 		title: 'Cr&eacute;ateur de paquets Quickly',
 		icon: 'mimes/package',
 		width: 500,
@@ -16,13 +16,14 @@ function QuicklyWindow() {
 	});
 	
 	this._open = function(file, callback) {
+		file = W.File.get(file);
 		callback = W.Callback.toCallback(callback);
 		
 		this._window.window('loading', true, {
 			message: 'Ouverture de « '+file.get('basename')+' »...'
 		});
 		
-		file.contents([function(xml) {
+		file.readAsText([function(xml) {
 			var xmlDoc = $.parseXML(xml), $xml = $(xmlDoc);
 			$package = $xml.find('package');
 			if ($package.length == 0) {
@@ -62,9 +63,9 @@ function QuicklyWindow() {
 		
 		new NautilusFileSelectorWindow({
 			parentWindow: that._window
-		}, function(file) {
-			if (file) {
-				that._open(file, callback);
+		}, function(files) {
+			if (files.length) {
+				that._open(files[0], callback);
 			}
 		});
 	};
@@ -73,6 +74,7 @@ function QuicklyWindow() {
 	
 	this._data.files = [];
 	this.addFile = function(file, callback) {
+		file = W.File.get(file);
 		callback = W.Callback.toCallback(callback);
 		
 		if (jQuery.inArray(file.get('path'), this._data.files) != -1) {
@@ -136,15 +138,32 @@ function QuicklyWindow() {
 		}
 	};
 	this._addFile = function(path) {
-		$.w.listItem([path]).appendTo(this._filesList.list('content'));
+		return $.w.listItem([path]).appendTo(this._filesList.list('content'));
 	};
 	this.openAddFileDialog = function() {
 		new NautilusFileSelectorWindow({
 			parentWindow: that._window,
-			selectDirs: true
-		}, function(file) {
-			if (file) {
-				that.addFile(file);
+			selectDirs: true,
+			selectMultiple: true
+		}, function(files) {
+			if (files.length) {
+				var i = 0;
+
+				var addNextFileFn = function() {
+					if (i >= files.length) {
+						return;
+					}
+
+					that.addFile(files[i], [function() {
+						i++;
+						addNextFileFn();
+					}, function() {
+						i++;
+						addNextFileFn();
+					}]);
+				};
+
+				addNextFileFn();
 			}
 		});
 	};
@@ -278,9 +297,9 @@ function QuicklyWindow() {
 			parentWindow: that._window,
 			exists: false,
 			title: 'Choisir un fichier de destination'
-		}, function(file) {
-			if (file) {
-				that._data.dest = file;
+		}, function(files) {
+			if (files.length) {
+				that._data.dest = files[0];
 				callback.success();
 			} else {
 				callback.error();
@@ -329,7 +348,7 @@ function QuicklyWindow() {
 		'<package>'+configFile.html()+'</package>';
 		
 		var saveXmlFn = function(file) {
-			file.setContents(xml, [function() {
+			file.writeAsText(xml, [function() {
 				generatePkgFn();
 			}, function(response) {
 				response.triggerError('Impossible de modifier le fichier de configuration du paquet "'+xmlFile+'"');
@@ -395,7 +414,7 @@ function QuicklyWindow() {
 	this.openAboutWindow = function() {
 		var aboutWindow = $.w.window.about({
 			name: 'Quickly',
-			version: '1.1',
+			version: '1.1.1',
 			description: 'Quickly permet de g&eacute;n&eacute;rer rapidement des paquets.',
 			author: '$imon',
 			icon: new W.Icon('mimes/package')
@@ -496,4 +515,4 @@ function QuicklyWindow() {
 		.appendTo(toolbar);
 	
 	this._window.window('open');
-}
+};
