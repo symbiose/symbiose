@@ -1308,12 +1308,14 @@ Webos.LocalFile.prototype = {
 		
 		var reader = new FileReader();
 		reader.onload = function(e) {
-			callback.success(e.target.result);
+			var contents = e.target.result;
+			contents = contents.replace(/^data:[a-zA-Z0-9-_\/]+;base64,/, '');
+			callback.success(contents);
 		};
 		reader.onerror = function(e) {
 			callback.error(e.target.result);
 		};
-		reader.readAsBinaryString(this._file);
+		reader.readAsDataURL(this._file);
 	}
 };
 Webos.inherit(Webos.LocalFile, Webos.File); //Héritage de Webos.File
