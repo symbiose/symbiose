@@ -387,6 +387,23 @@ Webos.File.prototype = {
 		
 		return true;
 	},
+	clearCache: function(filepath) {
+		if (typeof this._contents == 'undefined') {
+			return;
+		}
+
+		if (filepath && this.get('is_dir')) {
+			var list = [];
+			for (var i = 0; i < this._contents.length; i++) {
+				if (this._contents[i].get('path') != filepath) {
+					list.push(this._contents[i]);
+				}
+			}
+			this._contents = list;
+		} else {
+			delete this._contents;
+		}
+	},
 	toString: function() {
 		return this.get('path');
 	}
@@ -826,18 +843,10 @@ Webos.File.clearCache = function(path, clearParentCache) {
 			if (parentDirPath != file.get('path')) { //Dossier racine ?
 				if (Webos.File.isCached(parentDirPath)) {
 					var parentDir = Webos.File.get(parentDirPath);
-					if (parentDir._contents) {
-						if (clearParentCache) {
-							delete parentDir._contents;
-						} else {
-							var list = [];
-							for (var i = 0; i < parentDir._contents.length; i++) {
-								if (parentDir._contents[i].get('path') != file.get('path')) {
-									list.push(parentDir._contents[i]);
-								}
-							}
-							parentDir._contents = list;
-						}
+					if (clearParentCache) {
+						parentDir.clearCache();
+					} else {
+						parentDir.clearCache(file.get('path'));
 					}
 				}
 			}

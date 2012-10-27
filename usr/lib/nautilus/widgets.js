@@ -967,6 +967,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		uploadWindow.window('open');
 	},
 	refresh: function(callback) {
+		Webos.File.get(this.location()).clearCache();
 		this.readDir(this.options.directory, callback);
 	},
 	location: function() {
