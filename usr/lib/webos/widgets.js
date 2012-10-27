@@ -638,16 +638,16 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 					left: left
 				});
 				
-				data.horizontalTrackHeight = that.options._components.horizontalBar.children('.track').outerHeight();
-				data.verticalTrackWidth = that.options._components.verticalBar.outerWidth();
+				data.horizontalTrackHeight = that.options._components.horizontalBar.children('.track').outerHeight(true);
+				data.verticalTrackWidth = that.options._components.verticalBar.outerWidth(true);
 				
 				data.horizontalTrackWidth = data.containerWidth;
 				data.verticalTrackHeight = data.containerHeight;
 				that.element.find('>.vertical-bar>.cap:visible,>.vertical-bar>.arrow').each(function() {
-					data.verticalTrackHeight -= $(that).outerHeight();
+					data.verticalTrackHeight -= $(that).outerHeight(true);
 				});
 				that.element.find('>.horizontal-bar>.cap:visible,>.horizontal-bar>.arrow').each(function() {
-					data.horizontalTrackWidth -= $(that).outerWidth();
+					data.horizontalTrackWidth -= $(that).outerWidth(true);
 				});
 				
 				that.options._components.container.width(data.containerWidth - data.verticalTrackWidth).height(data.containerHeight - data.horizontalTrackHeight);
@@ -660,7 +660,7 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 				if (data.isScrollableH && data.isScrollableV) {
 					data.verticalTrackHeight -= data.horizontalTrackHeight;
 					that.options._components.horizontalBar.find('>.cap:visible,>.arrow').each(function() {
-						data.horizontalTrackWidth += $(that).outerWidth();
+						data.horizontalTrackWidth += $(that).outerWidth(true);
 					});
 					data.horizontalTrackWidth -= data.verticalTrackWidth;
 					data.paneHeight -= data.verticalTrackWidth;
@@ -670,22 +670,28 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 					that.options._components.horizontalBar.find('.corner').height(data.horizontalTrackHeight).width(data.verticalTrackWidth);
 				}
 				
+				var dragContainerV = that.options._components.verticalBar.find('.drag-container');
 				if (data.isScrollableV) {
 					that.options._components.verticalBar.find('.track').height(data.verticalTrackHeight);
-					data.verticalDragHeight = Math.ceil(1 / data.percentInViewV * data.verticalTrackHeight);
-					if (data.verticalDragHeight < that.options.verticalDragMinHeight) {
-						data.verticalDragHeight = that.options.verticalDragMinHeight;
+					data.verticalDragMarginY = parseInt(dragContainerV.css('padding-top'), 10) + parseInt(dragContainerV.css('padding-bottom'), 10);
+					var verticalDragHeight = Math.ceil(1 / data.percentInViewV * data.verticalTrackHeight);
+					if (verticalDragHeight < that.options.verticalDragMinHeight) {
+						verticalDragHeight = that.options.verticalDragMinHeight;
 					}
-					that.options._components.verticalBar.find('.drag-container').height(data.verticalDragHeight);
+					dragContainerV.height(verticalDragHeight);
+					data.verticalDragHeight = verticalDragHeight + data.verticalDragMarginY;
 					data.dragMaxY = data.verticalTrackHeight - data.verticalDragHeight;
 				}
+				var dragContainerH = that.options._components.horizontalBar.find('.drag-container');
 				if (data.isScrollableH) {
 					that.options._components.horizontalBar.find('.track').width(data.horizontalTrackWidth);
-					data.horizontalDragWidth = Math.ceil(1 / data.percentInViewH * data.horizontalTrackWidth);
-					if (data.horizontalDragWidth < that.options.horizontalDragMinWidth) {
-						data.horizontalDragWidth = that.options.horizontalDragMinWidth;
+					data.horizontalDragMarginX = parseInt(dragContainerH.css('padding-top'), 10) + parseInt(dragContainerH.css('padding-bottom'), 10);
+					var horizontalDragWidth = Math.ceil(1 / data.percentInViewH * data.horizontalTrackWidth);
+					if (horizontalDragWidth < that.options.horizontalDragMinWidth) {
+						horizontalDragWidth = that.options.horizontalDragMinWidth;
 					}
-					that.options._components.horizontalBar.find('.drag-container').width(data.horizontalDragWidth);
+					dragContainerH.width(horizontalDragWidth);
+					data.horizontalDragWidth = horizontalDragWidth + data.horizontalDragMarginX;
 					data.dragMaxX = data.horizontalTrackWidth - data.horizontalDragWidth;
 				}
 				

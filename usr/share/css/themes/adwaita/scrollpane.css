@@ -178,6 +178,6 @@
 {
 	background: #292929;
 }
-.webos-scrollpane .corner {
+#shell .webos-scrollpane .corner {
 	background-color: transparent;
 }
