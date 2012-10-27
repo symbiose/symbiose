@@ -17,6 +17,10 @@ Webos.base64 = {
  
 	// public method for encoding
 	encode: function (input) {
+		if (window.btoa) {
+			return window.btoa(unescape(encodeURIComponent(input)));
+		}
+
 		var output = "";
 		var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
 		var i = 0;
@@ -51,6 +55,10 @@ Webos.base64 = {
  
 	// public method for decoding
 	decode: function (input) {
+		if (window.atob) {
+			return decodeURIComponent(escape(window.atob(input)));
+		}
+
 		var output = "";
 		var chr1, chr2, chr3;
 		var enc1, enc2, enc3, enc4;
@@ -178,6 +186,16 @@ Webos.File.prototype = {
 			} else if (!this.exists('is_binary')) {
 				data.is_binary = true;
 			}
+		}
+
+		if (typeof data.labels == 'undefined') {
+			data.labels = {};
+		}
+		if (!data.labels.hidden) {
+			data.labels.hidden = (data.basename.charAt(0) == '.');
+		}
+		if (typeof data.labels.trashed == 'undefined') {
+			data.labels.trashed = false;
 		}
 
 		return Webos.Model.prototype.hydrate.call(this, data);
@@ -343,6 +361,14 @@ Webos.File.prototype = {
 		var attr = (auth == 'read') ? 'readable' : 'writable';
 		
 		return this.get(attr);
+	},
+	/**
+	 * Définir si le fichier possede un libelle.
+	 * @param {String} label Le libelle.
+	 * @returns {Boolean} Vrai si le fichier possede le libelle.
+	 */
+	is: function(label) {
+		return (this._get('labels') && this._get('labels')[label]) ? true : false;
 	},
 	/**
 	 * Vérifier que l'utilisateur peut effectuer une action. Déclencher une erreur si non.
@@ -791,10 +817,32 @@ Webos.File.isCached = function(path) {
  * @param {String} [path] Si spécifié, seul le cache du fichier ayant ce chemin sera vidé.
  * @static
  */
-Webos.File.clearCache = function(path) {
+Webos.File.clearCache = function(path, clearParentCache) {
 	if (typeof path == 'undefined') {
 		Webos.File._cache = {};
 	} else {
+		if (Webos.File._cache[path]) {
+			var file = Webos.File._cache[path], parentDirPath = file.get('dirname');
+			if (parentDirPath != file.get('path')) { //Dossier racine ?
+				if (Webos.File.isCached(parentDirPath)) {
+					var parentDir = Webos.File.get(parentDirPath);
+					if (parentDir._contents) {
+						if (clearParentCache) {
+							delete parentDir._contents;
+						} else {
+							var list = [];
+							for (var i = 0; i < parentDir._contents.length; i++) {
+								if (parentDir._contents[i].get('path') != file.get('path')) {
+									list.push(parentDir._contents[i]);
+								}
+							}
+							parentDir._contents = list;
+						}
+					}
+				}
+			}
+		}
+
 		delete Webos.File._cache[path];
 	}
 };
@@ -884,6 +932,9 @@ Webos.File.mount = function(point, callback) {
 		var mountFn = function() {
 			Webos.File._mountedDevices[point.get('local')] = point;
 			Webos.File.notify('mount', { local: point.get('local'), remote: point.get('remote'), driver: point.get('driver'), point: point });
+			
+			Webos.File.clearCache(point.get('local'), true);
+
 			callback.success(point);
 		};
 		
@@ -936,6 +987,8 @@ Webos.File.umount = function(local) {
 		var point = Webos.File._mountedDevices[local], data = { local: point.get('local'), driver: point.get('driver'), remote: point.get('remote'), point: point };
 		delete Webos.File._mountedDevices[local];
 		Webos.File.notify('umount', data);
+
+		Webos.File.clearCache(data.local, true);
 	}
 };
 

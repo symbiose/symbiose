@@ -659,6 +659,16 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				item.hide();
 			}
 		}
+
+		if (file.is('hidden')) {
+			item.addClass('hidden');
+			if (!this.options.showHiddenFiles) {
+				item.hide();
+			}
+		}
+		if (file.is('trashed')) {
+			item.hide();
+		}
 		
 		var updateCallbackId = file.bind('update', function(data) {
 			file.unbind('update', updateCallbackId);

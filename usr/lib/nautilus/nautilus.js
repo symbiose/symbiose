@@ -160,6 +160,11 @@ var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 				'title': 'FTP',
 				'icon': 'places/folder-remote',
 				'lib': '/usr/lib/webos/ftp.js'
+			},
+			'GoogleDriveFile': {
+				'title': 'Google Drive',
+				'icon': 'applications/google-drive',
+				'lib': '/usr/lib/google-api/webos.js'
 			}
 		};
 		
