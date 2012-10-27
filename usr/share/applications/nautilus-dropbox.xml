@@ -3,6 +3,6 @@
 	<attribute name="title" value="Dropbox"/>
 	<attribute name="description" value="Accéder a votre Dropbox"/>
 	<attribute name="command" value="nautilus-mounter DropboxFile"/>
-	<attribute name="icon" value="/usr/share/images/dropbox/icon_48.png"/>
+	<attribute name="icon" value="applications/dropbox"/>
 	<attribute name="category" value="internet"/>
 </shortcut>

@@ -143,6 +143,11 @@ var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 	
 	this.bind('translationsloaded', function(data) {
 		var t = data.translations;
+
+		var thisProcess = W.Process.current(), canWriteUserFiles = true;
+		if (thisProcess) {
+			canWriteUserFiles = thisProcess.getAuthorizations().can('file.user.write');
+		}
 		
 		this._window = $.w.window.dialog({
 			title: t.get('Volume mounting'),
@@ -151,15 +156,15 @@ var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 		});
 		
 		this._drivers = {
-			'DropboxFile': {
-				'title': 'Dropbox',
-				'icon': '/usr/share/images/dropbox/icon_48.png',
-				'lib': '/usr/lib/dropbox/webos.js'
-			},
 			'FTPFile': {
 				'title': 'FTP',
 				'icon': 'places/folder-remote',
 				'lib': '/usr/lib/webos/ftp.js'
+			},
+			'DropboxFile': {
+				'title': 'Dropbox',
+				'icon': 'applications/dropbox',
+				'lib': '/usr/lib/dropbox/webos.js'
 			},
 			'GoogleDriveFile': {
 				'title': 'Google Drive',
@@ -170,6 +175,7 @@ var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 		
 		this.showDrivers = function(driver) {
 			var that = this;
+
 			var form = $.w.entryContainer().submit(function() {
 				that._window.window('loading', true, {
 					message: t.get('Loading of ${driver} library in progress...', { driver: that._drivers[selectedDriver].title })
@@ -221,31 +227,36 @@ var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 				that._window.window('loading', true, {
 					message: t.get('Checking the local folder "${local}"...', { local: local })
 				});
-				W.File.load(local, [function(file) {
-					if (!file.get('is_dir')) {
-						that._window.window('loading', false);
-						Webos.Error.trigger(t.get('Can\'t mount the volume on "${local}" : the specified file is not a folder', { local: local }));
-						return;
-					}
-					
-					if (!Webos.isInstanceOf(file, Webos.WebosFile)) {
-						that._window.window('loading', false);
-						Webos.Error.trigger(t.get('Can\'t mount the volume on "${local}" : the specified folder is in a mounted volume', { local: local }));
-						return;
-					}
-					
-					mountFn();
-				}, function(response) {
-					that._window.window('loading', true, {
-						message: t.get('Creating the local folder "${local}"...', { local: local })
-					});
-					W.File.createFolder(local, [function(file) {
+
+				if (canWriteUserFiles) {
+					W.File.load(local, [function(file) {
+						if (!file.get('is_dir')) {
+							that._window.window('loading', false);
+							Webos.Error.trigger(t.get('Can\'t mount the volume on "${local}" : the specified file is not a folder', { local: local }));
+							return;
+						}
+						
+						if (!Webos.isInstanceOf(file, Webos.WebosFile)) {
+							that._window.window('loading', false);
+							Webos.Error.trigger(t.get('Can\'t mount the volume on "${local}" : the specified folder is in a mounted volume', { local: local }));
+							return;
+						}
+						
 						mountFn();
 					}, function(response) {
-						that._window.window('loading', false);
-						response.triggerError(t.get('Can\'t create the local folder "${local}"', { local: local }));
+						that._window.window('loading', true, {
+							message: t.get('Creating the local folder "${local}"...', { local: local })
+						});
+						W.File.createFolder(local, [function(file) {
+							mountFn();
+						}, function(response) {
+							that._window.window('loading', false);
+							response.triggerError(t.get('Can\'t create the local folder "${local}"', { local: local }));
+						}]);
 					}]);
-				}]);
+				} else {
+					mountFn();
+				}
 			}).appendTo(this._window.window('content'));
 			
 			form.append($.w.label(t.get('Select the service to use :')));
@@ -291,10 +302,6 @@ var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 			}).appendTo(spoilerContents);
 			var remoteEntry = $.w.textEntry(t.get('Remote folder :'), '/').appendTo(spoilerContents);
 			
-			var thisProcess = W.Process.current(), canWriteUserFiles = true;
-			if (thisProcess) {
-				canWriteUserFiles = thisProcess.getAuthorizations().can('file.user.write');
-			}
 			var permanentEntry = $.w.switchButton(t.get('Persistant mounting :'), canWriteUserFiles).appendTo(spoilerContents);
 			
 			var buttons = $.w.buttonContainer().appendTo(form);
@@ -483,7 +490,7 @@ var NautilusWindow = function NautilusWindow(dir, userCallback) {
 		
 		$.w.menuItem(t.get('Mount a volume'))
 			.click(function() {
-				new NautilusDeviceMounterWindow();
+				W.Cmd.execute('nautilus-mounter');
 			})
 			.appendTo(fileItemContent);
 		

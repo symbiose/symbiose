@@ -253,6 +253,6 @@ Webos.DropboxFile.move = function(path, point, callback) {
 
 Webos.File.registerDriver('DropboxFile', {
 	title: 'Dropbox',
-	icon: '/usr/share/images/dropbox/icon_48.png',
+	icon: 'applications/dropbox',
 	lib: '/usr/lib/dropbox/webos.js'
 });
