@@ -109,6 +109,8 @@ class File extends FileBase {
 	 * @return File Le fichier.
 	 */
 	public function setContents($contents) {
+		$this->webos->managers()->get('File')->checkAvailableSpace($this->dirname(), strlen($contents));
+
 		if (file_put_contents($this->realpath(), $contents) === false)
 			throw new \RuntimeException('Impossible de modifier "'.$this->path().'"');
 		return $this;
@@ -157,6 +159,8 @@ class File extends FileBase {
 		if (!$this->webos->managers()->get('File')->exists($destParent)) {
 			throw new \InvalidArgumentException('Le dossier de destination "'.$this->path($destParent).'" n\'existe pas');
 		}
+
+		$this->webos->managers()->get('File')->checkAvailableSpace($destParent, $this->size());
 
 		if (!rename($this->realpath(), $this->realpath($dest)))
 			throw new \RuntimeException('Impossible de d&eacute;placer "'.$this->path().'" vers "'.$this->path($dest).'"');

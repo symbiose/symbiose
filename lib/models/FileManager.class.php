@@ -31,14 +31,17 @@ class FileManager extends \lib\Manager {
 	}
 
 	public function getAvailableSpace($path) {
+		$cacheFile = '/var/cache/diskusage.json';
+
 		if (empty($this->quotas)) {
 			$config = new Config($this->webos);
 			$config->load('/etc/quotas.xml');
 			$this->quotas['home'] = (int) $config->get('home');
 		}
 
-		if (count($this->sizes) == 0 && $this->exists('/var/cache/diskusage.txt')) {
-			$this->sizes = unserialize($this->get('/var/cache/diskusage.txt')->contents());
+		if (count($this->sizes) == 0 && $this->exists($cacheFile)) {
+			$usersSizes = json_decode($this->get($cacheFile)->contents());
+			$this->sizes = $usersSizes[$this->webos->getUser()->getId()];
 		}
 
 		$paths = array(
@@ -71,13 +74,19 @@ class FileManager extends \lib\Manager {
 		}
 
 		if ($sizesModified) {
-			if (!$this->exists('/var/cache/diskusage.txt')) {
-				$cacheFile = $this->createFile('/var/cache/diskusage.txt');
+			if (!$this->exists($cacheFile)) {
+				$cacheFile = $this->createFile($cacheFile);
 			} else {
-				$cacheFile = $this->get('/var/cache/diskusage.txt');
+				$cacheFile = $this->get($cacheFile);
 			}
 
-			$cacheFile->setContents(serialize($this->sizes));
+			if (!$usersSizes) {
+				$usersSizes = json_decode($this->get($cacheFile)->contents());
+			}
+
+			$usersSizes[$this->webos->getUser()->getId()] = $this->sizes;
+
+			$cacheFile->setContents(json_encode($usersSizes));
 		}
 
 		return $availableSpace;
