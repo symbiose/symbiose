@@ -15,6 +15,14 @@ Webos.Observable.prototype = {
 			events: events
 		}) - 1;
 	},
+	one: function(event, fn) {
+		var that = this;
+
+		var callbackId = this.bind(event, function(data) {
+			that.unbind(callbackId);
+			fn.call(this, data);
+		});
+	},
 	unbind: function(key, fn) {
 		var observers = [];
 		if (typeof key == 'number') {
@@ -67,6 +75,9 @@ Webos.Observable.build = function(object) {
 	object._observers = [];
 	object.bind = function(event, fn) {
 		return Webos.Observable.prototype.bind.call(object, event, fn);
+	};
+	object.one = function(event, fn) {
+		return Webos.Observable.prototype.one.call(object, event, fn);
 	};
 	object.unbind = function(key, fn) {
 		return Webos.Observable.prototype.unbind.call(object, key, fn);
