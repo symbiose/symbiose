@@ -14,7 +14,7 @@ var languageSelector = $.w.selectButton('Langue :', list).selectButton('value', 
 			title: 'Changement de langue',
 			label: 'La langue a &eacute;t&eacute; chang&eacute;e. Voulez-vous red&eacute;marrer l\'interface utilisateur maintenant pour prendre en compte cette modification ?',
 			confirm: function() {
-				W.UserInterface.load(W.UserInterface.current.name());
+				W.UserInterface.load(W.UserInterface.Booter.current().name());
 			},
 			cancelLabel: 'Non',
 			confirmLabel: 'Red&eacute;marrer maintenant',

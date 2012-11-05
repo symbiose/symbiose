@@ -23,7 +23,7 @@
 	$.jGrowl = function( m , o ) {
 		// To maintain compatibility with older version that only supported one instance we'll create the base container.
 		if ( $('#jGrowl').size() == 0 ) 
-			$('<div id="jGrowl"></div>').addClass( (o && o.position) ? o.position : $.jGrowl.defaults.position ).appendTo(W.UserInterface.current.element);
+			$('<div id="jGrowl"></div>').addClass( (o && o.position) ? o.position : $.jGrowl.defaults.position ).appendTo(W.UserInterface.Booter.current().element());
 
 		// Create a notification on the container.
 		$('#jGrowl').jGrowl(m,o);

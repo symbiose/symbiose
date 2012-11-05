@@ -121,7 +121,7 @@ var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'int
 				title: 'Changement de th&egrave;me',
 				label: 'Le th&egrave;me a &eacute;t&eacute; chang&eacute;. Voulez-vous red&eacute;marrer l\'interface utilisateur maintenant pour prendre en compte cette modification ?',
 				confirm: function() {
-					W.UserInterface.load(W.UserInterface.current.name());
+					W.UserInterface.load(W.UserInterface.Booter.current().name());
 				},
 				cancelLabel: 'Non',
 				confirmLabel: 'Red&eacute;marrer maintenant',

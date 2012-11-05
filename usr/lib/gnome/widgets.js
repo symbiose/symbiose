@@ -1300,7 +1300,7 @@ var contextMenuProperties = $.webos.extend($.webos.properties.get('container'), 
 	_setTarget: function(target) {
 		var that = this;
 		
-		this.element.appendTo(W.UserInterface.current.element);
+		this.element.appendTo(W.UserInterface.Booter.current().element());
 		
 		this.element.hide();
 		

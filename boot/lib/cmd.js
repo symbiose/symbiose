@@ -137,6 +137,7 @@ Webos.Terminal.prototype = {
 	 * 
 	 */
 	echo: function(contents) {
+		contents = String(contents).replace(/\n/g, '<br />');
 		this._output += contents;
 		this.notify('echo', {
 			contents: contents,

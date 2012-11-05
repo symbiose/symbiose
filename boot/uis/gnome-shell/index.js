@@ -1,4 +1,4 @@
-W.UserInterface.current.callLoaded = false;
+W.UserInterface.Booter.current().disableAutoLoad();
 
 //On empeche de faire defiler la page
 $(document).scroll(function() {
@@ -117,7 +117,7 @@ Webos.Error.setErrorHandler(function(error) {
 	});
 });
 
-W.ServerCall.bind('complete', function() {
+W.ServerCall.one('complete', function() {
 	resizeDesktopFn();
-	W.UserInterface.current.loaded();
+	W.UserInterface.Booter.current().finishLoading();
 });

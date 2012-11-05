@@ -14,21 +14,23 @@ class UserInterfaceController extends \lib\ServerCallComponent {
 	 * Recuperer la structure HTML et le script JavaScript d'une interface utilisateur.
 	 * @param string $uiName Le nom de l'interface utilisateur. Si il vaut faux, l'interface par defaut sera retournee.
 	 */
-	protected function loadUI($uiName = false) {
+	protected function loadBooter($uiName = false) {
 		$ui = new UserInterface($this->webos, $uiName);
 
 		return array(
 			'name' => $ui->getName(),
-			'html' => $ui->getHtml(),
-			'js' => $ui->getJavascript(),
-			'css' => $ui->getCss()
+			'booter' => array(
+				'html' => $ui->getHtml(),
+				'js' => $ui->getJavascript(),
+				'css' => $ui->getCss()
+			)
 		);
 	}
 
 	/**
 	 * Recuperer la liste des interfaces utilisateur disponibles.
 	 */
-	protected function getUIsList() {
+	protected function getList() {
 		$list = $this->webos->managers()->get('UserInterface')->getList();
 		foreach($list as $index => $data) {
 			try {
@@ -72,7 +74,11 @@ class UserInterfaceController extends \lib\ServerCallComponent {
 		
 		$list = array();
 		foreach ($files as $file) {
-			$ui = new UserInterface($this->webos, $file->basename());
+			try {
+				$ui = new UserInterface($this->webos, $file->basename());
+			} catch (Exception $e) {
+				continue;
+			}
 			$list[$ui->getName()] = $ui->getAttributes();
 		}
 		

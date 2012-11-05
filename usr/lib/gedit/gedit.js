@@ -222,7 +222,7 @@ function GEditWindow(file) {
 			that._window.window('loading', true, {
 				lock: false
 			});
-			file.contents(new W.Callback(function(contents) {
+			file.readAsText(new W.Callback(function(contents) {
 				that._window.window('loading', false);
 
 				that._file = file;

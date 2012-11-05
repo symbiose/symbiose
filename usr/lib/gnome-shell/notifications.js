@@ -1,7 +1,7 @@
 function SNotification(opts) {
 	return $.webos.notification(opts);
 }
-SNotification.element = $('<div></div>', { 'class': 'notifications-area' }).css('display', 'none').appendTo(W.UserInterface.current.element);
+SNotification.element = $('<div></div>', { 'class': 'notifications-area' }).css('display', 'none').appendTo(W.UserInterface.Booter.current().element());
 SNotification.container = $('<div></div>', { 'class': 'notification-container' }).appendTo(SNotification.element);
 SNotification.indicators = $('<ul></ul>').appendTo(SNotification.element);
 SNotification.showContainer = function() {

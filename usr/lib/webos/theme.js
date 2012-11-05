@@ -29,13 +29,13 @@ Webos.Theme.prototype = {
 			'method': 'loadCss',
 			'arguments': {
 				'theme': that.get('desktop'),
-				'ui': Webos.UserInterface.current.name()
+				'ui': Webos.UserInterface.Booter.current().name()
 			}
 		}).load(new Webos.Callback(function(response) {
 			that._setAnimations();
 			var css = response.getData().css;
 			for (var index in css) {
-				Webos.Stylesheet.insertCss(css[index], '#'+W.UserInterface.current.element.attr('id'));
+				Webos.Stylesheet.insertCss(css[index], '#'+W.UserInterface.Booter.current().element().attr('id'));
 			}
 			that._loadBackground();
 			Webos.Theme._current = that;
@@ -44,7 +44,7 @@ Webos.Theme.prototype = {
 	},
 	_loadBackground: function() {
 		var bg = Webos.File.get(this.get('background')).get('realpath');
-		Webos.UserInterface.current.element
+		Webos.UserInterface.Booter.current().element()
 			.css('background', 'url("'+bg+'") no-repeat center center fixed #27001f')
 			.css('-webkit-background-size', 'cover')
 			.css('-moz-background-size', 'cover')
@@ -130,7 +130,7 @@ Webos.inherit(Webos.Theme, Webos.Model);
 
 Webos.Theme._current = null;
 Webos.Theme.current = function() {
-	return Webos.Theme._current || new Webos.Theme(Webos.ConfigFile.get('~/.theme/'+Webos.UserInterface.current.name()+'/config.xml'));
+	return Webos.Theme._current || new Webos.Theme(Webos.ConfigFile.get('~/.theme/'+Webos.UserInterface.Booter.current().name()+'/config.xml'));
 };
 Webos.Theme._defaultBackground = 'usr/share/images/backgrounds/default.jpg';
 Webos.Theme.defaultBackground = function() {
@@ -140,7 +140,7 @@ Webos.Theme.defaultBackground = function() {
 Webos.Theme.get = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	var ui = Webos.UserInterface.current.name();
+	var ui = Webos.UserInterface.Booter.current().name();
 	Webos.ConfigFile.loadUserConfig('~/.theme/'+ui+'/config.xml', '/usr/etc/uis/'+ui+'/config.xml', [function(config) {
 		var theme = new Webos.Theme(config);
 		callback.success(theme);
@@ -156,7 +156,7 @@ Webos.Theme.getAvailable = function(module, callback) {
 		'class': 'ThemeController',
 		'method': 'getAvailable',
 		'arguments': {
-			'ui': W.UserInterface.current.name()
+			'ui': W.UserInterface.Booter.current().name()
 		}
 	}).load(new Webos.Callback(function(response) {
 		callback.success(response.getData());

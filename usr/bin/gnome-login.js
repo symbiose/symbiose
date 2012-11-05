@@ -30,44 +30,47 @@ Webos.Translation.load(function(t) {
 			loginWindow.window('loading', true, {
 				message: t.get('Connecting...')
 			});
-			var callback = new W.Callback(function() {
+			W.User.login(username.textEntry('content').val(), password.passwordEntry('content').val(), [function() {
 				loginWindow.window('close');
 				var ui = uiSelector.selectButton('value');
-				if (ui === '') {
-					ui = undefined;
+
+				if (ui && Webos.UserInterface.Booter.current().name() != ui) {
+					W.UserInterface.load(ui);
 				}
-				//W.UserInterface.load(ui);
 			}, function(response) {
 				loginWindow.window('loading', false);
 				response.triggerError(t.get('The connection failed'));
 				password.passwordEntry('content').val('');
 				username.textEntry('content').focus();
-			});
-			W.User.login(username.textEntry('content').val(), password.passwordEntry('content').val(), callback);
+			}]);
 		});
 	var username = $.w.textEntry(t.get('Username :')).appendTo(form);
 	var password = $.w.passwordEntry(t.get('Password :')).appendTo(form);
 	var spoiler = $.w.spoiler(t.get('Options')).one('spoilershow', function() {
-		W.UserInterface.getList(new W.Callback(function(data) {
+		W.UserInterface.getList(new W.Callback(function(list) {
+			console.log(list);
 			var uis = {};
 			var defaultUI;
-			for (var index in data) {
+			for (var i = 0; i < list.length; i++) {
 				(function(ui) {
-					if (ui.type == 'ui') { //Si c'est une interface de travail, pas une interface de connexion
-						uis[ui.name] = (ui.attributes.displayname) ? ui.attributes.displayname : ui.name;
-						if ((ui['default'] && typeof defaultUI != 'undefined') || ui.name == W.UserInterface.current.name()) {
+					if (jQuery.inArray('ui', ui.get('types')) != -1) { //Si c'est une interface de travail, pas une interface de connexion
+						uis[ui.get('name')] = (ui.get('displayname')) ? ui.get('displayname') : ui.get('name');
+						if ((ui.get('default') && typeof defaultUI != 'undefined') || ui.get('name') == W.UserInterface.Booter.current().name()) {
 							defaultUI = ui.name;
 						}
 					}
-				})(data[index]);
+				})(list[i]);
 			}
 			uiSelector.selectButton('option', 'choices', uis).selectButton('value', defaultUI);
 		}, function() {}));
 	}).appendTo(form);
+
 	var uis = {};
-	uis[W.UserInterface.current.name()] = t.get('Current interface');
-	uis[''] = t.get('Default interface');
-	var uiSelector = $.w.selectButton(t.get('Interface :'), uis).selectButton('value', W.UserInterface.current.name()).appendTo(spoiler.spoiler('content'));
+	uis[W.UserInterface.Booter.current().name()] = t.get('Current interface');
+	if (!W.UserInterface.current().get('default')) {
+		uis[''] = t.get('Default interface');
+	}
+	var uiSelector = $.w.selectButton(t.get('Interface :'), uis).selectButton('value', W.UserInterface.Booter.current().name()).appendTo(spoiler.spoiler('content'));
 	var buttonContainer = $.w.buttonContainer().appendTo(form);
 	$.w.button(t.get('Cancel'))
 		.appendTo(buttonContainer)

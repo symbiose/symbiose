@@ -85,13 +85,13 @@ Webos.Dashboard.init = function(userCallback) {
 	
 	Webos.User.getLogged(function(user) {
 		if (user) {
-			new W.XMLFile('~/.theme/'+Webos.UserInterface.current.name()+'/dashboards.xml', new W.Callback(initFn, function() {
-				new W.XMLFile('/usr/etc/uis/'+Webos.UserInterface.current.name()+'/dashboards.xml', new W.Callback(initFn, function() {
+			new W.XMLFile('~/.theme/'+Webos.UserInterface.Booter.current().name()+'/dashboards.xml', new W.Callback(initFn, function() {
+				new W.XMLFile('/usr/etc/uis/'+Webos.UserInterface.Booter.current().name()+'/dashboards.xml', new W.Callback(initFn, function() {
 					throw new W.Error('Fichier de configuration par d&eacute;faut introuvable');
 				}));
 			}));
 		} else {
-			new W.XMLFile('/usr/etc/uis/'+Webos.UserInterface.current.name()+'/dashboards.xml', new W.Callback(initFn, function() {
+			new W.XMLFile('/usr/etc/uis/'+Webos.UserInterface.Booter.current().name()+'/dashboards.xml', new W.Callback(initFn, function() {
 				throw new W.Error('Fichier de configuration par d&eacute;faut introuvable');
 			}));
 		}

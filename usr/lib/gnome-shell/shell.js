@@ -176,7 +176,7 @@
 					width: (shellWidth + 5)+'px',
 					height: (shellHeight + 5)+'px',
 					'z-index': 9999
-				}).appendTo(Webos.UserInterface.current.element);
+				}).appendTo(Webos.UserInterface.Booter.current().element());
 				
 				if (!$.support.transition) {
 					this._$shellOverlay.addClass('fallback');

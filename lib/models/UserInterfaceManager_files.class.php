@@ -6,7 +6,7 @@ class UserInterfaceManager_files extends UserInterfaceManager {
 		if ($this->webos->getUser()->isConnected() || $this->webos->getUser()->isGuest()) { //L'utilisateur est connecte
 			$interfaceType = 'ui'; //On cherche une interface de bureau (User Interface)
 		} else {
-			$interfaceType = 'lm'; //Sinon on cherche une interface de connexion (Login Manager)
+			$interfaceType = 'gi'; //Sinon on cherche une interface pour invite (Guest Interface)
 		}
 
 		$file = $this->dao->get('/etc/uis.xml');
@@ -18,7 +18,7 @@ class UserInterfaceManager_files extends UserInterfaceManager {
 			//Si elle porte l'attribut "defaut"
 			if ($ui->hasAttribute('default') && (int) $ui->getAttribute('default') == 1) {
 				//Si elle est du type demande
-				if ($ui->getAttribute('type') == $interfaceType)
+				if (in_array($interfaceType, explode(',', $ui->getAttribute('types'))))
 					return $ui->getAttribute('name');
 			}
 		}
@@ -36,7 +36,7 @@ class UserInterfaceManager_files extends UserInterfaceManager {
 		foreach ($uis as $ui) { //Pour chaque interface
 			$list[] = array(
 				'name' => $ui->getAttribute('name'),
-				'type' => $ui->getAttribute('type'),
+				'types' => $ui->getAttribute('types'),
 				'default' => ($ui->hasAttribute('default') && (int) $ui->getAttribute('default') == 1)
 			);
 		}
@@ -85,7 +85,7 @@ class UserInterfaceManager_files extends UserInterfaceManager {
 		$name->appendChild($xml->createTextNode($uiName));
 		$element->appendChild($name);
 		
-		$type = $xml->createAttribute('type');
+		$type = $xml->createAttribute('types');
 		$type->appendChild($xml->createTextNode('ui'));
 		$element->appendChild($type);
 		
