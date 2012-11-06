@@ -13,7 +13,7 @@ class CaptchaManager extends \lib\Manager {
 	 * @throws InvalidArgumentException
 	 */
 	public function get($id = null) {
-		if (empty($id))
+		if ($id === null)
 			return new Captcha($this->webos);
 
 		if (!array_key_exists($id, $_SESSION['captcha']))
