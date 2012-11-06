@@ -47,6 +47,13 @@ class User extends \lib\WebosComponent {
 					throw new \InvalidArgumentException('Le mot de passe sp&eacute;cifi&eacute; pour l\'utilisateur "'.$userData['username'].'" est incorrect');
 				}
 
+				$filesManager = $this->webos->managers()->get('File');
+				if (!$filesManager->exists('/home/'.$username.'/')) {
+					//Creation du repertoire personnel
+					$defaultDir = $filesManager->get('/etc/ske1/');
+					$defaultDir->copy('/home/'.$username.'/');
+				}
+
 				$this->attributes = $userData;
 
 				$this->connected = true;
