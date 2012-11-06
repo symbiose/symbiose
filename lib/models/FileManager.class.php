@@ -1,6 +1,8 @@
 <?php
 namespace lib\models;
 
+use \RuntimeException;
+
 /**
  * FileManager permet de gerer l'ensemble des fichiers.
  * @author $imon
@@ -139,7 +141,7 @@ class FileManager extends \lib\Manager {
 
 		$i = floor(log($bytes) / log(1024));
 		return (($i == 0) ? ($bytes / pow(1024, $i))
-			: round($bytes / pow(1024, i), 1)) . ' ' . $units[$i];
+			: round($bytes / pow(1024, $i), 1)) . ' ' . $units[$i];
 	}
 
 	// SETTERS
