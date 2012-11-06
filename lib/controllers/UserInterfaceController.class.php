@@ -45,28 +45,6 @@ class UserInterfaceController extends \lib\ServerCallComponent {
 	}
 
 	/**
-	 * Marquer une interface comme interface par defaut.
-	 * @param string $name Le nom de l'interface.
-	 * @param int $value Vrai si l'interface doit etre definie par defaut.
-	 */
-	protected function setDefault($name, $value) {
-		$this->webos->managers()->get('UserInterface')->setDefault($name, $value);
-	}
-	
-	/**
-	 * Activer ou desactiver une interface.
-	 * @param string $name Le nom de l'interface.
-	 * @param int $value Vrai si l'interface doit etre activee.
-	 */
-	protected function setEnabled($name, $value) {
-		if ((int) $value) {
-			$this->webos->managers()->get('UserInterface')->add($name);
-		} else {
-			$this->webos->managers()->get('UserInterface')->remove($name);
-		}
-	}
-	
-	/**
 	 * Recuperer la liste des interfaces installees.
 	 */
 	protected function getInstalled() {
@@ -83,5 +61,48 @@ class UserInterfaceController extends \lib\ServerCallComponent {
 		}
 		
 		return $list;
+	}
+
+	/**
+	 * Marquer une interface comme interface par defaut.
+	 * @param string $name Le nom de l'interface.
+	 * @param int $value Vrai si l'interface doit etre definie par defaut.
+	 */
+	protected function setDefault($name, $value) {
+		$this->webos->managers()->get('UserInterface')->setDefault($name, $value);
+	}
+
+	/**
+	 * Activer ou desactiver une interface.
+	 * @param string $name Le nom de l'interface.
+	 * @param int $value Vrai si l'interface doit etre activee.
+	 */
+	protected function setEnabled($name, $value) {
+		if ((int) $value) {
+			$this->webos->managers()->get('UserInterface')->add($name);
+		} else {
+			$this->webos->managers()->get('UserInterface')->remove($name);
+		}
+	}
+
+	/**
+	 * Modifier la configuration d'une interface.
+	 * @param string $name Le nom de l'interface.
+	 * @param array $data Un tableau contenant la configuration a changer.
+	 */
+	protected function changeConfig($name, $data) {
+		foreach ($data as $index => $value) {
+			switch ($index) {
+				case 'default':
+					$this->setDefault($name, $value);
+					break;
+				case 'types':
+					$this->webos->managers()->get('UserInterface')->setTypes($name, $value);
+					break;
+				case 'enabled':
+					$this->setEnabled($name, $value);
+					break;
+			}
+		}
 	}
 }

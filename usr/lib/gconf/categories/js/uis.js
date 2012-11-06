@@ -16,12 +16,14 @@ var generateUIItemFn = function(ui, enabled) {
 	
 	var enabledSelector = $.w.switchButton('', enabled).bind('switchbuttonchange', function() {
 		confWindow.window('loading', true);
-		var selector = $(this);
-		selector.switchButton('disabled', true);
-		var enabled = selector.switchButton('value');
-		W.UserInterface.setEnabled(ui.get('name'), (enabled) ? 1 : 0, [function() {
+		var $selector = $(this);
+		$selector.switchButton('disabled', true);
+		var enabled = $selector.switchButton('value');
+
+		ui.set('enabled', enabled);
+		ui.sync([function() {
 			confWindow.window('loading', false);
-			selector.switchButton('disabled', false);
+			$selector.switchButton('disabled', false);
 			if (!enabled) {
 				defaultSelector.switchButton('value', false).switchButton('disabled', true);
 			} else {
@@ -29,7 +31,7 @@ var generateUIItemFn = function(ui, enabled) {
 			}
 		}, function(response) {
 			confWindow.window('loading', false);
-			selector.switchButton('toggle').switchButton('disabled', false);
+			$selector.switchButton('toggle').switchButton('disabled', false);
 			response.triggerError('Impossible de modifier les param&egrave;tres sur les interfaces');
 		}]);
 	});
@@ -38,16 +40,18 @@ var generateUIItemFn = function(ui, enabled) {
 		if (defaultIsChanging) {
 			return;
 		}
-		
+
 		defaultIsChanging = true;
 		confWindow.window('loading', true);
-		var selector = $(this);
-		W.UserInterface.setDefault(ui.get('name'), (selector.switchButton('value')) ? 1 : 0, [function() {
+		var $selector = $(this);
+
+		ui.set('default', $selector.switchButton('value'));
+		ui.sync([function() {
 			confWindow.window('loading', false);
 			defaultIsChanging = false;
 		}, function(response) {
 			confWindow.window('loading', false);
-			selector.switchButton('toggle');
+			$selector.switchButton('toggle');
 			defaultIsChanging = false;
 			response.triggerError('Impossible de modifier les param&egrave;tres sur les interfaces');
 		}]);
@@ -68,6 +72,19 @@ var displayUIsFn = function() {
 	uisList.list('content').empty();
 
 	confWindow.window('loading', true);
+
+	var loadedCallsNbr = 0;
+	var callLoadedFn = function(index) {
+		loadedCallsNbr++;
+
+		if (loadedCallsNbr >= 2) {
+			confWindow.window('loading', false);
+		} else if (index == 0) {
+			confWindow.window('loading', true, {
+				lock: false
+			});
+		}
+	};
 	
 	W.UserInterface.getList([function(list) {
 		for (var i = 0; i < list.length; i++) {
@@ -78,9 +95,8 @@ var displayUIsFn = function() {
 			})(list[i]);
 		}
 		
-		confWindow.window('loading', false);
+		callLoadedFn(0);
 	}, function(response) {
-		confWindow.window('loading', false);
 		response.triggerError('Impossible de r&eacute;cup&eacute;rer les informations sur les interfaces utilisateur');
 	}]);
 	
@@ -92,6 +108,8 @@ var displayUIsFn = function() {
 				item.appendTo(uisList.list('content'));
 			})(list[i]);
 		}
+
+		callLoadedFn(1);
 	}, function(response) {
 		response.triggerError('Impossible de r&eacute;cup&eacute;rer les informations sur le interfaces install&eacute;s');
 	}]);

@@ -2,13 +2,16 @@
 <class name="UserInterfaceController">
 	<method name="loadBooter"></method>
 	<method name="getList"></method>
+	<method name="getInstalled">
+		<authorization action="file.system.read"/>
+	</method>
 	<method name="setDefault">
 		<authorization action="file.system.write"/>
 	</method>
 	<method name="setEnabled">
 		<authorization action="file.system.write"/>
 	</method>
-	<method name="getInstalled">
-		<authorization action="file.system.read"/>
+	<method name="changeConfig">
+		<authorization action="file.system.write"/>
 	</method>
 </class>

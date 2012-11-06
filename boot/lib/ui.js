@@ -18,6 +18,21 @@ Webos.UserInterface.prototype = {
 	name: function() {
 		return this._name;
 	},
+	setTypes: function(types) {
+		if (!types instanceof Array) {
+			return false;
+		}
+
+		this._set('types', types);
+
+		return true;
+	},
+	setDefault: function(value) {
+		this._set('default', (value) ? true : false);
+	},
+	setEnabled: function(value) {
+		this._set('enabled', (value) ? true : false);
+	},
 	loadBooter: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		var that = this;
@@ -34,7 +49,7 @@ Webos.UserInterface.prototype = {
 				'class': 'UserInterfaceController',
 				'method': 'loadBooter',
 				'arguments': {
-					ui: (this._name || false)
+					ui: (this.get('name') || false)
 				}
 			}).load([function(response) {
 				var data = response.getData();
@@ -44,6 +59,39 @@ Webos.UserInterface.prototype = {
 				createBooterFn(data.booter);
 			}, callback.error]);
 		}
+	},
+	sync: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		var that = this;
+
+		var data = {}, nbrChanges = 0;
+		for (var key in this._unsynced) {
+			if (this._unsynced[key].state === 1) {
+				this._unsynced[key].state = 2;
+				data[key] = this._unsynced[key].value;
+				nbrChanges++;
+			}
+		}
+
+		if (nbrChanges === 0) {
+			callback.success();
+			return;
+		}
+
+		if (typeof data.types != 'undefined') {
+			data.types = data.types.join(',');
+		}
+
+		return new Webos.ServerCall({
+			'class': 'UserInterfaceController',
+			method: 'changeConfig',
+			arguments: {
+				ui: this.get('name'),
+				data: data
+			}
+		}).load([function(response) {
+			callback.success();
+		}, callback.error]);
 	}
 };
 Webos.inherit(Webos.UserInterface, Webos.Model);
@@ -277,44 +325,13 @@ Webos.UserInterface.getList = function(callback) {
 			list.push(Webos.UserInterface.get(uiData.name, {
 				'types': uiData.types,
 				'default': uiData['default'],
-				'displayname': uiData.attributes.displayname
+				'displayname': uiData.attributes.displayname,
+				'enabled': true
 			}));
 		}
 
 		callback.success(list);
 	}, callback.error]);
-};
-Webos.UserInterface.setDefault = function(ui, value, callback) {
-	callback = Webos.Callback.toCallback(callback);
-	
-	new Webos.ServerCall({
-		'class': 'UserInterfaceController',
-		method: 'setDefault',
-		arguments: {
-			ui: ui,
-			value: value
-		}
-	}).load(new Webos.Callback(function(response) {
-		callback.success();
-	}, function(response) {
-		callback.error(response);
-	}));
-};
-Webos.UserInterface.setEnabled = function(ui, value, callback) {
-	callback = Webos.Callback.toCallback(callback);
-	
-	new Webos.ServerCall({
-		'class': 'UserInterfaceController',
-		method: 'setEnabled',
-		arguments: {
-			ui: ui,
-			value: value
-		}
-	}).load(new Webos.Callback(function(response) {
-		callback.success();
-	}, function(response) {
-		callback.error(response);
-	}));
 };
 Webos.UserInterface.getInstalled = function(callback) {
 	callback = Webos.Callback.toCallback(callback);

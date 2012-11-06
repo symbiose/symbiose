@@ -26,6 +26,13 @@ abstract class UserInterfaceManager extends \lib\Manager {
 	 * @param bool $value Vrai si l'interface doit etre marquee comme par defaut.
 	 */
 	abstract public function setDefault($name, $value);
+
+	/**
+	 * Modifier les types de l'interface.
+	 * @param string $name Le nom de l'interface.
+	 * @param array $value Un tableau listant les types.
+	 */
+	abstract public function setTypes($name, $types);
 	
 	/**
 	 * Ajouter une interface a la liste.

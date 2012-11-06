@@ -70,6 +70,34 @@ class UserInterfaceManager_files extends UserInterfaceManager {
 
 		throw new \InvalidArgumentException('L\'interface "'.$name.'" est introuvable');
 	}
+
+	public function setTypes($name, $types) {
+		$types = implode(',', $types);
+
+		$file = $this->dao->get('/etc/uis.xml');
+		$xml = new \DOMDocument;
+		$xml->loadXML($file->contents());
+
+		$uis = $xml->getElementsByTagName('ui');
+
+		foreach ($uis as $ui) {
+			if ($ui->getAttribute('name') == $name) {
+				if (!$ui->hasAttribute('types')) {
+					$default = $xml->createAttribute('types');
+					$default->appendChild($xml->createTextNode($types));
+					$ui->appendChild($default);
+				} else {
+					$ui->setAttribute('types', $types);
+				}
+
+				$file->setContents($xml->saveXML());
+
+				return;
+			}
+		}
+
+		throw new \InvalidArgumentException('L\'interface "'.$name.'" est introuvable');
+	}
 	
 	public function add($uiName) {
 		$file = $this->dao->get('/etc/uis.xml');
