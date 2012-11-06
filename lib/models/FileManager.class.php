@@ -41,6 +41,7 @@ class FileManager extends \lib\Manager {
 			$this->quotas['home'] = (int) $config->get('home');
 		}
 
+		$usersSizes = null;
 		if (count($this->sizes) == 0 && $this->exists($cacheFile)) {
 			$usersSizes = json_decode($this->get($cacheFile)->contents());
 			$this->sizes = $usersSizes[$this->webos->getUser()->getId()];
@@ -78,12 +79,14 @@ class FileManager extends \lib\Manager {
 		if ($sizesModified) {
 			if (!$this->exists($cacheFile)) {
 				$cacheFile = $this->createFile($cacheFile);
+				if (empty($usersSizes) {
+					$usersSizes = array();
+				}
 			} else {
 				$cacheFile = $this->get($cacheFile);
-			}
-
-			if (!$usersSizes) {
-				$usersSizes = json_decode($this->get($cacheFile)->contents());
+				if (empty($usersSizes) {
+					$usersSizes = json_decode($cacheFile->contents());
+				}
 			}
 
 			$usersSizes[$this->webos->getUser()->getId()] = $this->sizes;
