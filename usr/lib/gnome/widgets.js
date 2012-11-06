@@ -582,6 +582,11 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				}
 				
 				this.options._loadingContent.find('.message').html(options.message);
+			} else {
+				if (this.options._loadingContent) {
+					this.options._loadingContent.remove();
+					this.options._content.show();
+				}
 			}
 			
 			this._trigger('loadingstart');
