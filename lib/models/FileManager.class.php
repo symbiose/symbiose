@@ -79,12 +79,12 @@ class FileManager extends \lib\Manager {
 		if ($sizesModified) {
 			if (!$this->exists($cacheFile)) {
 				$cacheFile = $this->createFile($cacheFile);
-				if (empty($usersSizes) {
+				if (empty($usersSizes)) {
 					$usersSizes = array();
 				}
 			} else {
 				$cacheFile = $this->get($cacheFile);
-				if (empty($usersSizes) {
+				if (empty($usersSizes)) {
 					$usersSizes = json_decode($cacheFile->contents());
 				}
 			}
