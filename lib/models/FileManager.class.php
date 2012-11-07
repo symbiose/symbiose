@@ -43,8 +43,10 @@ class FileManager extends \lib\Manager {
 
 		$usersSizes = null;
 		if (count($this->sizes) == 0 && $this->exists($cacheFile)) {
-			$usersSizes = json_decode($this->get($cacheFile)->contents());
-			$this->sizes = $usersSizes[$this->webos->getUser()->getId()];
+			$usersSizes = json_decode($this->get($cacheFile)->contents(), true);
+			if (array_key_exists($this->webos->getUser()->getId(), $usersSizes)) {
+				$this->sizes = $usersSizes[$this->webos->getUser()->getId()];
+			}
 		}
 
 		$paths = array(
@@ -85,7 +87,7 @@ class FileManager extends \lib\Manager {
 			} else {
 				$cacheFile = $this->get($cacheFile);
 				if (empty($usersSizes)) {
-					$usersSizes = json_decode($cacheFile->contents());
+					$usersSizes = json_decode($cacheFile->contents(), true);
 				}
 			}
 
