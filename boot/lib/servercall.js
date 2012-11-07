@@ -33,10 +33,10 @@ Webos.ServerCall = function WServerCall(opts) {
 		'class': options['class'],
 		method: options.method,
 		arguments: JSON.stringify(options.arguments, function(key, value) { //On met les arguments sous forme de caractere
-		    if (typeof value === 'number' && !isFinite(value)) {
-		        return String(value);
-		    }
-		    return value;
+			if (typeof value === 'number' && !isFinite(value)) {
+				return String(value);
+			}
+			return value;
 		}),
 		user: options.user,
 		password: options.password,
@@ -377,60 +377,62 @@ Webos.inherit(Webos.ServerCall.Group, Webos.Observable);
 
 //Manipuler une reponse du serveur
 Webos.ServerCall.Response = function WServerCallResponse(response) { 
-	if (response === null) {
+	if (!response || typeof response != 'object') {
 		response = {
-			channels: {},
-			out: null,
+			channels: {
+				1: (response || null)
+			},
+			out: (response || null),
 			data: {},
 			js: null
 		};
 	}
 	
-	this.response = response; //Reponse JSON brute
-	
-	this.isSuccess = function() { //Savoir si la requete a reussi
-		if (this.response.success == 1) {
+	this._response = response; //Reponse JSON brute
+};
+Webos.ServerCall.Response.prototype = {
+	isSuccess: function() { //Savoir si la requete a reussi
+		if (this._response.success == 1) {
 			return true;
 		} else {
 			return false;
 		}
-	};
-	this.getChannel = function(channel) { //Recuperer le contenu d'un cannal
-		return this.response.channels[channel];
-	};
-	this.getStandardChannel = function() { //Recuperer le contenu du cannal par defaut
+	},
+	getChannel: function(channel) { //Recuperer le contenu d'un cannal
+		return this._response.channels[channel];
+	},
+	getStandardChannel: function() { //Recuperer le contenu du cannal par defaut
 		return this.getChannel(1);
-	};
-	this.getErrorsChannel = function() { //Recuperer le contenu du cannal d'erreurs
+	},
+	getErrorsChannel: function() { //Recuperer le contenu du cannal d'erreurs
 		return this.getChannel(2);
-	};
-	this.getAllChannels = function() { //Recuperer la sortie commune de tous les cannaux
-		return this.response.out;
-	};
-	this.getData = function() { //Recuperer les donnees associees a la reponse
-		return this.response.data;
-	};
-	this.getJavascript = function() { //Recuperer le code JS
-		return this.response.js;
-	};
-	this.isJavascriptEmpty = function() { //Savoir si il y a du code JS
+	},
+	getAllChannels: function() { //Recuperer la sortie commune de tous les cannaux
+		return this._response.out;
+	},
+	getData: function() { //Recuperer les donnees associees a la reponse
+		return this._response.data;
+	},
+	getJavascript: function() { //Recuperer le code JS
+		return this._response.js;
+	},
+	isJavascriptEmpty: function() { //Savoir si il y a du code JS
 		return (this.getJavascript() == null);
-	};
-	this.triggerError = function(msg) { //Declancher l'erreur, si elle existe
+	},
+	triggerError: function(msg) { //Declancher l'erreur, si elle existe
 		if (this.isSuccess()) {
 			return;
 		}
-		msg = (typeof msg == 'undefined') ? ((this.getErrorsChannel() == null || this.getErrorsChannel() == '') ? this.getAllChannels() : this.getErrorsChannel()) : msg;
-		
+		msg = (!msg) ? ((!this.getErrorsChannel()) ? this.getAllChannels() : this.getErrorsChannel()) : msg;
+
 		var details = null;
 		if (msg != this.getAllChannels()) {
 			details = this.getAllChannels();
 		}
-		
+
 		Webos.Error.trigger(msg, details);
-	};
-	
-	this.toString = function() {
-    	return (this.getAllChannels() !== null) ? this.getAllChannels() : '';
-    };
+	},
+	toString: function() {
+		return (this.getAllChannels() !== null) ? this.getAllChannels() : '';
+	}
 };

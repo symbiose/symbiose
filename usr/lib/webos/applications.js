@@ -291,6 +291,7 @@ Webos.Application.listOpeners = function(extension, callback) {
 };
 
 Webos.Application.listByType = function(type, callback) {
+	type = String(type);
 	callback = W.Callback.toCallback(callback);
 	
 	Webos.Application.list([function(apps) {
@@ -299,10 +300,9 @@ Webos.Application.listByType = function(type, callback) {
 			var app = apps[key];
 			if (app.exists('type') && $.inArray(type, app.get('type')) != -1) {
 				list.push(app);
-				return;
 			}
 		}
-		callback.success([]);
+		callback.success(list);
 	}, callback.error]);
 };
 
@@ -350,5 +350,20 @@ Webos.Application.setPrefered = function(app, type, callback) {
 		config.sync([function() {
 			callback.success();
 		}, callback.error]);
+	}, callback.error]);
+};
+
+Webos.Application.getByType = function(type, callback) {
+	type = String(type);
+	callback = W.Callback.toCallback(callback);
+	
+	Webos.Application.getPrefered(type, [function(app) {
+		if (app) {
+			callback.success(app);
+		} else {
+			Webos.Application.listByType(type, [function(apps) {
+				callback.success(apps[0]);
+			}, callback.error]);
+		}
 	}, callback.error]);
 };

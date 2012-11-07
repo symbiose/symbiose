@@ -67,15 +67,18 @@ Webos.Dashboard.init();
 
 //On definit la fonction de gestion des erreurs
 Webos.Error.setErrorHandler(function(error) {
-	var message, details;
+	var shortMessage, message, details;
 	if (error instanceof Webos.Error) {
-		message = error.html.message;
+		shortMessage = error.html.message;
+		message = error.html.text.replace('<br />', ' - ');
 		details = error.toString();
 	} else {
+		shortMessage = error.message;
 		message = error.name + ' : ' + error.message;
-		details = error.name + ' : ' + error.message + "<br />Stack trace :<br />" + error.stack;
+		process = (error.process) ? 'Processus : '+error.process.getPid()+'; commande : <em>'+error.process.cmdText+'</em><br />' : '';
+		details = error.name + ' : ' + error.message + "<br />"+process+"Stack trace :<br />" + error.stack;
 	}
-	
+
 	var openWindowFn = function() {
 		var errorWindow = $.webos.window({
 			title: 'Erreur',
@@ -100,11 +103,13 @@ Webos.Error.setErrorHandler(function(error) {
 			.appendTo(spoiler.spoiler('content'));
 		
 		var buttonContainer = $.webos.buttonContainer();
-		var closeButton = $.webos.button('Fermer');
-		closeButton.click(function() {
+		$.webos.button('Signaler le bug...').click(function() {
+			W.ScriptFile.load('/usr/lib/apport/apport.js');
+			Apport.reportError(error);
+		}).appendTo(buttonContainer.buttonContainer('content'));
+		$.webos.button('Fermer').click(function() {
 			errorWindow.window('close');
-		});
-		buttonContainer.buttonContainer('content').append(closeButton);
+		}).appendTo(buttonContainer.buttonContainer('content'));
 		errorWindow.window('content').append(buttonContainer);
 		
 		errorWindow.window('open');
@@ -112,6 +117,7 @@ Webos.Error.setErrorHandler(function(error) {
 	
 	$.w.notification({
 		title: 'Une erreur est survenue',
+		shortMessage: shortMessage,
 		message: message,
 		widgets: [$.w.button('D&eacute;tails').click(function() { openWindowFn(); })]
 	});

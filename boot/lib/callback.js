@@ -53,15 +53,17 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 		}
 		
 		//On éxécute le callback
-		//try {
-			/*return*/ that.callbacks.success.callback.apply(that.callbacks.success.context, args);
-		//} catch(e) {
-		//	Webos.Error.catchError(e);
-		//} finally {
+		var result;
+		try {
+			result = that.callbacks.success.callback.apply(that.callbacks.success.context, args);
+		} catch(e) {
+			Webos.Error.catchError(e);
+		} finally {
 			if (this.process) {
 				Webos.Process.stack.pop();
 			}
-		//}
+			return result;
+		}
 	};
 	/**
 	 * Appeler la fonction d'erreur.
@@ -79,14 +81,16 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 		}
 		
 		//On éxécute le callback
+		var result;
 		try {
-			return that.callbacks.error.callback.apply(that.callbacks.error.context, args);
+			result = that.callbacks.error.callback.apply(that.callbacks.error.context, args);
 		} catch(e) {
 			Webos.Error.catchError(e);
 		} finally {
 			if (this.process) {
 				Webos.Process.stack.pop();
 			}
+			return result;
 		}
 	};
 };

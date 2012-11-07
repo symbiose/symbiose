@@ -70,6 +70,7 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 	options: {
 		title: 'Message',
 		message: '',
+		shortMessage: '',
 		icon: new W.Icon('/usr/share/images/gnome/light.png'),
 		life: 7,
 		widgets: []

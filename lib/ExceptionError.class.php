@@ -8,7 +8,7 @@ namespace lib;
  */
 class ExceptionError extends Error {
 	public function __toString() {
-		return '<strong>Exception thrown</strong> : '.$this->message.' in <strong>'.$this->file.'</strong> on line <strong>'.$this->line.'</strong> (PHP '.PHP_VERSION.' on '.PHP_OS.')<br />';
+		return $this->message.' (exception thrown in <strong>'.$this->file.'</strong> on line <strong>'.$this->line.'</strong> - PHP '.PHP_VERSION.' on '.PHP_OS.')<br />';
 	}
 
 	public function show() {

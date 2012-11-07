@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Rapport de bugs"/>
+	<attribute name="description" value="Rapporter des bugs"/>
+	<attribute name="command" value="apport-gui"/>
+	<attribute name="icon" value="status/warning"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="accessories"/>
+</shortcut>

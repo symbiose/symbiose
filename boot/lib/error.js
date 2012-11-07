@@ -1,6 +1,7 @@
 Webos.Error = function WError(message, details) {
 	this.name = 'Webos.Error';
 	this.stack = Webos.Error.getStackTrace();
+	this.process = Webos.Process.current();
 	
 	var trim = function(str) {
 		return str.replace(/^\s+/g,'').replace(/\s+$/g,'');
@@ -15,14 +16,16 @@ Webos.Error = function WError(message, details) {
 	this.html = {
 		message: this.message.replace("\n",'<br />').replace(/"([^"]+)"/g, '<em>$1</em>'),
 		details: this.details.replace("\n",'<br />').replace(/"([^"]+)"/g, '<em>$1</em>'),
+		process: (this.process) ? 'Processus : '+this.process.getPid()+'; commande : <em>'+this.process.cmdText+'</em>' : '',
 		text: (this.message + ((this.details != '') ? ("\n"+this.details) : '')).replace("\n",'<br />').replace(/"([^"]+)"/g, '<em>$1</em>')
 	};
 
 	this.message = $('<span></span>').html(this.message).text(); //On enleve les tags HTML
 	this.text = this.message + ((this.details != '') ? ("\n"+this.details) : '');
+	this.processText = (this.process) ? 'Processus : '+this.process.getPid()+'; commande : "'+this.process.cmdText+'"' : '';
 
 	this.toString = function() {
-		return this.name+': '+this.html.text+'<br />'+this.stack.join('<br />');
+		return this.name+': '+this.html.text+'<br />'+this.html.process+'<br />'+this.stack.join('<br />');
 	};
 };
 Webos.inherit(Webos.Error, Error);
@@ -30,6 +33,10 @@ Webos.inherit(Webos.Error, Error);
 Webos.Error.list = [];
 Webos.Error.callback = function() {};
 Webos.Error.catchError = function(error) {
+	if (!error.process) {
+		error.process = Webos.Process.current();
+	}
+
 	Webos.Error.list.push(error);
 	
 	if (typeof console != 'undefined') {
@@ -53,17 +60,13 @@ Webos.Error.catchError = function(error) {
 	}
 };
 Webos.Error.trigger = function(message, details) {
-	if (typeof message == 'undefined') {
+	if (!message) {
 		return;
 	}
 	
-	try {
-		var error = new W.Error(message, details);
-		error.stack = Webos.Error.getStackTrace();
-		throw error;
-	} catch (error) {
-		Webos.Error.catchError(error);
-	}
+	var error = new W.Error(message, details);
+	error.stack = Webos.Error.getStackTrace();
+	Webos.Error.catchError(error);
 };
 Webos.Error.getStackTrace = function() {
 	var callstack = [];
