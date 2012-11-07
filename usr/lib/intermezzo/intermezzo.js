@@ -270,6 +270,8 @@ $.webos.intermezzo = function(options) {
 // Application sous forme de classe
 window.IntermezzoWindow = function IntermezzoWindow(options) {
 	Webos.Observable.call(this);
+
+	options = options || {};
 	
 	this.bind('translationsloaded', function() {
 		var that = this, t = this._translations;
