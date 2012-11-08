@@ -1,6 +1,6 @@
 $(function() { //Lorsque tout est pret
 	if (!jQuery.support.ajax) {
-		alert('Votre navigateur ne supporte pas ajax, le webos ne peut donc pas demarrer. Veuillez le mettre a jour.');
+		alert('Your web browser doesn\'t support ajax, the webos cannot start, please update it.');
 		return;
 	}
 	

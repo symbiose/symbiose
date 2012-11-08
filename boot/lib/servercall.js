@@ -174,7 +174,7 @@ Webos.ServerCall.prototype = {
 	stack: function() {
 		var stack = '    at '+this.url+' calling '+this.data['class']+'->'+this.data.method+'()';
 		if (this.data.arguments && this.data.arguments != '{}') {
-			stack += "\n"+'    with arguments '+this.data.arguments;
+			stack += "\n"+'    with arguments '+JSON.stringify(this.data.arguments);
 		} else {
 			stack += "\n"+'    without arguments';
 		}
@@ -212,6 +212,9 @@ Webos.ServerCall.callComplete = function(call) {
 		Webos.ServerCall.notify('complete', { list: Webos.ServerCall.list });
 	}
 	Webos.ServerCall.notify('callcomplete', { call: call });
+};
+Webos.ServerCall.getList = function() {
+	return Webos.ServerCall.list;
 };
 Webos.ServerCall.getPendingCalls = function() {
 	var list = [];

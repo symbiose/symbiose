@@ -61,6 +61,7 @@ $t = $this->managers()->get('Translation')->load('webos');
 		<div class="center">
 			<h1>symbiose</h1>
 			<p></p>
+			<ul></ul>
 		</div>
 	</div>
 </body>

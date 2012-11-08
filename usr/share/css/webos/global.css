@@ -30,6 +30,9 @@ html, body {
 	margin: auto;
 	text-align: center;
 }
+#webos-error .center {
+	top: 32%;
+}
 
 #webos-loading h1, #webos-unsupported h1, #webos-error h1 {
 	font-size: 50px;
@@ -38,11 +41,21 @@ html, body {
 	margin-bottom: 10px;
 }
 
-#webos-loading p, #webos-unsupported p {
+#webos-loading p {
 	color: #ffcdf1;
 }
-#webos-unsupported p, #webos-error p {
+#webos-unsupported p, #webos-error p, #webos-error ul {
 	color: #ff6767;
+}
+
+#webos-error ul {
+	margin: 2px;
+	max-height: 250px;
+	overflow: auto;
+	text-align: left;
+}
+#webos-error ul ul {
+	max-height: none;
 }
 
 #webos-loading a, #webos-unsupported a

@@ -9,20 +9,20 @@ Webos.Error = function WError(message, details) {
 	
 	this.message = (typeof message != 'undefined' && message !== null && typeof message.toString == 'function') ? trim(message.toString()) : '';
 	if (this.message === '') {
-		this.message = 'Une erreur est survenue lors de l\'&eacute;x&eacute;cution du programme';
+		this.message = 'An error occured while running program.';
 	}
 	this.details = (typeof details != 'undefined' && details !== null && typeof details.toString == 'function') ? trim(details.toString()) : '';
 
 	this.html = {
 		message: this.message.replace("\n",'<br />').replace(/"([^"]+)"/g, '<em>$1</em>'),
 		details: this.details.replace("\n",'<br />').replace(/"([^"]+)"/g, '<em>$1</em>'),
-		process: (this.process) ? 'Processus : '+this.process.getPid()+'; commande : <em>'+this.process.cmdText+'</em>' : '',
+		process: (this.process) ? 'Process : '+this.process.getPid()+'; command : <em>'+this.process.cmdText+'</em>' : '',
 		text: (this.message + ((this.details != '') ? ("\n"+this.details) : '')).replace("\n",'<br />').replace(/"([^"]+)"/g, '<em>$1</em>')
 	};
 
 	this.message = $('<span></span>').html(this.message).text(); //On enleve les tags HTML
 	this.text = this.message + ((this.details != '') ? ("\n"+this.details) : '');
-	this.processText = (this.process) ? 'Processus : '+this.process.getPid()+'; commande : "'+this.process.cmdText+'"' : '';
+	this.processText = (this.process) ? 'Process : '+this.process.getPid()+'; command : "'+this.process.cmdText+'"' : '';
 
 	this.toString = function() {
 		return this.name+': '+this.html.text+'<br />'+this.html.process+'<br />'+this.stack.join('<br />');
@@ -119,7 +119,7 @@ Webos.Error.getStackTrace = function() {
 };
 Webos.Error.setErrorHandler = function(handler) {
 	if (typeof handler != 'function') {
-		throw new W.Error('La fonction de gestion des erreurs sp&eacute;cifi&eacute;e est incorrecte');
+		return false;
 	}
 	Webos.Error.callback = handler;
 };

@@ -117,7 +117,7 @@ Webos.UserInterface.Booter.prototype = {
 	element: function() {
 		return this._element;
 	},
-	load: function(callback) {
+	load: function loadUI(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		var that = this;
 		this._autoLoad = true;
@@ -154,7 +154,7 @@ Webos.UserInterface.Booter.prototype = {
 		//Chargement du Javascript
 		this.notify('loadstateupdate', { state: 'scripts' });
 		for (var index in data.js) {
-			(function(js) {
+			var result = (function loadUIScript(js) {
 				if (!js) {
 					return;
 				}
@@ -174,7 +174,7 @@ Webos.UserInterface.Booter.prototype = {
 	disableAutoLoad: function() {
 		this._autoLoad = false;
 	},
-	finishLoading: function() {
+	finishLoading: function finishUILoading() {
 		if (this.loaded()) {
 			return;
 		}
@@ -198,7 +198,7 @@ Webos.UserInterface.Booter.prototype = {
 	loaded: function() {
 		return this._loaded;
 	},
-	unload: function() {
+	unload: function unloadUI() {
 		if (!this.loaded()) {
 			return;
 		}
@@ -253,23 +253,35 @@ Webos.UserInterface.current = function() {
 Webos.UserInterface.load = function(name, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
+	var actualCallNbr = Webos.ServerCall.getList().length - 1;
 	Webos.Error.setErrorHandler(function(error) {
 		if ($('#webos-error').is(':hidden')) {
-			$('#webos-error p').html('<strong>An error occured while loading user interface.</strong><br />');
+			$('#webos-error p').html('<strong>An error occured while loading user interface.</strong>');
 			$('#webos-error').show();
 		}
-		
+
 		var message;
 		if (error instanceof Webos.Error) {
-			message = error.html.message;
+			message = error.toString();
 		} else {
-			message = error.name + ' : ' + error.message;
+			message = error.name + ' : ' + error.message + '<br />Stack trace :<pre>' + error.stack + '</pre>';
+		}
+
+		message += 'Server calls :</li><ul>';
+		var calls = Webos.ServerCall.getList();
+		for (var i = actualCallNbr; i < calls.length; i++) {
+			var call = calls[i];
+			if (call.status == 2) {
+				message += '<li>Loaded call<br /><pre>'+call.stack()+'</pre></li>';
+			} else if (call[i].status == 1) {
+				message += '<li>Loading call<br />'+call.stack().replace(/\n/g, '<br />')+'</li>';
+			}
 		}
 		
-		$('#webos-error p').append(message+'<br />');
+		$('#webos-error ul').append('<li>'+message+'</li>');
 		
 		if (typeof Webos.UserInterface.Booter.current() != 'undefined') {
-			Webos.UserInterface.Booter.current().callLoaded = false;
+			Webos.UserInterface.Booter.current().disableAutoLoad();
 		}
 	});
 	
