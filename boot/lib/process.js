@@ -47,13 +47,16 @@ Webos.Process.prototype = {
 			Webos.Error.catchError(error);
 		}
 		
-		this._state = 2;
 		Webos.Process.stack.pop();
+		
+		if (this.state() != 'killed') {
+			this._state = 2;
 
-		this.notify('idle');
-		Webos.Process.notify('idle', {
-			process: this
-		});
+			this.notify('idle');
+			Webos.Process.notify('idle', {
+				process: this
+			});
+		}
 	},
 	stop: function() {
 		if (this.state() != 'running' && this.state() != 'idle') {
