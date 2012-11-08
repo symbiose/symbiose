@@ -60,6 +60,10 @@ Webos.Translation.load(function(t) {
 	Webos.User.getLogged([function(user) {
 		loadDesktopFn(user);
 	}, function() {}]);
+
+	$(window).bind('beforeunload', function() {
+		return t.get('Are you sure you want to leave the webos ?');
+	});
 }, 'gnome-shell');
 
 //On initialise les tableaux de bord
