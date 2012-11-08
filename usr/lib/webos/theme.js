@@ -42,16 +42,21 @@ Webos.Theme.prototype = {
 			callback.success();
 		}, callback.error));
 	},
-	_loadBackground: function() {
+	applyBackgroundOn: function(el) {
+		var $el = $(el);
+
 		var bg = Webos.File.get(this.get('background')).get('realpath');
-		Webos.UserInterface.Booter.current().element()
-			.css('background', 'url("'+bg+'") no-repeat center center fixed #27001f')
+		$el
+			.css('background', 'url("'+bg+'") no-repeat center center #27001f')
 			.css('-webkit-background-size', 'cover')
 			.css('-moz-background-size', 'cover')
 			.css('-o-background-size', 'cover')
 			.css('background-size', 'cover')
 			.css('filter', 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bg+'\', sizingMethod=\'scale\')')
 			.css('-ms-filter', '"progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bg+'\', sizingMethod=\'scale\')"');
+	},
+	_loadBackground: function() {
+		this.applyBackgroundOn(Webos.UserInterface.Booter.current().element());
 	},
 	_setAnimations: function() {
 		$.fx.off = !this.get('animations');

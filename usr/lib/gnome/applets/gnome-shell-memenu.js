@@ -67,6 +67,9 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 				}
 				
 				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
+				$('<li>'+t.get('Lock')+'</li>').click(function() {
+					W.Cmd.execute('gnome-screensaver -l');
+				}).appendTo(userMenu);
 				$('<li>'+t.get('Logout...')+'</li>').click(function() {
 					W.Cmd.execute('gnome-logout');
 				}).appendTo(userMenu);
@@ -74,6 +77,9 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 					W.Cmd.execute('gnome-reboot');
 				}).appendTo(userMenu);
 			} else {
+				$('<li>'+t.get('Lock')+'</li>').click(function() {
+					W.Cmd.execute('gnome-screensaver -l');
+				}).appendTo(userMenu);
 				$('<li>'+t.get('Login...')+'</li>').click(function() {
 					W.Cmd.execute('gnome-login');
 				}).appendTo(userMenu);

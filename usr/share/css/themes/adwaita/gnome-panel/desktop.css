@@ -180,7 +180,7 @@ body {
 	position: absolute;
 }
 
-#header, #footer {
+#header, #footer, .desktop-bar {
 	background-color: black;
 	width: 100%;
 	height: 26px;
