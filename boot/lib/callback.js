@@ -36,62 +36,55 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 	if (typeof errorCallback === 'function') {
 		this.callbacks.error.callback = errorCallback;
 	}
+
+	this.fire = function $_WCallback_fire(flag, args) {
+		if (!that.callbacks[flag]) {
+			return false;
+		}
+
+		if (that.process) {
+			Webos.Process.stack.push(that.process);
+		}
+
+		var result;
+		try {
+			result = that.callbacks.success.callback.apply(that.callbacks[flag].context, args);
+		} catch(e) {
+			Webos.Error.catchError(e);
+		} finally {
+			if (that.process) {
+				Webos.Process.stack.pop();
+			}
+
+			that.notify('fire', {
+				flag: flag,
+				args: args,
+				context: that.callbacks.success.context
+			});
+
+			return result;
+		}
+	};
 	
 	/**
 	 * Appeler la fonction de succès.
 	 * @returns La valeur renvoyée par la fonction.
 	 */
-	this.success = function() {
-		var args = []; //On convertit l'objet arguments en array
-		for (var i = 0; i < arguments.length; i++) {
-			args.push(arguments[i]);
-		}
+	this.success = function $_WCallback_success() {
+		var args = Array.prototype.slice.call(arguments);
 		args = args.concat(that.callbacks.success.arguments);
 		
-		if (this.process) {
-			Webos.Process.stack.push(this.process);
-		}
-		
-		//On éxécute le callback
-		var result;
-		try {
-			result = that.callbacks.success.callback.apply(that.callbacks.success.context, args);
-		} catch(e) {
-			Webos.Error.catchError(e);
-		} finally {
-			if (this.process) {
-				Webos.Process.stack.pop();
-			}
-			return result;
-		}
+		return that.fire('success', args);
 	};
 	/**
 	 * Appeler la fonction d'erreur.
 	 * @returns La valeur renvoyée par la fonction.
 	 */
-	this.error = function() {
-		var args = []; //On convertit l'objet arguments en array
-		for (var i = 0; i < arguments.length; i++) {
-			args.push(arguments[i]);
-		}
+	this.error = function $_WCallback_error() {
+		var args = Array.prototype.slice.call(arguments);
 		args = args.concat(that.callbacks.error.arguments);
 		
-		if (this.process) {
-			Webos.Process.stack.push(this.process);
-		}
-		
-		//On éxécute le callback
-		var result;
-		try {
-			result = that.callbacks.error.callback.apply(that.callbacks.error.context, args);
-		} catch(e) {
-			Webos.Error.catchError(e);
-		} finally {
-			if (this.process) {
-				Webos.Process.stack.pop();
-			}
-			return result;
-		}
+		return that.fire('error', args);
 	};
 };
 Webos.Callback.prototype = {
@@ -100,7 +93,7 @@ Webos.Callback.prototype = {
 	 * @param value Le paramètre à envoyer.
 	 * @param {String} [callback="success"] La fonction concernée ("success" ou "error").
 	 */
-	addParam: function(value, callback) {
+	addParam: function $_WCallback_addParam(value, callback) {
 		if (!callback) {
 			callback = 'success';
 		}
@@ -111,7 +104,7 @@ Webos.Callback.prototype = {
 	 * @param {any[]} values Un tableau contenant les paramètres à envoyer.
 	 * @param {String} [callback="success"] La fonction concernée ("success" ou "error").
 	 */
-	addParams: function(values, callback) {
+	addParams: function $_WCallback_addParams(values, callback) {
 		if (typeof callback === 'undefined') {
 			callback = 'success';
 		}
@@ -122,7 +115,7 @@ Webos.Callback.prototype = {
 	 * @param context Le contexte d'éxécution.
 	 * @param {String} [callback="success"] La fonction concernée ("success" ou "error").
 	 */
-	setContext: function(context, callback) { //Definir le contexte dans lequel sera execute la fonction
+	setContext: function $_WCallback_setContext(context, callback) { //Definir le contexte dans lequel sera execute la fonction
 		if (typeof callback === 'undefined') { //Si on a pas dit pour quel callback on veut definir le contexte
 			callback = 'success';
 		}
@@ -138,7 +131,7 @@ Webos.inherit(Webos.Callback, Webos.Observable);
  * @returns {Webos.Callback} L'objet converti.
  * @static
  */
-Webos.Callback.toCallback = function(arg, replacement) {
+Webos.Callback.toCallback = function $_WCallback_toCallback(arg, replacement) {
 	if (arg instanceof Webos.Callback) {
 		return arg;
 	}
@@ -175,21 +168,21 @@ Webos.Callback.Result = function WCallbackResult(data) {
 	this._data = data;
 };
 Webos.Callback.Result.prototype = {
-	isSuccess: function() {
+	isSuccess: function $_WCallbackResult_isSuccess() {
 		return this._data.success;
 	},
-	triggerError: function() {
+	triggerError: function $_WCallbackResult_triggerError() {
 		if (this.isSuccess()) {
 			return;
 		}
 		
 		Webos.Error.trigger(this._data.out);
 	},
-	toString: function() {
+	toString: function $_WCallbackResult_toString() {
 		return this._data.out;
 	}
 };
-Webos.Callback.Result.error = function(msg) {
+Webos.Callback.Result.error = function $_WCallbackResult_error(msg) {
 	return new Webos.Callback.Result({
 		success: false,
 		out: msg

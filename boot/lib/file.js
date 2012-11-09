@@ -1143,6 +1143,10 @@ Webos.WebosFile.prototype = {
 				file: that.get('path')
 			}
 		}).load([function(response) {
+			that.hydrate({
+				is_dir: false
+			});
+
 			var contents = response.getStandardChannel();
 			that._contents = contents;
 			callback.success(contents);
@@ -1226,6 +1230,10 @@ Webos.WebosFile.prototype = {
 				file: that.get('path')
 			}
 		}).load([function(response) {
+			that.hydrate({
+				is_dir: false
+			});
+			
 			var contents = response.getStandardChannel();
 			callback.success(contents);
 		}, callback.error]);

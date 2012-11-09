@@ -25,13 +25,13 @@ Webos.Script = function WScript(js, args) {
 };
 
 //Executer un script Javascript
-Webos.Script.run = function runScript(js) {
+Webos.Script.run = function $_WScript_run(js) {
 	js = js.replace(/\/\*([\s\S]*?)\*\//g, ''); //On enleve les commentaires
 	$.globalEval(js);
 };
 
 //Charger un script
-Webos.Script.load = function(path) {
+Webos.Script.load = function $_WScript_load(path) {
 	$.ajax({
 		url: path,
 		dataType: "script",
@@ -79,7 +79,7 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 	});
 };
 Webos.ScriptFile._cache = {};
-Webos.ScriptFile.load = function() {
+Webos.ScriptFile.load = function $_WScriptFile_load() {
 	var group = new Webos.ServerCall.Group([], { async: false });
 	for (var i = 0; i < arguments.length; i++) {
 		group.add(new Webos.ServerCall({
@@ -103,6 +103,7 @@ Webos.ScriptFile.load = function() {
 	return group;
 };
 
+//Obsolete
 function include(path, args, thisObj) {
 	thisObj = thisObj || window;
 	this.ajax = $.ajax({
@@ -120,6 +121,81 @@ function include(path, args, thisObj) {
 		}
 	});
 }
+
+Webos.require = function Wrequire(files, callback, options) {
+	callback = Webos.Callback.toCallback(callback);
+	options = $.extend({
+		styleContainer: null
+	}, options);
+
+	if (!files) { //No file to load
+		callback.success();
+		return;
+	}
+
+	var list = [];
+	if (files instanceof Array) {
+		list = files;
+	} else {
+		list = [String(files)];
+	}
+
+	var loadedFiles = 0;
+	var onLoadFn = function() {
+		loadedFiles++;
+		if (loadedFiles == list.length) {
+			callback.success();
+		}
+	};
+
+	for (var i = 0; i < list.length; i++) {
+		(function(path) {
+			var file = W.File.get(path);
+
+			var call = file.readAsText([function(contents) {
+				if (file.get('extension') == 'js') {
+					var previousFile = Webos.require._currentFile;
+					Webos.require._stacks[file.get('path')] = [];
+					Webos.require._currentFile = file.get('path');
+
+					var fn = new Function(contents);
+					try {
+						fn();
+					} catch(error) {
+						W.Error.catchError(error);
+					}
+
+					Webos.require._currentFile = previousFile;
+
+					var stack = Webos.require._stacks[file.get('path')];
+					if (stack.length > 0) {
+						var group = Webos.Observable.group(stack);
+						group.one('success', function() {
+							onLoadFn();
+						});
+						group.oneEach('error', function() {
+							callback.error();
+						});
+					} else {
+						onLoadFn();
+					}
+				} else if (file.get('extension') == 'css') {
+					Webos.Stylesheet.insertCss(contents, options.styleContainer);
+					onLoadFn();
+				} else {
+					callback.error(Webos.Callback.Result.error('Unknown file type : "'+file.get('extension')+'" (file path: "'+file.get('path')+'")'));
+				}
+			}, callback.error]);
+
+			if (Webos.require._currentFile) {
+				Webos.require._stacks[Webos.require._currentFile].push(call);
+			}
+		})(list[i]);
+	}
+};
+
+Webos.require._stacks = {};
+Webos.require._currentFile = null;
 
 //Permet de specifier des options et des arguments a un script
 Webos.Arguments = function WArguments(args) {

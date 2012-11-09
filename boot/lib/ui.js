@@ -381,11 +381,11 @@ Webos.UserInterface.setLoadingScreenText = function(msg) {
 };
 Webos.UserInterface.hideLoadingScreen = function() {
 	if ($('#webos-loading').is(':animated')) {
-		$('#webos-loading').stop().fadeTo('normal', 0, function() {
+		$('#webos-loading').stop().fadeTo('fast', 0, function() {
 			$(this).hide();
 		});
 	} else {
-		$('#webos-loading').fadeOut();
+		$('#webos-loading').fadeOut('fast');
 	}
-	$('#webos-error').fadeOut();
+	$('#webos-error').fadeOut('fast');
 };

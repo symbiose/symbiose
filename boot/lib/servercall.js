@@ -51,7 +51,7 @@ Webos.ServerCall = function WServerCall(opts) {
 	this.nbrAttempts = 0;
 };
 Webos.ServerCall.prototype = {
-	load: function(callback) {
+	load: function $_WServerCall_load(callback) {
 		//Lien vers l'objet courant
 		var that = this;
 		
@@ -151,8 +151,10 @@ Webos.ServerCall.prototype = {
 				that._complete(response, callback);
 			}
 		});
+
+		return this;
 	},
-	_complete: function(response, callback) {
+	_complete: function $_WServerCall__complete(response, callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
 		this.status = 2;
@@ -171,7 +173,7 @@ Webos.ServerCall.prototype = {
 		this.notify('complete');
 		Webos.ServerCall.callComplete(this);
 	},
-	stack: function() {
+	stack: function $_WServerCall_stack() {
 		var stack = '    at '+this.url+' calling '+this.data['class']+'->'+this.data.method+'()';
 		if (this.data.arguments && this.data.arguments != '{}') {
 			stack += "\n"+'    with arguments '+JSON.stringify(this.data.arguments);
@@ -196,27 +198,27 @@ Webos.ServerCall.options = {
 	errorDelay: 1000
 };
 Webos.ServerCall.list = []; //Liste des appels au serveur
-Webos.ServerCall.addCallToList = function(call) {
+Webos.ServerCall.addCallToList = function $_WServerCall_addCallToList(call) {
 	var id = Webos.ServerCall.list.push(call) - 1;
 	Webos.ServerCall.notify('callregister', { call: call });
 	return id;
 };
-Webos.ServerCall.callStart = function(call) {
+Webos.ServerCall.callStart = function $_WServerCall_callStart(call) {
 	if (Webos.ServerCall.getNbrPendingCalls() == 1) {
 		Webos.ServerCall.notify('start', { list: Webos.ServerCall.list });
 	}
 	Webos.ServerCall.notify('callstart', { call: call });
 };
-Webos.ServerCall.callComplete = function(call) {
+Webos.ServerCall.callComplete = function $_WServerCall_callComplete(call) {
 	if (Webos.ServerCall.getNbrPendingCalls() == 0) {
 		Webos.ServerCall.notify('complete', { list: Webos.ServerCall.list });
 	}
 	Webos.ServerCall.notify('callcomplete', { call: call });
 };
-Webos.ServerCall.getList = function() {
+Webos.ServerCall.getList = function $_WServerCall_getList() {
 	return Webos.ServerCall.list;
 };
-Webos.ServerCall.getPendingCalls = function() {
+Webos.ServerCall.getPendingCalls = function $_WServerCall_getPendingCalls() {
 	var list = [];
 	for (var i = 0; i < Webos.ServerCall.list.length; i++) {
 		if (Webos.ServerCall.list[i].status == 1) {
@@ -225,10 +227,10 @@ Webos.ServerCall.getPendingCalls = function() {
 	}
 	return list;
 };
-Webos.ServerCall.getNbrPendingCalls = function() {
+Webos.ServerCall.getNbrPendingCalls = function $_WServerCall_getNbrPendingCalls() {
 	return Webos.ServerCall.getPendingCalls().length;
 };
-Webos.ServerCall.join = function() {
+Webos.ServerCall.join = function $_WServerCall_join() {
 	var requests = [];
 	for (var i = 0; i < arguments.length; i++) {
 		requests.push(arguments[i]);
@@ -358,6 +360,8 @@ Webos.ServerCall.Group.prototype = {
 				}
 			}
 		});
+
+		return this;
 	},
 	_complete: function(response, callback) {
 		this.status = 2;

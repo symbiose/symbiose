@@ -1,10 +1,8 @@
-(function() {
-	if (window.GnomeScreenSaver) {
+//Load dependencies
+Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
+	if (window.GnomeScreenSaver) { //If library is already loaded
 		return;
 	}
-
-	//Dependencies
-	new W.Stylesheet('/usr/share/css/gnome-screensaver/main.css');
 
 	var GnomeScreenSaver = {};
 
@@ -212,8 +210,8 @@
 	};
 
 	GnomeScreenSaver.autoActivate = function autoActivate(time, lock) {
-
+		//TODO
 	};
 
 	window.GnomeScreenSaver = GnomeScreenSaver; //Export library
-})();
+});

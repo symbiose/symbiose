@@ -8,6 +8,7 @@ Webos.inherit = function(C, P) {
 	F.prototype = P.prototype;
 	C.prototype = $.extend({}, new F(), C.prototype);
 	C.uber = P.prototype;
+	C._parent = P;
 	C.prototype.constructor = C;
 };
 
@@ -25,7 +26,7 @@ Webos.isInstanceOf = function(instance, obj) {
 	var current;
 	do {
 		if (current) {
-			current = current.uber.constructor;
+			current = current._parent;
 		} else {
 			current = instance.constructor;
 		}
@@ -33,7 +34,13 @@ Webos.isInstanceOf = function(instance, obj) {
 		if (current === obj) {
 			return true;
 		}
-	} while (current.uber);
+	} while (current._parent);
+
+	try {
+		if (instance instanceof obj) {
+			return true;
+		}
+	} catch(e) {}
 	
 	return false;
 };
