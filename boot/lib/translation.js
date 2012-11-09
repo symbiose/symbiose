@@ -2,7 +2,7 @@ Webos.Translation = function WTranslation(data) {
 	Webos.Model.call(this, data);
 };
 Webos.Translation.prototype = {
-	get: function(original, variables) {
+	get: function $_WTranslation_get(original, variables) {
 		var translation = this._get(original);
 		
 		if (!translation) {
@@ -46,10 +46,10 @@ Webos.Translation.prototype = {
 Webos.inherit(Webos.Translation, Webos.Model); //Héritage de Webos.Model
 
 Webos.Translation._language = null;
-Webos.Translation.language = function() {
+Webos.Translation.language = function $_WTranslation_language() {
 	return Webos.Translation._language;
 };
-Webos.Translation.parse = function(contents) {
+Webos.Translation.parse = function $_WTranslation_parse(contents) {
 	var lines = contents.split('\n');
 	var data = {};
 	var inComment = false;
@@ -102,7 +102,7 @@ Webos.Translation.parse = function(contents) {
 	
 	return data;
 };
-Webos.Translation.load = function(callback, path, locale) {
+Webos.Translation.load = function $_WTranslation_load(callback, path, locale) {
 	callback = Webos.Callback.toCallback(callback);
 	locale = String(locale);
 	
@@ -130,7 +130,7 @@ Webos.Translation.load = function(callback, path, locale) {
 		loadTranslationFn();
 	}
 };
-Webos.Translation.setLanguage = function(locale, callback) {
+Webos.Translation.setLanguage = function $_WTranslation_setLanguage(locale, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
 	if (!Webos.Locale.exists(locale)) {
@@ -146,7 +146,7 @@ Webos.Translation.setLanguage = function(locale, callback) {
 	}, callback.error]);
 };
 
-Webos.Locale = function(data, functions, name) {
+Webos.Locale = function WLocale(data, functions, name) {
 	this._name = name;
 	this._data = data;
 	
@@ -165,16 +165,16 @@ Webos.Locale = function(data, functions, name) {
 	Webos.Locale._list[name] = this;
 };
 Webos.Locale.prototype = {
-	name: function() {
+	name: function $_WLocale_name() {
 		return this._name;
 	},
-	_get: function(index) {
+	_get: function $_WLocale__get(index) {
 		return this._data[index];
 	},
-	title: function() {
+	title: function $_WLocale_title() {
 		return this._get('title');
 	},
-	toString: function() {
+	toString: function $_WLocale_toString() {
 		return this.name();
 	}
 };
@@ -184,25 +184,25 @@ Webos.Observable.build(Webos.Locale);
 Webos.Locale._locale = null;
 Webos.Locale._defaultLocale = 'en_EN';
 Webos.Locale._list = {};
-Webos.Locale._check = function(locale) {
+Webos.Locale._check = function $_WLocale__check(locale) {
 	return /[a-z]{2}_[A-Z]{2}/.test(locale);
 };
-Webos.Locale.getAll = function() {
+Webos.Locale.getAll = function $_WLocale_getAll() {
 	return Webos.Locale._list;
 };
-Webos.Locale.get = function(name) {
+Webos.Locale.get = function $_WLocale_get(name) {
 	return Webos.Locale._list[name] || Webos.Locale._list[Webos.Locale._defaultLocale];
 };
-Webos.Locale.getDefault = function() {
+Webos.Locale.getDefault = function $_WLocale_getDefault() {
 	return Webos.Locale.get(Webos.Locale._defaultLocale);
 };
-Webos.Locale.exists = function(name) {
+Webos.Locale.exists = function $_WLocale_exists(name) {
 	return (typeof Webos.Locale._list[name] != 'undefined');
 };
-Webos.Locale.current = function() {
+Webos.Locale.current = function $_WLocale_current() {
 	return (Webos.Locale._locale) ? Webos.Locale.get(Webos.Locale._locale) : (Webos.Locale.detect()) ? Webos.Locale.get(Webos.Locale.detect()) : Webos.Locale.get(Webos.Locale._defaultLocale);
 };
-Webos.Locale.load = function(callback) {
+Webos.Locale.load = function $_WLocale_load(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
 	var getUserLanguageFn = function() {
@@ -244,7 +244,7 @@ Webos.Locale.load = function(callback) {
 		getUserLanguageFn();
 	}]);
 };
-Webos.Locale.detect = function() {
+Webos.Locale.detect = function $_WLocale_detect() {
 	if (!navigator.language && !navigator.browserLanguage) {
 		return;
 	}
@@ -272,7 +272,7 @@ Webos.Locale.detect = function() {
 	
 	return Webos.Locale.getDefault().get('name');
 };
-Webos.Locale.set = function(locale, callback) {
+Webos.Locale.set = function $_WLocale_set(locale, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
 	if (!Webos.Locale.exists(locale)) {
@@ -289,13 +289,13 @@ Webos.Locale.set = function(locale, callback) {
 	}, callback.error]);
 };
 
-Webos.TranslatedLibrary = function() {
+Webos.TranslatedLibrary = function WTranslatedLibrary() {
 	this._loadTranslations();
 };
 Webos.TranslatedLibrary.prototype = {
 	_translations: null,
 	_translationsName: '',
-	_loadTranslations: function() {
+	_loadTranslations: function $_WTranslatedLibrary__loadTranslations() {
 		if (this._translations) {
 			return;
 		}
@@ -320,8 +320,6 @@ Webos.User.bind('login logout', function() {
 	Webos.Locale._locale = null;
 	Webos.Locale.load();
 });
-
-Webos.Locale.load();
 
 
 new Webos.Locale({
@@ -457,3 +455,6 @@ new Webos.Locale({
 		return this.number(value) + ' ' + this._get('currency');
 	}
 }, 'de_DE');
+
+
+Webos.Locale.load();
