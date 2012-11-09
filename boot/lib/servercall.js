@@ -51,48 +51,17 @@ Webos.ServerCall = function WServerCall(opts) {
 	this.nbrAttempts = 0;
 };
 Webos.ServerCall.prototype = {
-	load: function $_WServerCall_load(callback) {
+	_load: function $_WServerCall__load(callback) {
 		//Lien vers l'objet courant
 		var that = this;
 		
 		callback = Webos.Callback.toCallback(callback);
 		
-		this.nbrAttempts++;
-		this.status = 1;
-		
-		if (this.nbrAttempts == 1) {
-			Webos.ServerCall.callStart(this);
-			this.startTime = new Date();
-		}
-		
-		that.notify('start');
-		
-		for (var i = 0; i < Webos.ServerCall.list.length; i++) {
-			var call = Webos.ServerCall.list[i];
-			
-			if (call.status == 1 && call.id != this.id) {
-				var isEqual = true;
-				for (var attr in call.data) {
-					if (call.data[attr] != this.data[attr]) {
-						isEqual = false;
-						break;
-					}
-				}
-				
-				if (isEqual) {
-					call.bind('complete', function() {
-						that._complete(call.response, callback);
-					});
-					return;
-				}
-			}
-		}
-		
 		$.ajax({
 			url: that.url,
 			data: that.data,
 			type: that.type,
-			async: (that.options.async == false) ? false : true,
+			async: (that.options.async === false) ? false : true,
 			context: that,
 			dataType: 'text',
 			success: function(data, textStatus, jqXHR) { //En cas de succes
@@ -151,6 +120,48 @@ Webos.ServerCall.prototype = {
 				that._complete(response, callback);
 			}
 		});
+	},
+	load: function $_WServerCall_load(callback) {
+		var that = this;
+
+		callback = Webos.Callback.toCallback(callback);
+
+		this.nbrAttempts++;
+		this.status = 1;
+		
+		if (this.nbrAttempts == 1) {
+			Webos.ServerCall.callStart(this);
+			this.startTime = new Date();
+		}
+		
+		that.notify('start');
+		
+		for (var i = 0; i < Webos.ServerCall.list.length; i++) {
+			var call = Webos.ServerCall.list[i];
+			
+			if (call.status == 1 && call.id != this.id) {
+				var isEqual = true;
+				for (var attr in call.data) {
+					if (call.data[attr] != this.data[attr]) {
+						isEqual = false;
+						break;
+					}
+				}
+				
+				if (isEqual) {
+					call.bind('complete', function() {
+						that._complete(call.response, callback);
+					});
+					return;
+				}
+			}
+		}
+
+		if (this.options.async === false) {
+			that._load(callback);
+		} else {
+			Webos.ServerCall._addToLoadStack(this, callback);
+		}
 
 		return this;
 	},
@@ -198,6 +209,7 @@ Webos.ServerCall.options = {
 	errorDelay: 1000
 };
 Webos.ServerCall.list = []; //Liste des appels au serveur
+Webos.ServerCall._loadStack = [];
 Webos.ServerCall.addCallToList = function $_WServerCall_addCallToList(call) {
 	var id = Webos.ServerCall.list.push(call) - 1;
 	Webos.ServerCall.notify('callregister', { call: call });
@@ -214,6 +226,32 @@ Webos.ServerCall.callComplete = function $_WServerCall_callComplete(call) {
 		Webos.ServerCall.notify('complete', { list: Webos.ServerCall.list });
 	}
 	Webos.ServerCall.notify('callcomplete', { call: call });
+};
+Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, callback) {
+	Webos.ServerCall._loadStack.push({
+		call: call,
+		callback: callback
+	});
+
+	if (Webos.ServerCall._loadStack.length == 1) {
+		setTimeout(function() {
+			if (Webos.ServerCall._loadStack.length == 1) {
+				var callData = Webos.ServerCall._loadStack[0];
+				callData.call._load(callData.callback);
+			} else {
+				var calls = [], callbacks = [];
+				for (var i = 0; i < Webos.ServerCall._loadStack.length; i++) {
+					var callData = Webos.ServerCall._loadStack[i];
+					calls.push(callData.call);
+					callbacks.push(callData.callback);
+				}
+				var group = Webos.ServerCall.join(calls);
+				group.load(callbacks);
+			}
+
+			Webos.ServerCall._loadStack = [];
+		}, 0);
+	}
 };
 Webos.ServerCall.getList = function $_WServerCall_getList() {
 	return Webos.ServerCall.list;
@@ -233,8 +271,16 @@ Webos.ServerCall.getNbrPendingCalls = function $_WServerCall_getNbrPendingCalls(
 Webos.ServerCall.join = function $_WServerCall_join() {
 	var requests = [];
 	for (var i = 0; i < arguments.length; i++) {
-		requests.push(arguments[i]);
+		var arg = arguments[i];
+		if (arg instanceof Array) {
+			for (var j = 0; j < arg.length; j++) {
+				requests.push(arg[j]);
+			}
+		} else if (Webos.isInstanceOf(arg, Webos.ServerCall)) {
+			requests.push(arg);
+		}
 	}
+
 	return new Webos.ServerCall.Group(requests);
 };
 
@@ -267,31 +313,33 @@ Webos.ServerCall.Group.prototype = {
 		}
 		return id;
 	},
-	load: function(callback) {
-		//Lien vers l'objet courant
+	_load: function(callback) {
 		var that = this;
-		
+
 		if (callback) {
-			callback = Webos.Callback.toCallback(callback);
-			for (var i = 0; i < this.requests.length; i++) {
-				if (!this.callbacks[i]) {
-					this.callbacks[i] = callback;
+			if (callback instanceof Array && callback.length == this.requests.length) {
+				this.callbacks = [];
+				for (var i = 0; i < this.requests.length; i++) {
+					this.callbacks[i] = Webos.Callback.toCallback(callback[i]);
+				}
+			} else {
+				callback = Webos.Callback.toCallback(callback);
+				for (var i = 0; i < this.requests.length; i++) {
+					if (!this.callbacks[i]) {
+						this.callbacks[i] = callback;
+					}
 				}
 			}
 		}
-		
-		this.nbrAttempts++;
-		this.status = 1;
-		this.data = {};
+
+		this.data = [];
 		for (var i = 0; i < this.requests.length; i++) {
 			this.requests[i].notify('start');
 			Webos.ServerCall.callStart(this.requests[i]);
 			this.data[i] = this.requests[i].data;
 			this.data[i].arguments = jQuery.parseJSON(this.data[i].arguments);
 		}
-		
-		this.notify('start');
-		
+
 		$.ajax({
 			url: that.url,
 			data: {
@@ -360,6 +408,17 @@ Webos.ServerCall.Group.prototype = {
 				}
 			}
 		});
+	},
+	load: function(callback) {
+		//Lien vers l'objet courant
+		var that = this;
+
+		this.nbrAttempts++;
+		this.status = 1;
+
+		this.notify('start');
+
+		this._load(callback);
 
 		return this;
 	},
