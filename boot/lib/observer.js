@@ -178,6 +178,9 @@ Webos.Observable.Group.prototype = {
 		}
 
 		this._observables = list;
+	},
+	observables: function $_WObservableGroup_observables() {
+		return this._observables;
 	}
 };
 

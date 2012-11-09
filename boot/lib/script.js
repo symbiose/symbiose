@@ -168,8 +168,8 @@ Webos.require = function Wrequire(files, callback, options) {
 					Webos.require._currentFile = previousFile;
 
 					var stack = Webos.require._stacks[file.get('path')];
-					if (stack.length > 0) {
-						var group = Webos.Observable.group(stack);
+					var group = Webos.Observable.group(stack);
+					if (group.observables().length > 0) {
 						group.one('success', function() {
 							onLoadFn();
 						});
