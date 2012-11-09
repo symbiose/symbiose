@@ -48,7 +48,7 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 
 		var result;
 		try {
-			result = that.callbacks.success.callback.apply(that.callbacks[flag].context, args);
+			result = that.callbacks[flag].callback.apply(that.callbacks[flag].context, args);
 		} catch(e) {
 			Webos.Error.catchError(e);
 		} finally {
@@ -59,7 +59,7 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 			that.notify('fire', {
 				flag: flag,
 				args: args,
-				context: that.callbacks.success.context
+				context: that.callbacks[flag].context
 			});
 
 			return result;
