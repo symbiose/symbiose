@@ -135,6 +135,10 @@ Webos.require = function Wrequire(files, callback, options) {
 
 	var list = [];
 	if (files instanceof Array) {
+		if (files.length == 0) {
+			callback.success();
+			return;
+		}
 		list = files;
 	} else {
 		list = [String(files)];
