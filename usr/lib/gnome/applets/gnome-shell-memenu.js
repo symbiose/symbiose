@@ -77,15 +77,15 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 					W.Cmd.execute('gnome-reboot');
 				}).appendTo(userMenu);
 			} else {
-				$('<li>'+t.get('Lock')+'</li>').click(function() {
-					W.Cmd.execute('gnome-screensaver -l');
-				}).appendTo(userMenu);
 				$('<li>'+t.get('Login...')+'</li>').click(function() {
 					W.Cmd.execute('gnome-login');
 				}).appendTo(userMenu);
 				var registerMenuItem = $('<li>'+t.get('Register')+'</li>').click(function() {
 					W.Cmd.execute('gnome-register');
 				}).hide().appendTo(userMenu);
+				$('<li>'+t.get('Lock')+'</li>').click(function() {
+					W.Cmd.execute('gnome-screensaver -l');
+				}).appendTo(userMenu);
 				$('<li>'+t.get('Restart')+'</li>').click(function() {
 					W.Cmd.execute('gnome-reboot');
 				}).appendTo(userMenu);

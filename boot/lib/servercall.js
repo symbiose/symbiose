@@ -66,9 +66,13 @@ Webos.ServerCall.prototype = {
 			dataType: 'text',
 			success: function(data, textStatus, jqXHR) { //En cas de succes
 				try {
+					if (!data) {
+						throw new Webos.Error('Empty response');
+					}
+
 					var json = jQuery.parseJSON(data); //On essaie de recuperer les donnees JSON
 				} catch (jsonError) { //Si une erreur survient
-					var error = (data) ? data : 'Une erreur est survenue lors du chargement d\'un appel serveur';
+					var error = (data) ? data : 'An error occurred while loading a server call';
 					error += "\n"+that.stack();
 					
 					var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
@@ -97,9 +101,9 @@ Webos.ServerCall.prototype = {
 					return;
 				}
 				
-				var error = 'Une erreur est survenue lors du chargement d\'un appel serveur';
+				var error = 'An error occurred while loading a server call';
 				if (textStatus) {
-					error += ' (statut : '+textStatus;
+					error += ' (status : '+textStatus;
 					if (errorThrown) {
 						error += ', '+errorThrown;
 					}
@@ -123,6 +127,10 @@ Webos.ServerCall.prototype = {
 	},
 	load: function $_WServerCall_load(callback) {
 		var that = this;
+
+		if (this.id == 26) {
+			console.log('load()');
+		}
 
 		callback = Webos.Callback.toCallback(callback);
 
@@ -228,6 +236,10 @@ Webos.ServerCall.callComplete = function $_WServerCall_callComplete(call) {
 	Webos.ServerCall.notify('callcomplete', { call: call });
 };
 Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, callback) {
+	if (call.id == 26) {
+		console.log('_addToLoadStack()');
+	}
+
 	Webos.ServerCall._loadStack.push({
 		call: call,
 		callback: callback
@@ -235,6 +247,9 @@ Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, 
 
 	if (Webos.ServerCall._loadStack.length == 1) {
 		setTimeout(function() {
+			if (call.id == 16) {
+				console.log(Webos.ServerCall._loadStack, Webos.ServerCall._loadStack.length);
+			}
 			if (Webos.ServerCall._loadStack.length == 1) {
 				var callData = Webos.ServerCall._loadStack[0];
 				callData.call._load(callData.callback);
@@ -246,6 +261,9 @@ Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, 
 					callbacks.push(callData.callback);
 				}
 				var group = Webos.ServerCall.join(calls);
+				if (call.id == 16) {
+					console.log(group);
+				}
 				group.load(callbacks);
 			}
 
@@ -334,8 +352,15 @@ Webos.ServerCall.Group.prototype = {
 
 		this.data = [];
 		for (var i = 0; i < this.requests.length; i++) {
-			this.requests[i].notify('start');
-			Webos.ServerCall.callStart(this.requests[i]);
+			if (this.requests[i].id == 26) {
+				console.log('group._load()', this.requests[i]);
+				window.DEBUG_requestNbr = i;
+				window.DEBUG_thisRequest = true;
+			}
+			if (this.requests[i].status == 0) {
+				this.requests[i].notify('start');
+				Webos.ServerCall.callStart(this.requests[i]);
+			}
 			this.data[i] = this.requests[i].data;
 			this.data[i].arguments = jQuery.parseJSON(this.data[i].arguments);
 		}
@@ -350,21 +375,26 @@ Webos.ServerCall.Group.prototype = {
 			dataType: 'text',
 			success: function(data, textStatus, jqXHR) { //En cas de succes
 				try {
+					if (!data) {
+						throw new Webos.Error('Empty response');
+					}
+
 					var json = jQuery.parseJSON(data); //On essaie de recuperer les donnees JSON
 				} catch (jsonError) { //Si une erreur survient
-					var error = (data) ? data : 'Une erreur est survenue lors du chargement d\'un appel serveur';
-					
-					var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
-						'success': false,
-						'channels': {
-							1: null,
-							2: error //On ajoute le message d'erreur
-						},
-						'js': null,
-						'out': error
-					});
+					var error = (data) ? data : 'An error occurred while loading a server call';
 					
 					for (var i = 0; i < that.requests.length; i++) {
+						var errorAndStack = error + "\n" + that.requests[i].stack();
+						var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
+							'success': false,
+							'channels': {
+								1: null,
+								2: errorAndStack //On ajoute le message d'erreur
+							},
+							'js': null,
+							'out': errorAndStack
+						});
+
 						that.requests[i]._complete(response, that.callbacks[i]);
 					}
 					return; //On stoppe l'execution de la fonction
@@ -383,27 +413,27 @@ Webos.ServerCall.Group.prototype = {
 					return;
 				}
 				
-				var error = 'Une erreur est survenue lors du chargement d\'un appel serveur';
+				var error = 'An error occurred while loading a server call';
 				if (textStatus) {
-					error += ' (statut : '+textStatus;
+					error += ' (status : '+textStatus;
 					if (errorThrown) {
 						error += ', '+errorThrown;
 					}
 					error += ')';
 				}
-				error += "\n"+that.stack();
-				
-				var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
-					'success': false,
-					'channels': {
-						1: null,
-						2: error //On ajoute le message d'erreur
-					},
-					'js': null,
-					'out': error
-				});
-				
+
 				for (var index in that.requests) {
+					var errorAndStack = error + "\n" + that.requests[i].stack();
+					var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
+						'success': false,
+						'channels': {
+							1: null,
+							2: errorAndStack //On ajoute le message d'erreur
+						},
+						'js': null,
+						'out': errorAndStack
+					});
+
 					that.requests[index]._complete(response, that.callbacks[index]);
 				}
 			}
