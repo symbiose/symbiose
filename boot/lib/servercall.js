@@ -128,10 +128,6 @@ Webos.ServerCall.prototype = {
 	load: function $_WServerCall_load(callback) {
 		var that = this;
 
-		if (this.id == 26) {
-			console.log('load()');
-		}
-
 		callback = Webos.Callback.toCallback(callback);
 
 		this.nbrAttempts++;
@@ -236,10 +232,6 @@ Webos.ServerCall.callComplete = function $_WServerCall_callComplete(call) {
 	Webos.ServerCall.notify('callcomplete', { call: call });
 };
 Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, callback) {
-	if (call.id == 26) {
-		console.log('_addToLoadStack()');
-	}
-
 	Webos.ServerCall._loadStack.push({
 		call: call,
 		callback: callback
@@ -247,9 +239,6 @@ Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, 
 
 	if (Webos.ServerCall._loadStack.length == 1) {
 		setTimeout(function() {
-			if (call.id == 16) {
-				console.log(Webos.ServerCall._loadStack, Webos.ServerCall._loadStack.length);
-			}
 			if (Webos.ServerCall._loadStack.length == 1) {
 				var callData = Webos.ServerCall._loadStack[0];
 				callData.call._load(callData.callback);
@@ -261,9 +250,6 @@ Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, 
 					callbacks.push(callData.callback);
 				}
 				var group = Webos.ServerCall.join(calls);
-				if (call.id == 16) {
-					console.log(group);
-				}
 				group.load(callbacks);
 			}
 
@@ -352,11 +338,6 @@ Webos.ServerCall.Group.prototype = {
 
 		this.data = [];
 		for (var i = 0; i < this.requests.length; i++) {
-			if (this.requests[i].id == 26) {
-				console.log('group._load()', this.requests[i]);
-				window.DEBUG_requestNbr = i;
-				window.DEBUG_thisRequest = true;
-			}
 			if (this.requests[i].status == 0) {
 				this.requests[i].notify('start');
 				Webos.ServerCall.callStart(this.requests[i]);
