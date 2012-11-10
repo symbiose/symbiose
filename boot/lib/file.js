@@ -434,7 +434,7 @@ Webos.File._mountedDevices = {};
  * @static
  */
 Webos.File.get = function(file, data) {
-	if (file instanceof File) { //Si c'est un objet natif File, on retorune un objet Webos.LocalFile
+	if (window.File && file instanceof window.File) { //Si c'est un objet natif File, on retorune un objet Webos.LocalFile
 		return new Webos.LocalFile(file);
 	} else if (Webos.isInstanceOf(file, Webos.File)) { //Si c'est déja un objet Webos.File, on le retourne directement
 		return file;
