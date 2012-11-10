@@ -67,8 +67,7 @@ Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
 			return;
 		}
 
-		//Without setTimeout(), $.w.* doesn't work - why ? don't know...
-		setTimeout(function() {
+		Webos.Translation.load(function(t) {
 			GnomeScreenSaver._$screenlocker = $('<div></div>', { id: 'gnome-screenlocker' });
 
 			var $prompt = $('<div></div>', { 'class': 'screenlocker-prompt' }).hide().appendTo(GnomeScreenSaver._$screenlocker),
@@ -135,15 +134,15 @@ Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
 				$form = $.w.entryContainer().addClass('form').appendTo($formContainer);
 			$.webos.image(new Webos.Icon('stock/person')).addClass('form-avatar').appendTo($form);
 			var $realname = $('<div></div>', { 'class': 'form-realname' }).html('User').appendTo($form),
-				$password = $.w.passwordEntry('Password :').addClass('form-passwordentry').appendTo($form),
+				$password = $.w.passwordEntry(t.get('Password :')).addClass('form-passwordentry').appendTo($form),
 				$error = $('<div></div>', { 'class': 'form-error' }).appendTo($form),
 				$buttons = $.w.buttonContainer().appendTo($form);
-			$.w.button('Cancel').click(function() {
+			$.w.button(t.get('Cancel')).click(function() {
 				$overlay.animate({
 					top: 0
 				});
 			}).appendTo($buttons);
-			var $submitButton = $.w.button('Unlock', true).addClass('form-submit').appendTo($buttons);
+			var $submitButton = $.w.button(t.get('Unlock'), true).addClass('form-submit').appendTo($buttons);
 
 			Webos.User.get([function(user) {
 				$overlay.bind('dragstop', function(event, ui) {
@@ -191,7 +190,7 @@ Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
 					$prompt.hide();
 				}
 			}, function() {}]);
-		}, 0);
+		}, 'gnome-screensaver');
 
 		GnomeScreenSaver._locked = true;
 	};
