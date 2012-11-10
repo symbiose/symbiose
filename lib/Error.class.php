@@ -85,7 +85,7 @@ abstract class Error extends \lib\WebosComponent {
 	 * Terminer le script.
 	 */
 	protected function bye() {
-		if ($this->webos == null) {
+		if (empty($this->webos)) {
 			exit;
 		} else {
 			if ($this->webos->getHTTPResponse() instanceof ServerCallResponse) {
@@ -99,10 +99,11 @@ abstract class Error extends \lib\WebosComponent {
 	 * Afficher l'erreur.
 	 */
 	public function show() {
+		$msg = static::__toString();
 		if ($this->webos->getHTTPResponse() instanceof ServerCallResponse) {
-			$this->webos->getHTTPResponse()->addError($this->__toString());
+			$this->webos->getHTTPResponse()->addError($msg);
 		} else {
-			echo "\n".$this->__toString();
+			echo "\n" . $msg;
 		}
 	}
 
@@ -163,8 +164,6 @@ abstract class Error extends \lib\WebosComponent {
 	 * @param Webos $webos Le webos.
 	 */
 	public static function setErrorsWebos(Webos $webos) {
-		if (empty(self::$errorsWebos)) {
-			self::$errorsWebos = $webos;
-		}
+		self::$errorsWebos = $webos;
 	}
 }

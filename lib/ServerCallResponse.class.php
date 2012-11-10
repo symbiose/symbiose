@@ -48,7 +48,9 @@ class ServerCallResponse extends HTTPResponse {
 	 */
 	public function send() {
 		//On arrete la temporisation de sortie
-		ob_end_flush();
+		if (ob_get_level() > 0) {
+			ob_end_flush();
+		}
 
 		//On definit le contenu de la reponse
 		$this->contents = json_encode(array(

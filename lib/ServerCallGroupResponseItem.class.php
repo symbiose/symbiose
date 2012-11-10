@@ -34,7 +34,9 @@ class ServerCallGroupResponseItem extends ServerCallResponse {
 	 */
 	public function send() {
 		//On arrete la temporisation de sortie
-		ob_end_clean();
+		if (ob_get_level() > 0) {
+			ob_end_flush();
+		}
 
 		//On definit le contenu de la reponse
 		$this->contents = array(

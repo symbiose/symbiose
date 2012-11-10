@@ -1,1 +1,9 @@
-﻿
+﻿Nov 10 12:03:09 localhost /var/www/projects/symbiose/lib/controllers/FileController.class.php:14 [lib\WarningError] Missing argument 1 for lib\controllers\FileController::getContents()
+Nov 10 12:03:09 localhost /var/www/projects/symbiose/lib/controllers/FileController.class.php:15 [lib\NoticeError] Undefined variable: file
+Nov 10 12:03:09 localhost /var/www/projects/symbiose/lib/controllers/FileController.class.php:19 [lib\WarningError] Invalid argument supplied for foreach()
+Nov 10 12:17:01 localhost /var/www/projects/symbiose/lib/ServerCallGroupResponseItem.class.php:38 [lib\NoticeError] ob_end_flush(): failed to delete and flush buffer. No buffer to delete or flush
+Nov 10 12:17:01 localhost /var/www/projects/symbiose/lib/HTTPResponse.class.php:22 [lib\WarningError] Cannot modify header information - headers already sent by (output started at /var/www/projects/symbiose/lib/ServerCallGroupResponseItem.class.php:38)
+Nov 10 12:17:31 localhost /var/www/projects/symbiose/lib/ServerCallGroupResponseItem.class.php:37 [lib\NoticeError] ob_end_flush(): failed to delete and flush buffer. No buffer to delete or flush
+Nov 10 12:17:46 localhost /var/www/projects/symbiose/lib/ServerCallGroupResponseItem.class.php:37 [lib\NoticeError] ob_end_flush(): failed to delete and flush buffer. No buffer to delete or flush
+Nov 10 12:17:46 localhost /var/www/projects/symbiose/lib/ServerCallGroupResponseItem.class.php:37 [lib\NoticeError] ob_end_flush(): failed to delete and flush buffer. No buffer to delete or flush
+Nov 10 12:17:46 localhost /var/www/projects/symbiose/lib/ServerCallGroupResponseItem.class.php:37 [lib\NoticeError] ob_end_flush(): failed to delete and flush buffer. No buffer to delete or flush

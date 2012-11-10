@@ -1,6 +1,8 @@
 <?php
 namespace lib;
 
+use \Exception;
+
 /**
  * ServerCallGroup est la classe representant un groupe de requetes JavaScript vers le serveur.
  * @author $imon

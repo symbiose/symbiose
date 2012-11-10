@@ -1,6 +1,8 @@
 <?php
 namespace lib;
 
+use \Exception;
+
 /**
  * ServerCall est la classe representant une requete JavaScript vers le serveur.
  * @author $imon
