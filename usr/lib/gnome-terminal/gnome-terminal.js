@@ -39,6 +39,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 		var that = this;
 
 		this.options._components.out = $();
+		this.options._components.prompt = $();
 		
 		this.options._terminal.refreshData(new W.Callback(function() {
 			var data = that.options._terminal.data();
@@ -135,6 +136,7 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 		var lastCmd = $('<div></div>').html(this.options._components.prompt.textEntry('label').text()+' '+cmd);
 		this.options._components.prompt.after(lastCmd);
 		this.options._components.prompt.remove();
+		this.options._components.prompt = $();
 		
 		if (!cmd) {
 			this._displayPrompt();
@@ -207,15 +209,19 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 		
 		//Lors du redimentionnement de la fenetre
 		this._window.bind('windowresize', function() {
-			that._terminal.terminal('prompt').textEntry('content')
-				.width(that._terminal.terminal('prompt').innerWidth() - that._terminal.terminal('prompt').textEntry('label').outerWidth() - 5)
-				.focus();
+			var prompt = that._terminal.terminal('prompt');
+			if (prompt.length) {
+				that._terminal.terminal('prompt').textEntry('content')
+					.width(that._terminal.terminal('prompt').innerWidth() - that._terminal.terminal('prompt').textEntry('label').outerWidth() - 5)
+					.focus();
+			}
 		});
 		
 		//Lors du clic sur le terminal
 		scrollPane.scrollPane('content').click(function(e) {
-			if ($(e.target).is(this)) {
-				that._terminal.terminal('prompt').textEntry('content').focus();
+			var prompt = that._terminal.terminal('prompt');
+			if ($(e.target).is(this) && prompt.length) {
+				prompt.textEntry('content').focus();
 			}
 		});
 		
