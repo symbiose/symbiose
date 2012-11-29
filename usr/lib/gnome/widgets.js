@@ -654,9 +654,6 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			if ($(e.target).is('.controllers, .header-specific ul *')) {
 				return;
 			}
-			if (that.is('maximized')) {
-				that.minimize(false);
-			}
 			
 			var el = that.element[0];
 			var diffX = e.pageX - that.element.position().left, diffY = e.pageY - that.element.position().top;
@@ -666,6 +663,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			var maximizeHelperShown = false, $maximizeHelper = $(); 
 			var showMaximizeHelper = function() {
 				if (maximizeHelperShown) { return; }
+				if (!that.options.maximizable) { return; }
 
 				$maximizeHelper = $('<div></div>')
 					.addClass('webos-window-manip-helper')
@@ -690,6 +688,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			};
 			var hideMaximizeHelper = function() {
 				if (!maximizeHelperShown) { return; }
+				if (!that.options.maximizable) { return; }
 
 				$maximizeHelper.fadeOut('normal', function() {
 					$(this).remove();
@@ -738,6 +737,16 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				
 				e.preventDefault();
 			});
+
+			if (that.is('maximized')) {
+				$('body').one('mousemove.maximized.window.widget.webos', function(e) {
+					that.minimize(false);
+					diffX = e.pageX - that.element.position().left;
+					diffY = e.pageY - that.element.position().top;
+				}).one('mouseup', function() {
+					$('body').unbind('mousemove.maximized.window.widget.webos');
+				});
+			}
 			
 			that.element.addClass('dragging cursor-move');
 			
