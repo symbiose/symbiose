@@ -10,7 +10,6 @@
 *  http://www.webtoolkit.info/
 *
 **/
- 
 Webos.base64 = {
 	// private property
 	_keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
@@ -24,8 +23,6 @@ Webos.base64 = {
 		var output = "";
 		var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
 		var i = 0;
- 
-		input = Webos.base64.utf8_encode(input);
  
 		while (i < input.length) {
  
@@ -88,13 +85,11 @@ Webos.base64 = {
  
 		}
  
-		output = Webos.base64.utf8_decode(output);
- 
 		return output;
 	},
  
 	// method for UTF-8 encoding
-	utf8_encode: function (string) {
+	utf8Encode: function (string) {
 		string = string.replace(/\r\n/g,"\n");
 		var utftext = "";
  
@@ -121,7 +116,7 @@ Webos.base64 = {
 	},
  
 	// method for UTF-8 decoding
-	utf8_decode: function (utftext) {
+	utf8Decode: function (utftext) {
 		var string = "";
 		var i = 0;
 		var c = c1 = c2 = 0;

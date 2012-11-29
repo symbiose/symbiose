@@ -80,7 +80,7 @@ Webos.Icon = function WIcon(name, size, theme) {
 Webos.Icon.types = ['themes', 'applications'];
 Webos.Icon.path = '/usr/share/icons';
 Webos.Icon.sizes = {
-	button: 32
+	button: 24
 };
 Webos.Icon._cache = {};
 Webos.Icon.toIcon = function(arg) {
