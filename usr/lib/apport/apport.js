@@ -34,7 +34,9 @@
 			process = (error.process) ? 'Command : "'+error.process.cmdText+'"' : '';
 		}
 
-		body = 'Enter a description of the bug here...'+"\n"+'* * *'+"\n"+'```'+"\n"+message+"\n"+process+"\n"+stack+"\n"+'```';
+		var clientData = 'Browser : "'+navigator.appName+'", version : "'+navigator.appVersion+'", platform : "'+navigator.platform+'", user agent : "'+navigator.userAgent+'"';
+
+		body = 'Enter a description of the bug here...'+"\n"+'* * *'+"\n"+'```'+"\n"+message+"\n"+process+"\n"+stack+"\n"+clientData+"\n"+'```';
 
 		return Apport.report(title, body);
 	};

@@ -83,6 +83,11 @@ Webos.Error.setErrorHandler(function(error) {
 		details = error.name + ' : ' + error.message + "<br />"+process+"Stack trace :<br />" + error.stack;
 	}
 
+	var reportErrorFn = function() {
+		W.ScriptFile.load('/usr/lib/apport/apport.js');
+		Apport.reportError(error);
+	};
+
 	var openWindowFn = function() {
 		var errorWindow = $.webos.window({
 			title: 'Erreur',
@@ -108,8 +113,7 @@ Webos.Error.setErrorHandler(function(error) {
 		
 		var buttonContainer = $.webos.buttonContainer();
 		$.webos.button('Signaler le bug...').click(function() {
-			W.ScriptFile.load('/usr/lib/apport/apport.js');
-			Apport.reportError(error);
+			reportErrorFn();
 		}).appendTo(buttonContainer.buttonContainer('content'));
 		$.webos.button('Fermer').click(function() {
 			errorWindow.window('close');
@@ -123,7 +127,10 @@ Webos.Error.setErrorHandler(function(error) {
 		title: 'Une erreur est survenue',
 		shortMessage: shortMessage,
 		message: message,
-		widgets: [$.w.button('D&eacute;tails').click(function() { openWindowFn(); })]
+		widgets: [
+			$.w.button('D&eacute;tails').click(function() { openWindowFn(); }),
+			$.w.button('Signaler le bug...').click(function() { reportErrorFn(); })
+		]
 	});
 });
 
