@@ -36,46 +36,6 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 				$('<li>'+t.get('System settings')+'</li>').click(function() {
 					W.Cmd.execute('gconf');
 				}).appendTo(userMenu);
-				
-				if (Webos.fullscreen.support) {
-					$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
-					
-					var toggleFullScreenItem = $('<li></li>');
-					
-					var updateFullScreenItemFn = function() {
-						if (Webos.fullscreen.isFullScreen()) {
-							toggleFullScreenItem.html(t.get('Exit fullscreen mode'));
-						} else {
-							toggleFullScreenItem.html(t.get('Enter fullscreen mode'));
-						}
-					};
-					
-					toggleFullScreenItem.click(function() {
-						if (Webos.fullscreen.isFullScreen()) {
-							Webos.fullscreen.cancel();
-						} else {
-							$('body').requestFullScreen();
-						}
-						updateFullScreenItemFn();
-					}).appendTo(userMenu);
-					
-					$(document).bind(Webos.fullscreen.eventName, function() {
-						updateFullScreenItemFn();
-					});
-					
-					updateFullScreenItemFn();
-				}
-				
-				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
-				$('<li>'+t.get('Lock')+'</li>').click(function() {
-					W.Cmd.execute('gnome-screensaver -l');
-				}).appendTo(userMenu);
-				$('<li>'+t.get('Logout...')+'</li>').click(function() {
-					W.Cmd.execute('gnome-logout');
-				}).appendTo(userMenu);
-				$('<li>'+t.get('Restart')+'</li>').click(function() {
-					W.Cmd.execute('gnome-reboot');
-				}).appendTo(userMenu);
 			} else {
 				$('<li>'+t.get('Login...')+'</li>').click(function() {
 					W.Cmd.execute('gnome-login');
@@ -83,12 +43,6 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 				var registerMenuItem = $('<li>'+t.get('Register')+'</li>').click(function() {
 					W.Cmd.execute('gnome-register');
 				}).hide().appendTo(userMenu);
-				$('<li>'+t.get('Lock')+'</li>').click(function() {
-					W.Cmd.execute('gnome-screensaver -l');
-				}).appendTo(userMenu);
-				$('<li>'+t.get('Restart')+'</li>').click(function() {
-					W.Cmd.execute('gnome-reboot');
-				}).appendTo(userMenu);
 				
 				Webos.User.canRegister(function(canRegister) {
 					var notificationsButtons = [
@@ -108,6 +62,56 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 						widgets: notificationsButtons
 					});
 				});
+			}
+
+			if (Webos.fullscreen.support) {
+				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
+				
+				var toggleFullScreenItem = $('<li></li>');
+				
+				var updateFullScreenItemFn = function() {
+					if (Webos.fullscreen.isFullScreen()) {
+						toggleFullScreenItem.html(t.get('Exit fullscreen mode'));
+					} else {
+						toggleFullScreenItem.html(t.get('Enter fullscreen mode'));
+					}
+				};
+				
+				toggleFullScreenItem.click(function() {
+					if (Webos.fullscreen.isFullScreen()) {
+						Webos.fullscreen.cancel();
+					} else {
+						$('body').requestFullScreen();
+					}
+					updateFullScreenItemFn();
+				}).appendTo(userMenu);
+				
+				$(document).bind(Webos.fullscreen.eventName, function() {
+					updateFullScreenItemFn();
+				});
+				
+				updateFullScreenItemFn();
+			}
+
+			if (typeof user != 'undefined') {
+				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
+				$('<li>'+t.get('Lock')+'</li>').click(function() {
+					W.Cmd.execute('gnome-screensaver -l');
+				}).appendTo(userMenu);
+				$('<li>'+t.get('Logout...')+'</li>').click(function() {
+					W.Cmd.execute('gnome-logout');
+				}).appendTo(userMenu);
+				$('<li>'+t.get('Restart')+'</li>').click(function() {
+					W.Cmd.execute('gnome-reboot');
+				}).appendTo(userMenu);
+			} else {
+				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
+				$('<li>'+t.get('Lock')+'</li>').click(function() {
+					W.Cmd.execute('gnome-screensaver -l');
+				}).appendTo(userMenu);
+				$('<li>'+t.get('Restart')+'</li>').click(function() {
+					W.Cmd.execute('gnome-reboot');
+				}).appendTo(userMenu);
 			}
 
 			if (!firstRun) {
