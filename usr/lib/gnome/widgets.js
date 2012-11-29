@@ -309,7 +309,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 
 		this.element.children('.title-window').css('cursor','auto');
 	},
-	minimize: function() {
+	minimize: function(animate) {
 		if (this.is('minimized')) {
 			return;
 		}
@@ -319,18 +319,23 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			var position = this.options._position;
 			
 			var that = this;
+
+			var duration = 'fast';
+			if (animate == false) {
+				duration = 0;
+			}
 			
 			this.options._content.animate({
 				width: dimentions.width,
 				height: (that.options._dimentions.height - that.options._components.header.height())
-			}, 'fast');
+			}, duration);
 			
 			this.element.addClass('animating').animate({
 				width: dimentions.width,
 				height: dimentions.height,
 				top: position.top,
 				left: position.left
-			}, 'fast', function() {
+			}, duration, function() {
 				that._saveDimentions();
 				that.element
 					.removeClass('animating')
@@ -646,30 +651,66 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		var that = this;
 		
 		this.options._components.header.bind('mousedown.window.widget.webos', function(e) {
-			if (that.is('maximized')) {
-				return;
-			}
 			if ($(e.target).is('.controllers, .header-specific ul *')) {
 				return;
+			}
+			if (that.is('maximized')) {
+				that.minimize(false);
 			}
 			
 			var el = that.element[0];
 			var diffX = e.pageX - that.element.position().left, diffY = e.pageY - that.element.position().top;
 			
 			var posX = e.pageX - diffX, posY = e.pageY - diffY;
+
+			var maximizeHelperShown = false, $maximizeHelper = $(); 
+			var showMaximizeHelper = function() {
+				if (maximizeHelperShown) { return; }
+
+				$maximizeHelper = $('<div></div>')
+					.addClass('webos-window-manip-helper')
+					.css({
+						position: 'absolute',
+						top: 0,
+						left: '12.5%',
+						width: '75%',
+						height: '75%',
+						opacity: 0,
+						'z-index': that.element.css('z-index')
+					})
+					.insertBefore(that.element)
+					.animate({
+						width: '100%',
+						height: '100%',
+						left: 0,
+						opacity: 1
+					});
+
+				maximizeHelperShown = true;
+			};
+			var hideMaximizeHelper = function() {
+				if (!maximizeHelperShown) { return; }
+
+				$maximizeHelper.fadeOut('normal', function() {
+					$(this).remove();
+				});
+				$maximizeHelper = $();
+				maximizeHelperShown = false;
+			};
 			
-			var mouseMoveFn = function(e) {
+			$('body').bind('mousemove.window.widget.webos', function(e) {
 				posX = e.pageX - diffX, posY = e.pageY - diffY;
 				
 				if (posY < 0) { posY = 0; }
 				
 				el.style.left = posX+'px';
 				el.style.top = posY+'px';
+
+				if (posY == 0) { showMaximizeHelper(); } else { hideMaximizeHelper(); }
 				
 				e.preventDefault();
-			};
-			$('body').bind('mousemove', mouseMoveFn).one('mouseup', function(e) {
-				$(this).unbind('mousemove', mouseMoveFn);
+			}).one('mouseup', function(e) {
+				$(this).unbind('mousemove.window.widget.webos');
 				
 				var desktopPosX = $('#desktop').offset().left, desktopPosY = $('#desktop').offset().top;
 				if (posX + that.element.width() < desktopPosX) {
@@ -689,6 +730,11 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				that.element.removeClass('dragging cursor-move');
 				
 				that._saveDimentions();
+
+				if (maximizeHelperShown) {
+					that.maximize();
+					hideMaximizeHelper();
+				}
 				
 				e.preventDefault();
 			});
