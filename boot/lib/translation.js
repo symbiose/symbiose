@@ -318,14 +318,6 @@ Webos.TranslatedLibrary.prototype = {
 	}
 };
 
-Webos.User.bind('login logout', function() {
-	//Lorsque l'utilisateur quitte sa session, on reinitialise la langue
-	Webos.Translation._language = null;
-	Webos.Locale._locale = null;
-	Webos.Locale.load();
-});
-
-
 new Webos.Locale({
 	title: 'English (United Kingdom)',
 	integerGroupsSeparator: ',',
@@ -460,5 +452,12 @@ new Webos.Locale({
 	}
 }, 'de_DE');
 
+
+Webos.User.bind('login logout', function() {
+	//Lorsque l'utilisateur quitte sa session, on reinitialise la langue
+	Webos.Translation._language = null;
+	Webos.Locale._locale = null;
+	Webos.Locale.load();
+});
 
 Webos.Locale.load();
