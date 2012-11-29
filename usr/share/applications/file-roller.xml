@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Gestionnaire d'archives"/>
+	<attribute name="description" value="Compresser et décompresser des archives"/>
+	<attribute name="command" value="file-roller"/>
+	<attribute name="icon" value="applications/file-roller"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="accessories"/>
+	<attribute name="open" value="zip"/>
+</shortcut>
