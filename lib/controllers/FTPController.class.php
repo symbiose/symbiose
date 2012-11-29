@@ -52,15 +52,17 @@ class FTPController extends \lib\ServerCallComponent {
 	
 	protected function getMetadata($loginData, $file) {
 		$dirname = preg_replace('#/[^/]*/?$#', '', $file);
-		$basename = preg_replace('#^.*[/\\\\]#', '', $file);
-		
+		$basename = preg_replace('#^.*/#', '', $file);
+
 		$list = $this->getFileList($loginData, $dirname);
-		
+
 		foreach ($list as $info) {
 			if ($info['basename'] == $basename) {
 				return $info;
 			}
 		}
+
+		throw new Exception('Impossible de r&eacute;cup&eacute;rer les informations sur le fichier "'.$file.'"');
 	}
 	
 	protected function getFile($loginData, $file) {
@@ -129,6 +131,15 @@ class FTPController extends \lib\ServerCallComponent {
 		$conn = $this->_getConnexion($loginData);
 		
 		$raw = ftp_rawlist($conn, $dir);
+
+		if (!is_array($raw)) {
+			var_dump($raw);
+			var_dump($dir);
+		}
+
+		if ($raw === false) {
+			//return array();
+		}
 		
 		$list = array();
 		

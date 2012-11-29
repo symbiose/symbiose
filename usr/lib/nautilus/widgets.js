@@ -228,12 +228,12 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 					if (item && item.is(Webos.File)) {
 						item.paste(function(file) {
 							if (item.operation() == 'cut') {
-								Webos.File.move(file, dir, function(dest) {
+								that._move(file, dir, function(dest) {
 									item.setData(dest);
 									item.pasted();
 								});
 							} else {
-								Webos.File.copy(file, dir, function() {
+								that._copy(file, dir, function(dest) {
 									item.pasted();
 								});
 							}
@@ -543,7 +543,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				input.val(file.get('basename')).focus().setCursorPosition(0, pos);
 			},
 			remove: function() {
-				item.data('file')().remove();
+				that._remove(item.data('file')());
 			},
 			openProperties: function() {
 				that._openProperties(item.data('file')());
@@ -590,6 +590,41 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			$.webos.menuItem(t.get('Cut')).click(function() {
 				Webos.Clipboard.cut(file);
 			}).appendTo(contextmenu);
+
+			if (file.get('is_dir')) {
+				var pasteItem = $.webos.menuItem(t.get('Paste')).click(function() {
+					var itemToPaste = Webos.Clipboard.get();
+					if (itemToPaste && itemToPaste.is(Webos.File)) {
+						itemToPaste.paste(function(fileToPaste) {
+							if (itemToPaste.operation() == 'cut') {
+								that._move(fileToPaste, file, function(dest) {
+									itemToPaste.setData(dest);
+									itemToPaste.pasted();
+								});
+							} else {
+								that._copy(fileToPaste, file, function(dest) {
+									itemToPaste.pasted();
+								});
+							}
+						}, true);
+					}
+				}).appendTo(contextmenu);
+
+				var clipboardItem = Webos.Clipboard.get();
+				pasteItem.menuItem('option', 'disabled', !(clipboardItem && clipboardItem.is(Webos.File)));
+
+				var copyCallbackId = Webos.Clipboard.bind('copy cut', function(data) {
+					var item = Webos.Clipboard.get();
+					pasteItem.menuItem('option', 'disabled', !(item && item.is(Webos.File)));
+				});
+				var clearCallbackId = Webos.Clipboard.bind('clear', function() {
+					pasteItem.menuItem('option', 'disabled', true);
+				});
+				that.element.one('readstart', function() {
+					Webos.Clipboard.unbind(copyCallbackId);
+					Webos.Clipboard.unbind(clearCallbackId);
+				});
+			}
 		}
 		$.webos.menuItem(t.get('Properties'), true).click(function() {
 			var files = (that.getSelection().length == 0) ? item : that.getSelection();
@@ -1234,6 +1269,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		return selectedFiles;
 	},
 	_copy: function(source, dest, callback) {
+		source = W.File.get(source);
+		dest = W.File.get(dest);
 		callback = W.Callback.toCallback(callback);
 
 		var progressId = $.w.nautilus.progresses.add(0, 'Copie de '+source.get('basename')+' vers '+dest.get('basename'));
@@ -1249,6 +1286,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		}]);
 	},
 	_move: function(source, dest, callback) {
+		source = W.File.get(source);
+		dest = W.File.get(dest);
 		callback = W.Callback.toCallback(callback);
 
 		var progressId = $.w.nautilus.progresses.add(0, 'D&eacute;placement de '+source.get('basename')+' vers '+dest.get('basename'));
@@ -1259,6 +1298,22 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			callback.success();
 		}, function(response) {
 			$.w.nautilus.progresses.update(progressId, 100, 'Erreur lors du d&eacute;placement.');
+
+			callback.error(response);
+		}]);
+	},
+	_remove: function(file, callback) {
+		file = W.File.get(file);
+		callback = W.Callback.toCallback(callback);
+
+		var progressId = $.w.nautilus.progresses.add(0, 'Suppression de '+file.get('basename'));
+
+		file.remove([function() {
+			$.w.nautilus.progresses.update(progressId, 100, 'Suppression termin&eacute;e.');
+
+			callback.success();
+		}, function(response) {
+			$.w.nautilus.progresses.update(progressId, 100, 'Erreur lors de la suppression.');
 
 			callback.error(response);
 		}]);
