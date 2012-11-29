@@ -1,14 +1,15 @@
-# Le serveur doit suivre les liens symboliques :
+# Follow symbolic links
 Options +FollowSymlinks
 
-# Activation du module de réécriture d'URL :
+# Turn URL rewriting on
 RewriteEngine on
 
+# VERY IMPORTANT !
+# If URL rewriting isn't enabled, there will be some critical security issues.
 RewriteRule ^([a-zA-Z0-9-_.]+)\.html$                index.php?ui=$1 [L,QSA]
 RewriteRule ^(bin|boot|etc|home|tmp|usr|var)/(.*)$   sbin/filecall.php?file=/$1/$2 [L,QSA]
 
-# AddType TYPE/SUBTYPE EXTENSION
- 
+# Common media mime types
 AddType audio/mpeg mp3
 AddType audio/mp4 m4a
 AddType audio/ogg oga
