@@ -122,20 +122,48 @@ class Authorization extends \lib\WebosComponent {
 				if ($providedArgument === null) {
 					return true;
 				}
+
+				$path = $providedArgument;
+
+				//Quelques nettoyages...
+				$dirs = explode('/', $path);
+				$path = array();
+				foreach ($dirs as $dir) {
+					if ($dir == '..') {
+						array_pop($path);
+					} elseif ($dir == '.') {
+						continue;
+					} elseif ($dir == '~') {
+						if ($this->webos->getUser()->isConnected()) {
+							$path += explode('/', $this->webos->managers()->get('File')->userDirectory());
+						} else {
+							$path[] = $dir;
+						}
+					} elseif (empty($dir)) {
+						continue;
+					} else {
+						$path[] = $dir;
+					}
+				}
+				$path = implode('/', $path);
+
+				//On ajoute le / devant
+				if (!preg_match('#^/#',$path))
+					$path = '/'.$path;
 				
+				//Dernier nettoyage
+				$path = preg_replace('#/\.$#','/',$path);
+
 				if ($this->webos->getUser()->isConnected()) {
-					if (preg_match('#^'.$this->webos->managers()->get('File')->userDirectory().'/#', $providedArgument) || $providedArgument == $this->webos->managers()->get('File')->userDirectory()) {
+					if (preg_match('#^'.$this->webos->managers()->get('File')->userDirectory().'/#', $path) || $path == $this->webos->managers()->get('File')->userDirectory()) {
 						return 'file.user.'.$argumentAction;
 					}
 				}
 
-				if (preg_match('#^~/#', $providedArgument) || $providedArgument == '~')
-					return 'file.user.'.$argumentAction;
+				if (preg_match('#^/home/#', $path))
+					return 'file.home.'.$path;
 
-				if (preg_match('#^/home/#', $providedArgument))
-					return 'file.home.'.$argumentAction;
-
-				if ($argumentAction == 'read' && (preg_match('#^/usr/#', $providedArgument) || preg_match('#^/boot/#', $providedArgument)))
+				if ($argumentAction == 'read' && (preg_match('#^/usr/#', $path) || preg_match('#^/boot/#', $path)))
 					return true;
 
 				return 'file.system.'.$argumentAction;
