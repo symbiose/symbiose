@@ -50,7 +50,11 @@ Webos.Translation.language = function $_WTranslation_language() {
 	return Webos.Translation._language;
 };
 Webos.Translation.parse = function $_WTranslation_parse(contents) {
-	var lines = contents.split('\n');
+	if (!contents) {
+		return {};
+	}
+
+	var lines = String(contents).split('\n');
 	var data = {};
 	var inComment = false;
 	
