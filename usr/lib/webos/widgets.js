@@ -117,10 +117,9 @@ var widgetProperties = {
 		return this.options.pid;
 	},
 	destroy: function() {
-		this._destroy();
 		delete $.webos.widgets[this.options.id];
+		$.Widget.prototype.destroy.call(this);
 	},
-	_destroy: function() {},
 	_setOption: function(key, value) {
 		this.options[key] = value;
 		this._update(key, value);
@@ -155,12 +154,14 @@ $.webos.extend = function(parent, child) {
 		if (typeof child[attr] == 'function' && typeof parent[attr] == 'function') {
 			child[attr] = (function(parentMethod, childMethod) {
 				return function() {
-					var args = [];
-					for (var i = 0; i < arguments.length; i++) {
-						args.push(arguments[i]);
+					if (attr == 'destroy') { //When destroying a widget, we must call the child method first
+						result = childMethod.apply(this, arguments);
+						parentMethod.apply(this, arguments);
+						return result;
+					} else {
+						parentMethod.apply(this, arguments);
+						return childMethod.apply(this, arguments);
 					}
-					parentMethod.apply(this, args);
-					return childMethod.apply(this, args);
 				};
 			})(parent[attr], child[attr]);
 		}
@@ -2143,7 +2144,7 @@ var droppableProperties = $.webos.extend($.webos.properties.get('widget'), {
 		
 		$.webos.ddmanager.droppables.push(this);
 	},
-	_destroy: function() {
+	destroy: function() {
 		for (var i = 0; i < $.webos.ddmanager.droppables.length; i++) {
 			if ($.webos.ddmanager.droppables[i] == this) {
 				$.webos.ddmanager.droppables.splice(i, 1);

@@ -48,7 +48,7 @@ Webos.require(dependencies, function() {
 			
 			this._controls.menu.createNewFile = $.w.menuItem(t.get('New...'))
 				.click(function() {
-					
+					W.Cmd.execute('file-roller');
 				})
 				.appendTo(fileItemContent);
 			
@@ -58,19 +58,20 @@ Webos.require(dependencies, function() {
 				})
 				.appendTo(fileItemContent);
 			
-			this._controls.menu.saveAs = $.w.menuItem('Save as...', true)
+			this._controls.menu.saveAs = $.w.menuItem(t.get('Save as...'), true)
 				.click(function() {
 					
 				})
+				.hide()
 				.appendTo(fileItemContent);
 			
 			this._controls.menu.extract = $.w.menuItem(t.get('Extract'))
 				.click(function() {
-					
+					that.extractArchive();
 				})
 				.appendTo(fileItemContent);
 			
-			this._controls.menu.quit = $.w.menuItem('Quit', true)
+			this._controls.menu.quit = $.w.menuItem(t.get('Quit'), true)
 				.click(function() {
 					that._window.window('close');
 				})
@@ -81,7 +82,7 @@ Webos.require(dependencies, function() {
 
 			this._controls.menu.about = $.w.menuItem('About')
 				.click(function() {
-					
+					that.openAboutWindow();
 				})
 				.appendTo(helpItemContent);
 
@@ -90,23 +91,24 @@ Webos.require(dependencies, function() {
 			
 			this._controls.toolbar.createFile = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/document-new', 'button'))
 				.click(function() {
-					
+					W.Cmd.execute('file-roller');
 				})
 				.appendTo(toolbar);
 
-			this._controls.toolbar.openFile = $.w.toolbarWindowHeaderItem('Open', new W.Icon('actions/document-open', 'button'))
+			this._controls.toolbar.openFile = $.w.toolbarWindowHeaderItem(t.get('Open'), new W.Icon('actions/document-open', 'button'))
 				.click(function() {
 					that.openFile();
 				})
 				.appendTo(toolbar);
 
-			this._controls.toolbar.addFiles = $.w.toolbarWindowHeaderItem('Add files', new W.Icon('actions/archive-insert', 'button'))
+			this._controls.toolbar.addFiles = $.w.toolbarWindowHeaderItem(t.get('Add files'), new W.Icon('actions/archive-insert', 'button'))
 				.click(function() {
 					
 				})
+				.hide()
 				.appendTo(toolbar);
 
-			this._controls.toolbar.extract = $.w.toolbarWindowHeaderItem('Extract', new W.Icon('actions/archive-extract', 'button'))
+			this._controls.toolbar.extract = $.w.toolbarWindowHeaderItem(t.get('Extract'), new W.Icon('actions/archive-extract', 'button'))
 				.click(function() {
 					that.extractArchive();
 				})
@@ -114,15 +116,15 @@ Webos.require(dependencies, function() {
 
 			var toolbar = $.w.toolbarWindowHeader().appendTo(headers);
 
-			this._controls.toolbar.previous = $.w.toolbarWindowHeaderItem('Previous', new W.Icon('actions/go-previous', 'button'))
+			this._controls.toolbar.previous = $.w.toolbarWindowHeaderItem(t.get('Previous'), new W.Icon('actions/go-previous', 'button'))
 				.click(function() {
-					
+					that._openArchivePreviousDir();
 				})
 				.appendTo(toolbar);
 
 			this._controls.toolbar.next = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/go-next', 'button'))
 				.click(function() {
-					
+					that._openArchiveNextDir();
 				})
 				.appendTo(toolbar);
 
@@ -152,6 +154,8 @@ Webos.require(dependencies, function() {
 	FileRoller.prototype = {
 		_translationsName: 'file-roller',
 		_archiveFile: null,
+		_history: [],
+		_historyCursor: null,
 		_archive: {
 			obj: null,
 			type: null,
@@ -160,12 +164,25 @@ Webos.require(dependencies, function() {
 		_openArchive: function(path) {
 			path = (typeof path == 'string') ? path : this._archive.path;
 
+			if (this._historyCursor === null || (this._historyCursor + 1 == this._history.length && this._history[this._historyCursor] != path)) {
+				this._history.push(path);
+				this._historyCursor = (this._historyCursor === null) ? 0 : this._historyCursor + 1;
+			}
+
 			this._openZip(path);
 		},
 		_openArchiveParentDir: function() {
 			var dirname = ('/'+this._archive.path).replace(/\/[^\/]*\/?$/, '').replace(/^\//, '');
 
 			this._openArchive(dirname);
+		},
+		_openArchivePreviousDir: function() {
+			this._historyCursor = (this._historyCursor > 0) ? this._historyCursor - 1 : 0;
+			this._openArchive(this._history[this._historyCursor]);
+		},
+		_openArchiveNextDir: function() {
+			this._historyCursor = (this._historyCursor + 1 < this._history.length) ? this._historyCursor + 1 : this._history.length - 1;
+			this._openArchive(this._history[this._historyCursor]);
 		},
 		_extractArchive: function(dest, callback, files) {
 			files = files || [this._archive.path];
@@ -247,8 +264,6 @@ Webos.require(dependencies, function() {
 			var that = this, zip = this._archive.obj;
 			callback = Webos.Callback.toCallback(callback);
 
-			console.log(dest, fileData, callback);
-
 			W.File.createFolder(dest.get('path'), [function(dest) {
 				var files = [], extractedFiles = [];
 				var onExtractedFn = function(file) {
@@ -297,7 +312,7 @@ Webos.require(dependencies, function() {
 			}, callback.error]);
 		},
 		_extractZip: function(dest, callback, files) {
-			var that = this;
+			var that = this, t = this._translations;
 			callback = Webos.Callback.toCallback(callback);
 			dest = W.File.get(dest);
 
@@ -333,7 +348,7 @@ Webos.require(dependencies, function() {
 					}
 
 					if (!fileData) {
-						callback.error(Webos.Callback.Result.error('File not found in archive : "'+path+'"'));
+						callback.error(Webos.Callback.Result.error(t.get('File not found in archive : "${path}"', { path: path })));
 						return;
 					}
 
@@ -353,12 +368,12 @@ Webos.require(dependencies, function() {
 			}
 		},
 		_openFile: function(file, callback) {
-			var that = this;
+			var that = this, t = this._translations;
 			callback = Webos.Callback.toCallback(callback);
 			file = W.File.get(file);
 
 			if (jQuery.inArray(file.get('extension'), FileRoller._supportedTypes) == -1) {
-				callback.error(Webos.Callback.Result.error('Unsupported file type "'+file.get('extension')+'"'));
+				callback.error(Webos.Callback.Result.error(t.get('Unsupported file type "${type}"', { type: file.get('extension') })));
 				return;
 			}
 
@@ -366,12 +381,12 @@ Webos.require(dependencies, function() {
 			this.notify('beforeopenfile', { file: file });
 
 			this._window.window('loading', true, {
-				message: 'Opening « '+file.get('basename')+' »...'
+				message: t.get('Opening « ${filename} »...', { filename: file.get('basename') })
 			});
 
 			file.readAsBinary([function(contents) {
 				that._window.window('loading', true, {
-					message: 'Extracting...'
+					message: t.get('Extracting...')
 				});
 
 				var type = file.get('extension'), archive = null;
@@ -382,6 +397,8 @@ Webos.require(dependencies, function() {
 				}
 
 				that._archiveFile = file;
+				that._history = [];
+				that._historyCursor = null;
 				that._archive.obj = archive;
 				that._archive.type = type;
 				that._archive.path = '';
@@ -426,8 +443,17 @@ Webos.require(dependencies, function() {
 
 			this.notify('openfile', { file: file, archive: archive, type: type });
 		},
-		createFile: function() {
+		createFile: function() {},
+		openAboutWindow: function() {
+			var that = this, t = this._translations;
 
+			$.w.window.about({
+				name: t.get('Archive manager'),
+				version: '0.2',
+				description: t.get('An archive manager for GNOME.'),
+				author: '$imon',
+				icon: 'applications/file-roller'
+			}).window('open');
 		}
 	};
 	Webos.inherit(FileRoller, Webos.Observable);

@@ -169,7 +169,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				break;
 		}
 	},
-	_destroy: function() {
+	destroy: function() {
 		if (this.is('closed')) {
 			this.element.empty().remove();
 			return;
