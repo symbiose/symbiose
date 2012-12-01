@@ -22,6 +22,7 @@ $(function() { //When the window is ready
 
 	//Webos.File library loaded, we can now use Webos.require()
 	Webos.require([
+		'/boot/lib/collection.js',
 		'/boot/lib/uniqueid.js',
 		'/boot/lib/ui.js',
 		'/boot/lib/css.js',

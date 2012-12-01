@@ -120,6 +120,22 @@ Webos.Callback.prototype = {
 			callback = 'success';
 		}
 		this.callbacks[callback].context = context;
+	},
+	callback: function $_WCallback_callback(fn, type) {
+		if (typeof fn == 'undefined') {
+			if (this.callbacks[callback]) {
+				return this.callbacks[callback].callback;
+			}
+		} else {
+			if (typeof fn != 'function') {
+				return false;
+			}
+			if (!type) {
+				type = 'success';
+			}
+
+			this.callbacks[callback].callback = fn;
+		}
 	}
 };
 Webos.inherit(Webos.Callback, Webos.Observable);
