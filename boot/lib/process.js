@@ -16,14 +16,14 @@ Webos.Process = function WProcess(options) {
 	Webos.Observable.call(this);
 };
 Webos.Process.prototype = {
-	main: function() {},
-	getPid: function() {
+	main: function $_WProcess_main() {},
+	getPid: function $_WProcess_getPid() {
 		return this.pid;
 	},
-	getAuthorizations: function() {
+	getAuthorizations: function $_WProcess_getAuthorizations() {
 		return this.authorizations;
 	},
-	run: function() {
+	run: function $_WProcess_run() {
 		if (this.state() != 'ready') {
 			return;
 		}
@@ -58,7 +58,7 @@ Webos.Process.prototype = {
 			});
 		}
 	},
-	stop: function() {
+	stop: function $_WProcess_stop() {
 		if (this.state() != 'running' && this.state() != 'idle') {
 			return;
 		}
@@ -73,15 +73,15 @@ Webos.Process.prototype = {
 		delete Webos.Process.list[this.getPid()];
 		delete this;
 	},
-	state: function() {
+	state: function $_WProcess_state() {
 		var states = ['ready', 'running', 'idle', 'killed'];
 
 		return states[this._state];
 	},
-	isRunning: function() {
+	isRunning: function $_WProcess_isRunning() {
 		return (this._state == 1 || this._state == 2);
 	},
-	toString: function() {
+	toString: function $_WProcess_toString() {
 		return '[WProcess #'+this.pid+']';
 	}
 };
@@ -89,10 +89,10 @@ Webos.inherit(Webos.Process, Webos.Observable);
 
 Webos.Process.list = {};
 Webos.Process.stack = [];
-Webos.Process.get = function(pid) {
+Webos.Process.get = function $_WProcess_get(pid) {
 	return Webos.Process.list[pid];
 };
-Webos.Process.current = function() {
+Webos.Process.current = function $_WProcess_current() {
 	return Webos.Process.stack[Webos.Process.stack.length - 1];
 };
 
@@ -100,25 +100,26 @@ Webos.Observable.build(Webos.Process);
 
 
 Webos.Authorizations = function WAuthorizations(authorizations) {
-	this.authorizations = (authorizations) ? authorizations : [];
-	
-	this.can = function(auth) {
+	this.authorizations = authorizations || [];
+};
+Webos.Authorizations.prototype = {
+	can: function $_WAuthorizations_can(auth) {
 		for (var i = 0; i < this.authorizations.length; i++) {
 			if (this.authorizations[i] == auth) {
 				return true;
 			}
 		}
 		return false;
-	};
-	this.get = function() {
+	},
+	get: function $_WAuthorizations_get() {
 		return this.authorizations;
-	};
-	this.set = function(auth) {
+	},
+	set: function $_WAuthorizations_set(auth) {
 		if (auth != this.authorizations) {
 			this.authorizations = auth;
 		}
-	};
-	this.add = function(auth) {
+	},
+	add: function $_WAuthorizations_add(auth) {
 		for (var i = 0; i < this.authorizations.length; i++) {
 			if (this.authorizations[i] == auth) {
 				return;
@@ -126,15 +127,15 @@ Webos.Authorizations = function WAuthorizations(authorizations) {
 		}
 		
 		this.authorizations.push(auth);
-	};
-	this.remove = function(auth) {
+	},
+	remove: function $_WAuthorizations_remove(auth) {
 		for (var i = 0; i < this.authorizations.length; i++) {
 			if (this.authorizations[i] == auth) {
 				delete this.authorizations[i];
 			}
 		}
-	};
-	this.model = function(value) {
+	},
+	model: function $_WAuthorizations_model(value) {
 		var compareArraysFn = function(a, b) {
 			if (a.length != b.length) {
 				return false;
@@ -173,11 +174,12 @@ Webos.Authorizations = function WAuthorizations(authorizations) {
 			}
 			
 			this.authorizations = Webos.Authorizations.models[value];
-			
+
 			return true;
 		}
-	};
+	}
 };
+
 Webos.Authorizations.all = ['file.user.read',
                        'file.user.write',
                        'file.home.read',
