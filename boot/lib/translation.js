@@ -274,7 +274,7 @@ Webos.Locale.detect = function $_WLocale_detect() {
 		return locale;
 	}
 	
-	return Webos.Locale.getDefault().get('name');
+	return Webos.Locale.getDefault().name();
 };
 Webos.Locale.set = function $_WLocale_set(locale, callback) {
 	callback = Webos.Callback.toCallback(callback);
