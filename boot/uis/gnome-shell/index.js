@@ -79,30 +79,34 @@ Webos.Error.setErrorHandler(function(error) {
 	} else {
 		shortMessage = error.message;
 		message = error.name + ' : ' + error.message;
-		process = (error.process) ? 'Processus : '+error.process.getPid()+'; commande : <em>'+error.process.cmdText+'</em><br />' : '';
+		process = (error.process) ? 'Process : '+error.process.getPid()+'; command : <em>'+error.process.cmdText+'</em><br />' : '';
 		details = error.name + ' : ' + error.message + "<br />"+process+"Stack trace :<br />" + error.stack;
 	}
 
+	var errorWindow = $();
+
 	var reportErrorFn = function() {
-		W.ScriptFile.load('/usr/lib/apport/apport.js');
-		Apport.reportError(error);
+		Webos.require('/usr/lib/apport/apport.js', function() {
+			Apport.askDescriptionAndReportError(error);
+			errorWindow.window('close');
+		});
 	};
 
 	var openWindowFn = function() {
-		var errorWindow = $.webos.window({
-			title: 'Erreur',
+		errorWindow = $.webos.window({
+			title: 'Error',
 			resizable: false,
 			width: 400,
 			icon: new W.Icon('status/error')
 		});
-		
-		var img = $('<img />', { 'src': new W.Icon('status/error'), 'alt': 'erreur' }).css('float', 'left');
+
+		var img = $('<img />', { 'src': new W.Icon('status/error'), 'alt': 'error' }).css('float', 'left');
 		errorWindow.window('content').append(img);
-		
-		errorWindow.window('content').append('<strong>Une erreur est survenue.</strong><br />'+message);
-		
-		var spoiler = $.w.spoiler('Voir plus d\'informations').appendTo(errorWindow.window('content'));
-		
+
+		errorWindow.window('content').append('<strong>An error occured.</strong><br />'+message);
+
+		var spoiler = $.w.spoiler('Show details').appendTo(errorWindow.window('content'));
+
 		$('<pre></pre>')
 			.html(details)
 			.css('height','150px')
@@ -110,26 +114,26 @@ Webos.Error.setErrorHandler(function(error) {
 			.css('background-color','white')
 			.css('padding','2px')
 			.appendTo(spoiler.spoiler('content'));
-		
+
 		var buttonContainer = $.webos.buttonContainer();
-		$.webos.button('Signaler le bug...').click(function() {
+		$.webos.button('Report this bug...').click(function() {
 			reportErrorFn();
 		}).appendTo(buttonContainer.buttonContainer('content'));
-		$.webos.button('Fermer').click(function() {
+		$.webos.button('Close').click(function() {
 			errorWindow.window('close');
 		}).appendTo(buttonContainer.buttonContainer('content'));
 		errorWindow.window('content').append(buttonContainer);
-		
+
 		errorWindow.window('open');
 	};
 	
 	$.w.notification({
-		title: 'Une erreur est survenue',
+		title: 'An error occured',
 		shortMessage: shortMessage,
 		message: message,
 		widgets: [
-			$.w.button('D&eacute;tails').click(function() { openWindowFn(); }),
-			$.w.button('Signaler le bug...').click(function() { reportErrorFn(); })
+			$.w.button('Details').click(function() { openWindowFn(); }),
+			$.w.button('Report this bug...').click(function() { reportErrorFn(); })
 		]
 	});
 });
