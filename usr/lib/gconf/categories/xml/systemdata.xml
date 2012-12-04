@@ -5,4 +5,5 @@
 	<define name="icon" value="actions/cog"/>
 	<define name="description" value="Afficher les informations sur le système"/>
 	<define name="category" value="system"/>
+	<define name="authorizations" value="file.system.read"/>
 </category>

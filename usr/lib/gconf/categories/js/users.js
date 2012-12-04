@@ -268,8 +268,8 @@ var enableUserEditFn = function(user) {
 					break;
 				case 'varchar':
 				default:
-					editButton = $.w.button(user.get(key));
-					editEntry = $.w.textEntry(editable.label).textEntry('value', user.getAttribute(key));
+					editButton = $.w.button(user.get(key) || 'Vide');
+					editEntry = $.w.textEntry(editable.label).textEntry('value', user.get(key));
 			}
 			
 			editArea.append(editEntry);
@@ -297,7 +297,7 @@ var enableUserEditFn = function(user) {
 					case 'varchar':
 					default:
 						newValue = editEntry.textEntry('value');
-						editButton.text(newValue);
+						editButton.text(newValue || 'Vide');
 				}
 				
 				editable.element.show();
