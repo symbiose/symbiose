@@ -385,3 +385,13 @@ Webos.User.evalPasswordPower = function(s) {
 	
 	return cmpx * 25;
 };
+Webos.User.stats = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	return new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'getStats'
+	}).load([function(response) {
+		callback.success(response.getData());
+	}, callback.error]);
+};

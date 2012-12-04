@@ -249,4 +249,16 @@ class UserController extends \lib\ServerCallComponent {
 		//On inscrit le membre
 		$this->webos->managers()->get('User')->create($data, $authorizations);
 	}
+
+	/**
+	 * Recuperer des statistiques sur les utilisateurs.
+	 */
+	protected function getStats() {
+		$stats = array();
+
+		$list = $this->webos->managers()->get('User')->getUsersList();
+		$stats['nbr_users'] = count($list);
+
+		return $stats;
+	}
 }

@@ -1,21 +1,21 @@
-.systemdata {
+.about {
 	text-align: center;
 }
 
-.systemdata .logo {
+.about .logo {
 	max-height: 150px;
 	max-width: 150px;
 }
 
-.systemdata h2 {
+.about h2 {
 	margin-top: 0px;
 }
 
-.systemdata li {
+.usersdata .usersDataList li, .serverdata .serverDataList li {
 	list-style-type: none;
 	list-style-position: inside;
 }
 
-.systemdata li .detail {
+.usersdata .usersDataList li .detail, .serverdata .serverDataList li .detail {
 	color: gray;
 }

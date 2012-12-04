@@ -36,4 +36,7 @@
 	</method>
 	<method name="register"></method>
 	<method name="canRegister"></method>
+	<method name="getStats">
+		<authorization action="user.read"/>
+	</method>
 </class>
