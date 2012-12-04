@@ -202,7 +202,7 @@ input[type="submit"][disabled]:active,
 }
 .webos-iconslist .webos-iconslistitem {
 	max-width: 100px;
-	float: left;
+	display: inline-block;
 	overflow: hidden;
 	-o-text-overflow: ellipsis; /* pour Opera 9 */
 	text-overflow: ellipsis; /* pour le reste du monde */
@@ -220,6 +220,13 @@ input[type="submit"][disabled]:active,
 	border-radius: 4px;
 	background-color: #4a90d9;
 	color: white;
+}
+.webos-iconslist .webos-iconslistheader {
+	width: 100%;
+	white-space: nowrap;
+	font-size: 1.25em;
+	font-weight: bold;
+	padding: 7px 16px;
 }
 
 .webos-switchbutton .entry {

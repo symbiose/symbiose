@@ -4,4 +4,5 @@
 	<define name="title" value="Informations système"/>
 	<define name="icon" value="actions/cog"/>
 	<define name="description" value="Afficher les informations sur le système"/>
+	<define name="category" value="system"/>
 </category>

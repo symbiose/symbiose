@@ -7,7 +7,7 @@ function GConf(category) {
 
 	this.bind('translationsloaded', function() {
 		var that = this, t = this._translations;
-	
+
 		this._window = $.w.window.main({
 			title: t.get('System settings'),
 			resizable: false,
@@ -21,6 +21,13 @@ function GConf(category) {
 		this._showCategories = function(categories) {
 			var list = $.w.iconsList().addClass('mainlist');
 			this._window.window('content').html(list);
+
+			var params = {};
+			var catTitles = {
+				'personal': t.get('Personal'),
+				'system': t.get('System'),
+				'other': t.get('Other')
+			};
 			
 			var generateItemFn = function(data) {
 				var icon = new W.Icon(data.icon);
@@ -36,7 +43,24 @@ function GConf(category) {
 			};
 			
 			for (var i = 0; i < categories.length; i++) {
-				list.append(generateItemFn(categories[i]));
+				var data = categories[i];
+				var cat = data.category || 'other';
+
+				if (!params[cat]) {
+					params[cat] = $();
+				}
+
+				params[cat] = params[cat].add(generateItemFn(data));
+			}
+
+			for (var catName in params) {
+				var catTitle = catName;
+
+				if (catTitles[catName]) {
+					catTitle = catTitles[catName];
+				}
+
+				list.append($.w.iconsListHeader(catTitle)).append(params[catName]);
 			}
 		};
 		
@@ -78,12 +102,13 @@ function GConf(category) {
 									name: xml.find('define[name="name"]').attr('value'),
 									title: xml.find('define[name="title"]').attr('value'),
 									icon: xml.find('define[name="icon"]').attr('value'),
-									description: xml.find('define[name="description"]').attr('value')
+									description: xml.find('define[name="description"]').attr('value'),
+									category: xml.find('define[name="category"]').attr('value')
 								});
 							}
 							
 							if (nbr == i) {
-								that._window.window('loading', false);
+								that._window.window('loading', false).window('center');
 								that._showCategories(that._categories);
 							}
 						}));

@@ -4,4 +4,5 @@
 	<define name="title" value="Prise en charge des langues"/>
 	<define name="icon" value="apps/translate"/>
 	<define name="description" value="Modifier les préférences de localisation"/>
+	<define name="category" value="personal"/>
 </category>

@@ -1203,6 +1203,32 @@ $.webos.iconsListItem = function(icon, title) {
 	});
 };
 
+//IconsListHeader
+$.webos.widget('iconsListHeader', $.webos.extend($.webos.properties.get('container'), {
+	options: {
+		title: ''
+	},
+	_name: 'iconslistheader',
+	_create: function() {
+		this.options._components.title = $('<span></span>', { 'class': 'title' }).appendTo(this.element);
+
+		this.option('title', this.options.title);
+	},
+	_update: function(key, value) {
+		switch(key) {
+			case 'title':
+				this.options._components.title.html(value);
+				break;
+		}
+	}
+}));
+
+$.webos.iconsListHeader = function(title) {
+	return $('<li></li>').iconsListHeader({
+		title: title
+	});
+};
+
 //Spoiler
 var spoilerProperties = $.webos.extend($.webos.properties.get('container'), {
 	_name: 'spoiler',

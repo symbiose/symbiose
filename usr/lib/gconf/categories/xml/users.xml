@@ -4,4 +4,6 @@
 	<define name="title" value="Comptes d'utilisateurs"/>
 	<define name="icon" value="stock/people"/>
 	<define name="description" value="Gérer les comptes d'utilisateurs"/>
+	<define name="category" value="system"/>
+	<define name="authorizations" value="user.read"/>
 </category>

@@ -4,5 +4,6 @@
 	<define name="title" value="Quotas"/>
 	<define name="icon" value="actions/go-top"/>
 	<define name="description" value="Gérer les quotas et restrictions du système"/>
+	<define name="category" value="system"/>
 	<define name="authorizations" value="file.system.read"/>
 </category>
