@@ -34,6 +34,18 @@ var geditProperties = $.webos.extend($.webos.properties.get('container'), {
 	redo: function() {
 		this.options._components.codemirror.redo();
 	},
+	selectAll: function() {
+		var codemirror = this.options._components.codemirror;
+
+		codemirror.setSelection({
+			line: 0,
+			ch: 0
+		}, {
+			line: Number.POSITIVE_INFINITY,
+			ch: Number.POSITIVE_INFINITY
+		});
+		codemirror.focus();
+	},
 	contents: function(value) {
 		if (typeof value == 'undefined') {
 			return this.options._components.codemirror.getValue();
@@ -412,6 +424,12 @@ function GEditWindow(file) {
 				that._gedit.gedit('redo');
 			})
 			.appendTo(editItemContent);
+
+		$.w.menuItem(t.get('Select all'))
+			.click(function() {
+				that._gedit.gedit('selectAll');
+			})
+			.appendTo(editItemContent);
 		
 		var viewItem = $.w.menuItem(t.get('View')).appendTo(menu);
 		viewItemContent = viewItem.menuItem('content');
@@ -554,6 +572,8 @@ function GEditWindow(file) {
 			expand: true,
 			keyUpResize: true,
 			alsoResize: this._gedit
+		}).on('scrollpanereload', function() {
+			that._gedit.gedit('codemirror', 'refresh');
 		});
 		
 		this._gedit.appendTo(this._content.scrollPane('content'));
