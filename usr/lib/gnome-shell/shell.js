@@ -294,7 +294,7 @@
 					
 					if ($.support.transition) {
 						//On applique le CSS
-						thisWindow.transition({
+						thisWindow.addClass('animating').transition({
 							x: translationX,
 							y: translationY,
 							scale: reduction
@@ -321,33 +321,38 @@
 			
 			var windows = $.w.window.workspace.getCurrent().getWindows();
 			for (var i = 0; i < windows.length; i++) {
-				if ($.support.transition) {
-					var endState;
-					
-					if (windows[i].window('is', 'hidden')) {
-						endState = {
-							x: 0,
-							y: 0,
-							scale: 1,
-							opacity: 0,
-							width: 0,
-							height: 0
-						};
+				(function(thisWindow) {
+					if ($.support.transition) {
+						var endState;
+						
+						if (thisWindow.window('is', 'hidden')) {
+							endState = {
+								x: 0,
+								y: 0,
+								scale: 1,
+								opacity: 0,
+								width: 0,
+								height: 0
+							};
+						} else {
+							endState = {
+								x: 0,
+								y: 0,
+								scale: 1
+							};
+						}
+						
+						//On applique l'effet
+						thisWindow.show().stop().transition(endState, duration, function() {
+							console.log('end');
+							thisWindow.removeClass('animating');
+						});
 					} else {
-						endState = {
-							x: 0,
-							y: 0,
-							scale: 1
-						};
+						if (!thisWindow.window('is', 'hidden')) {
+							thisWindow.fadeIn(duration);
+						}
 					}
-					
-					//On applique l'effet
-					windows[i].show().stop().transition(endState, duration);
-				} else {
-					if (!windows[i].window('is', 'hidden')) {
-						windows[i].fadeIn(duration);
-					}
-				}
+				})(windows[i]);
 			}
 			
 			//On enleve la surcouche
