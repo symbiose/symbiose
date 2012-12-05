@@ -344,7 +344,6 @@
 						
 						//On applique l'effet
 						thisWindow.show().stop().transition(endState, duration, function() {
-							console.log('end');
 							thisWindow.removeClass('animating');
 						});
 					} else {
