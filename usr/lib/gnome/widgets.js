@@ -690,7 +690,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				if (!maximizeHelperShown) { return; }
 				if (!that.options.maximizable) { return; }
 
-				$maximizeHelper.fadeOut('normal', function() {
+				$maximizeHelper.stop().fadeOut('normal', function() {
 					$(this).remove();
 				});
 				$maximizeHelper = $();
