@@ -36,7 +36,7 @@ ul.webos-contextmenu a {
 ul.webos-contextmenu li:hover > a {
 	color: white;
 	background: #98b9e2;
-	border:1px solid #4b6e99;
+	border: 1px solid #4b6e99;
 }
 
 ul.webos-contextmenu li.disabled a {
@@ -44,8 +44,8 @@ ul.webos-contextmenu li.disabled a {
 }
 
 ul.webos-contextmenu li:hover.disabled > a {
-	border: 1px solid #4b6e99;
 	background: none;
+	border: 1px solid transparent;
 }
 
 ul.webos-contextmenu li.separator {
