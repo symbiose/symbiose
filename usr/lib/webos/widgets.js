@@ -2060,17 +2060,14 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 		sourceFile: null,
 		dragImage: $(),
 		revert: true,
-		iframeFix: false
+		iframeFix: false,
+		distance: 5
 	},
 	_create: function() {
 		var that = this;
 		
 		this.element.bind('mousedown.draggable.widget.webos', function(e) {
 			if (e.button == 1 || e.button == 2) {
-				return;
-			}
-			
-			if(that._trigger('start', e) === false) {
 				return;
 			}
 
@@ -2108,10 +2105,16 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 			}
 			
 			var actualZIndex = $(el).css('z-index');
+
+			var traveledDistance = 0, dragStarted = false;
 			
 			var posX = e.pageX - diffX, posY = e.pageY - diffY;
 			
 			$(document).bind('mousemove.drag.draggable.widget.webos', function(e) {
+				if (!dragStarted) {
+					return;
+				}
+
 				posX = e.pageX - diffX, posY = e.pageY - diffY;
 				
 				el.style.left = posX+'px';
@@ -2120,8 +2123,22 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 				$.webos.ddmanager.drag(that, e);
 				
 				e.preventDefault();
-			}).one('mousemove.dragstart.draggable.widget.webos', function(e) {
+			}).on('mousemove.dragstart.draggable.widget.webos', function(e) {
+				traveledDistance++;
+
+				if (traveledDistance < that.options.distance) {
+					return;
+				}
+
+				$(this).off('mousemove.dragstart.draggable.widget.webos');
+
+				if(that._trigger('start', e) === false) {
+					$(this).trigger('mouseup');
+					return;
+				}
+
 				that._dragStart(el, e);
+				dragStarted = true;
 			}).one('mouseup', function(e) {
 				$(this).unbind('mousemove.drag.draggable.widget.webos').unbind('mousemove.dragstart.draggable.widget.webos');
 				
