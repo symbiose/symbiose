@@ -3,6 +3,7 @@
 if (!ini_get('display_errors')) {
     ini_set('display_errors', 1);
 }
+error_reporting(E_ALL);
 
 session_start(); //On demarre les sessions
 
@@ -10,6 +11,9 @@ chdir(dirname(__FILE__).'/..'); //On se place a la racine
 
 //On definit le fuseau horaire par defaut
 date_default_timezone_set('Europe/Paris');
+
+//On definit le temps d'execution maximum
+set_time_limit(30);
 
 function autoload($class) //Fonction qui permet de charger automatiquement une classe
 {
@@ -38,3 +42,4 @@ if (PHP_VERSION_ID < getPHPVersionId($minPHPVersion)) { //Si la version est trop
 
 // Configuration du gestionnaire d'erreurs
 set_error_handler(array('lib\Error','trigger'));
+register_shutdown_function(array('lib\Error','lookForFatalError'));

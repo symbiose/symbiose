@@ -149,7 +149,7 @@ abstract class Error extends \lib\WebosComponent {
 	}
 
 	/**
-	 * Declancher une erreur a partir d'une exception
+	 * Declancher une erreur a partir d'une exception.
 	 * @param Exception $e L'excpetion.
 	 */
 	public static function catchException(\Exception $e) {
@@ -157,6 +157,17 @@ abstract class Error extends \lib\WebosComponent {
 
 		//On affiche l'erreur
 		$error->show();
+	}
+
+	/**
+	 * Verifier qu'aucune erreur fatale n'est survenue a la fin de l'execution.
+	 */
+	public static function lookForFatalError() {
+		$error = error_get_last();
+
+		if ($error != null && $error['type'] == E_ERROR) {
+			self::trigger($error['type'], $error['message'], $error['file'], $error['line']);
+		}
 	}
 
 	/**
