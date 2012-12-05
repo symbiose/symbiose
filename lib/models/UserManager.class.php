@@ -60,7 +60,7 @@ abstract class UserManager extends \lib\Manager {
 	/**
 	 * Recuperer les autorisations de l'utilisateur.
 	 * @param int $userId L'id de l'utilisateur.
-	 * @return array Les authorisations.
+	 * @return array Les autorisations.
 	 */
 	abstract public function getAuthorisations($userId);
 
@@ -139,6 +139,15 @@ abstract class UserManager extends \lib\Manager {
 				}
 				if (!preg_match('#^[a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$#', $value)) {
 					return 'L\'e-mail est incorrect';
+				}
+
+				//Verification de la presence d'un doublon
+				$list = $this->getUsersList();
+
+				foreach ($list as $id => $data) {
+					if ($data['email'] == $value) {
+						return 'Un compte est d&eacute;j&agrave; existant avec cette adresse e-mail';
+					}
 				}
 				break;
 			default:

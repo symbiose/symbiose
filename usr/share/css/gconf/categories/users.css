@@ -11,6 +11,10 @@
 	float: left;
 }
 
+.userslist .userdisabled {
+	color: gray;
+}
+
 .edituser {
 	margin-left: 245px;
 	overflow: visible;

@@ -28,6 +28,9 @@
 	<method name="setAuthorizations">
 		<argument id="1" type="user" action="manage"/>
 	</method>
+	<method name="setEnabled">
+		<argument id="1" type="user" action="manage"/>
+	</method>
 	<method name="remove">
 		<argument id="0" type="user" action="edit"/>
 	</method>

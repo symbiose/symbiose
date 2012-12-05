@@ -102,6 +102,7 @@ Webos.Model.prototype = {
 	 */
 	_set: function(key, value) {
 		this._unsynced[key] = { value: value, state: 1 };
+		return true;
 	},
 	/**
 	 * Tester si une clef existe dans les données du modèle.

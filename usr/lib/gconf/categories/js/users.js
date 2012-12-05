@@ -21,6 +21,7 @@ $('<h2></h2>').append(editUser_name).appendTo(editUser);
 var editUser_username = $.w.label().appendTo(editUser);
 var editUser_email = $.w.label().appendTo(editUser);
 editUser.append('<br />');
+var editUser_disabled = $.w.label().appendTo(editUser);
 var editUser_authorizations = $.w.label().appendTo(editUser);
 editUser.append('<br />');
 $('<strong></strong>').html('Options de connexion').appendTo(editUser);
@@ -88,6 +89,26 @@ var editables = {
 			
 			confWindow.window('loading', true);
 			
+			user.sync(new W.Callback(function() {
+				confWindow.window('loading', false);
+			}, function(response) {
+				confWindow.window('loading', false);
+				response.triggerError('Impossible de modifier l\'utilisateur "'+user.get('username')+'"');
+			}));
+		}
+	},
+	'disabled': {
+		element: editUser_disabled,
+		type: 'boolean',
+		label: 'Compte d&eacute;sactiv&eacute;',
+		onEdit: function(user, value) {
+			if (!user.set('disabled', value)) {
+				W.Error.trigger('Impossible de modifier la d&eacute;sactivation de l\'utilisateur "'+user.get('username')+'"');
+				return;
+			}
+			
+			confWindow.window('loading', true);
+
 			user.sync(new W.Callback(function() {
 				confWindow.window('loading', false);
 			}, function(response) {
@@ -243,8 +264,19 @@ var editables = {
 	}
 };
 
+var userBeingEdited = null;
 var enableUserEditFn = function(user) {
 	editUser.show();
+
+	if (userBeingEdited) {
+		userBeingEdited.unbind('update.user_editing.users.gconf');
+	}
+
+	user.bind('update.user_editing.users.gconf', function() {
+		enableUserEditFn(userBeingEdited);
+	});
+
+	userBeingEdited = user;
 	
 	for (var key in editables) {
 		(function(key, editable) {
@@ -265,6 +297,11 @@ var enableUserEditFn = function(user) {
 						editEntry.selectButton('value', auth.model());
 						editButton.button('option', 'label', editable.choices[auth.model()]);
 					}));
+					break;
+				case 'boolean':
+					editButton = $.w.button((user.get(key)) ? 'Oui' : 'Non');
+					editEntry = $.w.checkButton(editable.label).checkButton('value', user.get(key));
+					editEntry.append($.w.button('Valider', true));
 					break;
 				case 'varchar':
 				default:
@@ -294,6 +331,9 @@ var enableUserEditFn = function(user) {
 						newValue = editEntry.selectButton('value');
 						editButton.html(editable.choices[newValue]);
 						break;
+					case 'boolean':
+						newValue = editEntry.checkButton('value');
+						break;
 					case 'varchar':
 					default:
 						newValue = editEntry.textEntry('value');
@@ -315,6 +355,7 @@ var enableUserEditFn = function(user) {
 
 var disableUserEditFn = function() {
 	editUser.hide();
+	userBeingEdited = null;
 };
 
 var createUserFn = function() {
@@ -470,7 +511,8 @@ var refreshUsersListFn = function() {
 				column.append('<br />');
 				var username = $('<em></em>').text(user.get('username')).appendTo(column);
 				
-				user.bind('update', function(data) {
+				user.unbind('update.users_list.users.gconf remove.users_list.users.gconf');
+				user.bind('update.users_list.users.gconf', function(data) {
 					switch (data.key) {
 						case 'realname':
 							realname.text(data.value);
@@ -478,9 +520,12 @@ var refreshUsersListFn = function() {
 						case 'username':
 							username.text(data.value);
 							break;
+						case 'disabled':
+							item.toggleClass('userdisabled', data.value);
+							break;
 					}
 				});
-				user.bind('remove', function() {
+				user.bind('remove.users_list.users.gconf', function() {
 					if (item.listItem('active')) {
 						disableUserEditFn();
 						removeButton.unbind('click');
@@ -488,6 +533,8 @@ var refreshUsersListFn = function() {
 					
 					item.remove();
 				});
+
+				item.toggleClass('userdisabled', user.get('disabled'));
 				
 				if (user.isLogged()) {
 					item.listItem('active', true);

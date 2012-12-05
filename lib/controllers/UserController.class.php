@@ -67,8 +67,15 @@ class UserController extends \lib\ServerCallComponent {
 	 * @param string $attribute L'attribut a modifier.
 	 * @param string $value La nouvelle valeur de l'attribut.
 	 * @param int $userId L'ID de l'utilisateur. Si vide, correspond a l'utilisateur connecte.
+	 * @throws InvalidArgumentException
 	 */
 	protected function setAttribute($attribute, $value, $userId = null) {
+		if ($attribute == 'disabled') {
+			$authorisations = $this->webos->getAuthorization();
+			$requiredAuthorisation = $authorisations->getArgumentAuthorizations($userId, 'user', 'manage');
+			$authorisations->control($requiredAuthorisation);
+		}
+
 		if ($userId === null) {
 			if (!$this->webos->getUser()->isConnected())
 				throw new \InvalidArgumentException('Utilisateur ind&eacute;fini');
@@ -86,15 +93,8 @@ class UserController extends \lib\ServerCallComponent {
 	 * @throws InvalidArgumentException
 	 */
 	protected function setMultipleAttributes($data, $userId = null) {
-		if ($userId === null) {
-			if (!$this->webos->getUser()->isConnected())
-				throw new \InvalidArgumentException('Utilisateur ind&eacute;fini');
-
-			$userId = $this->webos->getUser()->getId();
-		}
-
 		foreach ($data as $key => $value) {
-			$this->webos->managers()->get('User')->setAttribute($userId, $key, $value);
+			$this->setAttribute($key, $value, $userId);
 		}
 	}
 
@@ -194,6 +194,15 @@ class UserController extends \lib\ServerCallComponent {
 		}
 
 		$this->webos->managers()->get('User')->setAuthorisations($userId, $auth);
+	}
+
+	/**
+	 * Definir si un utilisateur est active ou non.
+	 * @param string $value Vrai pour activer l'utilisateur, faux sinon.
+	 * @param int $userId L'id de l'utilisateur.
+	 */
+	public function setEnabled($value, $userId) {
+		$this->webos->managers()->get('User')->setEnabled($userId, $value);
 	}
 
 	/**

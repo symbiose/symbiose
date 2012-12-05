@@ -6,6 +6,9 @@ Webos.User.prototype = {
 	id: function() {
 		return this._id;
 	},
+	disabled: function() {
+		return (this._get('disabled') == 1) ? true : false;
+	},
 	setId: function() {
 		return false;
 	},
@@ -99,6 +102,9 @@ Webos.User.prototype = {
 		}
 		
 		return this._set('email', value);
+	},
+	setDisabled: function(value) {
+		return this._set('disabled', (value) ? 1 : 0);
 	},
 	remove: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
