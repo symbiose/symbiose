@@ -1458,15 +1458,26 @@ var captchaEntryProperties = $.webos.extend($.webos.properties.get('container'),
 	_create: function() {
 		var that = this;
 		
-		this.options._components.label = $.webos.label('Chargement...').appendTo(this.element);
+		this.options._components.label = $.webos.label().appendTo(this.element);
 		this.options._components.input = $.webos.textEntry().textEntry('option', 'check', function(value) {
 			return that.isValid();
 		}).hide().appendTo(this.element);
+		this.options._components.reload = $.w.button('Recharger').click(function() {
+			that.loadCaptcha();
+		}).appendTo(this.options._components.input);
 		
-		this._loadCaptcha();
+		this.loadCaptcha();
 	},
-	_loadCaptcha: function() {
+	loadCaptcha: function() {
 		var that = this;
+
+		this.options._components.label.html('Chargement...');
+		this.options._components.reload.button('option', 'disabled', true);
+
+		if (that.options._content.is('img')) {
+			that.options._content.remove();
+		}
+
 		new W.ServerCall({
 			'class': 'CaptchaController',
 			method: 'get'
@@ -1476,6 +1487,7 @@ var captchaEntryProperties = $.webos.extend($.webos.properties.get('container'),
 			switch (data.type) {
 				case 1:
 					that.options._components.input.textEntry('option', 'label', data.captcha);
+					break;
 				case 2:
 					that.options._content = $('<img />', { src: 'data:image/png;base64,'+data.captcha, alt: 'captcha' }).insertAfter(that.options._components.label);
 					that.options._components.input.textEntry('option', 'label', 'Veuillez recopier le texte de l\'image ci-dessus : ');
@@ -1483,8 +1495,10 @@ var captchaEntryProperties = $.webos.extend($.webos.properties.get('container'),
 			}
 			that.options._components.label.hide();
 			that.options._components.input.show();
+			that.options._components.reload.button('option', 'disabled', false);
 		}, function(response) {
 			that.options._components.label.html('Une erreur est survenue.');
+			that.options._components.reload.button('option', 'disabled', false);
 		}]);
 	},
 	captchaId: function() {
