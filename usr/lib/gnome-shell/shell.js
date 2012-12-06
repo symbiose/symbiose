@@ -792,14 +792,9 @@
 									thisWindow.show();
 								}
 
-								if (thisWindow.window('is', 'maximized')) {
-									var rectX = 0, rectY = 0;
-									var rectWidth = canvas.getAttribute('width'), rectHeight = canvas.getAttribute('height');
-								} else {
-									var dim = thisWindow.window('dimentions'), pos = thisWindow.window('position');
-									var rectX = pos.left / desktopFactorX, rectY = pos.top / desktopFactorY;
-									var rectWidth = dim.width / desktopFactorX, rectHeight = dim.height / desktopFactorY;
-								}
+								var dim = thisWindow.window('dimentions'), pos = thisWindow.window('position');
+								var rectX = pos.left / desktopFactorX, rectY = pos.top / desktopFactorY;
+								var rectWidth = dim.width / desktopFactorX, rectHeight = dim.height / desktopFactorY;
 								
 								if (!$.fx.off) {
 									try {

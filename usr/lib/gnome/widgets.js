@@ -260,7 +260,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 		});
 	},
-	maximize: function(animate) {
+	maximize: function() {
 		if (this.is('maximized')) {
 			return;
 		}
@@ -275,24 +275,65 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		var maxHeight = $('#desktop').height();
 		var maxWidth = $('#desktop').width();
-		
-		var duration = 'fast';
-		if (animate == false) {
-			duration = 0;
+
+		var options = {
+			animate: true,
+			mode: 'full',
+			position: 'left'
+		};
+		if (typeof arguments[0] == 'object') {
+			$.extend(options, arguments[0]);
+		} else if (typeof arguments[0] != 'undefined') {
+			options.animate = (arguments[0]) ? true : false;
 		}
 		
-		this.element.animate({
-			width: maxWidth,
-			height: maxHeight,
-			top: 0,
-			left: 0
-		}, duration);
+		var duration = 'fast';
+		if (!options.animate) {
+			duration = 0;
+		}
+
+		var finalCSS = {};
+		if (options.mode == 'half') {
+			if (options.position == 'right') {
+				finalCSS = {
+					width: maxWidth / 2,
+					height: maxHeight,
+					top: 0,
+					left: maxWidth / 2
+				};
+			} else {
+				finalCSS = {
+					width: maxWidth / 2,
+					height: maxHeight,
+					top: 0,
+					left: 0
+				};
+			}
+		} else {
+			finalCSS = {
+				width: maxWidth,
+				height: maxHeight,
+				top: 0,
+				left: 0
+			};
+		}
+
+		this.options._maximizedPosition = {
+			left: finalCSS.left,
+			top: finalCSS.top
+		};
+		this.options._maximizedDimentions = {
+			width: finalCSS.width,
+			height: finalCSS.height
+		};
+		
+		this.element.animate(finalCSS, duration);
 		
 		var that = this;
 		
 		this.options._content.addClass('animating').animate({
-			width: maxWidth,
-			height: (maxHeight - that.options._components.header.height())
+			width: finalCSS.width,
+			height: (finalCSS.height - that.options._components.header.height())
 		}, duration, function() {
 			that.element
 				.addClass('maximized')
@@ -411,13 +452,13 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			this.options.parentWindow.window('show');
 		}
 		
-		var position, dimentions;
+		var pos, dim;
 		if (this.is('maximized')) {
-			position = { top: 0, left: 0 };
-			dimentions = { height: $('#desktop').height(), width: $('#desktop').width() };
+			pos = this.options._maximizedPosition;
+			dim = this.options._maximizedDimentions;
 		} else {
-			position = this.options._position;
-			dimentions = this.options._dimentions;
+			pos = this.options._position;
+			dim = this.options._dimentions;
 		}
 		
 		var that = this;
@@ -426,11 +467,11 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			.css('display','block')
 			.removeClass('hidden-window')
 			.animate({
-				opacity: 1,
-				width: dimentions.width,
-				height: dimentions.height,
-				top: position.top,
-				left: position.left
+				width: dim.width,
+				height: dim.height,
+				top: pos.top,
+				left: pos.left,
+				opacity: 1
 			}, {
 				duration: 'fast',
 				complete: function() {
@@ -526,10 +567,18 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		this.options._position = this.element.position();
 	},
 	dimentions: function() {
-		return this.options._dimentions;
+		if (this.is('maximized')) {
+			return this.options._maximizedDimentions;
+		} else {
+			return this.options._dimentions;
+		}
 	},
 	position: function() {
-		return this.options._position;
+		if (this.is('maximized')) {
+			return this.options._maximizedPosition;
+		} else {
+			return this.options._position;
+		}
 	},
 	_restoreFocus: function() {
 		if (typeof this.options._focus != 'undefined') {
@@ -656,33 +705,83 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 			
 			var el = that.element[0];
-			var diffX = e.pageX - that.element.position().left, diffY = e.pageY - that.element.position().top;
-			
-			var posX = e.pageX - diffX, posY = e.pageY - diffY;
+			var posX = that.element.position().left,
+			posY = that.element.position().top,
+			diffX = e.pageX - posX,
+			diffY = e.pageY - posY;
+			var desktopPosX = $('#desktop').position().left,
+				desktopPosY = $('#desktop').position().top,
+				desktopWidth = $('#desktop').outerWidth();
 
-			var maximizeHelperShown = false, $maximizeHelper = $(); 
-			var showMaximizeHelper = function() {
+			var maximizeHelperShown = false,
+			maximizeHelperMode = null,
+			maximizeHelperPos = null,
+			$maximizeHelper = $(); 
+			var showMaximizeHelper = function(mode, position) {
 				if (maximizeHelperShown) { return; }
 				if (!that.options.maximizable) { return; }
 
-				$maximizeHelper = $('<div></div>')
-					.addClass('webos-window-manip-helper')
-					.css({
-						position: 'absolute',
+				mode = mode || 'full';
+				position = position || 'left';
+				
+				maximizeHelperMode = mode;
+				maximizeHelperPos = position;
+
+				var baseCSS = {}, animateCSS = {};
+				if (mode == 'half') {
+					if (position == 'right') {
+						baseCSS = {
+							top: '12.5%',
+							right: 0,
+							width: '37.5%',
+							height: '75%'
+						};
+						animateCSS = {
+							width: '50%',
+							height: '100%',
+							top: 0
+						};
+					} else {
+						baseCSS = {
+							top: '12.5%',
+							left: 0,
+							width: '37.5%',
+							height: '75%'
+						};
+						animateCSS = {
+							width: '50%',
+							height: '100%',
+							top: 0
+						};
+					}
+				} else {
+					baseCSS = {
 						top: 0,
 						left: '12.5%',
 						width: '75%',
-						height: '75%',
-						opacity: 0,
-						'z-index': that.element.css('z-index')
-					})
-					.insertBefore(that.element)
-					.animate({
+						height: '75%'
+					};
+					animateCSS = {
 						width: '100%',
 						height: '100%',
-						left: 0,
-						opacity: 1
-					});
+						left: 0
+					};
+				}
+
+				$.extend(baseCSS, {
+					position: 'absolute',
+					opacity: 0,
+					'z-index': that.element.css('z-index')
+				});
+				$.extend(animateCSS, {
+					opacity: 1
+				});
+
+				$maximizeHelper = $('<div></div>')
+					.addClass('webos-window-manip-helper')
+					.css(baseCSS)
+					.insertBefore(that.element)
+					.animate(animateCSS);
 
 				maximizeHelperShown = true;
 			};
@@ -696,6 +795,23 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				$maximizeHelper = $();
 				maximizeHelperShown = false;
 			};
+
+			if (that.is('maximized')) {
+				var ratioX = diffX / that.element.outerWidth(true);
+				$('body').one('mousemove.maximized.window.widget.webos', function(e) {
+					that.minimize(false);
+					posX = e.pageX - ratioX * that.element.outerWidth(true);
+					posY = e.pageY - diffY;
+					that.element.css({
+						left: posX,
+						top: posY
+					});
+					diffX = e.pageX - posX;
+					diffY = e.pageY - posY;
+				}).one('mouseup', function() {
+					$('body').unbind('mousemove.maximized.window.widget.webos');
+				});
+			}
 			
 			$('body').bind('mousemove.window.widget.webos', function(e) {
 				posX = e.pageX - diffX, posY = e.pageY - diffY;
@@ -705,7 +821,15 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				el.style.left = posX+'px';
 				el.style.top = posY+'px';
 
-				if (posY == 0) { showMaximizeHelper(); } else { hideMaximizeHelper(); }
+				if (e.pageY - desktopPosY <= 0) {
+					showMaximizeHelper();
+				} else if (e.pageX - desktopPosX <= 0) {
+					showMaximizeHelper('half');
+				} else if (e.pageX - desktopPosX - desktopWidth + 1 >= 0) {
+					showMaximizeHelper('half', 'right');
+				} else {
+					hideMaximizeHelper();
+				}
 				
 				e.preventDefault();
 			}).one('mouseup', function(e) {
@@ -731,22 +855,12 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 				that._saveDimentions();
 
 				if (maximizeHelperShown) {
-					that.maximize();
+					that.maximize({ mode: maximizeHelperMode, position: maximizeHelperPos });
 					hideMaximizeHelper();
 				}
 				
 				e.preventDefault();
 			});
-
-			if (that.is('maximized')) {
-				$('body').one('mousemove.maximized.window.widget.webos', function(e) {
-					that.minimize(false);
-					diffX = e.pageX - that.element.position().left;
-					diffY = e.pageY - that.element.position().top;
-				}).one('mouseup', function() {
-					$('body').unbind('mousemove.maximized.window.widget.webos');
-				});
-			}
 			
 			that.element.addClass('dragging cursor-move');
 			
