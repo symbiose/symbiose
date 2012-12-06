@@ -333,7 +333,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		this.options._content.addClass('animating').animate({
 			width: finalCSS.width,
-			height: (finalCSS.height - that.options._components.header.height())
+			height: (finalCSS.height - that.options._components.header.outerHeight(true))
 		}, duration, function() {
 			that.element
 				.addClass('maximized')
@@ -531,6 +531,9 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			this.show();
 		}
 	},
+	states: function() {
+		return this.options.states;
+	},
 	is: function(state) {
 		if (typeof this.options.states[state] != 'undefined') {
 			return this.options.states[state];
@@ -566,12 +569,25 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		this.options._dimentions.height = this.element.height();
 		this.options._position = this.element.position();
 	},
+	cachedDimentions: function() {
+		return this.options._dimentions;
+	},
 	dimentions: function() {
 		if (this.is('maximized')) {
 			return this.options._maximizedDimentions;
 		} else {
 			return this.options._dimentions;
 		}
+	},
+	contentDimentions: function() {
+		var dim = this.dimentions();
+		dim.height -= this.options._components.header.outerHeight(true);
+		return dim;
+	},
+	contentCachedDimentions: function() {
+		var dim = this.cachedDimentions();
+		dim.height -= this.options._components.header.outerHeight(true);
+		return dim;
 	},
 	position: function() {
 		if (this.is('maximized')) {
@@ -940,15 +956,45 @@ $.webos.window.states = [
 ];
 
 $.webos.window.main = function(options) {
-	return $('<div></div>').one('windowafterclose', function() {
+	var $mainWindow = $.webos.window(options);
+
+	$mainWindow.one('windowafterclose', function() {
 		if (typeof $(this).window('pid') == 'number') {
 			var process = Webos.Process.get($(this).window('pid'));
 			if (process) {
 				process.stop();
 			}
 		}
-	}).window(options);
+	});
+
+	if (typeof $mainWindow.window('pid') == 'number') {
+		var process = Webos.Process.get($mainWindow.window('pid'));
+		if (Webos.isInstanceOf(process, Webos.Cmd)) {
+			var savedSession = $.webos.window.main._cache[process.cmd];
+			if (savedSession) {
+				console.log(savedSession);
+				$mainWindow.window('option', {
+					top: savedSession.position.top,
+					left: savedSession.position.left,
+					width: savedSession.dimentions.width,
+					height: savedSession.dimentions.height,
+					maximized: savedSession.states.maximized
+				});
+			}
+
+			$mainWindow.bind('windowbeforeclose', function() {
+				$.webos.window.main._cache[process.cmd] = {
+					position: $mainWindow.window('position'),
+					dimentions: $mainWindow.window('contentCachedDimentions'),
+					states: $mainWindow.window('states')
+				};
+			});
+		}
+	}
+
+	return $mainWindow;
 };
+$.webos.window.main._cache = {};
 
 $.webos.window.about = function(opts) {
 	//Options par defaut
