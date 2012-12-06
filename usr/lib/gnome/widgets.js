@@ -216,7 +216,14 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		this._trigger('open', { type: 'open' }, { window: this.element });
 		
 		if (this.options.maximized == true) {
-			this.maximize(false);
+			var maximizeOptions = {
+				animate: false
+			};
+
+			if (this.options.maximizedDisplay) {
+				maximizeOptions = $.extend({}, this.options.maximizedDisplay, maximizeOptions);
+			}
+			this.maximize(maximizeOptions);
 		} else if (!this.options.top && !this.options.left) { //Si on ne fournit pas la position, on centre la fenetre
 			this.center(); //On la centre si l'on a pas definit sa position
 		}
@@ -264,7 +271,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		if (this.is('maximized')) {
 			return;
 		}
-		
+
 		if (!this.options.maximizable) {
 			return;
 		}
@@ -318,6 +325,10 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			};
 		}
 
+		this.options.maximizedDisplay = {
+			mode: options.mode,
+			position: options.position
+		};
 		this.options._maximizedPosition = {
 			left: finalCSS.left,
 			top: finalCSS.top
@@ -400,6 +411,9 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		} else {
 			this.maximize();
 		}
+	},
+	maximizedDisplay: function() {
+		return this.options.maximizedDisplay;
 	},
 	hide: function() {
 		if (this.is('hidden')) {
@@ -972,13 +986,13 @@ $.webos.window.main = function(options) {
 		if (Webos.isInstanceOf(process, Webos.Cmd)) {
 			var savedSession = $.webos.window.main._cache[process.cmd];
 			if (savedSession) {
-				console.log(savedSession);
 				$mainWindow.window('option', {
 					top: savedSession.position.top,
 					left: savedSession.position.left,
 					width: savedSession.dimentions.width,
 					height: savedSession.dimentions.height,
-					maximized: savedSession.states.maximized
+					maximized: savedSession.states.maximized,
+					maximizedDisplay: savedSession.maximizedDisplay
 				});
 			}
 
@@ -986,7 +1000,8 @@ $.webos.window.main = function(options) {
 				$.webos.window.main._cache[process.cmd] = {
 					position: $mainWindow.window('position'),
 					dimentions: $mainWindow.window('contentCachedDimentions'),
-					states: $mainWindow.window('states')
+					states: $mainWindow.window('states'),
+					maximizedDisplay: ($mainWindow.window('is', 'maximized')) ? $mainWindow.window('maximizedDisplay') : null
 				};
 			});
 		}
