@@ -838,15 +838,17 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			}
 
 			var data = [t.get('Name : ${name}', { name: file.get('basename') }),
-			            (file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : ((file.get('mime_type')) ? t.get('MIME type : ${mime}', { mime: file.get('mime_type') }) : t.get('Type : ${extension} file', { extension: file.get('extension') })),
-			            t.get('Location : ${location}', { location: file.get('dirname') }),
-			            ((file.get('is_dir')) ? t.get('Contents : ${size} file${size|s}', { size: file.get('size') }) : t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }))];
+				(file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : ((file.get('mime_type')) ? t.get('MIME type : ${mime}', { mime: file.get('mime_type') }) : t.get('Type : ${extension} file', { extension: file.get('extension') })),
+				t.get('Location : ${location}', { location: file.get('dirname') })];
 			
-			if (file.get('atime')) {
+			if (file.exists('size')) {
+				data.push(((file.get('is_dir')) ? t.get('Contents : ${size} file${size|s}', { size: file.get('size') }) : t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) })));
+			}
+			if (file.exists('atime')) {
 				var atime = new Date(file.get('atime') * 1000);
 				data.push(t.get('Last access : ${date}', { date: Webos.Locale.current().completeDate(atime) }));
 			}
-			if (file.get('mtime')) {
+			if (file.exists('mtime')) {
 				var mtime = new Date(file.get('mtime') * 1000);
 				data.push(t.get('Last modification : ${date}', { date: Webos.Locale.current().completeDate(mtime) }));
 			}
@@ -858,7 +860,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			});
 		};
 
-		if (file.exists('is_dir')) {
+		if (file.exists('is_dir') && file.exists('size')) {
 			displayPropertiesFn(file);
 		} else {
 			propertiesWindow.window('loading', true);
