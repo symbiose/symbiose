@@ -273,31 +273,34 @@ Webos.User.logout = function(callback) {
 };
 
 Webos.User._pingTimer = null;
+Webos.User._pingInterval = 6 * 60 * 1000;
 Webos.User._startPingTimer = function() {
-	if (!Webos.User._pingTimer) {
+	if (Webos.User._pingTimer === null) {
 		Webos.User._pingTimer = setInterval(function() {
 			if (!Webos.User.logged) {
 				Webos.User._stopPingTimer();
 				return;
 			}
-			
-			var lastCall = [].concat(Webos.ServerCall.list).pop(); //On recupere le dernier appel au serveur
-			if (lastCall.completeTime && new Date().getTime() - lastCall.completeTime.getTime() >= 5 * 60 * 1000) {
+
+			var lastCall = Webos.ServerCall.getCompletedCalls().pop(); //On recupere le dernier appel au serveur
+			if (lastCall.completeTime && new Date().getTime() - lastCall.completeTime.getTime() >= Webos.User._pingInterval - 1) {
 				Webos.User.logged = null;
 				Webos.User.get([function(user) {
 					if (!user) {
+						Webos.User.logged = false;
 						Webos.User.notify('logout', {});
 					}
 				}, function() {
 					Webos.User.notify('logout', {});
 				}]);
 			}
-		}, 6 * 60 * 1000);
+		}, Webos.User._pingInterval);
 	}
 };
 Webos.User._stopPingTimer = function() {
-	if (Webos.User._pingTimer) {
+	if (Webos.User._pingTimer !== null) {
 		clearInterval(Webos.User._pingTimer);
+		Webos.User._pingTimer = null;
 	}
 };
 Webos.User.bind('login', function() {

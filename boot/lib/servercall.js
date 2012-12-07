@@ -257,17 +257,20 @@ Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, 
 		}, 0);
 	}
 };
-Webos.ServerCall.getList = function $_WServerCall_getList() {
-	return Webos.ServerCall.list;
-};
-Webos.ServerCall.getPendingCalls = function $_WServerCall_getPendingCalls() {
+Webos.ServerCall.getList = function $_WServerCall_getList(status) {
 	var list = [];
 	for (var i = 0; i < Webos.ServerCall.list.length; i++) {
-		if (Webos.ServerCall.list[i].status == 1) {
+		if (typeof status == 'undefined' || Webos.ServerCall.list[i].status == status) {
 			list.push(Webos.ServerCall.list[i]);
 		}
 	}
 	return list;
+};
+Webos.ServerCall.getPendingCalls = function $_WServerCall_getPendingCalls() {
+	return Webos.ServerCall.getList(1);
+};
+Webos.ServerCall.getCompletedCalls = function $_WServerCall_getCompletedCalls() {
+	return Webos.ServerCall.getList(2);
 };
 Webos.ServerCall.getNbrPendingCalls = function $_WServerCall_getNbrPendingCalls() {
 	return Webos.ServerCall.getPendingCalls().length;
