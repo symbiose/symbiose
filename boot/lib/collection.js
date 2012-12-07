@@ -8,7 +8,23 @@
 			if (typeof type == 'undefined') {
 				return this._type;
 			} else {
+				var that = this;
+
 				this._type = type;
+
+				this._methods = [];
+				for (var attr in type.prototype) {
+					if (!this[attr] && typeof type.prototype[attr] == 'function') {
+						this[attr] = (function() {
+							return (function() {
+								var args = arguments;
+								that.each(function() {
+									this[attr].apply(this, args);
+								});
+							});
+						})();
+					}
+				}
 			}
 		},
 		add: function $_WCollection_add(entity) {
