@@ -84,6 +84,11 @@ class ServerCall extends Webos {
 	 * Execute la requete.
 	 */
 	public function run() {
+		// On envoie une deuxieme fois l'instance au gestionnaire d'erreurs
+		// (1e fois = Webos->__construct())
+		// Important pour ServerCallGroup !
+		Error::setErrorsWebos($this);
+
 		try { //On essaie d'executer l'action demandee
 			$this->process->run();
 		} catch (Exception $e) { //En cas d'erreur
