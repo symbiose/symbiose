@@ -9,16 +9,21 @@
 		<file path="/usr/lib/webos/fullscreen.js"/>
 		<file path="/usr/lib/webos/jquery.mousewheel.js"/>
 		<file path="/usr/lib/webos/clipboard.js"/>
-		<file path="/usr/lib/gnome-shell/notifications.js"/>
-		<file path="/usr/lib/gnome/contextmenus.js"/>
+
+		<file path="/usr/lib/compiz/widgets.js"/>
+		<file path="/usr/lib/compiz/reviver.js"/>
+
 		<file path="/usr/lib/gnome/widgets.js"/>
 		<file path="/usr/lib/gnome/workspaces.js"/>
 		<file path="/usr/lib/gnome/dashboard.js"/>
 		<file path="/usr/lib/gnome/messages.js"/>
 		<file path="/usr/lib/gnome/network.js"/>
 		<file path="/usr/lib/gnome/power.js"/>
-		<file path="/usr/lib/gnome-shell/menus.js"/>
-		<file path="/usr/lib/nautilus/nautilus.js"/>
 		<file path="/usr/lib/gnome/jquery.scrollto.js"/>
+
+		<file path="/usr/lib/gnome-shell/menus.js"/>
+		<file path="/usr/lib/gnome-shell/notifications.js"/>
+		
+		<file path="/usr/lib/nautilus/nautilus.js"/>
 	</includes>
 </userinterface>

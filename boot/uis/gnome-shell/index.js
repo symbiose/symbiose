@@ -138,6 +138,15 @@ Webos.Error.setErrorHandler(function(error) {
 	});
 });
 
+Webos.Compiz.Reviver.revive([function() {}, function() {}]);
+
+Webos.User.bind('beforelogout', function() {
+	Webos.Compiz.Reviver.save([function() {}, function() {}]);
+});
+Webos.User.bind('login', function() {
+	Webos.Compiz.Reviver.revive([function() {}, function() {}]);
+});
+
 W.ServerCall.one('complete', function() {
 	resizeDesktopFn();
 	W.UserInterface.Booter.current().finishLoading();

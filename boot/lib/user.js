@@ -29,7 +29,7 @@ Webos.User.prototype = {
 		
 		var that = this;
 
-		new Webos.ServerCall({
+		return new Webos.ServerCall({
 			'class': 'UserController',
 			'method': 'getAuthorizations',
 			'arguments': {
@@ -65,7 +65,7 @@ Webos.User.prototype = {
 		
 		var that = this;
 		
-		new Webos.ServerCall({
+		return new Webos.ServerCall({
 			'class': 'UserController',
 			'method': 'setPassword',
 			'arguments': {
@@ -81,7 +81,7 @@ Webos.User.prototype = {
 		}));
 	},
 	setAuthorizations: function(authorizations, callback) {
-		new Webos.ServerCall({
+		return new Webos.ServerCall({
 			'class': 'UserController',
 			'method': 'setAuthorizations',
 			'arguments': {
@@ -111,7 +111,7 @@ Webos.User.prototype = {
 		
 		var that = this;
 		
-		new Webos.ServerCall({
+		return new Webos.ServerCall({
 			'class': 'UserController',
 			'method': 'remove',
 			'arguments': {
@@ -149,7 +149,7 @@ Webos.User.prototype = {
 			return;
 		}
 		
-		new Webos.ServerCall({
+		return new Webos.ServerCall({
 			'class': 'UserController',
 			method: 'setMultipleAttributes',
 			arguments: {
@@ -195,7 +195,7 @@ Webos.User.get = function(callback, user) {
 		}
 	}
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'getAttributes',
 		'arguments': {
@@ -223,7 +223,7 @@ Webos.User.getLogged = function(callback) {
 		return;
 	}
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'getLogged'
 	}).load(new Webos.Callback(function(response) {
@@ -242,8 +242,10 @@ Webos.User.getLogged = function(callback) {
 };
 Webos.User.login = function(username, password, callback) {
 	callback = Webos.Callback.toCallback(callback);
+
+	Webos.User.notify('beforelogin');
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'connect',
 		'arguments': {
@@ -261,13 +263,15 @@ Webos.User.login = function(username, password, callback) {
 };
 Webos.User.logout = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
+
+	Webos.User.notify('beforelogout');
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'disconnect'
 	}).load(new Webos.Callback(function(response) {
 		Webos.User.logged = false;
-		Webos.User.notify('logout', {});
+		Webos.User.notify('logout');
 		callback.success();
 	}, callback.error));
 };
@@ -313,7 +317,7 @@ Webos.User.bind('logout', function() {
 Webos.User.list = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'getList'
 	}).load(new Webos.Callback(function(response) {
@@ -335,7 +339,7 @@ Webos.User.create = function(data, auth, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	auth = auth.get().join(';');
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'create',
 		'arguments': {
@@ -349,7 +353,7 @@ Webos.User.create = function(data, auth, callback) {
 Webos.User.register = function(data, captchaData, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'register',
 		'arguments': {
@@ -372,7 +376,7 @@ Webos.User.canRegister = function(callback) {
 		return;
 	}
 	
-	new Webos.ServerCall({
+	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'canRegister'
 	}).load(new Webos.Callback(function(response) {
