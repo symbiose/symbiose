@@ -333,6 +333,13 @@ Webos.File.prototype = {
 	/**
 	 * Définir le contenu du fichier.
 	 * @param {String} contents Le contenu sous forme de texte.
+	 */
+	_writeAsText: function(contents) {
+		this._unsupportedMethod(callback);
+	},
+	/**
+	 * Définir le contenu du fichier.
+	 * @param {String} contents Le contenu sous forme de texte.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera modifié.
 	 */
 	writeAsText: function(contents, callback) {
@@ -1233,6 +1240,38 @@ Webos.WebosFile.prototype = {
 			callback.success(contents);
 		}, callback.error]);
 	},
+	_writeAsText: function(contents) {
+		var that = this;
+		
+		if (this.get('is_dir')) {
+			return false;
+		}
+		
+		if (!this.can('write')) {
+			return false;
+		}
+		
+		var call = new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'setContents',
+			arguments: {
+				file: that.get('path'),
+				contents: contents
+			}
+		});
+
+		call.bind('success', function(data) {
+			var response = data.response;
+
+			that._contents = contents;
+
+			that.notify('updatecontents', { contents: contents });
+
+			that._updateData(response.getData());
+		});
+
+		return call;
+	},
 	/**
 	 * Définir le contenu du fichier, sous forme de texte.
 	 * @param {String} contents Le contenu.
@@ -1250,15 +1289,10 @@ Webos.WebosFile.prototype = {
 		if (!this.checkAuthorization('write', callback)) {
 			return false;
 		}
-		
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'setContents',
-			arguments: {
-				file: that.get('path'),
-				contents: contents
-			}
-		}).load([function(response) {
+
+		var call = this._writeAsText(contents);
+
+		return call.load([function(response) {
 			that._contents = contents;
 
 			that.notify('updatecontents', { contents: contents });

@@ -30,6 +30,19 @@ $(window).resize(resizeDesktopFn);
 //On cree 1 espace de travail
 new $.w.window.workspace();
 
+var saveSession = function() {
+	Webos.Compiz.Reviver.save([function() {console.log('ok');}, function() {console.log('fail');}]);
+};
+var reviveSession = function() {
+	Webos.Compiz.Reviver.revive([function() {}, function() {}]);
+};
+Webos.User.bind('beforelogout', function() {
+	saveSession();
+});
+Webos.User.bind('login', function() {
+	reviveSession();
+});
+
 Webos.Translation.load(function(t) {
 	var desktopFiles = $('#desktop-files');
 	var loadDesktopFn = function(user) {
@@ -62,6 +75,7 @@ Webos.Translation.load(function(t) {
 	}, function() {}]);
 
 	$(window).bind('beforeunload', function() {
+		Webos.Compiz.Reviver.saveSync([function() {}, function() {}]);
 		return t.get('Are you sure you want to leave the webos ?');
 	});
 }, 'gnome-shell');
@@ -138,14 +152,7 @@ Webos.Error.setErrorHandler(function(error) {
 	});
 });
 
-Webos.Compiz.Reviver.revive([function() {}, function() {}]);
-
-Webos.User.bind('beforelogout', function() {
-	Webos.Compiz.Reviver.save([function() {}, function() {}]);
-});
-Webos.User.bind('login', function() {
-	Webos.Compiz.Reviver.revive([function() {}, function() {}]);
-});
+reviveSession();
 
 W.ServerCall.one('complete', function() {
 	resizeDesktopFn();

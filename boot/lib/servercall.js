@@ -162,6 +162,7 @@ Webos.ServerCall.prototype = {
 		}
 
 		if (this.options.async === false) {
+			Webos.ServerCall._removeFromLoadStack(this, callback);
 			that._load(callback);
 		} else {
 			Webos.ServerCall._addToLoadStack(this, callback);
@@ -179,13 +180,13 @@ Webos.ServerCall.prototype = {
 		
 		if (response.isSuccess()) { //Si la requete a reussi
 			callback.success(response); //On execute le callback associe
-			this.notify('success');
+			this.notify('success', { response: response });
 		} else {
 			callback.error(response); //On execute le callback d'erreur
-			this.notify('error');
+			this.notify('error', { response: response });
 		}
 		
-		this.notify('complete');
+		this.notify('complete', { response: response });
 		Webos.ServerCall.callComplete(this);
 	},
 	stack: function $_WServerCall_stack() {
@@ -256,6 +257,16 @@ Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, 
 			Webos.ServerCall._loadStack = [];
 		}, 0);
 	}
+};
+Webos.ServerCall._removeFromLoadStack = function $_WServerCall__removeFromLoadStack(call) {
+	var stack = [];
+	for (var i = 0; i < Webos.ServerCall._loadStack.length; i++) {
+		var callData = Webos.ServerCall._loadStack[i];
+		if (callData.call.id != call.id) {
+			stack.push(callData);
+		}
+	}
+	Webos.ServerCall._loadStack = stack;
 };
 Webos.ServerCall.getList = function $_WServerCall_getList(status) {
 	var list = [];

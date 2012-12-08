@@ -246,8 +246,8 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		this.element.addClass('closing');
 		
-		this._trigger('close', { type: 'close' }, { window: this.element });
 		this.options.states.opened = false;
+		this._trigger('close', { type: 'close' }, { window: this.element });
 		
 		if (typeof this.options.childWindow != 'undefined' && this.options.childWindow.length > 0) {
 			this.options.childWindow.window('close');
@@ -992,7 +992,7 @@ $.webos.window.main = function(options) {
 	if (typeof $mainWindow.window('pid') == 'number') {
 		var process = Webos.Process.get($mainWindow.window('pid'));
 		if (Webos.isInstanceOf(process, Webos.Cmd)) {
-			$.webos.window.main._list.push($mainWindow[0]);
+			var i = $.webos.window.main._list.push($mainWindow[0]) - 1;
 
 			var savedSession = $.webos.window.main._cache[process.cmd];
 			if (savedSession) {
@@ -1027,7 +1027,26 @@ $.webos.window.main.list = function() {
 };
 $.webos.window.main.windowsDisplay = function(display) {
 	if (typeof display == 'undefined') {
-		return $.webos.window.main._cache;
+		var display = $.extend({}, $.webos.window.main._cache),
+		$mainWindows = $.webos.window.main.list();
+
+		$mainWindows.each(function() {
+			var $mainWindow = $(this);
+
+			if ($mainWindow.length && $.webos.widget.is($mainWindow, 'window') && $mainWindow.window('is', 'opened') && typeof $mainWindow.window('pid') == 'number') {
+				var process = Webos.Process.get($mainWindow.window('pid'));
+				if (Webos.isInstanceOf(process, Webos.Cmd)) {
+					display[process.cmd] = {
+						position: $mainWindow.window('position'),
+						dimentions: $mainWindow.window('contentCachedDimentions'),
+						states: $mainWindow.window('states'),
+						maximizedDisplay: ($mainWindow.window('is', 'maximized')) ? $mainWindow.window('maximizedDisplay') : null
+					};
+				}
+			}
+		});
+
+		return display;
 	} else {
 		$.webos.window.main._cache = display;
 	}
