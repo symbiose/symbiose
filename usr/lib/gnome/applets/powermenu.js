@@ -13,8 +13,10 @@ Webos.Dashboard.Applet.PowerMenu = function WPowerMenuApplet(data) {
 	var button = $('<li></li>').appendTo(content);
 	$('<a></a>', { href: '#', 'class': 'powerbutton' }).html('<img src="usr/share/images/gnome/disconnect.png" alt=""/>').appendTo(button);
 	var menu = $('<ul></ul>').appendTo(button);
-	
-	var callback = new W.Callback(function(user) {
+
+	var generateMenu = function(user) {
+		menu.empty();
+
 		if (typeof user == 'undefined') {
 			var login = $('<li></li>').appendTo(menu);
 			$('<a></a>', { href: '#' }).html('Se connecter').click(function() {
@@ -26,10 +28,18 @@ Webos.Dashboard.Applet.PowerMenu = function WPowerMenuApplet(data) {
 				W.Cmd.execute('gnome-logout', new W.Callback());
 			}).appendTo(logout);
 		}
+		
 		var reboot = $('<li></li>').appendTo(menu);
 		$('<a></a>', { href: '#' }).html('Red&eacute;marrer').click(function() {
 			W.Cmd.execute('gnome-reboot', new W.Callback());
 		}).appendTo(reboot);
-	}, function() {});
-	W.User.get(callback);
+	};
+
+	W.User.get(new W.Callback(function(user) {
+		generateMenu(user);
+	}, function() {}));
+
+	Webos.User.bind('login logout', function(data) {
+		generateMenu(data.user);
+	});
 };

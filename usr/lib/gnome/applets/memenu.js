@@ -12,15 +12,17 @@ Webos.Dashboard.Applet.MeMenu = function SMeMenuApplet(data) {
 	
 	var menu = $('<li></li>').attr('id','memenu').appendTo(content);
 	var userBox = $('<a></a>', { href: '#' }).html('Utilisateur').appendTo(menu);
-	
-	this.content.bind('insert', function() {
-		var callback = new W.Callback(function(user) {
+
+	var generateMenu = function(user) {
+		userBox.empty();
+
+		if (typeof user != 'undefined') {
 			var realname = 'Invité';
 			if (typeof user != 'undefined') {
-				realname = user.getAttribute('realname');
+				realname = user.get('realname');
 			}
 			userBox.text(realname);
-		}, function() {
+		} else {
 			//On declare la bienvenue a l'utilisateur
 			new SNotification({
 				message: 'Bienvenue sur Symbiose. Si vous souhaitez acc&eacute;der &agrave; vos documents, veuillez vous connecter.',
@@ -28,8 +30,14 @@ Webos.Dashboard.Applet.MeMenu = function SMeMenuApplet(data) {
 				life: 7,
 				icon: '/usr/share/images/distributor/logo-48.png'
 			});
-		});
+		}
+	};
 
-		W.User.get(callback);
+	W.User.get(new W.Callback(function(user) {
+		generateMenu(user);
+	}, function() {}));
+
+	Webos.User.bind('login logout', function(data) {
+		generateMenu(data.user);
 	});
 };

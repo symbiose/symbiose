@@ -8,11 +8,8 @@ Webos.Dashboard.Applet.WindowsButtons = function WWindowsButtonsApplet(data) {
 	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
 	var $buttons = $('<span></span>', { 'class': 'windows-buttons' });
-	
-	var buttons = {};
-	$('#desktop').bind('windowopen', function(e, data) {
-		var thisWindow = $(data.window);
-		
+
+	var onWindowOpen = function(thisWindow) {
 		if (thisWindow.window('option', 'parentWindow').length > 0) {
 			return;
 		}
@@ -29,7 +26,15 @@ Webos.Dashboard.Applet.WindowsButtons = function WWindowsButtonsApplet(data) {
 		buttons[thisWindow.window('id')] = button;
 		
 		button.hide().appendTo($buttons);
-		button.fadeIn('fast');
+
+		if (thisWindow.window('workspace').id() == $.w.window.workspace.getCurrent().id()) {
+			button.fadeIn('fast');
+		}
+	};
+	
+	var buttons = {};
+	$(document).bind('windowopen', function(e, data) {
+		onWindowOpen($(data.window));
 	}).bind('windowtoforeground', function(e, data) {
 		var thisWindow = $(data.window);
 		
@@ -51,6 +56,7 @@ Webos.Dashboard.Applet.WindowsButtons = function WWindowsButtonsApplet(data) {
 		
 		if (buttons[thisWindow.window('id')]) {
 			buttons[thisWindow.window('id')].remove();
+			delete buttons[thisWindow.window('id')];
 		}
 	});
 	
@@ -59,6 +65,20 @@ Webos.Dashboard.Applet.WindowsButtons = function WWindowsButtonsApplet(data) {
 			return buttons[thisWindow.window('id')].offset();
 		}
 	});
+
+	$.w.window.workspace.bind('switch', function(data) {
+		for (var id in buttons) {
+			var $thisWindow = $.webos.window.getWindowById(id);
+			buttons[id].toggle(($thisWindow.window('workspace').id() == data.current));
+		}
+	});
+
+	var $openedWindows = $.webos.window.getWindows();
+	if ($openedWindows.length) {
+		$openedWindows.each(function() {
+			onWindowOpen($(this));
+		});
+	}
 	
 	this.content.append($buttons);
 }
