@@ -1,17 +1,5 @@
 W.UserInterface.Booter.current().disableAutoLoad();
 
-//On empeche de faire defiler la page
-$(document).scroll(function() {
-	$('body').scrollTop(0);
-});
-
-//Chargement du theme
-W.Theme.get(new W.Callback(function(theme) {
-	theme.load();
-}, function(response) {
-	response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
-}));
-
 //On definit la hauteur du bureau
 var resizeDesktopFn = function() {
 	$('#desktop').height($(window).height() - $('#header').outerHeight(true) - $('#footer').outerHeight(true)); //On enleve 50px : 25 * 2 pour les barres haut et bas
@@ -20,29 +8,9 @@ var resizeDesktopFn = function() {
 $(window).resize(resizeDesktopFn);
 
 //On cree 2 espaces de travail
-var workspaceId = new $.w.window.workspace().getId();
+var workspace = new $.w.window.workspace();
 new $.w.window.workspace();
-$.w.window.workspace.switchTo(workspaceId);
-
-W.User.getLogged(new W.Callback(function(user) {
-	//Si l'utilisateur n'est pas connecte, on n'affiche pas son bureau
-	if (!user) {
-		return;
-	}
-	
-	//On charge le contenu du bureau
-	var desktopFiles = $.w.nautilus({
-		multipleWindows: true,
-		directory: '~/Bureau'
-	});
-	desktopFiles.one('nautilusreadcomplete', function() {
-		$(window).trigger('resize');
-	});
-	$('#desktop-files').replaceWith(desktopFiles);
-}, function() {}));
-
-//On initialise les tableaux de bord
-Webos.Dashboard.init();
+$.w.window.workspace.switchTo(workspace.id());
 
 //On definit la fonction de gestion des erreurs
 Webos.Error.setErrorHandler(function(error) {

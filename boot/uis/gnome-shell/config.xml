@@ -26,5 +26,7 @@
 		
 		<file path="/usr/lib/nautilus/nautilus.js"/>
 		<file path="/usr/lib/gnome-screensaver/webos.js"/>
+
+		<file path="/usr/lib/gnome/ini.js"/>
 	</includes>
 </userinterface>
