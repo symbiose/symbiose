@@ -76,7 +76,7 @@ class ConfigController extends \lib\ServerCallComponent {
 					$canCreateFile = true;
 					if (!$this->webos->managers()->get('File')->exists($dirname)) {
 						if ($authorisations->can($authorisations->getArgumentAuthorizations($dirname, 'file', 'write'))) {
-							$this->webos->managers()->get('File')->createDir($dirname);
+							$this->webos->managers()->get('File')->createDirRecursive($dirname);
 						} else {
 							$canCreateFile = false;
 						}

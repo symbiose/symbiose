@@ -160,11 +160,49 @@ class FileManager extends \lib\Manager {
 	}
 
 	/**
+	 * Creer un dossier vide, avec ses dossiers parents.
+	 * @param string $path Le chemin vers le nouveau dossier.
+	 * @return Folder Le dossier.
+	 */
+	public function createDirRecursive($path) {
+		$dirs = explode('/', $path);
+
+		$pathStack = '';
+		foreach($dirs as $dir) {
+			if (empty($dir)) {
+				continue;
+			}
+
+			$pathStack .= $dir . '/';
+
+			if (!$this->exists($pathStack)) {
+				$this->createDir($pathStack);
+			}
+		}
+
+		return $this->get($path);
+	}
+
+	/**
 	 * Creer un fichier vierge.
 	 * @param string $path Le chemin vers le nouveau fichier.
-	 * @return File le fichier.
+	 * @return File Le fichier.
 	 */
 	public function createFile($path) {
 		return $this->dao->createFile($path);
+	}
+
+	/**
+	 * Creer un fichier vierge, avec ses dossiers parents.
+	 * @param string $path Le chemin vers le nouveau fichier.
+	 * @return Folder Le fichier.
+	 */
+	public function createFileRecursive($path) {
+		$dirs = explode('/', $path);
+		array_pop($dirs);
+
+		$this->createDirRecursive(implode('/', $dirs));
+
+		return $this->createFile($path);
 	}
 }

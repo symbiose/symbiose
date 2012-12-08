@@ -118,7 +118,7 @@ class FileController extends \lib\ServerCallComponent {
 	 */
 	protected function createFile($path) {
 		if (!$this->webos->managers()->get('File')->exists($path)) {
-			$this->webos->managers()->get('File')->createFile($path);
+			$this->webos->managers()->get('File')->createFileRecursive($path);
 		} elseif ($this->webos->managers()->get('File')->get($path)->isDir()) {
 			throw new \RuntimeException('Impossible de cr&eacute;er le fichier "'.$path.'" : ce fichier est un dossier');
 		}
@@ -132,7 +132,7 @@ class FileController extends \lib\ServerCallComponent {
 	 */
 	protected function createFolder($path) {
 		if (!$this->webos->managers()->get('File')->exists($path)) {
-			$this->webos->managers()->get('File')->createDir($path);
+			$this->webos->managers()->get('File')->createDirRecursive($path);
 		} elseif (!$this->webos->managers()->get('File')->get($path)->isDir()) {
 			throw new \RuntimeException('Impossible de cr&eacute;er le dossier "'.$path.'" : ce fichier existe');
 		}
@@ -147,7 +147,7 @@ class FileController extends \lib\ServerCallComponent {
 	 */
 	protected function setContents($path, $contents) {
 		if (!$this->webos->managers()->get('File')->exists($path)) {
-			$this->webos->managers()->get('File')->createFile($path);
+			$this->webos->managers()->get('File')->createFileRecursive($path);
 		}
 
 		$this->webos->managers()->get('File')->get($path)->setContents($contents);
@@ -162,7 +162,7 @@ class FileController extends \lib\ServerCallComponent {
 	 */
 	protected function setContentsAsBinary($path, $contents) {
 		if (!$this->webos->managers()->get('File')->exists($path)) {
-			$this->webos->managers()->get('File')->createFile($path);
+			$this->webos->managers()->get('File')->createFileRecursive($path);
 		}
 
 		$this->webos->managers()->get('File')->get($path)->setContents(base64_decode($contents));
