@@ -1,4 +1,4 @@
-[Symbiose 1.0 beta 1](http://symbiose.fr.cr/)
+[Symbiose 1.0 beta 2](http://symbiose.fr.cr/)
 ==============================================
 
 This version (beta) is unstable.  
@@ -17,7 +17,7 @@ Have a bug ? Please create an issue here on GitHub : https://github.com/twitter/
 Installing
 ----------
 
-To install Symbiose you just need to unzip files on your web server, and chmod all of them to 0777.
+To install Symbiose you just need to unzip files on your web server, and chmod all of them to 0777 (maybe not .htaccess !).
 
 Software requirements
 ---------------------
