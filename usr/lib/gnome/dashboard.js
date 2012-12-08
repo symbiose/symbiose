@@ -47,7 +47,16 @@ Webos.Dashboard.init = function(userCallback) {
 				data[$(this).attr('name')] = $(this).attr('value');
 			});
 			
-			var errors = [];
+			var nbrApplets = 0, loadedApplets = 0;
+			var onAppletLoaded = function() {
+				loadedApplets++;
+
+				if (nbrApplets == loadedApplets) {
+					//On ajoute a la liste le tableau de bord
+					Webos.Dashboard.list.push(new Webos.Dashboard(id, data, applets));
+				}
+			};
+
 			//Pour chaque applet contenu dans ce tableau de bord
 			$(this).find('applets').find('applet').each(function() {
 				var appletData = {};
@@ -55,27 +64,24 @@ Webos.Dashboard.init = function(userCallback) {
 				$(this).find('attribute').each(function() {
 					appletData[$(this).attr('name')] = $(this).attr('value');
 				});
-				
+
+				nbrApplets++;
+
 				//On charge la bibliotheque de l'applet
-				new W.ScriptFile(appletData.library);
-				
-				//Si la bibliotheque est chargee
-				if (typeof Webos.Dashboard.Applet[appletData.name] != 'undefined') {
-					//On initialise l'applet et on l'ajoute a la liste
-					applets.push(new Webos.Dashboard.Applet[appletData.name](appletData));
-				} else {
-					//Sinon on lance une erreur
-					errors.push(appletData.name);
-				}
+				Webos.require(appletData.library, [function() {
+					//Si la bibliotheque est chargee
+					if (typeof Webos.Dashboard.Applet[appletData.name] != 'undefined') {
+						//On initialise l'applet et on l'ajoute a la liste
+						applets.push(new Webos.Dashboard.Applet[appletData.name](appletData));
+					} else {
+						W.Error.trigger('Impossible de charger l\'applet "'+appletData.name+'" : biblioth&egrave;que introuvable');
+					}
+					onAppletLoaded();
+				}, function(response) {
+					onAppletLoaded();
+					response.triggerError();
+				}]);
 			});
-			
-			//On ajoute a la liste le tableau de bord
-			Webos.Dashboard.list.push(new Webos.Dashboard(id, data, applets));
-			
-			if (errors.length > 0) {
-				var word = (errors.length > 1) ? 'les applets' : 'l\'applet';
-				throw new W.Error('Impossible de charger '+word+' "'+errors.join('", "')+'"');
-			}
 		});
 		
 		if (typeof userCallback != 'undefined') {
