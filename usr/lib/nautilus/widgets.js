@@ -194,6 +194,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		if (typeof this.options._components.contextmenu != 'undefined') {
 			this.options._components.contextmenu.contextMenu('destroy');
+			delete this.options._components.contextmenu;
 		}
 		
 		dir = W.File.cleanPath(dir);
@@ -202,7 +203,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			response.triggerError(t.get('Can\'t find « ${dir} ».', { dir: dir }));
 		}));
 
-		this._trigger('readstart', {}, { location: dir });
+		this._trigger('readstart', { type: 'readstart' }, { location: dir });
 
 		W.File.listDir(dir, [function(files) {
 			that.options.directory = dir;
@@ -251,7 +252,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				var clearCallbackId = Webos.Clipboard.bind('clear', function() {
 					pasteItem.menuItem('option', 'disabled', true);
 				});
-				that.element.one('readstart', function() {
+				that.element.one('nautilusreadstart', function() {
 					Webos.Clipboard.unbind(copyCallbackId);
 					Webos.Clipboard.unbind(clearCallbackId);
 				});
@@ -369,15 +370,15 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 			
 			that._render(files);
 			
-			that._trigger('readcomplete', {}, { location: that.location() });
-			that._trigger('readsuccess', {}, { location: that.location() });
+			that._trigger('readcomplete', { type: 'readcomplete' }, { location: that.location() });
+			that._trigger('readsuccess', { type: 'readsuccess' }, { location: that.location() });
 			
 			userCallback.success(that);
 		}, function(response) {
 			that._render([]);
 			
-			that._trigger('readcomplete', {}, { location: that.location() });
-			that._trigger('readerror', {}, { location: that.location() });
+			that._trigger('readcomplete', { type: 'readcomplete' }, { location: that.location() });
+			that._trigger('readerror', { type: 'readerror' }, { location: that.location() });
 			
 			userCallback.error(response);
 		}]);
@@ -620,7 +621,7 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 				var clearCallbackId = Webos.Clipboard.bind('clear', function() {
 					pasteItem.menuItem('option', 'disabled', true);
 				});
-				that.element.one('readstart', function() {
+				that.element.one('nautilusreadstart', function() {
 					Webos.Clipboard.unbind(copyCallbackId);
 					Webos.Clipboard.unbind(clearCallbackId);
 				});

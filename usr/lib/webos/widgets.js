@@ -43,12 +43,16 @@ $.webos.properties.get = function(widget) {
 * @static
 */
 $.webos.widget = function(widget, arg1, arg2) {
+	widget = String(widget);
+
 	var properties;
 	if (typeof arg2 != 'undefined') {
 		properties = $.webos.extend($.webos.properties.get(arg1), arg2);
 	} else {
 		properties = arg1;
 	}
+
+	properties.widgetEventPrefix = widget.toLowerCase();
 	
 	if (properties._translationsName) {
 		var createFn = properties._create;
