@@ -78,7 +78,6 @@ Webos.ConfigFile.loadUserConfig('~/.config/exiting.xml', null, [function(configF
 					if (entryData.type == 'switchButton') {
 						value = (eventData.value) ? 1 : 0;
 					}
-					console.log(value);
 
 					configFile.set(entryData.key, eventData.value);
 
