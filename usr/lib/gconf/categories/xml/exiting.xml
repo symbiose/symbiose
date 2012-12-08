@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category>
+	<define name="name" value="exiting"/>
+	<define name="title" value="Verrouillage et fermeture"/>
+	<define name="icon" value="actions/lockscreen"/>
+	<define name="description" value="Modifier les paramètres de sortie (extinction d'écran, verrouillage, fermeture de session...)"/>
+	<define name="category" value="personal"/>
+</category>

@@ -208,8 +208,67 @@ Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
 		GnomeScreenSaver._locked = false;
 	};
 
-	GnomeScreenSaver.autoActivate = function autoActivate(time, lock) {
-		//TODO
+	GnomeScreenSaver.autoActivate = function $_GnomeScreenSaver_autoActivate(time, lock, lockTime) {
+		if (typeof GnomeScreenSaver.autoActivate._timer != 'undefined') {
+			clearInterval(GnomeScreenSaver.autoActivate._timer);
+			delete GnomeScreenSaver.autoActivate._timer;
+		}
+
+		if (!(time > 0)) {
+			return;
+		}
+
+		var mouseMoved = false;
+		$(document).off('mousemove.gnomescreensaver').on('mousemove.gnomescreensaver', function() {
+			mouseMoved = true;
+		});
+
+		GnomeScreenSaver.autoActivate._timer = setInterval(function() {
+			if (!mouseMoved) {
+				if (lock) {
+					if (lockTime > 0) {
+						if (typeof GnomeScreenSaver.autoActivate._lockTimer == 'undefined') {
+							GnomeScreenSaver.autoActivate._lockTimer = setTimeout(function() {
+								delete GnomeScreenSaver.autoActivate._lockTimer;
+								GnomeScreenSaver.lock();
+							}, lockTime * 1000);
+						}
+						GnomeScreenSaver.activate();
+					} else {
+						GnomeScreenSaver.lock();
+						GnomeScreenSaver.activate();
+					}
+				} else {
+					GnomeScreenSaver.activate();
+				}
+			} else {
+				mouseMoved = false;
+				if (typeof GnomeScreenSaver.autoActivate._lockTimer != 'undefined') {
+					clearInterval(GnomeScreenSaver.autoActivate._lockTimer);
+					delete GnomeScreenSaver.autoActivate._lockTimer;
+				}
+			}
+		}, time * 1000);
+	};
+
+	GnomeScreenSaver.loadConfig = function $_GnomeScreenSaver_loadConfig(callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		Webos.ConfigFile.loadUserConfig('~/.config/exiting.xml', null, [function(configFile) {
+			var shutdownScreenTime = 0, lockScreen = false, lockTime = 0;
+			if (configFile.get('shutdownScreen') > 0) {
+				shutdownScreenTime = parseFloat(configFile.get('shutdownScreen')) * 60;
+				lockScreen = (configFile.get('lockScreenEnabled') == 1);
+
+				if (lockScreen) {
+					lockTime = parseFloat(configFile.get('lockScreenTime')) * 60;
+				}
+			}
+
+			GnomeScreenSaver.autoActivate(shutdownScreenTime, lockScreen, lockTime);
+
+			callback.success();
+		}, callback.error]);
 	};
 
 	window.GnomeScreenSaver = GnomeScreenSaver; //Export library

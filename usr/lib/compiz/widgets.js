@@ -1007,12 +1007,7 @@ $.webos.window.main = function(options) {
 			}
 
 			$mainWindow.bind('windowbeforeclose', function() {
-				$.webos.window.main._cache[process.cmd] = {
-					position: $mainWindow.window('position'),
-					dimentions: $mainWindow.window('contentCachedDimentions'),
-					states: $mainWindow.window('states'),
-					maximizedDisplay: ($mainWindow.window('is', 'maximized')) ? $mainWindow.window('maximizedDisplay') : null
-				};
+				$.webos.window.main._cache[process.cmd] = $.webos.window.main._getWindowDisplay($mainWindow);
 			});
 		}
 	}
@@ -1022,6 +1017,22 @@ $.webos.window.main = function(options) {
 $.webos.window.main._list = [];
 $.webos.window.main._cache = {};
 
+$.webos.window.main._getWindowDisplay = function($mainWindow) {
+	var display = {
+		position: $mainWindow.window('position'),
+		dimentions: {},
+		states: $mainWindow.window('states')
+	};
+
+	if ($mainWindow.window('option', 'resizable')) {
+		display.dimentions = $mainWindow.window('contentCachedDimentions');
+	}
+	if ($mainWindow.window('option', 'maximizable')) {
+		display.maximizedDisplay = ($mainWindow.window('is', 'maximized')) ? $mainWindow.window('maximizedDisplay') : null;
+	}
+
+	return display;
+};
 $.webos.window.main.list = function() {
 	return $($.webos.window.main._list);
 };
@@ -1036,12 +1047,7 @@ $.webos.window.main.windowsDisplay = function(display) {
 			if ($mainWindow.length && $.webos.widget.is($mainWindow, 'window') && $mainWindow.window('is', 'opened') && typeof $mainWindow.window('pid') == 'number') {
 				var process = Webos.Process.get($mainWindow.window('pid'));
 				if (Webos.isInstanceOf(process, Webos.Cmd)) {
-					display[process.cmd] = {
-						position: $mainWindow.window('position'),
-						dimentions: $mainWindow.window('contentCachedDimentions'),
-						states: $mainWindow.window('states'),
-						maximizedDisplay: ($mainWindow.window('is', 'maximized')) ? $mainWindow.window('maximizedDisplay') : null
-					};
+					display[process.cmd] = $.webos.window.main._getWindowDisplay($mainWindow);
 				}
 			}
 		});

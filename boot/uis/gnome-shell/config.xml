@@ -25,5 +25,6 @@
 		<file path="/usr/lib/gnome-shell/notifications.js"/>
 		
 		<file path="/usr/lib/nautilus/nautilus.js"/>
+		<file path="/usr/lib/gnome-screensaver/webos.js"/>
 	</includes>
 </userinterface>

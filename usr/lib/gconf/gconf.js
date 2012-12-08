@@ -21,6 +21,7 @@ function GConf(category) {
 		this._showCategories = function(categories) {
 			var list = $.w.iconsList().addClass('mainlist');
 			this._window.window('content').html(list);
+			this._window.window('dialog', false);
 
 			var params = {};
 			var catTitles = {
@@ -121,7 +122,7 @@ function GConf(category) {
 		};
 		
 		this.category = function(name) {
-			this._window.window('content').html('');
+			this._window.window('content').empty();
 			this._buttons.home.show();
 			this._buttons.search.hide();
 			include('usr/lib/gconf/categories/js/'+name+'.js', new W.Arguments({

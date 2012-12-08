@@ -14,14 +14,26 @@
 
 		Webos.User.get([function(user) {
 			if (user) {
+				var saveSessionOnExit = false;
+
+				Reviver.loadConfig([function(configFile) {
+					saveSessionOnExit = (configFile.get('saveSessionOnExit') == 1);
+				}, callback.error]);
+
 				Webos.File.get('~/.cache/compiz/saved-session.json').readAsText([function(json) {
 					var data = JSON.parse(json);
 
 					$.webos.window.main.windowsDisplay(data.windowsDisplay);
 
 					if (data.openedWindows) {
-						for (var i = 0; i < data.openedWindows.length; i++) {
-							W.Cmd.execute(data.openedWindows[i].cmd);
+						if (saveSessionOnExit) {
+							for (var i = 0; i < data.openedWindows.length; i++) {
+								W.Cmd.execute(data.openedWindows[i].cmd);
+							}
+						} else {
+							Reviver.save([function() {
+								callback.success();
+							}, callback.error]);
 						}
 					}
 
@@ -29,6 +41,22 @@
 				}, callback.error]);
 			} else {
 				callback.error();
+			}
+		}, callback.error]);
+	};
+
+	Reviver.loadConfig = function $_WCompiz_Reviver_loadConfig(callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		Webos.ConfigFile.loadUserConfig('~/.config/exiting.xml', null, [function(configFile) {
+			if (configFile.get('saveSessionOnExit') == 1) {
+				$(window).bind('beforeunload.reviver.compiz.webos', function() {
+					Webos.Compiz.Reviver.saveSync([function() {}, function() {}]);
+				});
+
+				callback.success(configFile);
+			} else {
+				$(window).unbind('beforeunload.reviver.compiz.webos');
 			}
 		}, callback.error]);
 	};

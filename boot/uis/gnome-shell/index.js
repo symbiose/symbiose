@@ -31,7 +31,7 @@ $(window).resize(resizeDesktopFn);
 new $.w.window.workspace();
 
 var saveSession = function() {
-	Webos.Compiz.Reviver.save([function() {console.log('ok');}, function() {console.log('fail');}]);
+	Webos.Compiz.Reviver.save([function() {}, function() {}]);
 };
 var reviveSession = function() {
 	Webos.Compiz.Reviver.revive([function() {}, function() {}]);
@@ -40,7 +40,9 @@ Webos.User.bind('beforelogout', function() {
 	saveSession();
 });
 Webos.User.bind('login', function() {
-	reviveSession();
+	if (!$.webos.window.getWindows().length) { //Si aucune fenetre n'est ouverte
+		reviveSession();
+	}
 });
 
 Webos.Translation.load(function(t) {
@@ -74,10 +76,17 @@ Webos.Translation.load(function(t) {
 		loadDesktopFn(user);
 	}, function() {}]);
 
-	$(window).bind('beforeunload', function() {
-		Webos.Compiz.Reviver.saveSync([function() {}, function() {}]);
-		return t.get('Are you sure you want to leave the webos ?');
-	});
+	Webos.ConfigFile.loadUserConfig('~/.config/exiting.xml', null, [function(configFile) {
+		if (configFile.get('askOnExit')) {
+			$(window).bind('beforeunload', function() {
+				return t.get('Are you sure you want to leave the webos ?');
+			});
+		}
+	}, function() {}]);
+
+	reviveSession();
+
+	GnomeScreenSaver.loadConfig();
 }, 'gnome-shell');
 
 //On initialise les tableaux de bord
@@ -151,8 +160,6 @@ Webos.Error.setErrorHandler(function(error) {
 		]
 	});
 });
-
-reviveSession();
 
 W.ServerCall.one('complete', function() {
 	resizeDesktopFn();

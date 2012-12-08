@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<config><attribute name="lockScreenEnabled" value=""/><attribute name="saveSessionOnExit" value="1"/><attribute name="shutdownScreen" value="0"/><attribute name="askOnExit" value=""/><attribute name="lockScreenTime" value="0"/></config>
