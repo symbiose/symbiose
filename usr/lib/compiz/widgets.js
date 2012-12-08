@@ -116,6 +116,8 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			.html(windowContents)
 			.appendTo(this.element);
 		
+		this.option('title', this.options.title);
+
 		if (this.options.width != undefined) {
 			this.setWidth(this.options.width);
 		}
@@ -209,11 +211,13 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		
 		this.element.appendTo('#desktop');
 		
-		this.element.fadeIn('fast', function() {
-			that._trigger('afteropen', { type: 'afteropen' }, { window: that.element }); //On declanche l'evenement correspondant
-		});
-		
 		this._trigger('open', { type: 'open' }, { window: this.element });
+
+		if (this.options.workspace.id() == $.w.window.workspace.getCurrent().id()) {
+			this.element.fadeIn('fast', function() {
+				that._trigger('afteropen', { type: 'afteropen' }, { window: that.element });
+			});
+		}
 		
 		if (this.options.maximized == true) {
 			var maximizeOptions = {
@@ -229,9 +233,13 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 		
 		this._saveDimentions(); //On stocke en memoire ses dimentions
-		this.option('title', this.options.title);
 		this.options.states.opened = true;
-		this.toForeground(); //On met la fenetre en avant-plan
+
+		if (this.options.workspace.id() == $.w.window.workspace.getCurrent().id()) {
+			this.toForeground(); //On met la fenetre en avant-plan
+		} else {
+			that._trigger('afteropen', { type: 'afteropen' }, { window: that.element });
+		}
 	},
 	close: function() {
 		var that = this;
@@ -1002,7 +1010,8 @@ $.webos.window.main = function(options) {
 					width: savedSession.dimentions.width || undefined,
 					height: savedSession.dimentions.height || undefined,
 					maximized: savedSession.states.maximized,
-					maximizedDisplay: savedSession.maximizedDisplay
+					maximizedDisplay: savedSession.maximizedDisplay,
+					workspace: $.w.window.workspace.get(savedSession.workspace) || undefined
 				});
 			}
 
@@ -1021,7 +1030,8 @@ $.webos.window.main._getWindowDisplay = function($mainWindow) {
 	var display = {
 		position: $mainWindow.window('position'),
 		dimentions: {},
-		states: $mainWindow.window('states')
+		states: $mainWindow.window('states'),
+		workspace: $mainWindow.window('workspace').id()
 	};
 
 	if ($mainWindow.window('option', 'resizable')) {
@@ -1311,11 +1321,16 @@ $.webos.window.getWindows = function() { //Recuperer TOUTES les fenetres (tous e
 };
 $.webos.window.getWindowById = function(id) { //Recuperer une fenetre a aprtir de son ID
 	var list = $.webos.window.getWindows();
-	for(var i = 0; i < list.length; i++) {
-		if (list[i].window('option','id') == id) {
-			return list[i];
+
+	var $foundWindow = $();
+	list.each(function() {
+		if ($(this).window('option','id') == id) {
+			$foundWindow = $(this);
+			return false;
 		}
-	}
+	});
+
+	return $foundWindow;
 };
 $.webos.window._getHidePos = function() {
 	return {

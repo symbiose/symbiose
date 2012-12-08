@@ -67,7 +67,7 @@ $.w.window.workspace = function WWindowWorkspace() {
 		var list = [];
 		var id = this._id;
 		$.webos.window.getWindows().each(function() {
-			if ($(this).window('workspace').getId() == id) {
+			if ($(this).window('workspace').id() == id) {
 				list.push($(this));
 			}
 		});
