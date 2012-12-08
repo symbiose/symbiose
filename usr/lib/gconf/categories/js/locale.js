@@ -1,6 +1,8 @@
 var confWindow = args.getParam(0);
 var content = confWindow.window('content');
 
+confWindow.window('dialog', true);
+
 var list = {};
 var locales = Webos.Locale.getAll();
 for (var index in locales) {

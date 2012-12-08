@@ -1,5 +1,7 @@
 var confWindow = args.getParam(0);
 
+confWindow.window('dialog', true);
+
 var uisList = $.w.list(['Nom', 'Type', 'Activ&eacute;e', 'Par d&eacute;faut']).appendTo(confWindow.window('content'));
 
 var uisTypes = {

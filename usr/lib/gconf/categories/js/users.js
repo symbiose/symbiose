@@ -1,7 +1,7 @@
 var confWindow = args.getParam(0);
 var content = confWindow.window('content');
 
-confWindow.window('stylesheet', 'usr/share/css/gconf/categories/users.css');
+confWindow.window('dialog', true).window('stylesheet', 'usr/share/css/gconf/categories/users.css');
 
 var form = $.w.entryContainer().appendTo(content);
 

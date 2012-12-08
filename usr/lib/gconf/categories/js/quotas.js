@@ -1,5 +1,7 @@
 var confWindow = args.getParam(0);
 
+confWindow.window('dialog', true);
+
 var form = $.w.entryContainer().appendTo(confWindow.window('content'));
 
 var inputs = {};

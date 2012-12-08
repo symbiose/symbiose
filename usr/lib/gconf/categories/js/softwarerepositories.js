@@ -2,7 +2,7 @@ var confWindow = args.getParam(0);
 
 new W.ScriptFile('usr/lib/apt/apt.js'); //On charge la bibliotheque JS d'APT
 
-confWindow.window('stylesheet', 'usr/share/css/gconf/categories/softwarerepositories.css');
+confWindow.window('stylesheet', 'usr/share/css/gconf/categories/softwarerepositories.css').window('dialog', true);
 
 var selectedRepo;
 
