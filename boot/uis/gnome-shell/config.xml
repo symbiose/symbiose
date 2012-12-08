@@ -11,10 +11,10 @@
 		<file path="/usr/lib/webos/clipboard.js"/>
 
 		<file path="/usr/lib/compiz/widgets.js"/>
+		<file path="/usr/lib/compiz/workspaces.js"/>
 		<file path="/usr/lib/compiz/reviver.js"/>
 
 		<file path="/usr/lib/gnome/widgets.js"/>
-		<file path="/usr/lib/gnome/workspaces.js"/>
 		<file path="/usr/lib/gnome/dashboard.js"/>
 		<file path="/usr/lib/gnome/messages.js"/>
 		<file path="/usr/lib/gnome/network.js"/>
