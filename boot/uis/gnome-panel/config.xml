@@ -2,12 +2,13 @@
 <userinterface>
 	<attribute name="displayname" value="GNOME Panel"/>
 	<includes>
-		<file path="/usr/lib/webos/widgets.js"/>
 		<file path="/usr/lib/webos/icons.js"/>
 		<file path="/usr/lib/webos/theme.js"/>
 		<file path="/usr/lib/webos/fullscreen.js"/>
 		<file path="/usr/lib/webos/jquery.mousewheel.js"/>
 		<file path="/usr/lib/webos/clipboard.js"/>
+
+		<file path="/usr/lib/gtk/widgets.js"/>
 
 		<file path="/usr/lib/compiz/widgets.js"/>
 		<file path="/usr/lib/compiz/workspaces.js"/>
