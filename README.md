@@ -17,7 +17,7 @@ Have a bug ? Please create an issue here on GitHub : https://github.com/twitter/
 Installing
 ----------
 
-To install Symbiose you just need to unzip files on your web server, and chmod all of them to 0777 (maybe not .htaccess !).
+To install Symbiose you just need to unzip files on your web server, and chmod all of them to 0777, except */.htaccess*, */etc/*, */home/*, */tmp/*, */usr/* and */var/* which you'll have to chmod to 0755.
 
 Software requirements
 ---------------------
