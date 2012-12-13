@@ -260,25 +260,31 @@ Webos.UserInterface.load = function(name, callback) {
 			$('#webos-error').show();
 		}
 
-		var message;
+		var message = '<li>';
 		if (error instanceof Webos.Error) {
-			message = error.toString();
+			message += error.toString();
 		} else {
-			message = error.name + ' : ' + error.message + '<br />Stack trace :<pre>' + error.stack + '</pre>';
+			message += error.name + ' : ' + error.message + '<br />Stack trace :<pre>' + error.stack + '</pre>';
 		}
 
-		message += 'Server calls :</li><ul>';
+		message += '<br />Server calls :</li><ul>';
 		var calls = Webos.ServerCall.getList();
 		for (var i = actualCallNbr; i < calls.length; i++) {
 			var call = calls[i];
+
+			if (!call) {
+				continue;
+			}
+
 			if (call.status == 2) {
 				message += '<li>Loaded call<br /><pre>'+call.stack()+'</pre></li>';
-			} else if (call[i].status == 1) {
-				message += '<li>Loading call<br />'+call.stack().replace(/\n/g, '<br />')+'</li>';
+			} else if (call.status == 1) {
+				message += '<li>Loading call<br /><pre>'+call.stack()+'</pre></li>';
 			}
 		}
-		
-		$('#webos-error ul').append('<li>'+message+'</li>');
+		message += '</ul>';
+
+		$('#webos-error ul').append(message);
 		
 		if (typeof Webos.UserInterface.Booter.current() != 'undefined') {
 			Webos.UserInterface.Booter.current().disableAutoLoad();
