@@ -435,7 +435,7 @@ Webos.File._mountedDevices = {};
  * @returns {Webos.File} Le fichier.
  * @static
  */
-Webos.File.get = function(file, data) {
+Webos.File.get = function(file, data, disableCache) {
 	if (window.File && file instanceof window.File) { //Si c'est un objet natif File, on retorune un objet Webos.LocalFile
 		return new Webos.LocalFile(file);
 	} else if (Webos.isInstanceOf(file, Webos.File)) { //Si c'est déja un objet Webos.File, on le retourne directement
@@ -452,7 +452,9 @@ Webos.File.get = function(file, data) {
 				return Webos.File._cache[path];
 			} else {
 				file = Webos[devices[local].get('driver')].get(path, devices[local], data);
-				Webos.File._cache[file.get('path')] = file;
+				if (!disableCache) {
+					Webos.File._cache[file.get('path')] = file;
+				}
 				return file;
 			}
 		}
@@ -465,7 +467,9 @@ Webos.File.get = function(file, data) {
 		file = new Webos.WebosFile($.extend({}, data, {
 			path: path
 		}));
-		Webos.File._cache[file.get('path')] = file;
+		if (!disableCache) {
+			Webos.File._cache[file.get('path')] = file;
+		}
 		return file;
 	}
 };
@@ -508,7 +512,7 @@ Webos.File.load = function(path, callback) {
 	if (Webos.File.isCached(path)) { //Si le fichier est déja dans le cache, on le retourne
 		callback.success(Webos.File._cache[path]);
 	} else { //Sinon, on le charge
-		var file = Webos.File.get(path);
+		var file = Webos.File.get(path, {}, false);
 		
 		file.load(new Webos.Callback(function() {
 			//On le stocke dans le cache
