@@ -7,12 +7,14 @@
 new W.ScriptFile('usr/lib/codemirror/codemirror.js');
 new W.Stylesheet('/usr/share/css/codemirror/main.css');
 
-var geditProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('gedit', 'container', {
 	_name: 'gedit',
 	options: {
 		language: null
 	},
 	_create: function() {
+		this._super('_create');
+
 		var that = this;
 		
 		this.options._components.codemirror = CodeMirror(this.element[0], {
@@ -77,8 +79,6 @@ var geditProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	}
 });
-$.webos.widget('gedit', geditProperties);
-
 $.webos.gedit = function(options) {
 	return $('<div></div>').gedit(options);
 };

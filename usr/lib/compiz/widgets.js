@@ -1,12 +1,14 @@
 /**
  * Widgets pour le gestion des fenetres.
  * @author Simon Ser <contact@simonser.fr.nf>
- * @version 1.0
+ * @version 1.2
  * @since 1.0beta2
  */
 
+ (function($) {
+
 //Window
-var windowProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('window', 'container', {
 	_name: 'window',
 	options: {
 		title: 'Fen&ecirc;tre',
@@ -20,6 +22,8 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		dialog: false
 	},
 	_create: function() {
+		this._super('_create');
+
 		var that = this;
 		
 		this.options.states = {};
@@ -173,6 +177,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 	},
 	destroy: function() {
 		if (this.is('closed')) {
+			this._super('destroy');
 			this.element.empty().remove();
 			return;
 		}
@@ -190,7 +195,7 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 			this.options.parentWindow.window('option', 'childWindow', []);
 		}
 
-		this._trigger('afterclose', { type: 'afterclose' }, { window: this.element });
+		this._super('destroy');
 
 		this.element.empty().remove();
 
@@ -265,13 +270,14 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		if (typeof this.options.parentWindow != 'undefined' && this.options.parentWindow.length > 0) {
 			this.options.parentWindow.window('option', 'childWindow', []);
 		}
-		
+
 		this.element.fadeOut('fast', function() {
 			that._trigger('afterclose', { type: 'afterclose' }, { window: that.element });
-			$(this).removeClass('closing');
-			$(this).detach();
-			if (typeof $.webos.window.getActive() != 'undefined') {
-				$.webos.window.getActive().window('toForeground');
+			$(this).removeClass('closing').detach();
+
+			var activeWindow = $.webos.window.getActive();
+			if (activeWindow && activeWindow.length) {
+				activeWindow.window('toForeground');
 			}
 		});
 	},
@@ -971,7 +977,6 @@ var windowProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	}
 });
-$.webos.widget('window', windowProperties);
 
 $.webos.window = function(options) {
 	return $('<div></div>').window(options);
@@ -1283,19 +1288,24 @@ $.webos.window.hideOrShowAll = function() { //Afficher ou cacher ttes les fenetr
 	}
 };
 $.webos.window.getActive = function() { //Recuperer la fenetre active
-	if ($.webos.window.getWindows().filter(':visible').length > 0) {
-		var visibleWindows = $.webos.window.getWindows().filter(':visible');
+	var visibleWindows = $($.w.window.workspace.getCurrent().getWindows());
+	if (visibleWindows.length > 0) {
 		var activeWindow = $(), activeWindowZIndex = $.webos.window.zIndexRange[0];
 		visibleWindows.each(function() {
 			var thisWindowZIndex = parseInt($(this).css('z-index'));
-			if (typeof activeWindow == 'undefined' || activeWindowZIndex < thisWindowZIndex) {
+
+			if ($(this).window('is', 'hidden')) {
+				return;
+			}
+
+			if (activeWindow.length == 0 || activeWindowZIndex < thisWindowZIndex) {
 				activeWindow = $(this);
 				activeWindowZIndex = thisWindowZIndex;
 			}
 		});
 		return activeWindow;
 	} else {
-		return;
+		return $();
 	}
 };
 $.webos.window.allToBackground = function() { //Envoyer toutes les fenetres a l'arriere-plan
@@ -1350,28 +1360,28 @@ $.webos.window.setHidePosFn = function(fn) {
 };
 
 //WindowHeader
-var windowHeaderProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('windowHeader', 'container', {
 	_name: 'windowheader'
 });
-$.webos.widget('windowHeader', windowHeaderProperties);
+
 
 //MenuWindowHeader
-var menuWindowHeaderProperties = $.webos.extend($.webos.properties.get('menu'), {
+$.webos.widget('menuWindowHeader', 'menu', {
 	_name: 'menuwindowheader'
 });
-$.webos.widget('menuWindowHeader', menuWindowHeaderProperties);
-
 $.webos.menuWindowHeader = function(contents) {
 	return $('<ul></ul>').html(contents || '').menuWindowHeader();
 };
 
 //WindowHeaderMenuItem
-var menuWindowHeaderItemProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('menuWindowHeaderItem', 'container', {
 	_name: 'menuwindowheaderitem',
 	options: {
 		label: ''
 	},
 	_create: function() {
+		this._super('_create');
+
 		var that = this;
 		
 		this.options._components.label = $('<a></a>', { href: '#' }).html(this.options.label).appendTo(this.element);
@@ -1435,8 +1445,6 @@ var menuWindowHeaderItemProperties = $.webos.extend($.webos.properties.get('cont
 		}
 	}
 });
-$.webos.widget('menuWindowHeaderItem', menuWindowHeaderItemProperties);
-
 $.webos.menuWindowHeaderItem = function(label) {
 	return $('<li></li>').menuItem({
 		label: label
@@ -1444,22 +1452,22 @@ $.webos.menuWindowHeaderItem = function(label) {
 };
 
 //ToolbarWindowHeader
-var toolbarWindowHeaderProperties = $.webos.extend($.webos.properties.get('windowHeader'), {
+$.webos.widget('toolbarWindowHeader', 'windowHeader', {
 	_name: 'toolbarwindowheader'
 });
-$.webos.widget('toolbarWindowHeader', toolbarWindowHeaderProperties);
-
 $.webos.toolbarWindowHeader = function() {
 	return $('<ul></ul>').toolbarWindowHeader();
 };
 
 //ToolbarWindowHeaderItem
-var toolbarWindowHeaderItemProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('toolbarWindowHeaderItem', 'container', {
 	_name: 'toolbarwindowheaderitem',
 	options: {
 		active: false
 	},
 	_create: function() {
+		this._super('_create');
+
 		if (typeof this.options.label != 'undefined' && this.options.label != '') {
 			this._setLabel(this.options.label);
 		}
@@ -1508,8 +1516,6 @@ var toolbarWindowHeaderItemProperties = $.webos.extend($.webos.properties.get('c
 		}
 	}
 });
-$.webos.widget('toolbarWindowHeaderItem', toolbarWindowHeaderItemProperties);
-
 $.webos.toolbarWindowHeaderItem = function(label, icon) {
 	return $('<li></li>').toolbarWindowHeaderItem({
 		label: label,
@@ -1518,26 +1524,25 @@ $.webos.toolbarWindowHeaderItem = function(label, icon) {
 };
 
 //WindowHeaderSearch
-$.webos.widget('windowHeaderSearch', $.webos.properties.get('searchEntry'));
-
+$.webos.widget('windowHeaderSearch', 'searchEntry', {});
 $.webos.windowHeaderSearch = function() {
 	return $('<li></li>').windowHeaderSearch();
 };
 
 //ButtonWindowHeader
-var buttonWindowHeaderProperties = $.webos.extend($.webos.properties.get('windowHeader'), {
+$.webos.widget('buttonWindowHeader', 'windowHeader', {
 	_name: 'buttonwindowheader'
 });
-$.webos.widget('buttonWindowHeader', buttonWindowHeaderProperties);
-
 $.webos.buttonWindowHeader = function() {
 	return $('<ul></ul>').buttonWindowHeader();
 };
 
 //ButtonWindowHeaderItem
-var buttonWindowHeaderItemProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('buttonWindowHeaderItem', 'container', {
 	_name: 'buttonwindowheaderitem',
 	_create: function() {
+		this._super('_create');
+
 		if (typeof this.options.icon == 'undefined') {
 			this.options.icon = '';
 		}
@@ -1570,11 +1575,11 @@ var buttonWindowHeaderItemProperties = $.webos.extend($.webos.properties.get('co
 		}
 	}
 });
-$.webos.widget('buttonWindowHeaderItem', buttonWindowHeaderItemProperties);
-
 $.webos.buttonWindowHeaderItem = function(label, icon) {
 	return $('<li></li>').buttonWindowHeaderItem({
 		label: label,
 		icon: icon
 	});
 };
+
+})(jQuery);

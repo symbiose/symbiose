@@ -4,7 +4,7 @@
  * @author $imon
  */
 
-var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('terminal', 'container', {
 	_name: 'terminal',
 	options: {
 		callback: function() {},
@@ -12,6 +12,8 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 	},
 	_translationsName: 'gnome-terminal',
 	_create: function() {
+		this._super('_create');
+
 		this.options.callback = W.Callback.toCallback(this.options.callback);
 
 		var that = this;
@@ -168,8 +170,6 @@ var terminalProperties = $.webos.extend($.webos.properties.get('container'), {
 		}]);
 	}
 });
-$.webos.widget('terminal', terminalProperties);
-
 $.webos.terminal = function(callback) {
 	return $('<div></div>').terminal({
 		callback: callback

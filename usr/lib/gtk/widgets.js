@@ -1,86 +1,79 @@
 /**
  * Widgets pour le webos.
  * @author $imon <contact@simonser.fr.nf>
- * @version 1.0
- * @since 1.0 alpha 1
+ * @version 2.0
+ * @since 1.0alpha1
  */
+
+(function($) {
 
 /**
  * Namespace global pour les widgets du webos.
  * @namespace
  */
 $.webos = {};
-/**
- * Proprietes des widgets.
- * @static
- * @private
- */
-$.webos.properties = {};
-/**
- * Liste des proprietes des widgets.
- * @static
- * @private
- */
-$.webos.properties.list = {};
-/**
-* Recuperer les proprietes d'un widget.
-* @param string widget Le nom du widget.
-* @return object
-* @static
-*/
-$.webos.properties.get = function(widget) {
-	if (typeof $.webos.properties.list[widget] == 'undefined') {
-		return null;
-	}
-	
-	return $.webos.properties.list[widget];
-};
+
 /**
 * Declarer un widget.
-* @param string widget Le nom du widget.
+* @param string widgetName Le nom du widget.
 * @param object|string arg1 Les proprietes du widget. Si est le nom d'un widget, le nouveau widget heritera de celui-ci.
 * @param object arg2 Si arg1 est le nom d'un widget, arg2 sera les proprietes du widget.
 * @static
 */
-$.webos.widget = function(widget, arg1, arg2) {
-	widget = String(widget);
+$.webos.widget = function(widgetName) {
+	widgetName = String(widgetName);
 
-	var properties;
-	if (typeof arg2 != 'undefined') {
-		properties = $.webos.extend($.webos.properties.get(arg1), arg2);
+	var properties, parentWidgetName, parentWidget;
+
+	if (typeof arguments[2] != 'undefined') {
+		parentWidgetName = arguments[1];
+		parentWidget = $[$.webos.widget.namespace()][parentWidgetName];
+		properties = arguments[2];
 	} else {
-		properties = arg1;
+		properties = arguments[1];
 	}
 
-	properties.widgetEventPrefix = widget.toLowerCase();
-	
+	if (typeof properties != 'object') {
+		return false;
+	}
+
+	properties.widgetEventPrefix = widgetName.toLowerCase();
+	properties.widgetBaseClass = 'webos-' + widgetName.toLowerCase();
+
+	var fullWidgetName = $.webos.widget.namespace() + '.' + widgetName;
+	if (parentWidget) {
+		$.widget(fullWidgetName, parentWidget, properties);
+	} else {
+		$.widget(fullWidgetName, properties);
+	}
+
 	if (properties._translationsName) {
-		var createFn = properties._create;
-		properties._create = function() {
-			if (!this._translations) {
-				var that = this;
-				
-				Webos.Translation.load(function(t) {
-					that._translations = t;
-					createFn.call(that);
-				}, this._translationsName);
-			} else {
-				createFn.call(this);
-			}
-		};
-		properties.translations = function() {
-			return this._translations;
-		};
-	}
+		parentWidget = $[$.webos.widget.namespace()][widgetName];
+		$.widget(fullWidgetName, parentWidget, {
+			_create: function() {
+				if (!this._translations) {
+					var that = this, args = arguments, superFn = this._super;
 
-	if ($.webos.properties.get(widget) === properties) {
-		return;
+					Webos.Translation.load(function(t) {
+						that._translations = t;
+						superFn.apply(that, args);
+					}, this._translationsName);
+				} else {
+					this._superApply(arguments);
+				}
+			},
+			translations: function() {
+				return this._translations;
+			}
+		});
 	}
-	
-	$.webos.properties.list[widget] = properties;
-	
-	$.widget('weboswidgets.'+widget, properties);
 };
+
+$.webos.widget._namespace = 'gtk';
+$.webos.widget.namespace = function() {
+	return $.webos.widget._namespace;
+};
+
 /**
  * Determiner si est element est un widget.
  * @param {jQuery} element L'element.
@@ -89,25 +82,38 @@ $.webos.widget = function(widget, arg1, arg2) {
  * @static
  */
 $.webos.widget.is = function(element, widgetName) {
-	return $(element).is(':weboswidgets-' + widgetName);
+	return $(element).is(':' + $.webos.widget.namespace() + '-' + widgetName);
 };
-var widgetProperties = {
+
+$.webos.widgets = [];
+$.webos.getWidgets = function(widgetName) {
+	if (widgetName) {
+		return $($.webos.widgets).filter(':' + $.webos.widget.namespace() + '-' + widgetName);
+	}
+	
+	return $($.webos.widgets);
+};
+
+//Widget
+$.webos.widget('widget', {
 	_name: 'widget',
 	options: {
 		id: 0,
 		pid: null
 	},
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 
 		this.options.id = $.webos.widgets.push(this.element) - 1;
 		if (typeof Webos.Process.current() != 'undefined') {
 			this.options.pid = Webos.Process.current().getPid();
 			Webos.Process.current().bind('stop', function() {
-				var el = $(that.element);
+				var $el = that.element;
 
-				if (el.length) {
-					$(el).empty().remove();
+				if ($el.length > 0 && $el.closest('html').length > 0) {
+					$el.empty().remove();
 				}
 			});
 		}
@@ -122,7 +128,8 @@ var widgetProperties = {
 	},
 	destroy: function() {
 		delete $.webos.widgets[this.options.id];
-		$.Widget.prototype.destroy.call(this);
+
+		this._super('destroy');
 	},
 	_setOption: function(key, value) {
 		this.options[key] = value;
@@ -132,58 +139,18 @@ var widgetProperties = {
 		return '#'+this.element.attr('id');
 	},
 	_update: function() {}
-};
-$.webos.widget('widget', widgetProperties);
-$.webos.widgets = [];
-$.webos.getWidgets = function(widgetName) {
-	if (widgetName) {
-		return $.webos.widgets.filter(':weboswidgets-' + widgetName);
-	}
-	
-	return $.webos.widgets;
-};
-$.webos.extend = function(parent, child) {
-	child = $.extend(true, {}, parent, child);
-	child._parent = function() {
-		return parent;
-	};
-	child._super = function(method) {
-		var args = [];
-		for (var i = 1; i < arguments.length; i++) {
-			args.push(arguments[i]);
-		}
-		return parent[method].apply(this, args);
-	};
-	for (var attr in child) {
-		if (typeof child[attr] == 'function' && typeof parent[attr] == 'function') {
-			child[attr] = (function(parentMethod, childMethod) {
-				return function() {
-					if (attr == 'destroy') { //When destroying a widget, we must call the child method first
-						result = childMethod.apply(this, arguments);
-						parentMethod.apply(this, arguments);
-						return result;
-					} else {
-						parentMethod.apply(this, arguments);
-						return childMethod.apply(this, arguments);
-					}
-				};
-			})(parent[attr], child[attr]);
-		}
-		if (child[attr] instanceof Array && parent[attr] instanceof Array) {
-			child[attr] = parent[attr].concat(child[attr]);
-		}
-	}
-	return child;
-};
+});
 
 //Container
-var containerProperties = $.webos.extend($.webos.properties.get('widget'), {
+$.webos.widget('container', 'widget', {
 	_name: 'container',
 	options: {
 		_content: undefined,
 		_components: {}
 	},
 	_create: function() {
+		this._super('_create');
+		
 		this.options._content = this.element;
 	},
 	content: function() {
@@ -197,14 +164,13 @@ var containerProperties = $.webos.extend($.webos.properties.get('widget'), {
 		return this.options._components[component];
 	}
 });
-$.webos.widget('container', containerProperties);
-
 $.webos.container = function() {
 	return $('<div></div>').container();
 };
 
+
 //ScrollPane
-var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('scrollPane', 'container', {
 	_name: 'scrollpane',
 	options: {
 		autoReload: false,
@@ -217,6 +183,8 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 		alsoResize: null
 	},
 	_create: function() {
+		this._super('_create');
+		
 		var originalScrollTop = this.element.scrollTop(), originalScrollLeft = this.element.scrollLeft();
 		
 		this.element.attr('tabindex', 0);
@@ -709,19 +677,20 @@ var scrollPaneProperties = $.webos.extend($.webos.properties.get('container'), {
 		}, 0);
 	}
 });
-$.webos.widget('scrollPane', scrollPaneProperties);
-
 $.webos.scrollPane = function(options) {
 	return $('<div></div>').scrollPane(options);
 };
 
+
 //Label
-var labelProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('label', 'container', {
 	options: {
 		text: ''
 	},
 	_name: 'label',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._content.html(this.options.text);
 	},
 	_update: function(key, value) {
@@ -732,16 +701,15 @@ var labelProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	}
 });
-$.webos.widget('label', labelProperties);
-
 $.webos.label = function(text) {
 	return $('<div></div>').label({
 		text: text
 	});
 };
 
+
 //Image
-var imageProperties = $.webos.extend($.webos.properties.get('widget'), {
+$.webos.widget('image', 'widget', {
 	options: {
 		src: '',
 		title: 'image',
@@ -749,6 +717,8 @@ var imageProperties = $.webos.extend($.webos.properties.get('widget'), {
 		img: null
 	},
 	_create: function() {
+		this._super('_create');
+		
 		this.option('title', this.options.title);
 		this.option('src', this.options.src);
 	},
@@ -781,8 +751,6 @@ var imageProperties = $.webos.extend($.webos.properties.get('widget'), {
 		}
 	}
 });
-$.webos.widget('image', imageProperties);
-
 $.webos.image = function(src, title) {
 	return $('<img />').image({
 		src: src,
@@ -790,13 +758,16 @@ $.webos.image = function(src, title) {
 	});
 };
 
+
 //Progressbar
-var progressbarProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('progressbar', 'container', {
 	_name: 'progressbar',
 	options: {
 		value: 0
 	},
 	_create: function() {
+		this._super('_create');
+		
 		this.options._content = $('<div></div>').appendTo(this.element);
 		this.element.append(this.content());
 		this.value(this.options.value);
@@ -827,26 +798,24 @@ var progressbarProperties = $.webos.extend($.webos.properties.get('container'), 
 		}
 	}
 });
-$.webos.widget('progressbar', progressbarProperties);
-
 $.webos.progressbar = function(value) {
 	return $('<div></div>').progressbar({
 		value: value
 	});
 };
 
+
 //ButtonContainer
-var buttonContainerProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('buttonContainer', 'container', {
 	_name: 'button-container'
 });
-$.webos.widget('buttonContainer', buttonContainerProperties);
-
 $.webos.buttonContainer = function() {
 	return $('<div></div>').buttonContainer();
 };
 
+
 //Button
-var buttonProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('button', 'container', {
 	options: {
 		label: 'Bouton',
 		icon: undefined,
@@ -856,7 +825,9 @@ var buttonProperties = $.webos.extend($.webos.properties.get('container'), {
 		showLabel: true
 	},
 	_name: 'button',
-	_create: function() {		
+	_create: function() {
+		this._super('_create');
+				
 		this._update('submit', this.options.submit);
 		this._update('label', this.options.label);
 		this._update('disabled', this.options.disabled);
@@ -903,8 +874,6 @@ var buttonProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	}
 });
-$.webos.widget('button', buttonProperties);
-
 $.webos.button = function(label, submit) {
 	return $('<span></span>').button({
 		label: label,
@@ -912,14 +881,17 @@ $.webos.button = function(label, submit) {
 	});
 };
 
+
 //List
-var listProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('list', 'container', {
 	options: {
 		columns: [],
 		buttons: []
 	},
 	_name: 'list',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._components.table = $('<table></table>').appendTo(this.element);
 		this.options._components.head = $('<thead></thead>').appendTo(this.options._components.table);
 		this.options._content = $('<tbody></tbody>').appendTo(this.options._components.table);
@@ -1035,8 +1007,6 @@ var listProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	}
 });
-$.webos.widget('list', listProperties);
-
 $.webos.list = function(columns, buttons) {
 	return $('<div></div>').list({
 		columns: columns,
@@ -1044,14 +1014,17 @@ $.webos.list = function(columns, buttons) {
 	});
 };
 
+
 //ListItem
-var listItemProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('listItem', 'container', {
 	options: {
 		columns: [],
 		active: false
 	},
 	_name: 'list-item',
 	_create: function() {
+		this._super('_create');
+		
 		for (var i = 0; i < this.options.columns.length; i++) {
 			this.addColumn(this.options.columns[i]);
 		}
@@ -1113,26 +1086,25 @@ var listItemProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	}
 });
-$.webos.widget('listItem', listItemProperties);
-
 $.webos.listItem = function(columns) {
 	return $('<tr></tr>').listItem({
 		columns: columns
 	});
 };
 
+
 //IconsList
-var iconsListProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('iconsList', 'container', {
 	_name: 'iconslist'
 });
-$.webos.widget('iconsList', iconsListProperties);
-
 $.webos.iconsList = function() {
 	return $('<ul></ul>').iconsList();
 };
 
+
+
 //IconsListItem
-var iconsListItemProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('iconsListItem', 'container', {
 	options: {
 		icon: '',
 		title: '',
@@ -1140,6 +1112,8 @@ var iconsListItemProperties = $.webos.extend($.webos.properties.get('container')
 	},
 	_name: 'iconslistitem',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._components.icon = $('<img />').appendTo(this.element);
 		this.options._components.title = $('<span></span>').appendTo(this.element);
 		
@@ -1198,8 +1172,6 @@ var iconsListItemProperties = $.webos.extend($.webos.properties.get('container')
 		}
 	}
 });
-$.webos.widget('iconsListItem', iconsListItemProperties);
-
 $.webos.iconsListItem = function(icon, title) {
 	return $('<li></li>').iconsListItem({
 		icon: icon,
@@ -1207,13 +1179,16 @@ $.webos.iconsListItem = function(icon, title) {
 	});
 };
 
+
 //IconsListHeader
-$.webos.widget('iconsListHeader', $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('iconsListHeader', 'container', {
 	options: {
 		title: ''
 	},
 	_name: 'iconslistheader',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._components.title = $('<span></span>', { 'class': 'title' }).appendTo(this.element);
 
 		this.option('title', this.options.title);
@@ -1225,22 +1200,24 @@ $.webos.widget('iconsListHeader', $.webos.extend($.webos.properties.get('contain
 				break;
 		}
 	}
-}));
-
+});
 $.webos.iconsListHeader = function(title) {
 	return $('<li></li>').iconsListHeader({
 		title: title
 	});
 };
 
+
 //Spoiler
-var spoilerProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('spoiler', 'container', {
 	_name: 'spoiler',
 	options: {
 		label: 'Plus',
 		shown: false
 	},
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 		
 		this.options._components.label = $('<div></div>')
@@ -1298,32 +1275,32 @@ var spoilerProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	}
 });
-$.webos.widget('spoiler', spoilerProperties);
-
 $.webos.spoiler = function(label) {
 	return $('<div></div>').spoiler({
 		label: label
 	});
 };
 
+
 //EntryContainer
-var entryContainerProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('entryContainer', 'container', {
 	_name: 'entry-container',
 	_create: function() {
+		this._super('_create');
+		
 		this.element.submit(function(event) {
 			event.preventDefault();
 		});
 		$('<input />', { type: 'submit', 'class': 'fake-submit' }).appendTo(this.content());
 	}
 });
-$.webos.widget('entryContainer', entryContainerProperties);
-
 $.webos.entryContainer = function() {
 	return $('<form></form>').entryContainer();
 };
 
+
 //Entry
-var entryProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('entry', 'container', {
 	options: {
 		label: '',
 		value: '',
@@ -1331,6 +1308,8 @@ var entryProperties = $.webos.extend($.webos.properties.get('container'), {
 	},
 	_name: 'entry',
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 		
 		this.options._components.label = $('<label></label>')
@@ -1384,15 +1363,17 @@ var entryProperties = $.webos.extend($.webos.properties.get('container'), {
 		return this.content();
 	}
 });
-$.webos.widget('entry', entryProperties);
 
-var checkableEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
+
+$.webos.widget('checkableEntry', 'entry', {
 	options: {
 		autoCheck: true,
 		check: null
 	},
 	_name: 'checkable-entry',
 	_create: function() {
+		this._super('_create');
+		
 		this.option('autoCheck', this.options.autoCheck);
 	},
 	_update: function(key, value) {
@@ -1435,20 +1416,20 @@ var checkableEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
 		return valid;
 	}
 });
-$.webos.widget('checkableEntry', checkableEntryProperties);
+
 
 //TextEntry
-var textEntryProperties = $.webos.extend($.webos.properties.get('checkableEntry'), {
+$.webos.widget('textEntry', 'checkableEntry', {
 	_name: 'text-entry',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._content = $('<input />', { type: 'text' }).val(this.options.defaultValue);
 		this.element.append(this.options._content);
 		
 		this.value(this.options.value);
 	}
 });
-$.webos.widget('textEntry', textEntryProperties);
-
 $.webos.textEntry = function(label, value) {
 	return $('<div></div>').textEntry({
 		label: label,
@@ -1456,10 +1437,14 @@ $.webos.textEntry = function(label, value) {
 	});
 };
 
+
+
 //CaptchaEntry
-var captchaEntryProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('captchaEntry', 'container', {
 	_name: 'captcha-entry',
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 		
 		this.options._components.label = $.webos.label().appendTo(this.element);
@@ -1518,46 +1503,47 @@ var captchaEntryProperties = $.webos.extend($.webos.properties.get('container'),
 		return this.options._components.input.textEntry('value');
 	}
 });
-$.webos.widget('captchaEntry', captchaEntryProperties);
-
 $.webos.captchaEntry = function() {
 	return $('<div></div>').captchaEntry();
 };
 
+
 //SearchEntry
-var searchEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
+$.webos.widget('searchEntry', 'entry', {
 	_name: 'search-entry',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._content = $('<input />', { type: 'text' });
 		this.element.append(this.options._content);
 	}
 });
-$.webos.widget('searchEntry', searchEntryProperties);
-
 $.webos.searchEntry = function(label) {
 	return $('<div></div>').searchEntry({
 		label: label
 	});
 };
 
+
 //PasswordEntry
-var passwordEntryProperties = $.webos.extend($.webos.properties.get('checkableEntry'), {
+$.webos.widget('passwordEntry', 'checkableEntry', {
 	_name: 'password-entry',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._content = $('<input />', { type: 'password' });
 		this.element.append(this.options._content);
 	}
 });
-$.webos.widget('passwordEntry', passwordEntryProperties);
-
 $.webos.passwordEntry = function(label) {
 	return $('<div></div>').passwordEntry({
 		label: label
 	});
 };
 
+
 //NumberEntry
-var numberEntryProperties = $.webos.extend($.webos.properties.get('checkableEntry'), {
+$.webos.widget('numberEntry', 'checkableEntry', {
 	_name: 'password-entry',
 	options: {
 		min: null,
@@ -1565,6 +1551,8 @@ var numberEntryProperties = $.webos.extend($.webos.properties.get('checkableEntr
 		step: null
 	},
 	_create: function() {
+		this._super('_create');
+		
 		this.options._content = $('<input />', { type: 'number' });
 		this.element.append(this.options._content);
 		
@@ -1589,8 +1577,6 @@ var numberEntryProperties = $.webos.extend($.webos.properties.get('checkableEntr
 		}
 	}
 });
-$.webos.widget('numberEntry', numberEntryProperties);
-
 $.webos.numberEntry = function(label, value, min, max) {
 	return $('<div></div>').numberEntry({
 		label: label,
@@ -1600,10 +1586,13 @@ $.webos.numberEntry = function(label, value, min, max) {
 	});
 };
 
+
 //TextAreaEntry
-var textAreaEntryProperties = $.webos.extend($.webos.properties.get('checkableEntry'), {
+$.webos.widget('textAreaEntry', 'checkableEntry', {
 	_name: 'textarea-entry',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._components.br = $('<br />').appendTo(this.element);
 		this.options._content = $('<textarea></textarea>').appendTo(this.element);
 		
@@ -1617,21 +1606,22 @@ var textAreaEntryProperties = $.webos.extend($.webos.properties.get('checkableEn
 		}
 	}
 });
-$.webos.widget('textAreaEntry', textAreaEntryProperties);
-
 $.webos.textAreaEntry = function(label) {
 	return $('<div></div>').textAreaEntry({
 		label: label
 	});
 };
 
+
 //CheckButton
-var checkButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
+$.webos.widget('checkButton', 'entry', {
 	options: {
 		value: false
 	},
 	_name: 'checkbutton',
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 		
 		this.options._content = $('<input />', { type: 'checkbox' }).change(function() {
@@ -1655,8 +1645,6 @@ var checkButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 		}
 	}
 });
-$.webos.widget('checkButton', checkButtonProperties);
-
 $.webos.checkButton = function(label, value) {
 	return $('<div></div>').checkButton({
 		label: label,
@@ -1664,20 +1652,22 @@ $.webos.checkButton = function(label, value) {
 	});
 };
 
+
 //RadioButtonContainer
-var radioButtonContainerProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('radioButtonContainer', 'container', {
 	_name: 'radiobutton-container'
 });
-$.webos.widget('radioButtonContainer', radioButtonContainerProperties);
-
 $.webos.radioButtonContainer = function() {
 	return $('<div></div>').radioButtonContainer();
 };
 
+
 //RadioButton
-var radioButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
+$.webos.widget('radioButton', 'entry', {
 	_name: 'radiobutton',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._content = $('<input />', { type: 'radio' }).change(function() {
 			$(this).parents('.webos-radiobutton-container').first().find(':checked').not(this).prop('checked', false);
 		});
@@ -1694,8 +1684,6 @@ var radioButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 		}
 	}
 });
-$.webos.widget('radioButton', radioButtonProperties);
-
 $.webos.radioButton = function(label, value) {
 	return $('<div></div>').radioButton({
 		label: label,
@@ -1703,13 +1691,16 @@ $.webos.radioButton = function(label, value) {
 	});
 };
 
+
 //SelectButton
-var selectButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
+$.webos.widget('selectButton', 'entry', {
 	options: {
 		choices: {}
 	},
 	_name: 'selectbutton',
 	_create: function() {
+		this._super('_create');
+		
 		this.options._content = $('<select></select>').appendTo(this.element);
 		this._setChoices(this.options.choices);
 		this.value(this.options.value);
@@ -1742,8 +1733,6 @@ var selectButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 		}
 	}
 });
-$.webos.widget('selectButton', selectButtonProperties);
-
 $.webos.selectButton = function(label, choices) {
 	return $('<div></div>').selectButton({
 		label: label,
@@ -1751,13 +1740,16 @@ $.webos.selectButton = function(label, choices) {
 	});
 };
 
+
 //SwitchButton
-var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
+$.webos.widget('switchButton', 'entry', {
 	options: {
 		value: false
 	},
 	_name: 'switchbutton',
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 		
 		this.options._content = $('<div></div>', { 'class': 'entry off' }).click(function() {
@@ -1843,8 +1835,6 @@ var switchButtonProperties = $.webos.extend($.webos.properties.get('entry'), {
 		}
 	}
 });
-$.webos.widget('switchButton', switchButtonProperties);
-
 $.webos.switchButton = function(label, value) {
 	return $('<div></div>').switchButton({
 		label: label,
@@ -1852,14 +1842,15 @@ $.webos.switchButton = function(label, value) {
 	});
 };
 
+
 //Menu
-var menuProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('menu', 'container', {
 	_name: 'menu'
 });
-$.webos.widget('menu', menuProperties);
+
 
 //MenuItem
-var menuItemProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('menuItem', 'container', {
 	_name: 'menuitem',
 	options: {
 		label: '',
@@ -1867,6 +1858,8 @@ var menuItemProperties = $.webos.extend($.webos.properties.get('container'), {
 		separator: false
 	},
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 		
 		this.options._components.label = $('<a></a>', { href: '#' }).html(this.options.label).appendTo(this.element);
@@ -1948,8 +1941,6 @@ var menuItemProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	},
 });
-$.webos.widget('menuItem', menuItemProperties);
-
 $.webos.menuItem = function(label, separator) {
 	return $('<li></li>').menuItem({
 		label: label,
@@ -1959,12 +1950,14 @@ $.webos.menuItem = function(label, separator) {
 
 
 //Tabs
-var tabsProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('tabs', 'container', {
 	_name: 'tabs',
 	options: {
 		selectedTab: null
 	},
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 		
 		this.options._components.tabs = $('<ul></ul>', { 'class': 'tabs' }).appendTo(this.element);
@@ -2048,15 +2041,13 @@ var tabsProperties = $.webos.extend($.webos.properties.get('container'), {
 		}
 	}
 });
-$.webos.widget('tabs', tabsProperties);
-
 $.webos.tabs = function(tabs) {
 	return $('<div></div>').tabs().tabs('setTabs', tabs);
 };
 
 
 //Draggable
-var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
+$.webos.widget('draggable', 'widget', {
 	_name: 'draggable',
 	options: {
 		data: null,
@@ -2068,6 +2059,8 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 		distance: 5
 	},
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 		
 		this.element.bind('mousedown.draggable.widget.webos', function(e) {
@@ -2191,16 +2184,18 @@ var draggableProperties = $.webos.extend($.webos.properties.get('widget'), {
 		}
 	}
 });
-$.webos.widget('draggable', draggableProperties);
 $.widget.bridge('ui_draggable', $.ui.draggable);
 
+
 //Droppable
-var droppableProperties = $.webos.extend($.webos.properties.get('widget'), {
+$.webos.widget('droppable', 'widget', {
 	_name: 'droppable',
 	options: {
 		accept: null
 	},
 	_create: function() {
+		this._super('_create');
+		
 		var that = this;
 		
 		$.webos.ddmanager.droppables.push(this);
@@ -2243,7 +2238,7 @@ var droppableProperties = $.webos.extend($.webos.properties.get('widget'), {
 		return (el.draggable('option', 'dataType') == this.options.accept);
 	}
 });
-$.webos.widget('droppable', droppableProperties);
+
 
 $.webos.ddmanager = {
 	current: null,
@@ -2471,3 +2466,5 @@ $.webos.keyboard.bind = function(el, keycode, callback) {
 
 //Raccourci
 $.w = $.webos;
+
+})(jQuery);

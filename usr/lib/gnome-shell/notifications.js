@@ -66,7 +66,7 @@ SNotification.element.mouseleave(function() {
 });
 
 //Notification
-var notificationProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('notification', 'container', {
 	options: {
 		title: 'Message',
 		message: '',
@@ -77,6 +77,8 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 	},
 	_name: 'notification',
 	_create: function() {
+		this._super('_create');
+
 		var that = this;
 		
 		this.options._components.header = $('<div></div>', { 'class': 'header' }).appendTo(this.element);
@@ -187,18 +189,19 @@ var notificationProperties = $.webos.extend($.webos.properties.get('container'),
 		});
 	}
 });
-$.webos.widget('notification', notificationProperties);
-
 $.webos.notification = function(options) {
 	return $('<div></div>').notification(options);
 };
 
-var appIndicatorProperties = $.webos.extend($.webos.properties.get('container'), {
+
+$.webos.widget('appIndicator', 'container', {
 	options: {
 		title: 'Application',
 		icon: undefined
 	},
 	_create: function() {
+		this._super('_create');
+
 		var indicator = this.options._components.indicator = $('<div></div>', { 'class': 'indicator' }).appendTo(this.element);
 		this.options._components.icon = $('<img />', { 'class': 'icon' }).appendTo(indicator);
 		this.options._components.title = $('<span></span>', { 'class': 'title' }).appendTo(indicator);
@@ -302,8 +305,6 @@ var appIndicatorProperties = $.webos.extend($.webos.properties.get('container'),
 		this.element.detach();
 	}
 });
-$.webos.widget('appIndicator', appIndicatorProperties);
-
 $.webos.appIndicator = function(options) {
 	return $('<li></li>').appIndicator(options);
 };

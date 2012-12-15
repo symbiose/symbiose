@@ -21,7 +21,7 @@ W.ScriptFile.load(
 	};
 })(jQuery);
 
-var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('nautilus', 'container', {
 	_name: 'nautilus',
 	options: {
 		directory: '~',
@@ -33,6 +33,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 	},
 	_translationsName: 'nautilus',
 	_create: function() {
+		this._super('_create');
+
 		var that = this;
 		var t = this.translations();
 		
@@ -1320,13 +1322,8 @@ var nautilusProperties = $.webos.extend($.webos.properties.get('container'), {
 
 			callback.error(response);
 		}]);
-	},
-	_destroy: function() {
-		
 	}
 });
-$.webos.widget('nautilus', nautilusProperties);
-
 $.webos.nautilus = function(options) {
 	return $('<div></div>').nautilus(options);
 };
@@ -1417,7 +1414,7 @@ $.w.nautilus.progresses.update = function(id, value, details) { //Mettre a jour 
 	}
 };
 
-var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('nautilusFileSelector', 'container', {
 	_name: 'nautilusfileselector',
 	options: {
 		selectDirs: false,
@@ -1427,6 +1424,8 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 	},
 	_translationsName: 'nautilus',
 	_create: function() {
+		this._super('_create');
+
 		var that = this, t = this.translations();
 		
 		var form = $.w.entryContainer().submit(function() {
@@ -1539,18 +1538,18 @@ var nautilusFileSelectorProperties = $.webos.extend($.webos.properties.get('cont
 		return this.options._components.nautilus;
 	}
 });
-$.webos.widget('nautilusFileSelector', nautilusFileSelectorProperties);
-
 $.webos.nautilusFileSelector = function(options) {
 	return $('<div></div>').nautilusFileSelector(options);
 };
 
-var nautilusFileEntryProperties = $.webos.extend($.webos.properties.get('entry'), {
+$.webos.widget('nautilusFileEntry', 'entry', {
 	_name: 'nautilusfileentry',
 	options: {
 		fileSelector: {}
 	},
 	_create: function() {
+		this._super('_create');
+
 		var that = this;
 		
 		this.options._content = $('<input />', { type: 'text' }).appendTo(this.element);
@@ -1565,21 +1564,21 @@ var nautilusFileEntryProperties = $.webos.extend($.webos.properties.get('entry')
 		this.value(this.options.value);
 	}
 });
-$.webos.widget('nautilusFileEntry', nautilusFileEntryProperties);
-
 $.webos.nautilusFileEntry = function(label, options) {
 	return $('<div></div>').nautilusFileEntry($.extend({}, options, {
 		label: label
 	}));
 };
 
-var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('nautilusShortcuts', 'container', {
 	_name: 'nautilusshortcuts',
 	options: {
 		open: function() {}
 	},
 	_translationsName: 'nautilus',
 	_create: function() {
+		this._super('_create');
+
 		var that = this, t = this.translations();
 		
 		var thisProcess = W.Process.current(), canReadUserFiles = true, canReadSystemFiles = true;
@@ -1678,15 +1677,13 @@ var nautilusShortcutsProperties = $.webos.extend($.webos.properties.get('contain
 		Webos.File.unbind(this.options._umountCallback);
 	}
 });
-$.webos.widget('nautilusShortcuts', nautilusShortcutsProperties);
-
 $.webos.nautilusShortcuts = function(fn) {
 	return $('<div></div>').nautilusShortcuts({
 		open: fn
 	});
 };
 
-var nautilusFileSelectorShortcutsProperties = $.webos.extend($.webos.properties.get('nautilusShortcuts'), {
+$.webos.widget('nautilusFileSelectorShortcuts', 'nautilusShortcuts', {
 	_name: 'nautilusshortcuts',
 	options: {
 		exists: true,
@@ -1694,6 +1691,8 @@ var nautilusFileSelectorShortcutsProperties = $.webos.extend($.webos.properties.
 		selectMultiple: false
 	},
 	_create: function() {
+		this._super('_create');
+
 		var that = this, t = this.translations();
 		
 		if (Webos.LocalFile.support) {
@@ -1741,8 +1740,6 @@ var nautilusFileSelectorShortcutsProperties = $.webos.extend($.webos.properties.
 		}
 	}
 });
-$.webos.widget('nautilusFileSelectorShortcuts', nautilusFileSelectorShortcutsProperties);
-
 $.webos.nautilusFileSelectorShortcuts = function(opts) {
 	return $('<div></div>').nautilusFileSelectorShortcuts(opts);
 };

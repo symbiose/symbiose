@@ -6,13 +6,15 @@
  */
 
 //ContextMenu
-var contextMenuProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('contextMenu', 'container', {
 	options: {
 		target: undefined,
 		disabled: false
 	},
 	_name: 'contextmenu',
 	_create: function() {
+		this._super('_create');
+
 		if (typeof this.options.target != 'undefined') {
 			this._setTarget(this.options.target);
 		}
@@ -116,8 +118,6 @@ var contextMenuProperties = $.webos.extend($.webos.properties.get('container'), 
 		}
 	}
 });
-$.webos.widget('contextMenu', contextMenuProperties);
-
 $.webos.contextMenu = function(target) {
 	return $('<ul></ul>').contextMenu({
 		target: target

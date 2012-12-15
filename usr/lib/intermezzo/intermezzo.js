@@ -7,13 +7,15 @@ new W.ScriptFile('usr/lib/intermezzo/jquery.jplayer.min.js');
 new W.ScriptFile('usr/lib/webos/fullscreen.js');
 new W.Stylesheet('usr/share/css/intermezzo/main.css');
 
-var intermezzoProperties = $.webos.extend($.webos.properties.get('container'), {
+$.webos.widget('intermezzo', 'container', {
 	_name: 'intermezzo',
 	options: {
 		file: undefined
 	},
 	_translationsName: 'intermezzo',
 	_create: function() {
+		this._super('_create');
+
 		if (Webos.isInstanceOf(this.options.file, W.File)) {
 			this.open(this.options.file);
 		} else {
@@ -261,8 +263,6 @@ var intermezzoProperties = $.webos.extend($.webos.properties.get('container'), {
 		return this.options._components.player;
 	}
 });
-$.webos.widget('intermezzo', intermezzoProperties);
-
 $.webos.intermezzo = function(options) {
 	return $('<div></div>').intermezzo(options);
 };
