@@ -406,7 +406,7 @@ $.webos.widget('nautilus', 'container', {
 		
 		this.element.scrollPane('reload');
 		
-		var createFileCallbackId = Webos.File.bind('load', function(data) {
+		Webos.File.bind('load._render.nautilus-'+this.id(), function(data) {
 			var newFile = data.file;
 			
 			if (newFile.get('dirname') != that.location()) {
@@ -416,10 +416,12 @@ $.webos.widget('nautilus', 'container', {
 			if (!that.options._items[newFile.get('path')]) {
 				var newItem = that._renderItem(newFile);
 				that._insertItem(newItem);
-				that.element.scrollPane('reload');
+				if ($.webos.widget.is(that.element, 'scrollPane')) {
+					that.element.scrollPane('reload');
+				}
 			}
 		});
-		var removeFileCallbackId = Webos.File.bind('remove', function(data) {
+		Webos.File.bind('remove._render.nautilus-'+this.id(), function(data) {
 			var oldFile = data.file;
 			
 			if (oldFile.get('dirname') != that.location()) {
@@ -431,17 +433,17 @@ $.webos.widget('nautilus', 'container', {
 				delete that.options._items[oldFile.get('path')];
 			}
 		});
-		var umountCallbackId = Webos.File.bind('umount', function(data) {
+		Webos.File.bind('umount._render.nautilus-'+this.id(), function(data) {
 			if (that.location().indexOf(data.local) !== 0) {
 				return;
 			}
 			
 			that.readDir('~');
 		});
-		this.element.one('nautilusreadstart', function() {
-			Webos.File.unbind(createFileCallbackId);
-			Webos.File.unbind(removeFileCallbackId);
-			Webos.File.unbind(umountCallbackId);
+		this.element.one('nautilusreadstart nautilusdestroy', function(e) {
+			Webos.File.unbind('load._render.nautilus-'+that.id());
+			Webos.File.unbind('remove._render.nautilus-'+that.id());
+			Webos.File.unbind('umount._render.nautilus-'+that.id());
 		});
 	},
 	_renderItem: function(file) {

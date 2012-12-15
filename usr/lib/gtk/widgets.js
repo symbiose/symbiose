@@ -127,6 +127,8 @@ $.webos.widget('widget', {
 		return this.options.pid;
 	},
 	destroy: function() {
+		this._trigger('destroy', { type: 'destroy' });
+
 		delete $.webos.widgets[this.options.id];
 
 		this._super('destroy');
