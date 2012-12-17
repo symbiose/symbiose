@@ -16,7 +16,11 @@ abstract class Log extends \lib\WebosComponent {
 	 */
 	protected function _save($file) {
 		$line = date('M d G:i:s').' '.$_SERVER['SERVER_NAME'].' '.$this->log;
-		@file_put_contents('var/log/'.$file, $line."\n", FILE_APPEND);
+
+		$path = 'var/log/' . $file;
+		if (is_writable($path)) {
+			file_put_contents($path, $line."\n", FILE_APPEND);
+		}
 	}
 
 	/**
