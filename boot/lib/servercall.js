@@ -523,6 +523,19 @@ Webos.ServerCall.Response.prototype = {
 
 		Webos.Error.trigger(msg, details);
 	},
+	logError: function(msg) {
+		if (this.isSuccess()) {
+			return;
+		}
+		msg = (!msg) ? ((!this.getErrorsChannel()) ? this.getAllChannels() : this.getErrorsChannel()) : msg;
+
+		var details = null;
+		if (msg != this.getAllChannels()) {
+			details = this.getAllChannels();
+		}
+
+		Webos.Error.log(msg, details);
+	},
 	toString: function() {
 		return (this.getAllChannels() !== null) ? this.getAllChannels() : '';
 	}

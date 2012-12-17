@@ -380,7 +380,10 @@ $.webos.widget('nautilus', 'container', {
 			that._render([]);
 			
 			that._trigger('readcomplete', { type: 'readcomplete' }, { location: that.location() });
-			that._trigger('readerror', { type: 'readerror' }, { location: that.location() });
+
+			if (!that._trigger('readerror', { type: 'readerror' }, { location: that.location(), response: response })) {
+				return;
+			}
 			
 			userCallback.error(response);
 		}]);

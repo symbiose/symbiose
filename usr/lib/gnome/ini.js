@@ -41,19 +41,23 @@ Webos.Translation.load(function(t) {
 			emptyDesktopFiles = $('<div id="desktop-files"></div>');
 			desktopFiles.replaceWith(emptyDesktopFiles);
 			desktopFiles = emptyDesktopFiles;
-			return;
-		}
+		} else {
+			//On charge le contenu du bureau
+			var nautilusDesktopFiles = $.w.nautilus({
+				multipleWindows: true,
+				directory: t.get('~/Desktop')
+			});
 
-		//On charge le contenu du bureau
-		var nautilusDesktopFiles = $.w.nautilus({
-			multipleWindows: true,
-			directory: t.get('~/Desktop')
-		});
-		nautilusDesktopFiles.one('nautilusreadcomplete', function() {
-			resizeDesktopFn();
-		});
-		desktopFiles.replaceWith(nautilusDesktopFiles);
-		desktopFiles = nautilusDesktopFiles;
+			nautilusDesktopFiles.one('nautilusreadcomplete', function() {
+				resizeDesktopFn();
+			}).one('nautilusreaderror', function(e, data) {
+				data.response.logError();
+				return false;
+			});;
+
+			desktopFiles.replaceWith(nautilusDesktopFiles);
+			desktopFiles = nautilusDesktopFiles;
+		}
 	};
 
 	Webos.User.bind('login logout', function(data) {
@@ -65,7 +69,7 @@ Webos.Translation.load(function(t) {
 	}, function() {}]);
 
 	Webos.ConfigFile.loadUserConfig('~/.config/exiting.xml', null, [function(configFile) {
-		if (configFile.get('askOnExit')) {
+		if (configFile.get('askOnExit') == 1) {
 			$(window).bind('beforeunload', function() {
 				return t.get('Are you sure you want to leave the webos ?');
 			});

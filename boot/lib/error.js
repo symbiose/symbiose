@@ -32,7 +32,7 @@ Webos.inherit(Webos.Error, Error);
 
 Webos.Error.list = [];
 Webos.Error.callback = function() {};
-Webos.Error.catchError = function(error) {
+Webos.Error.logError = function(error) {
 	if (!error.process) {
 		error.process = Webos.Process.current();
 	}
@@ -55,6 +55,16 @@ Webos.Error.catchError = function(error) {
 			}
 		}
 	}
+	
+	return error;
+};
+Webos.Error.catchError = function(error) {
+	if (!error.process) {
+		error.process = Webos.Process.current();
+	}
+
+	Webos.Error.logError(error);
+
 	if (typeof Webos.Error.callback == 'function') {
 		Webos.Error.callback(error);
 	}
@@ -67,6 +77,15 @@ Webos.Error.trigger = function(message, details) {
 	var error = new W.Error(message, details);
 	error.stack = Webos.Error.getStackTrace();
 	Webos.Error.catchError(error);
+};
+Webos.Error.log = function(message, details) {
+	if (!message) {
+		return;
+	}
+	
+	var error = new W.Error(message, details);
+	error.stack = Webos.Error.getStackTrace();
+	Webos.Error.logError(error);
 };
 Webos.Error.getStackTrace = function() {
 	var callstack = [];
