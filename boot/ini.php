@@ -17,7 +17,7 @@ set_time_limit(30);
 
 function autoload($class) //Fonction qui permet de charger automatiquement une classe
 {
-	$file = './'.str_replace('\\', '/', strtolower($class)).'.class.php';
+	$file = './'.str_replace('\\', '/', $class).'.class.php';
 	if (file_exists($file)) {
 		return require $file;
 	}
