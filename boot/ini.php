@@ -19,7 +19,7 @@ function autoload($class) //Fonction qui permet de charger automatiquement une c
 {
 	$file = './'.str_replace('\\', '/', $class).'.class.php';
 	if (file_exists($file)) {
-		return require './'.str_replace('\\', '/', $class).'.class.php';
+		return require $file;
 	}
 }
 

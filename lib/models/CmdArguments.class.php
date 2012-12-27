@@ -71,7 +71,7 @@ class CmdArguments extends \lib\WebosComponent {
 			} elseif ($char == '-') { //Si c'est un tiret
 				if ($cache['previous'] == '-') { //Si le caractere precedant etait aussi un tiret, c'est une option type --fruit=abricot
 					$cache['str_option_type'] = 'long'; //Type de l'option
-				} elseif ($cache['previous'] == ' ' || empty($cache['previous'])) { //Si c'etait un espace blanc, c'est une option type -aBv
+				} elseif ($cache['previous'] == ' ' || $cache['previous'] === null) { //Si c'etait un espace blanc, c'est une option type -aBv
 					$cache['str_type'] = 'options'; //C'est une option
 					$cache['str_option_type'] = 'short'; //Type de l'option
 					$cache['str_stage'] = 'index'; //On remplit l'index
@@ -110,7 +110,7 @@ class CmdArguments extends \lib\WebosComponent {
 		}
 
 		//On vide le cache du dernier caractere
-		if (!empty($cache['str_index'])) {
+		if ($cache['str_index'] !== null) {
 			if ($cache['str_type'] == 'options') {
 				$this->options[$cache['str_index']] = $cache['str_content'];
 			} else {
