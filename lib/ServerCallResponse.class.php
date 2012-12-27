@@ -79,7 +79,7 @@ class ServerCallResponse extends HTTPResponse {
 	}
 
 	public function isError($value = true) {
-		$this->success = ($value === false) ? true : false;
+		$this->success = ($value === false) ? 1 : 0;
 	}
 
 	/**
