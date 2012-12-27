@@ -102,6 +102,9 @@ abstract class Error extends \lib\WebosComponent {
 		$msg = static::__toString();
 		if ($this->webos->getHTTPResponse() instanceof ServerCallResponse) {
 			$this->webos->getHTTPResponse()->addError($msg);
+			if ($this instanceof NoticeError) {
+				$this->webos->getHTTPResponse()->isError(false);
+			}
 		} else {
 			echo "\n" . $msg;
 		}

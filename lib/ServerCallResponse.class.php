@@ -78,8 +78,8 @@ class ServerCallResponse extends HTTPResponse {
 		$this->channels[$channel] .= $contents;
 	}
 
-	public function isError() {
-		$this->success = 0;
+	public function isError($value = true) {
+		$this->success = ($value === false) ? true : false;
 	}
 
 	/**
