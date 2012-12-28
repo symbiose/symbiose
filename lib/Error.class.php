@@ -6,7 +6,7 @@ namespace lib;
  * @author $imon
  * @version 1.0
  */
-abstract class Error extends \lib\WebosComponent {
+abstract class Error extends WebosComponent {
 	/**
 	 * Message d'erreur.
 	 * @var string
@@ -181,3 +181,7 @@ abstract class Error extends \lib\WebosComponent {
 		self::$errorsWebos = $webos;
 	}
 }
+
+//Autoload fatal error dependencies
+spl_autoload_call('\\lib\\FatalError');
+spl_autoload_call('\\lib\\models\\ErrorLog');

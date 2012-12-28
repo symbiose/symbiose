@@ -14,15 +14,9 @@ class TranslationController extends \lib\ServerCallComponent {
 		if ($this->webos->managers()->get('File')->exists('~/.config/locale.xml')) {
 			$conf->load('~/.config/locale.xml');
 		}
-		if ($conf->exist('language')) {
-			$lang = $conf->get('language');
-		} else {
-			$lang = $this->webos->managers()->get('Translation')->detectLanguage();
-			if ($this->webos->getUser()->isConnected()) {
-				$conf->set('language', $lang);
-				$conf->save('~/.config/locale.xml');
-			}
-		}
+
+		$lang = $this->webos->managers()->get('Translation')->getLanguage();
+
 		if ($conf->exist('locale')) {
 			$locale = $conf->get('locale');
 		} else {
@@ -32,7 +26,7 @@ class TranslationController extends \lib\ServerCallComponent {
 				$conf->save('~/.config/locale.xml');
 			}
 		}
-		
+
 		return array('language' => $lang, 'locale' => $locale);
 	}
 }

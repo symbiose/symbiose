@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
-	<attribute name="title" value="Son et vidéo"/>
+	<attribute name="title" value="Sound and video"/>
+	<attribute name="title" lang="fr_FR" value="Son et vidéo"/>
 	<attribute name="name" value="soundandvideo"/>
-	<attribute name="description" value="Son et vidéo"/>
+	<attribute name="description" value="Sound and video"/>
+	<attribute name="description" lang="fr_FR" value="Son et vidéo"/>
 	<attribute name="icon" value="/usr/share/icons/categories/23/soundandvideo.png"/>
 	<attribute name="menu" value="applications"/>
 </shortcut>

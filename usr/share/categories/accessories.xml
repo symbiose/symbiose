@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
-	<attribute name="title" value="Accessoires"/>
+	<attribute name="title" value="Accessories"/>
+	<attribute name="title" lang="fr_FR" value="Accessoires"/>
 	<attribute name="name" value="accessories"/>
-	<attribute name="description" value="Accessoires"/>
+	<attribute name="description" value="Accessories"/>
+	<attribute name="description" lang="fr_FR" value="Accessoires"/>
 	<attribute name="icon" value="/usr/share/icons/categories/23/accessories.png"/>
 	<attribute name="menu" value="applications"/>
 </shortcut>

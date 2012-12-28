@@ -9,11 +9,15 @@ namespace lib\models;
  */
 abstract class TranslationManager extends \lib\Manager {
 	/**
-	 * Le language de l'utilisateur.
-	 * @var string
+	 * @var string La langue de l'utilisateur.
 	 */
-	protected $language = 'en_EN';
-	
+	protected $language;
+
+	/**
+	 * @var string La langue par defaut.
+	 */
+	protected $defaultLanguage = 'en_EN';
+
 	/**
 	 * Charger une traduction.
 	 * @param string $path Le chemin de la traduction.
@@ -27,7 +31,29 @@ abstract class TranslationManager extends \lib\Manager {
 	 * @return string La langue.
 	 */
 	public function getLanguage() {
+		if (empty($this->language)) {
+			if ($this->webos->getUser()->isConnected()) {
+				$this->language = $this->getUserLanguage();
+			} else {
+				$this->language = $this->detectLanguage();
+			}
+		}
+
 		return $this->language;
+	}
+
+	/**
+	 * Recuperer la langue de l'utilisateur d'apres son fichier de configuration.
+	 * @return string La langue.
+	 */
+	abstract protected function getUserLanguage();
+
+	/**
+	 * Recuperer la langue par defaut.
+	 * @return string La langue par defaut.
+	 */
+	public function getDefaultLanguage() {
+		return $this->defaultLanguage;
 	}
 	
 	/**
@@ -71,7 +97,7 @@ abstract class TranslationManager extends \lib\Manager {
 		if ($this->setLanguage($locale)) {
 			return $locale;
 		} else {
-			return $this->getLanguage();
+			return $this->getDefaultLanguage();
 		}
 	}
 }

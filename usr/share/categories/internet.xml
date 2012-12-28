@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
 	<attribute name="title" value="Internet"/>
+	<attribute name="title" lang="fr_FR" value="Internet"/>
 	<attribute name="name" value="internet"/>
 	<attribute name="description" value="Internet"/>
+	<attribute name="description" lang="fr_FR" value="Internet"/>
 	<attribute name="icon" value="/usr/share/icons/categories/23/internet.png"/>
 	<attribute name="menu" value="applications"/>
 </shortcut>

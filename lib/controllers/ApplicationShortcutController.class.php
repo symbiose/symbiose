@@ -2,6 +2,7 @@
 namespace lib\controllers;
 
 use lib\models\Config;
+use lib\TranslatedDOMDocument;
 
 /**
  * Permet d'effectuer des actions sur les raccourcis des applications.
@@ -51,6 +52,8 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 		//On initialise la liste
 		$list = array('applications'=> array(), 'categories' => array());
 
+		$lang = $this->webos->managers()->get('Translation')->getLanguage();
+
 		//On recupere les infos pour chaque raccourci
 		foreach($applications as $shortcut) {
 			if ($shortcut->isDir())
@@ -59,9 +62,9 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 			if ($shortcut->extension() != 'xml')
 				continue;
 
-			$xml = new \DOMDocument;
+			$xml = new TranslatedDOMDocument;
 			$xml->loadXML($shortcut->contents());
-			$attributes = $xml->getElementsByTagName('attribute');
+			$attributes = $xml->getTranslatedElementsByTagName('attribute', $lang, 'name');
 			$attributesList = array();
 			foreach ($attributes as $attribute) {
 				$attributesList[$attribute->getAttribute('name')] = $attribute->getAttribute('value');
@@ -104,6 +107,8 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 		//On recupere la liste des categories
 		$categories = $this->webos->managers()->get('File')->get('/usr/share/categories/')->contents();
 
+		$lang = $this->webos->managers()->get('Translation')->getLanguage();
+
 		//On recupere les infos pour cahque categorie
 		foreach($categories as $shortcut) {
 			if ($shortcut->isDir())
@@ -112,9 +117,9 @@ class ApplicationShortcutController extends \lib\ServerCallComponent {
 			if ($shortcut->extension() != 'xml')
 				continue;
 
-			$xml = new \DOMDocument;
+			$xml = new TranslatedDOMDocument;
 			$xml->loadXML($shortcut->contents());
-			$attributes = $xml->getElementsByTagName('attribute');
+			$attributes = $xml->getTranslatedElementsByTagName('attribute', $lang, 'name');
 			$attributesList = array();
 			foreach ($attributes as $attribute) {
 				$attributesList[$attribute->getAttribute('name')] = $attribute->getAttribute('value');

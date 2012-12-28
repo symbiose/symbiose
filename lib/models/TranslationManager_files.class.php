@@ -1,6 +1,9 @@
 <?php
 namespace lib\models;
 
+use \Exception;
+use \lib\models\Config;
+
 class TranslationManager_files extends TranslationManager {
 	public function load($path, $locale = null) {
 		if (empty($locale) || !$this->_checkLanguage($locale)) {
@@ -38,5 +41,29 @@ class TranslationManager_files extends TranslationManager {
 		}
 		
 		return new Translation($this->webos, $data);
+	}
+
+	protected function getUserLanguage() {
+		if (!$this->webos->getUser()->isConnected()) {
+			throw new Exception('Unable to retrieve current user\'s language : you\'re not connected');
+		}
+
+		$lang = $this->getDefaultLanguage();
+
+		$conf = new Config($this->webos);
+		if ($this->webos->managers()->get('File')->exists('~/.config/locale.xml')) {
+			$conf->load('~/.config/locale.xml');
+		}
+		if ($conf->exist('language')) {
+			$lang = $conf->get('language');
+		} else {
+			$lang = $this->detectLanguage();
+			if ($this->webos->getUser()->isConnected()) {
+				$conf->set('language', $lang);
+				$conf->save('~/.config/locale.xml');
+			}
+		}
+
+		return $lang;
 	}
 }
