@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
-	<attribute name="title" value="Traduction d'applications"/>
-	<attribute name="description" value="Traduire des applications"/>
+	<attribute name="title" value="Applications translator"/>
+	<attribute name="title" lang="fr_FR" value="Traduction d'applications"/>
+	<attribute name="description" value="Translate applications"/>
+	<attribute name="description" lang="fr_FR" value="Traduire des applications"/>
 	<attribute name="command" value="gnome-translate"/>
 	<attribute name="icon" value="apps/translate"/>
 	<attribute name="menu" value="system"/>

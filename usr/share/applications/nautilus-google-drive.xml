@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
 	<attribute name="title" value="Google Drive"/>
-	<attribute name="description" value="Accéder a votre espace Google Drive"/>
+	<attribute name="description" value="Open your Google Drive files"/>
+	<attribute name="description" lang="fr_FR" value="Accéder a votre espace Google Drive"/>
 	<attribute name="command" value="nautilus-mounter GoogleDriveFile"/>
 	<attribute name="icon" value="applications/google-drive"/>
 	<attribute name="category" value="internet"/>

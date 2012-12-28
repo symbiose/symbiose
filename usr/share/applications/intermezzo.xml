@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
-	<attribute name="title" value="Lecteur multimédia Intermezzo"/>
-	<attribute name="description" value="Lire des fichiers audio et vidéo"/>
+	<attribute name="title" value="Intermezzo media player"/>
+	<attribute name="title" lang="fr_FR" value="Lecteur multimédia Intermezzo"/>
+	<attribute name="description" value="Play audio and video files"/>
+	<attribute name="description" lang="fr_FR" value="Lire des fichiers audio et vidéo"/>
 	<attribute name="command" value="intermezzo"/>
 	<attribute name="icon" value="applications/intermezzo"/>
 	<attribute name="menu" value="applications"/>

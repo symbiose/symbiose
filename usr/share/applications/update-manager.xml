@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
-	<attribute name="title" value="Gestionnaire de mises à jour"/>
-	<attribute name="description" value="Vérifier et installer les mises à jour"/>
+	<attribute name="title" value="Software updater"/>
+	<attribute name="title" lang="fr_FR" value="Gestionnaire de mises à jour"/>
+	<attribute name="description" value="Check and install software updates"/>
+	<attribute name="description" lang="fr_FR" value="Vérifier et installer les mises à jour"/>
 	<attribute name="command" value="update-manager"/>
 	<attribute name="icon" value="apps/update-manager"/>
 	<attribute name="menu" value="system"/>

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
 	<attribute name="title" value="Dropbox"/>
-	<attribute name="description" value="Accéder a votre Dropbox"/>
+	<attribute name="description" value="Open your Dropbox"/>
+	<attribute name="description" lang="fr_FR" value="Accéder a votre Dropbox"/>
 	<attribute name="command" value="nautilus-mounter DropboxFile"/>
 	<attribute name="icon" value="applications/dropbox"/>
 	<attribute name="category" value="internet"/>

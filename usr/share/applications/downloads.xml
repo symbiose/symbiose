@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shortcut>
-	<attribute name="title" value="Téléchargements"/>
-	<attribute name="description" value="Ouvrir les téléchargements"/>
-	<attribute name="command" value="nautilus ~/Téléchargements"/>
+	<attribute name="title" value="Downloads"/>
+	<attribute name="title" lang="fr_FR" value="Téléchargements"/>
+	<attribute name="description" value="Open downloads"/>
+	<attribute name="description" lang="fr_FR" value="Ouvrir les téléchargements"/>
+	<attribute name="command" value="nautilus ~/Downloads"/>
+	<attribute name="command" lang="fr_FR" value="nautilus ~/Téléchargements"/>
 	<attribute name="icon" value="places/folder-downloads"/>
 	<attribute name="menu" value="places"/>
 </shortcut>
