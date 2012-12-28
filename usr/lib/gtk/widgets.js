@@ -653,7 +653,9 @@ $.webos.widget('scrollPane', 'container', {
 					if (verticalDragHeight < that.options.verticalDragMinHeight) {
 						verticalDragHeight = that.options.verticalDragMinHeight;
 					}
-					dragContainerV.height(verticalDragHeight);
+					dragContainerV
+						.height(verticalDragHeight)
+						.css('top', Math.round( data.percentInViewV * (data.paneHeight - data.containerHeight)));
 					data.verticalDragHeight = verticalDragHeight + data.verticalDragMarginY;
 					data.dragMaxY = data.verticalTrackHeight - data.verticalDragHeight;
 				}
@@ -665,7 +667,9 @@ $.webos.widget('scrollPane', 'container', {
 					if (horizontalDragWidth < that.options.horizontalDragMinWidth) {
 						horizontalDragWidth = that.options.horizontalDragMinWidth;
 					}
-					dragContainerH.width(horizontalDragWidth);
+					dragContainerH
+						.width(horizontalDragWidth)
+						.css('left', Math.round( data.percentInViewH * (data.paneWidth - data.containerWidth)));
 					data.horizontalDragWidth = horizontalDragWidth + data.horizontalDragMarginX;
 					data.dragMaxX = data.horizontalTrackWidth - data.horizontalDragWidth;
 				}
