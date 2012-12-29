@@ -2,6 +2,7 @@
 namespace lib\controllers;
 
 use \lib\models\UserInterface;
+use \Exception;
 
 /**
  * UserInterfaceController permet de controller les interfaces utilisateur.

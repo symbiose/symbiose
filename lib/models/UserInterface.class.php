@@ -1,6 +1,9 @@
 <?php
 namespace lib\models;
 
+use \InvalidArgumentException;
+use \DOMDocument;
+
 /**
  * UserInterface represente une interface utilisateur.
  * @author $imon
@@ -58,7 +61,7 @@ class UserInterface extends \lib\WebosComponent {
 			throw new InvalidArgumentException('Erreur de lors du chargement de l\'interface graphique "'.$name.'" : fichier du contenu ("index.html") introuvable');
 
 		//Configuration de l'interface.
-		$xml = new \DOMDocument;
+		$xml = new DOMDocument;
 		$xml->loadXML($this->webos->managers()->get('File')->get($this->_getInterfaceRoot().'/config.xml')->contents());
 
 		$attributes = $xml->getElementsByTagName('attribute');
