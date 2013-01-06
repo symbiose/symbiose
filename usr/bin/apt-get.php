@@ -1,4 +1,8 @@
 <?php
+if (!$this->webos->getAuthorization()->can('package.write')) {
+	throw new Exception('Vous n\'avez pas les droits nécessaires pour utiliser apt-get');	
+}
+
 //APT: gerer les paquets
 switch($this->arguments->getParam(0)) {
 	case 'update': //Mettre a jour le cache
