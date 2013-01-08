@@ -1,0 +1,228 @@
+/* MENU */
+ul.menu, ul.menu ul,
+ul.menuwindowheader, ul.webos-menuwindowheader ul { /* Liste */
+	padding: 0; /* pas de marge intérieure */
+	margin: 0; /* ni extérieure */
+	list-style-type: none; /* on supprime le style par défaut de la liste */
+	list-style-position: inside;
+	line-height: 19px; /* on définit une hauteur pour chaque élément */
+	text-align: center; /* on centre le texte qui se trouve dans la liste */
+}
+
+ul.menu ul:empty,
+ul.webos-menuwindowheader ul:empty {
+	display: none;
+	visibility: hidden;
+	opacity: 0;
+}
+
+/* Ensemble du menu */
+ul.menu *,
+ul.webos-menuwindowheader * {
+	position: relative;
+	z-index: 1050;
+}
+
+/* Menu de tableau de bord */
+ul.menu ul {
+	position: absolute;
+	top: 18px;
+	padding: 15px 0;
+	margin: 0 10px;
+	border: 2px solid #a5a5a5;
+	background-color: black;
+	background-color: rgba(0, 0, 0, 0.9);
+	-moz-border-radius: 9px;
+	-webkit-border-radius: 9px;
+	border-radius: 9px;
+}
+/* Cela permet de faire une fleche */
+ul.menu ul:after, ul.menu ul:before {
+	bottom: 100%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+ul.menu ul:after {
+	border-bottom-color: rgba(0, 0, 0, 0.9);
+	border-width: 10px;
+	left: 50%;
+	margin-left: -10px;
+}
+ul.menu ul:before {
+	border-bottom-color: #a5a5a5;
+	border-width: 13px;
+	left: 50%;
+	margin-left: -13px;
+}
+/* Menu de fenetre */
+ul.webos-menuwindowheader ul {
+	position: relative;
+	background-color: white;
+	border: 1px solid #aaaaaa;
+	min-width: 220px;
+}
+
+/* Sous-listes */
+ul.menu li ul,
+ul.webos-menuwindowheader li ul {
+	position: absolute; /* Position absolue */
+	display: none;
+}
+
+/* Sous-sous-listes */
+ul.menu li ul li ul,
+ul.webos-menuwindowheader li ul li ul {
+	top: -2px;
+	left: 219px;
+}
+
+/* ITEM DE MENU */
+ul.menu li,
+ul.webos-menuwindowheader li {
+	text-align: left;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+ul.menu li {
+	height: 20px;
+	padding: 3px 0 2px 4px;
+}
+ul.webos-menuwindowheader li {
+	padding: 3px 0 2px 0;
+}
+
+ul.webos-menuwindowheader ul li {
+	border: 1px solid transparent;
+	padding-right: 8px;
+	padding-left: 8px;
+}
+
+ul.menu li a,
+ul.webos-menuwindowheader li a {
+	text-decoration: none; /* on supprime le style par défaut des liens (la plupart du temps = souligné) */
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+ul.menu li, ul.menu li a {
+	color: #cccccc;
+}
+ul.webos-menuwindowheader li, ul.webos-menuwindowheader li a {
+	color: black;
+}
+ul.menu ul li, ul.menu ul li a {
+	color: white;
+}
+
+ul.menu ul li.hover {
+	background-color: #4c4c4c;
+}
+ul.webos-menuwindowheader ul li.hover {
+	background-color: #9dbde5;
+	border: 1px solid #4b6e99;
+	color: white;
+}
+ul.webos-menuwindowheader ul li.hover > a {
+	color: white;
+}
+
+/* Item de sous-liste */
+ul.menu li ul li,
+ul.webos-menuwindowheader li ul li {
+	width: 100%;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+ul.menu li ul li {
+	height: 29px;
+	line-height: 29px;
+	padding: 0 25px;
+}
+
+/* CONTENU DES ITEMS */
+
+/* Icone */
+ul.menu li img.icon,
+ul.webos-menuwindowheader li img.icon {
+	float: left;
+	max-height: 19px;
+	max-width: 19px;
+	margin-right: 2px;
+}
+/* Fleche */
+ul.menu .arrow,
+ul.webos-menuwindowheader .arrow {
+	display: block;
+	background: url("usr/share/images/themes/adwaita/menu/arrow.png") no-repeat;
+	width: 6px;
+	margin-top: 6px;
+	margin-bottom: 6px;
+	margin-right: 3px;
+	height: 7px;
+	float: right;
+}
+
+ul.menu > li,
+ul.webos-menuwindowheader > li {
+	float: left;
+}
+ul.menu > li > a {
+	margin: 0;
+	font-weight: bold;
+	text-shadow: black 0 0 2px;
+}
+ul.webos-menuwindowheader > li > a {
+	padding: 2px 4px 4px 4px;
+	border: 1px solid transparent;
+	border-bottom: none;
+}
+ul.menu > li.hover {
+	border-bottom: 2px solid #dcdfe2;
+	background: url('usr/share/images/themes/adwaita/menu/shadow.png') center bottom no-repeat;
+}
+ul.menu > li:hover > a,
+ul.menu > li.hover > a {
+	color: white;
+	text-shadow: black 0 1px 5px;
+}
+ul.webos-menuwindowheader > li.hover > a {
+	background-color: #a2c1e7;
+	color: white;
+	border-color: #4c6f9a;
+	-moz-border-radius: 3px 3px 0 0;
+	-webkit-border-radius: 3px 3px 0 0;
+	border-radius: 3px 3px 0 0;
+}
+
+ul.menu img.icon,
+ul.webos-menuwindowheader img.icon {
+	margin-right: 1px;
+	max-width: 23px;
+	text-align: center;
+	float: left;
+}
+
+/* SEPARATEUR */
+ul.menu li.separator, ul.menu li.separator:hover {
+	width: 100%;
+	height: 2px;
+	background: #D1C2B6;
+	background : -moz-linear-gradient(left, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+	background : -webkit-linear-gradient(left, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+	background : -ms-linear-gradient(left, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+	background : linear-gradient(left, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+	border: 0px;
+	margin: 15px 0;
+	overflow: hidden;
+}
+ul.webos-menuwindowheader .separator {
+	border-top: solid 1px #aaaaaa;
+}
