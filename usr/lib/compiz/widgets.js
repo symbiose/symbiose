@@ -136,7 +136,7 @@ $.webos.widget('window', 'container', {
 			this.element.css('left', this.options.left);
 		}
 		
-		if (typeof this.options.workspace == 'undefined') {
+		if (typeof this.options.workspace == 'undefined' && $.w.window.workspace) {
 			this.options.workspace = $.w.window.workspace.getCurrent();
 		}
 
@@ -218,7 +218,7 @@ $.webos.widget('window', 'container', {
 		
 		this._trigger('open', { type: 'open' }, { window: this.element });
 
-		if (this.options.workspace.id() == $.w.window.workspace.getCurrent().id()) {
+		if (!$.w.window.workspace || this.options.workspace.id() == $.w.window.workspace.getCurrent().id()) {
 			this.element.fadeIn('fast', function() {
 				that._trigger('afteropen', { type: 'afteropen' }, { window: that.element });
 			});
@@ -240,7 +240,7 @@ $.webos.widget('window', 'container', {
 		this._saveDimentions(); //On stocke en memoire ses dimentions
 		this.options.states.opened = true;
 
-		if (this.options.workspace.id() == $.w.window.workspace.getCurrent().id()) {
+		if (!$.w.window.workspace || this.options.workspace.id() == $.w.window.workspace.getCurrent().id()) {
 			this.toForeground(); //On met la fenetre en avant-plan
 		} else {
 			that._trigger('afteropen', { type: 'afteropen' }, { window: that.element });
@@ -1016,7 +1016,7 @@ $.webos.window.main = function(options) {
 					height: savedSession.dimentions.height || undefined,
 					maximized: savedSession.states.maximized,
 					maximizedDisplay: savedSession.maximizedDisplay,
-					workspace: $.w.window.workspace.get(savedSession.workspace) || undefined
+					workspace: ($.w.window.workspace) ? $.w.window.workspace.get(savedSession.workspace) : null || undefined
 				});
 			}
 
@@ -1036,7 +1036,7 @@ $.webos.window.main._getWindowDisplay = function($mainWindow) {
 		position: $mainWindow.window('position'),
 		dimentions: {},
 		states: $mainWindow.window('states'),
-		workspace: $mainWindow.window('workspace').id()
+		workspace: ($mainWindow.window('option', 'workspace')) ? $mainWindow.window('option', 'workspace').id() : undefined
 	};
 
 	if ($mainWindow.window('option', 'resizable')) {
@@ -1270,25 +1270,25 @@ $.webos.window.requestZIndex = function() {
 };
 
 $.webos.window.hideAll = function() { //Cacher toutes les fenetres
-	var list = $.w.window.workspace.getCurrent().getWindows();
-	for(var i = 0; i < list.length; i++) {
-		list[i].window('hide');
-	}
+	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
+	$list.each(function() {
+		$(this).window('hide');
+	});
 };
 $.webos.window.showAll = function() { //Afficher toutes les fenetres
-	var list = $.w.window.workspace.getCurrent().getWindows();
-	for(var i = 0; i < list.length; i++) {
-		list[i].window('show');
-	}
+	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
+	$list.each(function() {
+		$(this).window('show');
+	});
 };
 $.webos.window.hideOrShowAll = function() { //Afficher ou cacher ttes les fenetres
-	var list = $.w.window.workspace.getCurrent().getWindows();
-	for(var i = 0; i < list.length; i++) {
-		list[i].window('hideOrShow');
-	}
+	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
+	$list.each(function() {
+		$(this).window('hideOrShow');
+	});
 };
 $.webos.window.getActive = function() { //Recuperer la fenetre active
-	var visibleWindows = $($.w.window.workspace.getCurrent().getWindows());
+	var visibleWindows = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
 	if (visibleWindows.length > 0) {
 		var activeWindow = $(), activeWindowZIndex = $.webos.window.zIndexRange[0];
 		visibleWindows.each(function() {
@@ -1309,18 +1309,19 @@ $.webos.window.getActive = function() { //Recuperer la fenetre active
 	}
 };
 $.webos.window.allToBackground = function() { //Envoyer toutes les fenetres a l'arriere-plan
-	var list = $.w.window.workspace.getCurrent().getWindows();
-	for(var i = 0; i < list.length; i++) {
-		list[i].window('toBackground');
-	}
+	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
+	$list.each(function() {
+		$(this).window('toBackground');
+	});
 };
 $.webos.window.allToBackGroundExcluding = function(excludedWindow) { //Envoyer ttes les fenetres a l'arriere-plan sauf la fenetre specifiee
-	var list = $.w.window.workspace.getCurrent().getWindows();
-	for(var i = 0; i < list.length; i++) {
-		if (list[i].window('id') != excludedWindow.window('id')) {
-			list[i].window('toBackground');
+	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
+	$list.each(function() {
+		if ($(this).window('id') != excludedWindow.window('id')) {
+			console.log($(this).window('id'));
+			$(this).window('toBackground');
 		}
-	}
+	});
 };
 $.webos.window.setButtonsBorder = function() { //Definir le bord des boutons des fenetres
 	$.webos.window.buttons.children('.window-button-last').removeClass('window-button-last');

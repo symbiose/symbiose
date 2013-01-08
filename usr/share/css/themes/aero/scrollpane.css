@@ -1,0 +1,183 @@
+.webos-scrollpane {
+	position: relative;
+	overflow: hidden;
+}
+.webos-scrollpane .pane {
+	position: absolute;
+	min-width: 100%;
+	min-height: 100%;
+}
+
+.webos-scrollpane .vertical-bar,
+.webos-scrollpane .horizontal-bar {
+	z-index: 1001;
+}
+
+.webos-scrollpane .vertical-bar
+{
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 13px;
+	height: 100%;
+}
+
+.webos-scrollpane .horizontal-bar
+{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 13px;
+}
+
+.webos-scrollpane .vertical-bar *,
+.webos-scrollpane .horizontal-bar *
+{
+	margin: 0;
+	padding: 0;
+}
+
+.webos-scrollpane .cap
+{
+	display: none;
+}
+
+.webos-scrollpane .horizontal-bar .cap
+{
+	float: left;
+}
+
+.webos-scrollpane .track
+{
+	position: relative;
+	height: 100%;
+	width: 100%;
+}
+
+.webos-scrollpane .background {
+	float: left;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: #d6d6d6;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.webos-scrollpane .drag-container {
+	position: relative;
+	top: 0;
+	left: 0;
+	padding: 3px;
+}
+
+.webos-scrollpane .drag
+{
+	background: #9b9d9e;
+	width: 100%;
+	height: 100%;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+.webos-scrollpane .drag:hover {
+	background: #828586;
+}
+.webos-scrollpane .drag:active, .webos-scrollpane .dragging .drag {
+	background: #4a90d9;
+}
+
+.webos-scrollpane .vertical-bar .track,
+.webos-scrollpane .horizontal-bar .drag-container
+{
+	float: left;
+	height: 100%;
+}
+
+.webos-scrollpane .arrow
+{
+	background: #50506d;
+	text-indent: -20000px;
+	display: block;
+}
+
+.webos-scrollpane .arrow.disabled
+{
+	background: #80808d;
+}
+
+.webos-scrollpane .vertical-bar .arrow
+{
+	height: 16px;
+}
+
+.webos-scrollpane .horizontal-bar .arrow
+{
+	width: 16px;
+	float: left;
+	height: 100%;
+}
+
+.webos-scrollpane:active, .webos-scrollpane:focus
+{
+	outline: none;
+}
+
+.webos-scrollpane .corner
+{
+	background-color: #d6d6d6;
+	float: right;
+}
+
+/* Yuk! CSS Hack for IE6 3 pixel bug :( */
+* html .webos-scrollpane .corner
+{
+	margin: 0 -3px 0 0;
+}
+
+
+/* SHELL */
+
+#shell .webos-scrollpane .vertical-bar
+{
+	width: 16px;
+}
+
+#shell .webos-scrollpane .horizontal-bar
+{
+	height: 16px;
+}
+#shell .webos-scrollpane .background
+{
+	background: #080808;
+	border: 1px solid #2d2d2d;
+	-moz-border-radius: 7px;
+	-webkit-border-radius: 7px;
+	border-radius: 7px;
+}
+#shell .webos-scrollpane .drag-container {
+	padding: 0;
+}
+#shell .webos-scrollpane .drag
+{
+	background: #252525;
+	border: 1px solid #080808;
+	-moz-border-radius: 7px;
+	-webkit-border-radius: 7px;
+	border-radius: 7px;
+}
+#shell .webos-scrollpane .drag:hover, #shell .webos-scrollpane .dragging .drag
+{
+	background: #292929;
+}
+#shell .webos-scrollpane .corner {
+	background-color: transparent;
+}
