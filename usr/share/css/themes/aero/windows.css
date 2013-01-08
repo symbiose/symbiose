@@ -398,16 +398,16 @@ Tags: bright, fixed width, two columns, widgets
 	margin-top: 4px;
 	margin-left: 0px;
 	margin-right: 3px;
-	border: 1px solid #bdbdb5;
+	border: 1px solid transparent;
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
 }
 .webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem.active,
 .webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem:active {
-	background-color: #a2a296;
+	/*background-color: #a2a296;*/
 	background-image: none;
-	border: 1px solid #898988;
+	border: 1px solid transparent;
 }
 .webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-search-entry,
 .webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-search-entry {
