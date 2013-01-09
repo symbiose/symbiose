@@ -42,55 +42,6 @@ Webos.User.bind('login', function() {
 	}
 });
 
-Webos.Translation.load(function(t) {
-	var desktopFiles = $('#desktop-files');
-	var loadDesktopFn = function(user) {
-		//Si l'utilisateur n'est pas connecte, on n'affiche pas son bureau
-		if (!user) {
-			emptyDesktopFiles = $('<div id="desktop-files"></div>');
-			desktopFiles.replaceWith(emptyDesktopFiles);
-			desktopFiles = emptyDesktopFiles;
-		} else {
-			//On charge le contenu du bureau
-			var nautilusDesktopFiles = $.w.nautilus({
-				multipleWindows: true,
-				directory: t.get('~/Desktop')
-			});
-
-			nautilusDesktopFiles.one('nautilusreadcomplete', function() {
-				resizeDesktopFn();
-			}).one('nautilusreaderror', function(e, data) {
-				data.response.logError();
-				return false;
-			});;
-
-			desktopFiles.replaceWith(nautilusDesktopFiles);
-			desktopFiles = nautilusDesktopFiles;
-		}
-	};
-
-	Webos.User.bind('login logout', function(data) {
-		loadDesktopFn(data.user);
-	});
-
-	Webos.User.getLogged([function(user) {
-		loadDesktopFn(user);
-	}, function() {}]);
-
-	Webos.ConfigFile.loadUserConfig('~/.config/exiting.xml', null, [function(configFile) {
-		if (configFile.get('askOnExit') == 1) {
-			$(window).bind('beforeunload', function() {
-				return t.get('Are you sure you want to leave the webos ?');
-			});
-		}
-	}, function() {}]);
-
-	reviveSession();
-
-	GnomeScreenSaver.loadConfig();
-}, 'gnome-shell');
-
-
 
 var $start = $('#start');
 var $startmenu = $('#startmenu');
@@ -159,216 +110,6 @@ if ($openedWindows.length) {
 	});
 }
 
-
-// Startmenu
-var showStartMenu = function() {
-	$start.addClass('active');
-	$startmenu.show();
-	$startmenuSearchterm.focus();
-};
-var hideStartMenu = function() {
-	$start.removeClass('active');
-	$startmenu.hide();
-	$startmenuSearchterm.val('').trigger('keyup');
-};
-
-$start.click(function () {
-	if ($(this).hasClass("active")) {
-		hideStartMenu();
-	} else {
-		showStartMenu();
-	};
-});
-
-Webos.require('/usr/lib/webos/applications.js', function() {
-	Webos.Application.list(function(apps) {
-		var displayApps = function(apps) {
-			$startmenuContents.empty();
-
-			var $applications = $('<ul></ul>');
-			for (var key in apps) {
-				(function(key, app) {
-					if (typeof app.get('menu') != 'undefined' && app.get('menu') == 'places') {
-						return;
-					}
-					
-					var item = $('<li></li>');
-					var contents = $('<a></a>', { title: app.get('description') }).appendTo(item);
-					
-					item.click(function() {
-						hideStartMenu();
-						W.Cmd.execute(app.get('command'));
-					});
-					
-					var img = $.w.image(new W.Icon(app.get('icon'), 32), app.get('title')).appendTo(contents);
-					img.image('option', 'loadHidden', false);
-					$('<span></span>', { 'class': 'title' }).html(app.get('title')).appendTo(contents);
-
-					item.appendTo($applications);
-				})(key, apps[key]);
-			}
-
-			$applications.appendTo($startmenuContents);
-		};
-
-		displayApps(apps);
-
-		$startmenuSearchterm.keyup(function() {
-			var searchTerm = $(this).val();
-
-			Webos.Application.listBySearch(searchTerm, function(apps) {
-				displayApps(apps);
-			}, apps);
-		});
-	});
-});
-
-var startmenuLinks = [
-	{
-		title: 'User',
-		setup: function(item) {
-			$username = $(item).children('span');
-
-			var generateStartmenuUserBtn = function(user) {
-				$username.empty();
-
-				if (typeof user != 'undefined') {
-					var realname = 'Invité';
-					if (typeof user != 'undefined') {
-						realname = user.get('realname');
-					}
-					$username.text(realname);
-				} else {
-					$username.text('Guest');
-				}
-			};
-
-			W.User.get(new W.Callback(function(user) {
-				generateStartmenuUserBtn(user);
-			}, function() {}));
-
-			Webos.User.bind('login logout', function(data) {
-				generateStartmenuUserBtn(data.user);
-			});
-		},
-		click: function() {
-			W.User.get(new W.Callback(function(user) {
-				if (user) {
-					Webos.Cmd.execute('nautilus ~');
-				} else {
-					Webos.Cmd.execute('gnome-login');
-				}
-			}, function() {}));
-		}
-	},
-	{
-		title: 'Documents',
-		onlyShowToUsers: true,
-		click: function() {
-			Webos.Cmd.execute('nautilus ~/Documents');
-		}
-	},
-	{
-		title: 'Pictures',
-		onlyShowToUsers: true,
-		click: function() {
-			Webos.Cmd.execute('nautilus ~/Pictures');
-		}
-	},
-	{
-		title: 'Music',
-		onlyShowToUsers: true,
-		click: function() {
-			Webos.Cmd.execute('nautilus ~/Music');
-		}
-	},
-	{
-		title: 'System settings',
-		onlyShowToUsers: true,
-		click: function() {
-			Webos.Cmd.execute('gconf');
-		}
-	},
-	{
-		title: 'Login...',
-		onlyShowToGuests: true,
-		click: function() {
-			Webos.Cmd.execute('gnome-login');
-		}
-	},
-	{
-		title: 'Register',
-		onlyShowToGuests: true,
-		click: function() {
-			Webos.Cmd.execute('gnome-register');
-		}
-	},
-	{
-		title: 'Logout',
-		onlyShowToUsers: true,
-		click: function() {
-			Webos.Cmd.execute('gnome-logout');
-		}
-	},
-	{
-		title: 'Restart',
-		click: function() {
-			Webos.Cmd.execute('gnome-reboot');
-		}
-	}
-];
-
-$startmenuLinksItems = $();
-for (var i = 0; i < startmenuLinks.length; i++) {
-	(function(item) {
-		var $item = $('<li><a href="#"><span>'+item.title+'</span></a></li>');
-
-		if (typeof item.setup == 'function') {
-			item.setup.call(item, $item.children('a')[0]);
-		}
-
-		$item.children('a').click(function(e) {
-			if (typeof item.click == 'function') {
-				item.click.call(item, this, e);
-			}
-
-			hideStartMenu();
-
-			e.preventDefault();
-		});
-
-		if (item.onlyShowToUsers || item.onlyShowToGuests) {
-			var updateItem = function(user) {
-				if (item.onlyShowToUsers) {
-					if (user) {
-						$item.show();
-					} else {
-						$item.hide();
-					}
-				}
-				if (item.onlyShowToGuests) {
-					if (user) {
-						$item.hide();
-					} else {
-						$item.show();
-					}
-				}
-			};
-
-			W.User.get(new W.Callback(function(user) {
-				updateItem(user);
-			}, function() {}));
-
-			Webos.User.bind('login logout', function(data) {
-				updateItem(data.user);
-			});
-		}
-
-		$startmenuLinksItems = $startmenuLinksItems.add($item);
-	})(startmenuLinks[i]);
-}
-$startmenuLinks.html($startmenuLinksItems);
-
 // Clock
 var showTime = function() {
 	var locale = Webos.Locale.current();
@@ -400,6 +141,271 @@ $('#showdesktop').click(function() {
 		}
 	});
 });
+
+Webos.Translation.load(function(t) {
+	var desktopFiles = $('#desktop-files');
+	var loadDesktopFn = function(user) {
+		//Si l'utilisateur n'est pas connecte, on n'affiche pas son bureau
+		if (!user) {
+			emptyDesktopFiles = $('<div id="desktop-files"></div>');
+			desktopFiles.replaceWith(emptyDesktopFiles);
+			desktopFiles = emptyDesktopFiles;
+		} else {
+			//On charge le contenu du bureau
+			var nautilusDesktopFiles = $.w.nautilus({
+				multipleWindows: true,
+				directory: t.get('~/Desktop')
+			});
+
+			nautilusDesktopFiles.one('nautilusreadcomplete', function() {
+				resizeDesktopFn();
+			}).one('nautilusreaderror', function(e, data) {
+				data.response.logError();
+				return false;
+			});;
+
+			desktopFiles.replaceWith(nautilusDesktopFiles);
+			desktopFiles = nautilusDesktopFiles;
+		}
+	};
+
+	Webos.User.bind('login logout', function(data) {
+		loadDesktopFn(data.user);
+	});
+
+	Webos.User.getLogged([function(user) {
+		loadDesktopFn(user);
+	}, function() {}]);
+
+	Webos.ConfigFile.loadUserConfig('~/.config/exiting.xml', null, [function(configFile) {
+		if (configFile.get('askOnExit') == 1) {
+			$(window).bind('beforeunload', function() {
+				return t.get('Are you sure you want to leave the webos ?');
+			});
+		}
+	}, function() {}]);
+
+	reviveSession();
+
+	GnomeScreenSaver.loadConfig();
+
+	// Startmenu
+	var showStartMenu = function() {
+		$start.addClass('active');
+		$startmenu.show();
+		$startmenuSearchterm.focus();
+	};
+	var hideStartMenu = function() {
+		$start.removeClass('active');
+		$startmenu.hide();
+		$startmenuSearchterm.val('').trigger('keyup');
+	};
+
+	$start.click(function () {
+		if ($(this).hasClass("active")) {
+			hideStartMenu();
+		} else {
+			showStartMenu();
+		};
+	});
+
+	Webos.require('/usr/lib/webos/applications.js', function() {
+		Webos.Application.list(function(apps) {
+			var displayApps = function(apps) {
+				$startmenuContents.empty();
+
+				var $applications = $('<ul></ul>');
+				for (var key in apps) {
+					(function(key, app) {
+						if (typeof app.get('menu') != 'undefined' && app.get('menu') == 'places') {
+							return;
+						}
+						
+						var item = $('<li></li>');
+						var contents = $('<a></a>', { title: app.get('description') }).appendTo(item);
+						
+						item.click(function() {
+							hideStartMenu();
+							W.Cmd.execute(app.get('command'));
+						});
+						
+						var img = $.w.image(new W.Icon(app.get('icon'), 32), app.get('title')).appendTo(contents);
+						img.image('option', 'loadHidden', false);
+						$('<span></span>', { 'class': 'title' }).html(app.get('title')).appendTo(contents);
+
+						item.appendTo($applications);
+					})(key, apps[key]);
+				}
+
+				$applications.appendTo($startmenuContents);
+			};
+
+			displayApps(apps);
+
+			$startmenuSearchterm.keyup(function() {
+				var searchTerm = $(this).val();
+
+				Webos.Application.listBySearch(searchTerm, function(apps) {
+					displayApps(apps);
+				}, apps);
+			}).attr('placeholder', t.get('Search applications...'));
+		});
+	});
+
+	var startmenuLinks = [
+		{
+			title: t.get('User'),
+			setup: function(item) {
+				$username = $(item).children('span');
+
+				var generateStartmenuUserBtn = function(user) {
+					$username.empty();
+
+					if (typeof user != 'undefined') {
+						var realname = t.get('Invité');
+						if (typeof user != 'undefined') {
+							realname = user.get('realname');
+						}
+						$username.text(realname);
+					} else {
+						$username.text(t.get('Guest'));
+					}
+				};
+
+				W.User.get(new W.Callback(function(user) {
+					generateStartmenuUserBtn(user);
+				}, function() {}));
+
+				Webos.User.bind('login logout', function(data) {
+					generateStartmenuUserBtn(data.user);
+				});
+			},
+			click: function() {
+				W.User.get(new W.Callback(function(user) {
+					if (user) {
+						Webos.Cmd.execute('nautilus ~');
+					} else {
+						Webos.Cmd.execute('gnome-login');
+					}
+				}, function() {}));
+			}
+		},
+		{
+			title: t.get('Documents'),
+			onlyShowToUsers: true,
+			click: function() {
+				Webos.Cmd.execute('nautilus ~/'+t.get('Documents'));
+			}
+		},
+		{
+			title: t.get('Pictures'),
+			onlyShowToUsers: true,
+			click: function() {
+				Webos.Cmd.execute('nautilus ~/'+t.get('Pictures'));
+			}
+		},
+		{
+			title: t.get('Music'),
+			onlyShowToUsers: true,
+			click: function() {
+				Webos.Cmd.execute('nautilus ~/'+t.get('Music'));
+			}
+		},
+		{
+			title: t.get('Videos'),
+			onlyShowToUsers: true,
+			click: function() {
+				Webos.Cmd.execute('nautilus ~/'+t.get('Videos'));
+			}
+		},
+		{
+			title: t.get('System settings'),
+			onlyShowToUsers: true,
+			click: function() {
+				Webos.Cmd.execute('gconf');
+			}
+		},
+		{
+			title: t.get('Login...'),
+			onlyShowToGuests: true,
+			click: function() {
+				Webos.Cmd.execute('gnome-login');
+			}
+		},
+		{
+			title: t.get('Register'),
+			onlyShowToGuests: true,
+			click: function() {
+				Webos.Cmd.execute('gnome-register');
+			}
+		},
+		{
+			title: t.get('Logout...'),
+			onlyShowToUsers: true,
+			click: function() {
+				Webos.Cmd.execute('gnome-logout');
+			}
+		},
+		{
+			title: t.get('Restart'),
+			click: function() {
+				Webos.Cmd.execute('gnome-reboot');
+			}
+		}
+	];
+
+	$startmenuLinksItems = $();
+	for (var i = 0; i < startmenuLinks.length; i++) {
+		(function(item) {
+			var $item = $('<li><a href="#"><span>'+item.title+'</span></a></li>');
+
+			if (typeof item.setup == 'function') {
+				item.setup.call(item, $item.children('a')[0]);
+			}
+
+			$item.children('a').click(function(e) {
+				if (typeof item.click == 'function') {
+					item.click.call(item, this, e);
+				}
+
+				hideStartMenu();
+
+				e.preventDefault();
+			});
+
+			if (item.onlyShowToUsers || item.onlyShowToGuests) {
+				var updateItem = function(user) {
+					if (item.onlyShowToUsers) {
+						if (user) {
+							$item.show();
+						} else {
+							$item.hide();
+						}
+					}
+					if (item.onlyShowToGuests) {
+						if (user) {
+							$item.hide();
+						} else {
+							$item.show();
+						}
+					}
+				};
+
+				W.User.get(new W.Callback(function(user) {
+					updateItem(user);
+				}, function() {}));
+
+				Webos.User.bind('login logout', function(data) {
+					updateItem(data.user);
+				});
+			}
+
+			$startmenuLinksItems = $startmenuLinksItems.add($item);
+		})(startmenuLinks[i]);
+	}
+	$startmenuLinks.html($startmenuLinksItems);
+}, 'windoze');
+
 
 //Notifications
 function SIndicator(item) {
