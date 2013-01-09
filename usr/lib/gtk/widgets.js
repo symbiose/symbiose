@@ -537,7 +537,6 @@ $.webos.widget('scrollPane', 'container', {
 		this.positionDragX(percentScrolled * data.dragMaxX, animate);
 	},
 	scrollToY: function(destY, animate) {
-		console.log(destY);
 		if (this.isNatural()) {
 			this.element.scrollTop(destY);
 			return;
