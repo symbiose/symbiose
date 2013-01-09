@@ -4,6 +4,7 @@
 }
 
 .webos-scrollpane.scrollpane-natural {
+	position: static;
 	overflow: auto;
 }
 .webos-scrollpane.scrollpane-natural .pane-natural {
