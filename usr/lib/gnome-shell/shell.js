@@ -468,7 +468,8 @@
 			var $list = this._$appsList;
 			$list.unbind('scrollpanescroll.shell.ui.webos');
 			$list.scrollPane({
-				autoReload: true
+				autoReload: true,
+				forceStyledScrollbars: true
 			}).scrollPane('content').empty();
 			var $applications = $('<ul></ul>').appendTo($list.scrollPane('content'));
 			

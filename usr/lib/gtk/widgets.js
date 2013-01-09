@@ -182,61 +182,72 @@ $.webos.widget('scrollPane', 'container', {
 		mouseWheelSpeed: 30,
 		expand: false,
 		keyUpResize: false,
-		alsoResize: null
+		alsoResize: null,
+		forceArtificialScrollbars: false,
+		forceStyledScrollbars: false
 	},
 	_create: function() {
 		this._super('_create');
-		
-		var originalScrollTop = this.element.scrollTop(), originalScrollLeft = this.element.scrollLeft();
-		
-		this.element.attr('tabindex', 0);
 
-		this.options._components.container = $('<div></div>', { 'class': 'container' });
-		this.options._content = $('<div></div>', { 'class': 'pane' });
-		this.element.wrapInner(this.options._components.container);
-		this.options._components.container.wrapInner(this.options._content);
-		this.options._components.verticalBar = $('<div class="vertical-bar" />').append(
-			$('<div class="cap cap-top" />'),
-			$('<div class="track" />').append(
-				$('<div class="background" />'),
-				$('<div class="drag-container" />').append(
-					$('<div class="drag" />').append(
-						$('<div class="drag-top" />'),
-						$('<div class="drag-bottom" />')
-					)
-				)
-			),
-			$('<div class="cap cap-bottom" />')
-		).appendTo(this.element);
-		this.options._components.horizontalBar = $('<div class="horizontal-bar" />').append(
-			$('<div class="corner" />'),
-			$('<div class="cap cap-left" />'),
-			$('<div class="track" />').append(
-				$('<div class="background" />'),
-				$('<div class="drag-container" />').append(
-					$('<div class="drag" />').append(
-						$('<div class="drag-left" />'),
-						$('<div class="drag-right" />')
-					)
-				)
-			),
-			$('<div class="cap cap-right" />')
-		).appendTo(this.element);
+		if (this.isNatural()) {
+			this.element.addClass('scrollpane-natural');
+			this.options._content = $('<div></div>', { 'class': 'pane-natural' }).appendTo(this.element);
+		} else {
+			var originalScrollTop = this.element.scrollTop(), originalScrollLeft = this.element.scrollLeft();
 		
-		this._track();
+			this.element.attr('tabindex', 0);
+
+			this.options._components.container = $('<div></div>', { 'class': 'container' });
+			this.options._content = $('<div></div>', { 'class': 'pane' });
+			this.element.wrapInner(this.options._components.container);
+			this.options._components.container.wrapInner(this.options._content);
+			this.options._components.verticalBar = $('<div class="vertical-bar" />').append(
+				$('<div class="cap cap-top" />'),
+				$('<div class="track" />').append(
+					$('<div class="background" />'),
+					$('<div class="drag-container" />').append(
+						$('<div class="drag" />').append(
+							$('<div class="drag-top" />'),
+							$('<div class="drag-bottom" />')
+						)
+					)
+				),
+				$('<div class="cap cap-bottom" />')
+			).appendTo(this.element);
+			this.options._components.horizontalBar = $('<div class="horizontal-bar" />').append(
+				$('<div class="corner" />'),
+				$('<div class="cap cap-left" />'),
+				$('<div class="track" />').append(
+					$('<div class="background" />'),
+					$('<div class="drag-container" />').append(
+						$('<div class="drag" />').append(
+							$('<div class="drag-left" />'),
+							$('<div class="drag-right" />')
+						)
+					)
+				),
+				$('<div class="cap cap-right" />')
+			).appendTo(this.element);
+			
+			this._track();
+			
+			this._update('autoReload', this.options.autoReload);
+			this._update('expand', this.options.expand);
+			this._update('keyUpResize', this.options.keyUpResize);
+			this._update('alsoResize', this.options.alsoResize);
+		}
 		
-		this._update('autoReload', this.options.autoReload);
-		this._update('expand', this.options.expand);
-		this._update('keyUpResize', this.options.keyUpResize);
-		this._update('alsoResize', this.options.alsoResize);
 		this.reload();
-		
+
 		if (originalScrollTop != 0) {
 			this.scrollToY(originalScrollTop);
 		}
 		if (originalScrollLeft != 0) {
 			this.scrollToX(originalScrollLeft);
 		}
+	},
+	isNatural: function() {
+		return (!this.options.forceArtificialScrollbars && (!this.options.forceStyledScrollbars || (navigator.userAgent && /(webkit|chrome|safari)/i.test(navigator.userAgent) )));
 	},
 	_track: function() {
 		var that = this;
@@ -394,6 +405,9 @@ $.webos.widget('scrollPane', 'container', {
 					this.element.unbind('scrollpanereload.scrollpane.widget.webos');
 				}
 				break;
+			case 'forceArtificialScrollbars':
+			case 'forceStyledScrollbars':
+				return false;
 		}
 	},
 	positionDragY: function(destY, animate)
@@ -510,6 +524,11 @@ $.webos.widget('scrollPane', 'container', {
 		}
 	},
 	scrollToX: function(destX, animate) {
+		if (this.isNatural()) {
+			this.element.scrollLeft(destX);
+			return;
+		}
+
 		var data = this.element.data('scrollpane');
 		if (data.paneWidth - data.containerWidth == 0) { //Division by 0
 			return;
@@ -518,6 +537,12 @@ $.webos.widget('scrollPane', 'container', {
 		this.positionDragX(percentScrolled * data.dragMaxX, animate);
 	},
 	scrollToY: function(destY, animate) {
+		console.log(destY);
+		if (this.isNatural()) {
+			this.element.scrollTop(destY);
+			return;
+		}
+
 		var data = this.element.data('scrollpane');
 		if (data.paneHeight - data.containerHeight == 0) { //Division by 0
 			return;
@@ -548,6 +573,11 @@ $.webos.widget('scrollPane', 'container', {
 		
 		var data = {}, that = this;
 		this.element.data('scrollpane', data);
+
+		if (this.isNatural()) {
+			that._trigger('reload', { type: 'reload' }, data);
+			return;
+		}
 		
 		this.element.css({
 			overflow: 'hidden',
@@ -653,11 +683,15 @@ $.webos.widget('scrollPane', 'container', {
 					if (verticalDragHeight < that.options.verticalDragMinHeight) {
 						verticalDragHeight = that.options.verticalDragMinHeight;
 					}
-					dragContainerV
-						.height(verticalDragHeight)
-						.css('top', Math.round( data.percentInViewV * (data.paneHeight - data.containerHeight)));
 					data.verticalDragHeight = verticalDragHeight + data.verticalDragMarginY;
 					data.dragMaxY = data.verticalTrackHeight - data.verticalDragHeight;
+
+					var percentScrolled = top / (data.paneHeight - data.containerHeight);
+					if (percentScrolled > 1) { percentScrolled = 1; }
+					if (percentScrolled < 0) { percentScrolled = 0; }
+					dragContainerV
+						.height(verticalDragHeight)
+						.css('top', Math.round(percentScrolled * data.dragMaxY) );
 				}
 				var dragContainerH = that.options._components.horizontalBar.find('.drag-container');
 				if (data.isScrollableH) {
@@ -667,11 +701,15 @@ $.webos.widget('scrollPane', 'container', {
 					if (horizontalDragWidth < that.options.horizontalDragMinWidth) {
 						horizontalDragWidth = that.options.horizontalDragMinWidth;
 					}
-					dragContainerH
-						.width(horizontalDragWidth)
-						.css('left', Math.round( data.percentInViewH * (data.paneWidth - data.containerWidth)));
 					data.horizontalDragWidth = horizontalDragWidth + data.horizontalDragMarginX;
 					data.dragMaxX = data.horizontalTrackWidth - data.horizontalDragWidth;
+
+					var percentScrolled = left / (data.paneWidth - data.containerWidth);
+					if (percentScrolled > 1) { percentScrolled = 1; }
+					if (percentScrolled < 0) { percentScrolled = 0; }
+					dragContainerH
+						.width(horizontalDragWidth)
+						.css('left', Math.round(percentScrolled * data.dragMaxX) );
 				}
 				
 				that._mousewheel(true);
@@ -680,7 +718,7 @@ $.webos.widget('scrollPane', 'container', {
 			that.element.data('scrollpane', data);
 			
 			that._trigger('reload', { type: 'reload' }, data);
-		}, 0);
+		}, 5);
 	}
 });
 $.webos.scrollPane = function(options) {

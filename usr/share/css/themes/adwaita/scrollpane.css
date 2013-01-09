@@ -2,6 +2,18 @@
 	position: relative;
 	overflow: hidden;
 }
+
+.webos-scrollpane.scrollpane-natural {
+	overflow: auto;
+}
+.webos-scrollpane.scrollpane-natural .pane-natural {
+	min-width: 100%;
+	min-height: 100%;
+}
+.webos-window .content > .webos-scrollpane.scrollpane-natural {
+	overflow: visible;
+}
+
 .webos-scrollpane .pane {
 	position: absolute;
 	min-width: 100%;
@@ -143,6 +155,29 @@
 	margin: 0 -3px 0 0;
 }
 
+/* Webkit */
+::-webkit-scrollbar {
+	width: 13px;
+}
+::-webkit-scrollbar-button {
+	display: none;
+}
+::-webkit-scrollbar-track {
+	background: #d6d6d6;
+}
+::-webkit-scrollbar-thumb {
+	background: #9B9D9E;
+	-webkit-border-radius: 6px;
+	border-radius: 6px;
+	border: 3px solid #D6D6D6;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: #828586;
+}
+::-webkit-scrollbar-thumb:active {
+	background: #4a90d9;
+}
+
 
 /* SHELL */
 
@@ -180,4 +215,29 @@
 }
 #shell .webos-scrollpane .corner {
 	background-color: transparent;
+}
+
+/* Webkit */
+#shell ::-webkit-scrollbar {
+	width: 16px;
+}
+#shell ::-webkit-scrollbar-button {
+	display: none;
+}
+#shell ::-webkit-scrollbar-track {
+	background: #080808;
+	border: 1px solid #2d2d2d;
+	-moz-border-radius: 7px;
+	-webkit-border-radius: 7px;
+	border-radius: 7px;
+}
+#shell ::-webkit-scrollbar-thumb {
+	background: #252525;
+	border: 1px solid #080808;
+	-moz-border-radius: 7px;
+	-webkit-border-radius: 7px;
+	border-radius: 7px;
+}
+#shell ::-webkit-scrollbar-thumb:hover {
+	background: #292929;
 }
