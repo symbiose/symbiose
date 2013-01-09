@@ -4,7 +4,6 @@
 	<includes>
 		<file path="/usr/lib/webos/icons.js"/>
 		<file path="/usr/lib/webos/theme.js"/>
-		<file path="/usr/lib/webos/jquery.transit.min.js"/>
 		<file path="/usr/lib/webos/fullscreen.js"/>
 		<file path="/usr/lib/webos/jquery.mousewheel.js"/>
 		<file path="/usr/lib/webos/clipboard.js"/>
@@ -17,8 +16,6 @@
 		<file path="/usr/lib/gnome/widgets.js"/>
 		<file path="/usr/lib/gnome/dashboard.js"/>
 		<file path="/usr/lib/gnome/messages.js"/>
-		<file path="/usr/lib/gnome/network.js"/>
-		<file path="/usr/lib/gnome/power.js"/>
 		<file path="/usr/lib/gnome/jquery.scrollto.js"/>
 		
 		<file path="/usr/lib/nautilus/nautilus.js"/>

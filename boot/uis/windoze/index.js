@@ -187,7 +187,7 @@ Webos.Translation.load(function(t) {
 
 	reviveSession();
 
-	GnomeScreenSaver.loadConfig();
+	//GnomeScreenSaver.loadConfig();
 
 	// Startmenu
 	var showStartMenu = function() {

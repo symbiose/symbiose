@@ -154,7 +154,7 @@ Webos.UserInterface.Booter.prototype = {
 		//Chargement du Javascript
 		this.notify('loadstateupdate', { state: 'scripts' });
 		for (var index in data.js) {
-			var result = (function loadUIScript(js) {
+			(function loadUIScript(js) {
 				if (!js) {
 					return;
 				}

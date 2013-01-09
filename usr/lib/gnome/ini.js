@@ -57,7 +57,17 @@ Webos.Translation.load(function(t) {
 
 			desktopFiles.replaceWith(nautilusDesktopFiles);
 			desktopFiles = nautilusDesktopFiles;
+
+			GnomeScreenSaver.loadConfig();
 		}
+
+		Webos.ConfigFile.loadUserConfig('~/.config/exiting.xml', null, [function(configFile) {
+			if (configFile.get('askOnExit') == 1) {
+				$(window).bind('beforeunload', function() {
+					return t.get('Are you sure you want to leave the webos ?');
+				});
+			}
+		}, function() {}]);
 	};
 
 	Webos.User.bind('login logout', function(data) {
@@ -68,17 +78,7 @@ Webos.Translation.load(function(t) {
 		loadDesktopFn(user);
 	}, function() {}]);
 
-	Webos.ConfigFile.loadUserConfig('~/.config/exiting.xml', null, [function(configFile) {
-		if (configFile.get('askOnExit') == 1) {
-			$(window).bind('beforeunload', function() {
-				return t.get('Are you sure you want to leave the webos ?');
-			});
-		}
-	}, function() {}]);
-
 	reviveSession();
-
-	GnomeScreenSaver.loadConfig();
 }, 'gnome-shell');
 
 //On initialise les tableaux de bord

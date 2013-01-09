@@ -201,6 +201,73 @@ Webos.require = function Wrequire(files, callback, options) {
 Webos.require._stacks = {};
 Webos.require._currentFile = null;
 
+Webos.eval = function Weval(scripts, callback, options) {
+	callback = Webos.Callback.toCallback(callback);
+	options = $.extend({
+		styleContainer: null
+	}, options);
+
+	if (!scripts) { //No file to load
+		callback.success();
+		return;
+	}
+
+	var list = [];
+	if (scripts instanceof Array) {
+		if (files.length == 0) {
+			callback.success();
+			return;
+		}
+		list = scripts;
+	} else {
+		list = [String(scripts)];
+	}
+
+	var loadedFiles = 0;
+	var onLoadFn = function() {
+		loadedFiles++;
+		if (loadedFiles == list.length) {
+			callback.success();
+		}
+	};
+
+	for (var i = 0; i < list.length; i++) {
+		(function(contents) {
+			var id = new Date().getTime();
+
+			var previousFile = Webos.require._currentFile;
+			Webos.require._stacks[id] = [];
+			Webos.require._currentFile = id;
+
+			var fn = new Function(contents);
+			try {
+				fn();
+			} catch(error) {
+				W.Error.catchError(error);
+			}
+
+			Webos.require._currentFile = previousFile;
+
+			var stack = Webos.require._stacks[id];
+			var group = Webos.Observable.group(stack);
+			if (group.observables().length > 0) {
+				group.one('success', function() {
+					onLoadFn();
+				});
+				group.oneEach('error', function() {
+					callback.error();
+				});
+			} else {
+				onLoadFn();
+			}
+
+			if (Webos.require._currentFile) {
+				Webos.require._stacks[Webos.require._currentFile].push(call);
+			}
+		})(list[i]);
+	}
+};
+
 //Permet de specifier des options et des arguments a un script
 Webos.Arguments = function WArguments(args) {
 	if (typeof args == 'undefined') {

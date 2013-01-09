@@ -1,5 +1,7 @@
 W.UserInterface.Booter.current().disableAutoLoad();
 
+Webos.require('/usr/lib/gnome/ini.js');
+
 //On definit la hauteur du bureau
 var resizeDesktopFn = function() {
 	$('#desktop').height($(window).height() - $('#header').outerHeight(true) - $('#footer').outerHeight(true)); //On enleve 50px : 25 * 2 pour les barres haut et bas
