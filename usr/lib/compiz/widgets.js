@@ -1016,7 +1016,7 @@ $.webos.window.main = function(options) {
 					height: savedSession.dimentions.height || undefined,
 					maximized: savedSession.states.maximized,
 					maximizedDisplay: savedSession.maximizedDisplay,
-					workspace: ($.w.window.workspace) ? $.w.window.workspace.get(savedSession.workspace) : null || undefined
+					workspace: (($.w.window.workspace) ? $.w.window.workspace.get(savedSession.workspace) : null) || undefined
 				});
 			}
 
