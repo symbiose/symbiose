@@ -1009,15 +1009,28 @@ $.webos.window.main = function(options) {
 
 			var savedSession = $.webos.window.main._cache[process.cmd];
 			if (savedSession) {
-				$mainWindow.window('option', {
+				var options = {
 					top: savedSession.position.top,
 					left: savedSession.position.left,
-					width: savedSession.dimentions.width || undefined,
-					height: savedSession.dimentions.height || undefined,
 					maximized: savedSession.states.maximized,
-					maximizedDisplay: savedSession.maximizedDisplay,
-					workspace: (($.w.window.workspace) ? $.w.window.workspace.get(savedSession.workspace) : null) || undefined
-				});
+					maximizedDisplay: savedSession.maximizedDisplay
+				};
+
+				if (typeof savedSession.dimentions.width == 'number') {
+					option.width = savedSession.dimentions.width;
+				}
+				if (typeof savedSession.dimentions.height == 'number') {
+					option.height = savedSession.dimentions.height;
+				}
+
+				if (typeof savedSession.workspace == 'number' && $.w.window.workspace) {
+					var workspace = $.w.window.workspace.get(savedSession.workspace);
+					if (workspace) {
+						options.workspace = workspace;
+					}
+				}
+
+				$mainWindow.window('option', options);
 			}
 
 			$mainWindow.bind('windowbeforeclose', function() {
