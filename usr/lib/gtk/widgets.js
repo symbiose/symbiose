@@ -1028,8 +1028,40 @@ $.webos.widget('list', 'container', {
 	items: function() {
 		return this.content().children();
 	},
-	selection: function() {
-		return this.items().filter('.active');
+	selection: function(selection) {
+		if (typeof selection == 'undefined') {
+			return this.items().filter('.active');
+		} else {
+			if (typeof selection == 'string') {
+				if (/^[0-9]+$/.test(selection)) {
+					selection = [parseInt(selection)];
+				} else if (/^[0-9]+\-[0-9]+$/.test(selection)) {
+					var result = /^([0-9]+)-([0-9]+)$/.exec(selection);
+					range = [parseInt(result[1]), parseInt(result[2])];
+
+					if (range[0] > range[1]) {
+						range = [range[1], range[0]];
+					}
+
+					selection = [];
+					for (var i = range[0]; i <= range[1]; i++) {
+						selection.push(i);
+					}
+				} else {
+					return false;
+				}
+			} else if (typeof selection == 'number') {
+				selection = [selection];
+			}
+
+			this.items().each(function() {
+				if ($.inArray($(this).index(), selection) != -1) {
+					$(this).listItem('active', true);
+				} else {
+					$(this).listItem('active', false);
+				}
+			});
+		}
 	},
 	_update: function(key, value) {
 		switch(key) {
@@ -1057,7 +1089,6 @@ $.webos.list = function(columns, buttons) {
 	});
 };
 
-
 //ListItem
 $.webos.widget('listItem', 'container', {
 	options: {
@@ -1074,8 +1105,29 @@ $.webos.widget('listItem', 'container', {
 		
 		var that = this;
 		
-		this.options._content.mousedown(function() {
-			that.active(true);
+		this.options._content.mousedown(function(e) {
+			if ($.webos.keyboard.pressed('shift')) {
+				var list = that.parentList();
+				var thisIndex = that.element.index(),
+					selection = list.list('selection'),
+					firstSelectionIndex = selection.first().index(),
+					lastSelectionIndex = selection.last().index();
+
+				var range = [that.element.index()];
+				if (thisIndex < firstSelectionIndex) {
+					range.push(firstSelectionIndex);
+				} else if (thisIndex > lastSelectionIndex) {
+					range.push(lastSelectionIndex);
+				} else {
+					range.push(firstSelectionIndex);
+				}
+
+				list.list('selection', range[0]+'-'+range[1]);
+			} else {
+				that.active(true, !$.webos.keyboard.pressed('ctrl'));
+			}
+
+			e.preventDefault();
 		});
 		
 		this.active(this.options.active);
@@ -1105,21 +1157,26 @@ $.webos.widget('listItem', 'container', {
 		
 		return column;
 	},
-	active: function(value) {
+	active: function(value, unactiveOthers) {
 		if (typeof value == 'undefined') {
 			return (this.options.active) ? true : false;
 		} else {
 			if (value) {
-				this.options._content.parent('tbody').first().children('tr.active').listItem('active', false);
+				if (unactiveOthers) {
+					this.parentList().list('items').filter('.active').listItem('active', false);
+				}
 				this.options._content.addClass('active').trigger('select');
-				
+
 				this._trigger('select');
 			} else {
 				this.options._content.removeClass('active').trigger('unselect');
-				
+
 				this._trigger('unselect');
 			}
 		}
+	},
+	parentList: function() {
+		return this.options._content.parents('table').first().parent();
 	},
 	_update: function(key, value) {
 		switch(key) {
