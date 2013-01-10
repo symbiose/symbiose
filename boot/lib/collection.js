@@ -1,13 +1,43 @@
 (function() {
-	var Collection = function WCollection(type) {
-		this._type = type;
+	var Collection = function WCollection(entities, type) {
+		this._type = undefined;
 		this._data = [];
+
+		if (entities instanceof Array) {
+			if (!type) {
+				type = undefined;
+			}
+
+			for (var i = 0; i < entities.length; i++) {
+				var entity = entities[i];
+
+				var result = this.add(entity);
+
+				if (result === false) {
+					continue;
+				}
+
+				if (entity.constructor) {
+					if (typeof type == 'undefined') {
+						type = entity.constructor;
+					} else if (type !== null && type !== entity.constructor) {
+						type = null;
+					}
+				}
+			}
+		}
+
+		this.type(type);
 	};
 	Collection.prototype = {
 		type: function $_WCollection_type(type) {
 			if (typeof type == 'undefined') {
 				return this._type;
 			} else {
+				if (!type) {
+					return false;
+				}
+
 				var that = this;
 
 				this._type = type;
@@ -43,11 +73,17 @@
 			}
 
 			for (var i = 0; i < this._data.length; i++) {
-				fn.call(this._data[i]);
+				var result = fn.call(this._data[i]);
+				if (result === false) {
+					break;
+				}
 			}
 		},
 		list: function $_WCollection_list() {
 			return this._data;
+		},
+		item: function $_WCollection_item(i) {
+			return this._data[i];
 		},
 		length: function $_WCollection_length() {
 			return this._data.length;

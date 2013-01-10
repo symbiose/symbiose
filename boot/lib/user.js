@@ -81,6 +81,8 @@ Webos.User.prototype = {
 		}));
 	},
 	setAuthorizations: function(authorizations, callback) {
+		callback = Webos.Callback.toCallback(callback);
+
 		return new Webos.ServerCall({
 			'class': 'UserController',
 			'method': 'setAuthorizations',
