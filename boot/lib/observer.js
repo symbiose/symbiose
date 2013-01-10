@@ -103,12 +103,15 @@ Webos.Observable.Group = function WObservableGroup(observables) {
 	this._observables = list;
 
 	// xxxEach() methods
+	var that = this;
 	for (var method in Webos.Observable.prototype) {
-		var thisMethodName = method + 'Each';
-		this[thisMethodName] = function() {
-			var args = Array.prototype.slice.call(arguments);
-			return this._eachObserver(method, args);
-		};
+		(function(method) {
+			var thisMethodName = method + 'Each';
+			that[thisMethodName] = function() {
+				var args = Array.prototype.slice.call(arguments);
+				return this._eachObserver(method, args);
+			};
+		})(method);
 	}
 };
 Webos.Observable.Group.prototype = {
