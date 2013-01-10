@@ -124,7 +124,7 @@ var editables = {
 		onEdit: function(user, selection) {
 			confWindow.window('loading', true);
 			
-			user.authorizations(new W.Callback(function(auth) {
+			user.authorizations([function(auth) {
 				if (selection == 'select') { //Autorisations specifiques
 					confWindow.window('loading', false);
 					
@@ -174,16 +174,19 @@ var editables = {
 					
 					editAuthorizationsWindow.window('open');
 				} else {
-					auth.model(selection, new W.Callback(function() {
+					auth.model(selection);
+
+					user.setAuthorizations(auth, new W.Callback(function() {
 						confWindow.window('loading', false);
 					}, function(response) {
 						confWindow.window('loading', false);
-						if (typeof response != 'undefined') {
-							response.triggerError('Impossible de modifier les autorisations de l\'utilisateur "'+user.getAttribute('username')+'"');
-						}
+						response.triggerError('Impossible de modifier les autorisations de l\'utilisateur "'+user.getAttribute('username')+'"');
 					}));
 				}			
-			}));
+			}, function(res) {
+				confWindow.window('loading', false);
+				res.triggerError();
+			}]);
 		},
 		choices: {
 			'user': 'Utilisateur limit&eacute;',
