@@ -506,8 +506,11 @@
 						});
 					}
 					
-					var img = $.w.image(new W.Icon(app.get('icon'), 92), app.get('title')).appendTo(item);
-					img.image('option', 'loadHidden', false);
+					var img = $.w.image(new W.Icon(app.get('icon'), 92), app.get('title'), false).appendTo(item);
+					img.image('option', {
+						animate: true,
+						parent: $list
+					});
 					$('<br />').appendTo(item);
 					$('<span></span>', { 'class': 'title' }).html(app.get('title')).appendTo(item);
 					
@@ -533,10 +536,6 @@
 			}
 			
 			$list.scrollPane('reload');
-			
-			$list.bind('scrollpanescroll.shell.ui.webos', function(e, data) {
-				//$icons.image('load');
-			});
 			
 			$icons.image('load');
 		},

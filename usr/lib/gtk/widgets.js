@@ -189,9 +189,15 @@ $.webos.widget('scrollPane', 'container', {
 	_create: function() {
 		this._super('_create');
 
+		var that = this;
+
 		if (this.isNatural()) {
 			this.element.addClass('scrollpane-natural');
 			this.options._content = $('<div></div>', { 'class': 'pane-natural' }).appendTo(this.element);
+
+			this.element.scroll(function() {
+				that._trigger('scroll');
+			});
 		} else {
 			var originalScrollTop = this.element.scrollTop(), originalScrollLeft = this.element.scrollLeft();
 		
@@ -514,11 +520,18 @@ $.webos.widget('scrollPane', 'container', {
 	},
 	position: function(pos) {
 		if (typeof pos == 'undefined') {
-			pos = this.content().position();
-			return {
-				x: - pos.left,
-				y: - pos.top
-			};
+			if (this.isNatural()) {
+				return {
+					x: this.element.scrollLeft(),
+					y: this.element.scrollTop()
+				};
+			} else {
+				pos = this.content().position();
+				return {
+					x: - pos.left,
+					y: - pos.top
+				};
+			}
 		} else {
 			this.scrollTo(pos.x, pos.y);
 		}
@@ -757,7 +770,9 @@ $.webos.widget('image', 'widget', {
 		src: '',
 		title: 'image',
 		loadHidden: true,
-		img: null
+		animate: false,
+		img: null,
+		parent: $()
 	},
 	_create: function() {
 		this._super('_create');
@@ -770,17 +785,53 @@ $.webos.widget('image', 'widget', {
 			return;
 		}
 		
-		if (!this.options.loadHidden && this.element.is(':hidden')) {
-			return;
+		if (!this.options.loadHidden) {
+			if (this.element.is(':hidden')) {
+				return;
+			}
+
+			if (this.element.closest('html').length == 0) {
+				return;
+			}
+
+			var pos = this.element.position(),
+			dim = { width: this.element.width(), height: this.element.height() },
+			parent = (this.options.parent.length) ? this.options.parent : this.element.parent(),
+			parentDim = { width: parent.width(), height: parent.height() },
+			parentScroll;
+
+			if ($.webos.widget.is(parent, 'scrollPane')) {
+				parentScroll = parent.scrollPane('position');
+			} else {
+				parentScroll = { y: parent.scrollTop(), x: parent.scrollLeft() };
+			}
+			
+			if (pos.left + dim.width < parentScroll.x || pos.top + dim.height < parentScroll.y ||
+				pos.left > parentDim.width + parentScroll.x || pos.top > parentDim.height + parentScroll.y) {
+				return;
+			}
 		}
 		
 		var that = this;
-		
-		this.img = new Image();
-		this.img.onload = function() {
+
+		this.options.img = new Image();
+		this.options.img.onload = function() {
+			if (that.options.animate) {
+				that.element.css('opacity', 0);
+			}
+
 			that.element.attr('src', that.options.src);
+
+			if (that.options.animate) {
+				that.element.animate({ opacity: 1 }, 'fast');
+			}
+
+			that._trigger('load', { type: 'load' }, { img: that.options.img });
 		};
-		this.img.src = this.options.src;
+		this.options.img.src = this.options.src;
+	},
+	loaded: function() {
+		return (this.options.img) ? true : false;
 	},
 	_update: function(key, value) {
 		switch(key) {
@@ -791,13 +842,57 @@ $.webos.widget('image', 'widget', {
 			case 'title':
 				this.element.attr('alt', value).attr('title', value);
 				break;
+			case 'parent':
+				var that = this, $parent = $(value);
+
+				if (!$parent.length) {
+					return false;
+				}
+
+				var suffix = this.id()+'.image.widget.webos', eventName = 'scroll.'+suffix;
+				if ($.webos.widget.is($parent, 'scrollPane')) {
+					eventName = 'scrollpanescroll.'+suffix;
+				}
+
+				var delay = 500, //1s
+				scrollTimeout = null,
+				scrollTimeStamp;
+
+				var setScrollTimeout = function() {
+					scrollTimeStamp = (new Date).getTime();
+
+					if (!scrollTimeout) {
+						scrollTimeout = setTimeout(function() {
+							scrollTimeout = null;
+
+							var time = (new Date).getTime();
+							if (time - scrollTimeStamp > delay + 50) {
+								setScrollTimeout();
+							} else {
+								scrollTimeStamp = null;
+
+								that.element.one('imageload', function() {
+									$parent.unbind(eventName);
+								});
+
+								that.load();
+							}
+						}, delay);
+					}
+				};
+
+				$parent.bind(eventName, function(e) {
+					setScrollTimeout();
+				});
+				break;
 		}
 	}
 });
-$.webos.image = function(src, title) {
+$.webos.image = function(src, title, loadHidden) {
 	return $('<img />').image({
 		src: src,
-		title: title
+		title: title,
+		loadHidden: loadHidden
 	});
 };
 
