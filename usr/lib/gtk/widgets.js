@@ -784,6 +784,9 @@ $.webos.widget('image', 'widget', {
 		if (this.options.img) {
 			return;
 		}
+
+		//Transparent image (1x1 px)
+		this.element.attr('src','data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3QEMDAMRXUW5DAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAANSURBVAjXY/j//z8DAAj8Av5cn8/aAAAAAElFTkSuQmCC');
 		
 		if (!this.options.loadHidden) {
 			if (this.element.is(':hidden')) {
@@ -854,7 +857,7 @@ $.webos.widget('image', 'widget', {
 					eventName = 'scrollpanescroll.'+suffix;
 				}
 
-				var delay = 500, //1s
+				var delay = 250, //1/4 s.
 				scrollTimeout = null,
 				scrollTimeStamp;
 
@@ -866,7 +869,7 @@ $.webos.widget('image', 'widget', {
 							scrollTimeout = null;
 
 							var time = (new Date).getTime();
-							if (time - scrollTimeStamp > delay + 50) {
+							if (time - scrollTimeStamp > delay + 50) { //Add an additionnal delay 
 								setScrollTimeout();
 							} else {
 								scrollTimeStamp = null;
