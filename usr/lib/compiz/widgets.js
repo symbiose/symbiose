@@ -1017,10 +1017,10 @@ $.webos.window.main = function(options) {
 				};
 
 				if (typeof savedSession.dimentions.width == 'number') {
-					option.width = savedSession.dimentions.width;
+					options.width = savedSession.dimentions.width;
 				}
 				if (typeof savedSession.dimentions.height == 'number') {
-					option.height = savedSession.dimentions.height;
+					options.height = savedSession.dimentions.height;
 				}
 
 				if (typeof savedSession.workspace == 'number' && $.w.window.workspace) {
