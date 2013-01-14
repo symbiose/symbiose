@@ -420,6 +420,7 @@ body {
 	-webkit-border-radius: 14px;
 	border-radius: 14px;
 	outline: none;
+	transition-duration: 0.5s;
 }
 #shell .search-entry.active {
 	border-color: #888a85;
@@ -429,6 +430,22 @@ body {
 }
 #shell .search-entry:focus {
 	font-weight: bold;
+}
+#shell .search-entry::-webkit-input-placeholder {
+	font-weight: normal;
+	color: #7f7f7f;
+}
+#shell .search-entry:-moz-placeholder {
+	font-weight: normal;
+	color: #7f7f7f;
+}
+#shell .search-entry:focus::-moz-placeholder {
+	font-weight: normal;
+	color: #7f7f7f;
+}
+#shell .search-entry:-ms-input-placeholder {
+	font-weight: normal;
+	color: #7f7f7f;
 }
 
 #shell .shortcuts {
