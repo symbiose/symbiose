@@ -12,7 +12,7 @@ Clone the repo, `git clone git://github.com/symbiose/symbiose.git`, or [download
 Bug tracker
 -----------
 
-Have a bug ? Please create an issue here on GitHub : https://github.com/twitter/bootstrap/issues.
+Have a bug ? Please create an issue here on GitHub : https://github.com/symbiose/symbiose/issues.
 
 Installing
 ----------
