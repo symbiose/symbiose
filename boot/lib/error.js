@@ -69,23 +69,22 @@ Webos.Error.catchError = function(error) {
 		Webos.Error.callback(error);
 	}
 };
-Webos.Error.trigger = function(message, details) {
+Webos.Error.build = function(message, details) {
 	if (!message) {
 		return;
 	}
-	
-	var error = new W.Error(message, details);
-	error.stack = Webos.Error.getStackTrace();
-	Webos.Error.catchError(error);
+
+	if (message instanceof Webos.Error) {
+		return message;
+	}
+
+	return new Webos.Error(message, details);
+};
+Webos.Error.trigger = function(message, details) {
+	Webos.Error.catchError(Webos.Error.build(message, details));
 };
 Webos.Error.log = function(message, details) {
-	if (!message) {
-		return;
-	}
-	
-	var error = new W.Error(message, details);
-	error.stack = Webos.Error.getStackTrace();
-	Webos.Error.logError(error);
+	Webos.Error.logError(Webos.Error.build(message, details));
 };
 Webos.Error.getStackTrace = function() {
 	var callstack = [];

@@ -139,10 +139,11 @@
 .package-details .separator {
 	border-top: 1px dotted #cac0c6;
 	height: 0px;
-	margin: 2px 12px;
+	margin: 14px 12px;
 }
 .package-details .info-box {
 	list-style-type: none;
+	margin: 0;
 }
 .package-details .info-box li strong {
 	color: #81727c;
@@ -155,4 +156,12 @@
 }
 .list .active .loading {
 	background: url('usr/share/images/software-center/loader_orange.gif') no-repeat;
+}
+
+.error img.error-icon {
+	float: left;
+	margin: 13px;
+}
+.error p {
+	padding: 5px;
 }

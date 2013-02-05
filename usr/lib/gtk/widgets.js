@@ -797,20 +797,49 @@ $.webos.widget('image', 'widget', {
 				return;
 			}
 
-			var pos = this.element.position(),
-			dim = { width: this.element.width(), height: this.element.height() },
-			parent = (this.options.parent.length) ? this.options.parent : this.element.parent(),
-			parentDim = { width: parent.width(), height: parent.height() },
-			parentScroll;
+			var pos, dim, parentData;
 
-			if ($.webos.widget.is(parent, 'scrollPane')) {
-				parentScroll = parent.scrollPane('position');
+			var parentDataIndex = 'image.widget.webos',
+			timeout = 500,
+			currentTime = (new Date).getTime(),
+			parent = (this.options.parent.length) ? this.options.parent : this.element.parent();
+
+			var generateParentData = function generateParentData() {
+				var parentScroll;
+				if ($.webos.widget.is(parent, 'scrollPane')) {
+					parentScroll = parent.scrollPane('position');
+				} else {
+					parentScroll = { y: parent.scrollTop(), x: parent.scrollLeft() };
+				}
+
+				var parentData = {
+					dim: { width: parent.width(), height: parent.height() },
+					scroll: parentScroll,
+					time: currentTime
+				};
+
+				parent.data(parentDataIndex, parentData);
+
+				return parentData;
+			};
+
+			pos = this.element.position();
+			parentData = parent.data(parentDataIndex);
+			if (parentData) {
+				if (parentData.time + timeout < currentTime) {
+					parentData = generateParentData();
+				}
 			} else {
-				parentScroll = { y: parent.scrollTop(), x: parent.scrollLeft() };
+				parentData = generateParentData();
 			}
-			
-			if (pos.left + dim.width < parentScroll.x || pos.top + dim.height < parentScroll.y ||
-				pos.left > parentDim.width + parentScroll.x || pos.top > parentDim.height + parentScroll.y) {
+
+			if (pos.left > parentData.dim.width + parentData.scroll.x || pos.top > parentData.dim.height + parentData.scroll.y) {
+				return;
+			}
+
+			dim = { width: this.element.width(), height: this.element.height() };
+
+			if (pos.left + dim.width < parentData.scroll.x || pos.top + dim.height < parentData.scroll.y) {
 				return;
 			}
 		}
@@ -830,6 +859,12 @@ $.webos.widget('image', 'widget', {
 			}
 
 			that._trigger('load', { type: 'load' }, { img: that.options.img });
+		};
+		this.options.img.onerror = function() {
+			that._trigger('error', { type: 'error' }, { img: that.options.img });
+		};
+		this.options.img.onabort = function() {
+			that._trigger('abort', { type: 'abort' }, { img: that.options.img });
 		};
 		this.options.img.src = this.options.src;
 	},

@@ -1,6 +1,9 @@
 <?php
 namespace lib\models;
 
+use \RuntimeException;
+use \Exception;
+
 /**
  * AvailablePackage represente un paquet disponible pour installation.
  * @author $imon
@@ -37,8 +40,10 @@ abstract class AvailablePackage extends Package {
 	 * Telecharger le paquet.
 	 */
 	protected function _download() {
+		$tmpDir = $this->webos->managers()->get('File')->tmpDir();
+
 		$zip = fopen($this->source.'/package.zip', 'r'); //Fichier source
-		$dest = fopen('tmp/'.$this->getName().'.zip', 'w'); //Fichier de destination
+		$dest = fopen($tmpDir->realpath().'/'.$this->getName().'.zip', 'w'); //Fichier de destination
 
 		echo 'R&eacute;ception de : '.$this->source.'/package.zip<br />';
 
@@ -46,25 +51,27 @@ abstract class AvailablePackage extends Package {
 		$copiedBits = stream_copy_to_stream($zip, $dest);
 
 		if (!$copiedBits > 0) //Si rien n'a ete copie
-			throw new RuntimeException('Impossible d\'acc&eacute;der &agrave; "'.$this->source.'/package.zip"');
+			throw new RuntimeException('Impossible d\'acc&eacute;der &agrave; "'.$this->source.'/package.zip" : erreur lors de la copie');
 	}
 
 	/**
 	 * Extraire le paquet.
 	 */
 	protected function _extract() {
-		echo 'D&eacute;paquetage de '.$this->getName().' (&agrave; partir de "/tmp/'.$this->getName().'.zip")...<br />';
+		$tmpDir = $this->webos->managers()->get('File')->tmpDir();
 
-		if ($this->webos->managers()->get('File')->exists('/tmp/'.$this->getName()))
-			$this->webos->managers()->get('File')->get('/tmp/'.$this->getName())->delete();
+		echo 'D&eacute;paquetage de '.$this->getName().' (&agrave; partir de "'.$tmpDir->path().'/'.$this->getName().'.zip")...<br />';
 
-		$dest = $this->webos->managers()->get('File')->createDir('/tmp/'.$this->getName().'/');
+		if ($this->webos->managers()->get('File')->exists($tmpDir->path().'/'.$this->getName()))
+			$this->webos->managers()->get('File')->get($tmpDir->path().'/'.$this->getName())->delete();
+
+		$dest = $this->webos->managers()->get('File')->createDir($tmpDir->path().'/'.$this->getName().'/');
 
 		$zip = new \ZipArchive;
-		$zip->open('tmp/'.$this->getName().'.zip');
-		$zip->extractTo('tmp/'.$this->getName().'/');
+		$zip->open($tmpDir->realpath().'/'.$this->getName().'.zip');
+		$zip->extractTo($tmpDir->realpath().'/'.$this->getName().'/');
 		$zip->close();
-		$this->webos->managers()->get('File')->get('/tmp/'.$this->getName().'.zip')->delete();
+		$this->webos->managers()->get('File')->get($tmpDir->path().'/'.$this->getName().'.zip')->delete();
 	}
 
 	/**
@@ -74,22 +81,23 @@ abstract class AvailablePackage extends Package {
 		if (empty($dir))
 			echo 'Copie des fichiers...<br />';
 
-		$tmpDir = '/tmp/'.$this->getName().'/';
+		$tmpDir = $this->webos->managers()->get('File')->tmpDir();
+		$tmpPkgDir = $tmpDir->path().'/'.$this->getName().'/';
 
 		//On copie...
 		foreach ($this->files as $file) {
 			//Si c'est un dossier
-			if ($this->webos->managers()->get('File')->get($tmpDir.'/'.$file)->isDir()) {
+			if ($this->webos->managers()->get('File')->get($tmpPkgDir.'/'.$file)->isDir()) {
 				//On cree le dossier s'il n'existe pas
-				if (!$this->webos->managers()->get('File')->exists($tmpDir.'/'.$file))
-					$this->webos->managers()->get('File')->createDir($tmpDir.'/'.$file, '/'.$file);
+				if (!$this->webos->managers()->get('File')->exists($tmpPkgDir.'/'.$file))
+					$this->webos->managers()->get('File')->createDir($tmpPkgDir.'/'.$file, '/'.$file);
 			} else { //C'est un fichier, on le copie
-				$this->webos->managers()->get('File')->get($tmpDir.'/'.$file)->copy('/'.$file);
+				$this->webos->managers()->get('File')->get($tmpPkgDir.'/'.$file)->copy('/'.$file);
 			}
 		}
 
 		//On supprime le dossier temporaire
-		$this->webos->managers()->get('File')->get($tmpDir)->delete();
+		$this->webos->managers()->get('File')->get($tmpPkgDir)->delete();
 	}
 
 	/**

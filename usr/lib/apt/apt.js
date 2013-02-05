@@ -30,17 +30,19 @@ Webos.Package.prototype = {
 		this.notify('installstart');
 		Webos.Package.notify('installstart', { 'package': that });
 		
-		new W.ServerCall({
+		return new W.ServerCall({
 			'class': 'PackageController',
 			'method': 'install',
 			arguments: {
 				'package': this.codename(),
-				'repository': this.get('repository')
+				//'repository': this.get('repository') //Do not specify the repository (prevent from installing from the local repository)
 			}
 		}).load(new Webos.Callback(function(response) {
 			that._running = false;
-			that._set('installed', true);
-			that._set('installed_time', Math.round(+new Date() / 1000));
+			that._hydrate({
+				'installed': true,
+				'installed_time': Math.round(+new Date() / 1000)
+			});
 			
 			callback.success(that);
 			
@@ -72,7 +74,7 @@ Webos.Package.prototype = {
 		this.notify('removestart');
 		Webos.Package.notify('removestart', { 'package': that });
 		
-		new W.ServerCall({
+		return new W.ServerCall({
 			'class': 'PackageController',
 			'method': 'remove',
 			arguments: {
@@ -80,8 +82,10 @@ Webos.Package.prototype = {
 			}
 		}).load(new Webos.Callback(function(response) {
 			that._running = false;
-			that._set('installed', false);
-			that._set('installed_time', null);
+			that._hydrate({
+				'installed': false,
+				'installed_time': null
+			});
 			
 			callback.success(that);
 			

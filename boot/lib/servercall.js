@@ -510,7 +510,7 @@ Webos.ServerCall.Response.prototype = {
 	isJavascriptEmpty: function() { //Savoir si il y a du code JS
 		return (this.getJavascript() == null);
 	},
-	triggerError: function(msg) { //Declancher l'erreur, si elle existe
+	getError: function(msg) {
 		if (this.isSuccess()) {
 			return;
 		}
@@ -521,20 +521,13 @@ Webos.ServerCall.Response.prototype = {
 			details = this.getAllChannels();
 		}
 
-		Webos.Error.trigger(msg, details);
+		return Webos.Error.build(msg, details);
+	},
+	triggerError: function(msg) { //Declancher l'erreur, si elle existe
+		Webos.Error.trigger(this.getError(msg));
 	},
 	logError: function(msg) {
-		if (this.isSuccess()) {
-			return;
-		}
-		msg = (!msg) ? ((!this.getErrorsChannel()) ? this.getAllChannels() : this.getErrorsChannel()) : msg;
-
-		var details = null;
-		if (msg != this.getAllChannels()) {
-			details = this.getAllChannels();
-		}
-
-		Webos.Error.log(msg, details);
+		Webos.Error.log(this.getError(msg));
 	},
 	toString: function() {
 		return (this.getAllChannels() !== null) ? this.getAllChannels() : '';
