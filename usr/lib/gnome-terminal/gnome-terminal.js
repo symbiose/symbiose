@@ -8,10 +8,11 @@ $.webos.widget('terminal', 'container', {
 	_name: 'terminal',
 	options: {
 		callback: function() {},
-		_history: []
+		_history: [],
+		_runningCmd: null
 	},
 	_translationsName: 'gnome-terminal',
-	_create: function() {
+	_create: function () {
 		this._super('_create');
 
 		this.options.callback = W.Callback.toCallback(this.options.callback);
@@ -31,13 +32,13 @@ $.webos.widget('terminal', 'container', {
 			callback.success(that.element);
 		});
 	},
-	terminal: function() {
+	terminal: function () {
 		return this.options._terminal;
 	},
-	prompt: function() {
+	prompt: function () {
 		return this.options._components.prompt;
 	},
-	_displayPrompt: function() { //Affiche l'invite de commande
+	_displayPrompt: function () { //Affiche l'invite de commande
 		var that = this;
 
 		this.options._components.out = $();
@@ -118,14 +119,14 @@ $.webos.widget('terminal', 'container', {
 			that._trigger('ready');
 		}));
 	},
-	_print: function(contents) {
+	_print: function (contents) {
 		if (!this.options._components.out.length) {
 			this.options._components.out = $('<p></p>').appendTo(this.element);
 		}
 
 		this.options._components.out.append(contents);
 	},
-	enterCmd: function(cmd) { //Entrer une commande
+	enterCmd: function (cmd) { //Entrer une commande
 		var that = this;
 		
 		if (!this.options._terminal || that.options._runningCmd) {
@@ -168,6 +169,9 @@ $.webos.widget('terminal', 'container', {
 			that._trigger('finished');
 			that._displayPrompt();
 		}]);
+	},
+	getRunningCmd: function () {
+		return this.options._runningCmd;
 	}
 });
 $.webos.terminal = function(callback) {
@@ -214,6 +218,20 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 				that._terminal.terminal('prompt').textEntry('content')
 					.width(that._terminal.terminal('prompt').innerWidth() - that._terminal.terminal('prompt').textEntry('label').outerWidth() - 5)
 					.focus();
+			}
+		}).bind('windowbeforeclose', function(e) { //Avant la fermeture d'une fenetre
+			if (that._terminal.terminal('getRunningCmd')) {
+				$.w.window.confirm({
+					title: 'Close the terminal ?',
+					label: t.get('A process is still running in the terminal. Close the terminal will kill it.'),
+					confirm: function() {
+						that._terminal.terminal('getRunningCmd').stop();
+						that._window.window('close');
+					},
+					confirmLabel: t.get('Close the terminal'),
+					parentWindow: that._window
+				}).window('open');
+				e.preventDefault();
 			}
 		});
 		
