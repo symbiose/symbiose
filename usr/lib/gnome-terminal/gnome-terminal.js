@@ -222,7 +222,7 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 		}).bind('windowbeforeclose', function(e) { //Avant la fermeture d'une fenetre
 			if (that._terminal.terminal('getRunningCmd')) {
 				$.w.window.confirm({
-					title: 'Close the terminal ?',
+					title: t.get('Close the terminal ?'),
 					label: t.get('A process is still running in the terminal. Close the terminal will kill it.'),
 					confirm: function() {
 						that._terminal.terminal('getRunningCmd').stop();
