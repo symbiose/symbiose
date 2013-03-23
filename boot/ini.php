@@ -13,17 +13,18 @@ chdir(dirname(__FILE__).'/..'); //On se place a la racine
 date_default_timezone_set('Europe/Paris');
 
 //On definit le temps d'execution maximum
-set_time_limit(30);
+if(!ini_get('safe_mode')) {
+	set_time_limit(30);
+}
 
-function autoload($class) //Fonction qui permet de charger automatiquement une classe
-{
+function autoload($class) { //Fonction qui permet de charger automatiquement une classe
 	$file = './'.str_replace('\\', '/', $class).'.class.php';
 	if (file_exists($file)) {
 		return require $file;
 	}
 }
 
-// N'oublions pas d'ajouter notre fonction à la pile d'autoload
+//N'oublions pas d'ajouter notre fonction à la pile d'autoload
 spl_autoload_register('autoload');
 
 function getPHPVersionId($version) { //Permet de recuperer l'ID de la version de PHP
