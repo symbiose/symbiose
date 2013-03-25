@@ -13,8 +13,8 @@ chdir(dirname(__FILE__).'/..'); //On se place a la racine
 date_default_timezone_set('Europe/Paris');
 
 //On definit le temps d'execution maximum
-if(!ini_get('safe_mode')) {
-	set_time_limit(30);
+if(!ini_get('safe_mode')) { //Detect safe_mode, but sometimes it doesn't work well -> we use the @ operator
+	@set_time_limit(30);
 }
 
 function autoload($class) { //Fonction qui permet de charger automatiquement une classe
