@@ -302,7 +302,7 @@ var editables = {
 	}
 };
 
-var usersBeingEdited = null;
+var usersBeingEdited = null, $editAreas = $();
 var enableUserEditFn = function(users) {
 	if (users.length == 0) {
 		disableUserEditFn();
@@ -316,6 +316,9 @@ var enableUserEditFn = function(users) {
 	if (usersBeingEdited) {
 		usersBeingEdited.unbind('update.user_editing.users.gconf');
 	}
+
+	$editAreas.remove();
+	$editAreas = $();
 
 	collection.bind('update.user_editing.users.gconf', function() {
 		enableUserEditFn(users);
@@ -339,6 +342,7 @@ var enableUserEditFn = function(users) {
 				case 'password':
 					editButton = $.w.button('Modifier');
 					editEntry = $.w.passwordEntry(editable.label);
+					editEntry.append($.w.button('Valider', true));
 					break;
 				case 'authorizations':
 					editEntry = $.w.selectButton(editable.label, editable.choices).bind('change', function() {
@@ -386,8 +390,9 @@ var enableUserEditFn = function(users) {
 
 					editButton = $.w.button(label);
 					editEntry = $.w.textEntry(editable.label).textEntry('value', entryValue);
+					editEntry.append($.w.button('Valider', true));
 			}
-			
+
 			editArea.append(editEntry);
 			
 			var argUsers = (editable.multiEdit != true) ? collection.item(0) : collection;
@@ -431,6 +436,7 @@ var enableUserEditFn = function(users) {
 			editable.element.html(editable.label).append(editButton);
 			editArea.hide();
 			editable.element.after(editArea);
+			$editAreas = $editAreas.add(editArea);
 		})(key, editables[key]);
 	}
 };
