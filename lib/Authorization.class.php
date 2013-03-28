@@ -33,8 +33,20 @@ class Authorization extends \lib\WebosComponent {
 	public function check(ServerCallRequest $request) {
 		$actionAuthorizations = $this->_getActionAuthorization($request->getClass(), $request->getMethod(), $request->getArguments());
 		foreach($actionAuthorizations as $actionAuthorization) {
-			if (!$this->can($actionAuthorization))
-				throw new \RuntimeException('Vous n\'avez pas les droits requis ("'.$actionAuthorization.'") pour effectuer cette action (classe : "'.$request->getClass().'"; m&eacute;thode : "'.$request->getMethod().'"; arguments: "'.implode('", "', $request->getArguments()).'")');
+			if (!$this->can($actionAuthorization)) {
+				$args = array();
+				foreach($request->getArguments() as $arg) {
+					if (is_string($arg)) {
+						$args[] = '"'.$arg.'"';
+					} elseif (is_array($arg)) {
+						$args[] = json_encode($arg);
+					} else {
+						$args[] = $arg;
+					}
+				}
+
+				throw new \RuntimeException('Vous n\'avez pas les droits requis ("'.$actionAuthorization.'") pour effectuer cette action (classe : "'.$request->getClass().'"; m&eacute;thode : "'.$request->getMethod().'"; arguments: "'.implode(', ', $args).'")');
+			}
 		}
 		return true;
 	}
