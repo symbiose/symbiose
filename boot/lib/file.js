@@ -171,7 +171,7 @@ Webos.File.prototype = {
 				data.basename = path.replace(/^.*[\/\\]/g, '');
 			}
 			if (data.is_dir === false && !data.extension) { //On définit automatiquement l'extension du fichier si non présent et que le fichier n'est pas un dossier
-				data.extension = (/[.]/.exec(path)) ? /[^.]+$/.exec(path)[0] : null;
+				data.extension = (/\./.test(path)) ? /[^.]+$/.exec(path)[0] : '';
 			}
 		}
 
@@ -440,6 +440,10 @@ Webos.File.get = function(file, data, disableCache) {
 		return new Webos.LocalFile(file);
 	} else if (Webos.isInstanceOf(file, Webos.File)) { //Si c'est déja un objet Webos.File, on le retourne directement
 		return file;
+	}
+
+	if (typeof file == 'undefined') {
+		return;
 	}
 
 	path = String(file);

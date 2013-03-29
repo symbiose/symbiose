@@ -770,7 +770,7 @@ $.webos.widget('nautilus', 'container', {
 							defineDefaultBtn.button('option', 'disabled', true);
 							removeDefaultBtn.button('option', 'disabled', true);
 							propertiesWindow.window('loading', true);
-							Webos.Application.listOpeners(file.get('extension'), function(openers) {
+							Webos.Application.listOpeners(file, function(openers) {
 								for (var i = 0; i < openers.length; i++) {
 									(function(app) {
 										var title = '<img src="'+W.Icon.toIcon(app.get('icon')).realpath(20)+'" style="height: 20px; width: 20px;" alt=""/> '+app.get('title'), prefered = false;
@@ -1090,7 +1090,7 @@ $.webos.widget('nautilus', 'container', {
 			var that = this, t = this.translations();
 
 			var runOpenerFn = function() {
-				Webos.Application.listOpeners(file.get('extension'), function(openers) {
+				Webos.Application.listOpeners(file, function(openers) {
 					if (openers.length > 0) {
 						var prefered = openers[0];
 
@@ -1212,7 +1212,7 @@ $.webos.widget('nautilus', 'container', {
 			fileOpenerWindow.window('open');
 		};
 		
-		Webos.Application.listOpeners(file.get('extension'), function(openers) {
+		Webos.Application.listOpeners(file, function(openers) {
 			if (openers.length > 0) {
 				openFileWindowFn(openers);
 			} else {

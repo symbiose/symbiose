@@ -98,6 +98,11 @@ input[type="submit"][disabled]:active,
 	border-collapse: collapse;
 	background-color: white;
 	width: 100%;
+	height: 100%;
+}
+.webos-list table tbody {
+	/*height: 100px;*/
+	overflow: auto;
 }
 .webos-list table tr {
 	min-height: 24px;

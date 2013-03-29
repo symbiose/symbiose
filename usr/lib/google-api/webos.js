@@ -102,7 +102,10 @@ Webos.GoogleDriveFile.prototype = {
 		return this._get('fileSize');
 	},
 	extension: function() {
-		return this._get('fileExtension') || this._get('extension');
+		return this._get('fileExtension') || this._get('extension') || '';
+	},
+	writable: function() {
+		return this._get('editable');
 	},
 	load: function(callback) {
 		var that = this;

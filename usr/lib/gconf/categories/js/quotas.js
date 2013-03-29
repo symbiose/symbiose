@@ -2,11 +2,15 @@ var confWindow = args.getParam(0);
 
 confWindow.window('dialog', true);
 
-var form = $.w.entryContainer().appendTo(confWindow.window('content'));
+var tabs = $.w.tabs().appendTo(confWindow.window('content'));
+
+//Global restrictions
+var globalContent = $.w.entryContainer();
+tabs.tabs('tab', 'Restrictions globales', globalContent);
 
 var inputs = {};
-inputs.accounts = $.w.numberEntry('Nombre maximal de comptes (<em>-1</em> pour illimit&eacute;) : ', 0, -1).appendTo(form);
-inputs.home = $.w.numberEntry('Taille maximale de chaque dossier personnel (<em>-1</em> pour illimit&eacute;) : ', 0, -1).appendTo(form);
+inputs.accounts = $.w.numberEntry('Nombre maximal de comptes (<em>-1</em> pour illimit&eacute;) : ', 0, -1).appendTo(globalContent);
+inputs.home = $.w.numberEntry('Taille maximale de chaque dossier personnel (<em>-1</em> pour illimit&eacute;) : ', 0, -1).appendTo(globalContent);
 var unitSelector = $.w.selectButton('', {
 	0: 'octets',
 	1: 'Kio',
@@ -23,14 +27,28 @@ unitSelector.selectButton('input').change(function() {
 	unitSelector.selectButton('value', 0);
 }).appendTo(inputs.home);
 
-inputs.register = $.w.switchButton('Inscription des visiteurs (sans validation) : ').appendTo(form);
+inputs.register = $.w.switchButton('Inscription des visiteurs (sans validation) : ').appendTo(globalContent);
+
+//Specific restrictions
+var specificContent = $.w.entryContainer();
+tabs.tabs('tab', 'Restrictions sp&eacute;cifiques', specificContent);
+
+inputs.specificList = $.w.list(['Utilisateur', 'Taille maximale du dossier personnel']).appendTo(specificContent);
+
+inputs.specificAdd = $.w.button('Ajouter').click(function() {
+	
+});
+inputs.specificList.list('addButton', inputs.specificAdd);
+
+inputs.specificRemove = $.w.button('Enlever');
+inputs.specificList.list('addButton', inputs.specificRemove);
 
 confWindow.window('loading', true);
 
 var loaded = 0;
 var notifyLoadedFn = function() {
 	loaded++;
-	if (loaded == 2) {
+	if (loaded == 3) {
 		confWindow.window('loading', false);
 	}
 };
@@ -93,3 +111,31 @@ Webos.ConfigFile.load('/etc/register.xml', [function(configFile) {
 	notifyLoadedFn();
 	response.triggerError('Impossible d\'acc&eacute;der au fichier de configuration des inscriptions');
 }]);
+
+Webos.require('/usr/lib/webos/dataset.js', function() {
+	Webos.DataSet.loadSystemData('quotas', [function(dataSet) {
+		notifyLoadedFn();
+		
+		/*var saveConfigFn = function() {
+			confWindow.window('loading', true);
+			configFile.sync([function() {
+				confWindow.window('loading', false);
+			}, function(response) {
+				confWindow.window('loading', false);
+				inputs.register.switchButton('value', parseInt(configFile.get('register')));
+				response.triggerError('Impossible de modifier la configuration des inscriptions');
+			}]);
+		};
+		
+		inputs.register.switchButton('value', parseInt(configFile.get('register'))).bind('switchbuttonchange', function(e, data) {
+			if (!configFile.set('register', (data.value) ? 1 : 0)) {
+				W.Error.trigger('Impossible de modifier la configuration des inscriptions');
+			} else {
+				saveConfigFn();
+			}
+		});*/
+	}, function(response) {
+		notifyLoadedFn();
+		response.triggerError('Impossible d\'acc&eacute;der &agrave; la configuration des utilisateurs bloqu&eacute;s');
+	}]);
+});
