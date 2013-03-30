@@ -274,7 +274,7 @@ Webos.GoogleDriveFile.prototype = {
 				onSuccessFn(resp);
 			});
 		}, function() {
-			Webos.GoogleDriveFile.createFile(this.get('path'), [function(file) {
+			Webos.GoogleDriveFile.createFile(that.get('path'), that.get('mountPoint'), [function(file) {
 				file.writeAsText(contents, callback);
 			}, callback.error]);
 		}]);
@@ -356,6 +356,11 @@ Webos.GoogleDriveFile._getFileId = function(path, point, callback) {
 					'maxResults': 1
 				});
 				request.execute(function(resp) {
+					if (typeof resp.items == 'undefined' || !resp.items.length) {
+						callback.error(W.Callback.Result.error('Specified file "'+path+'" doesn\'t exist'));
+						return;
+					}
+
 					var item = resp.items[0];
 					Webos.GoogleDriveFile._filesIds[currentPath] = item.id;
 					lastFolderId = item.id;

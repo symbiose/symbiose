@@ -749,10 +749,15 @@ Webos.File.copy = function(source, dest, callback) {
 		if (source.get('is_dir')) {
 			copyDirFn(source, dest, callback);
 		} else if (source.get('is_dir') === false) {
-			if (source.get('is_binary') && typeof source.readAsBinary == 'function' && typeof dest.writeAsBinary == 'function') {
-				copyBinaryFileFn(source, dest, callback);
+			if (dest.get('is_dir')) {
+				dest = W.File.get(dest.get('path') + '/' + source.get('basename'));
+				copyFn(source, dest, callback);
 			} else {
-				copyTextFileFn(source, dest, callback);
+				if (source.get('is_binary') && typeof source.readAsBinary == 'function' && typeof dest.writeAsBinary == 'function') {
+					copyBinaryFileFn(source, dest, callback);
+				} else {
+					copyTextFileFn(source, dest, callback);
+				}
 			}
 		} else {
 			source.load([function(source) {
