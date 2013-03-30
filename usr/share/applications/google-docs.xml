@@ -6,6 +6,6 @@
 	<attribute name="command" value="google-docs"/>
 	<attribute name="icon" value="applications/google-docs"/>
 	<attribute name="category" value="office"/>
-	<attribute name="openMimeTypes" value="application/vnd.google-apps.*"/>
+	<attribute name="openMimeTypes" value="application/vnd.google-apps.*,application/*,text/html"/>
 	<attribute name="type" value="word-processor"/>
 </shortcut>

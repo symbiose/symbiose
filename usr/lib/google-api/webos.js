@@ -78,14 +78,12 @@ Webos.GoogleDriveFile.prototype = {
 
 		data.readable = true;
 		data.writable = (data.editable) ? true : false;
+		data.mime_type = data.mimeType || data.mime_type;
 
 		return Webos.File.prototype.hydrate.call(this, data);
 	},
 	mountPoint: function() {
 		return this._mountPoint;
-	},
-	mime_type: function() {
-		return this._get('mimeType');
 	},
 	is_dir: function() {
 		var mimeType = this.get('mime_type');
@@ -268,8 +266,15 @@ Webos.GoogleDriveFile.prototype = {
 			var request = gapi.client.request({
 				'path': '/upload/drive/v2/files/' + fileId,
 				'method': 'PUT',
+				'params': {
+					'convert': true
+				},
+				'headers': {
+					'Content-Type': (that.get('mime_type') || 'application/octet-stream')
+				},
 				'body': contents
 			});
+
 			request.execute(function(resp) {
 				onSuccessFn(resp);
 			});
@@ -383,15 +388,16 @@ Webos.GoogleDriveFile.createFile = function(path, point, callback) {
 	
 	var file = Webos.File.get(path);
 
-	Webos.GoogleDriveFile._getFileId(file.get('dirname'), point, [function(fileId) {
+	Webos.GoogleDriveFile._getFileId(file.get('dirname'), point, [function(parentId) {
 		var request = gapi.client.request({
 			'path': '/drive/v2/files',
 			'method': 'POST',
 			'body': {
 				'title': file.get('basename'),
+				'mimeType': (file.get('mime_type') || 'application/octet-stream'),
 				'parents': [{
 					kind: 'drive#fileLink',
-					id:fileId
+					id: parentId
 				}]
 			}
 		});
@@ -408,7 +414,7 @@ Webos.GoogleDriveFile.createFolder = function(path, point, callback) {
 	
 	var file = Webos.File.get(path);
 
-	Webos.GoogleDriveFile._getFileId(file.get('dirname'), point, [function(fileId) {
+	Webos.GoogleDriveFile._getFileId(file.get('dirname'), point, [function(parentId) {
 		var request = gapi.client.request({
 			'path': '/drive/v2/files',
 			'method': 'POST',
@@ -417,7 +423,7 @@ Webos.GoogleDriveFile.createFolder = function(path, point, callback) {
 				'mimeType': 'application/vnd.google-apps.folder',
 				'parents': [{
 					kind: 'drive#fileLink',
-					id:fileId
+					id: parentId
 				}]
 			}
 		});

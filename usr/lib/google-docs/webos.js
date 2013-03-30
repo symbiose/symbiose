@@ -100,7 +100,19 @@
 											return;
 										}
 
-										Webos.File.copy(file, destDir, [function(destFile) {
+										that._window.window('loading', true, {
+											message: t.get('Copying file to Google Drive...')
+										});
+
+										var destFile = Webos.File.get(destDir.get('path') + '/' + file.get('basename'));
+										console.log('original', file.get('mime_type'));
+										destFile.hydrate({
+											'mime_type': file.get('mime_type')
+										});
+										console.log('dest', destFile.get('mime_type'), destFile);
+
+										Webos.File.copy(file, destFile, [function(destFile) {
+											that._window.window('loading', false);
 											that.openFile(destFile, callback);
 										}, callback.error]);
 									} else {
