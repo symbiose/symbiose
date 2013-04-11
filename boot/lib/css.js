@@ -1,16 +1,16 @@
 /**
- * Crée une instance de Webos.Stylesheet, representant une feuille de style CSS.
- * @param {String} path Le chemin vers la feuille de style.
- * @param {String} [container] L'element auquel sera applique le style.
+ * A CSS stylesheet.
+ * @param {String} path The path to the CSS file.
+ * @param {String} [container] The element on which CSS rules will be applied.
  * @since 1.0 alpha 1
  * @constructor
  */
 Webos.Stylesheet = function WStylesheet(path, container) {
-	if (!/^(\/|~\/)/.test(path)) {
+	if (!/^(\/|~\/)/.test(path)) { //Old path notation support - deprecated
 		path = '/'+path;
 	}
 	
-	if (Webos.Stylesheet._cache[path]) {
+	if (Webos.Stylesheet._cache[path]) { //Is the file in cache ?
 		Webos.Stylesheet.insertCss(Webos.Stylesheet._cache[path], container);
 		return;
 	}
@@ -24,36 +24,36 @@ Webos.Stylesheet = function WStylesheet(path, container) {
 		async: false
 	}).load(function(response) {
 		var css = response.getStandardChannel();
-		if (css) {
+		if (css) { //If there is some CSS
 			Webos.Stylesheet._cache[path] = css;
-			Webos.Stylesheet.insertCss(css, container);
+			Webos.Stylesheet.insertCss(css, container); //Insert CSS in the page
 		}
 	});
 };
 
 /**
- * Cache des feuilles de style.
+ * Cache for CSS stylesheets.
  * @private
  * @static
  */
 Webos.Stylesheet._cache = {};
 
 /**
- * Appliquer une feuille de style CSS.
- * @param {String} css La feuille de style CSS.
- * @param {String} [container] L'element auquel sera applique le style.
+ * Apply some CSS rules .
+ * @param {String} css CSS rules.
+ * @param {String} [container] The element on which CSS rules will be applied. If ommited, CSS rules will be applied to the whole page.
  * @static
  */
 Webos.Stylesheet.insertCss = function insertCss(css, container) {
 	if (container) {
 		css = css
-			.replace(/\/\*([\s\S]*?)\*\//g, '') //On enleve les commentaires
-			.replace(/([\s\S]+?)\{([\s\S]*?)\}/g, function(str, p1, p2) {
+			.replace(/\/\*([\s\S]*?)\*\//g, '') //Delete comments
+			.replace(/([\s\S]+?)\{([\s\S]*?)\}/g, function(str, p1, p2) { //Replace each selector
 				var result = '';
 				
 				p1 = p1.replace(/\s+/g, ' ');
 				
-				if (/^\s*@/.test(p1)) {
+				if (/^\s*@/.test(p1)) { //Not a selector ?
 					if (/^\s*(@.+;)+/.test(p1)) {
 						result += /@.+;/g.exec(p1).join('');
 					} else {
@@ -69,6 +69,7 @@ Webos.Stylesheet.insertCss = function insertCss(css, container) {
 			});
 	}
 	
+	//Insert CSS rules
 	var cssTag = document.createElement('style');
 	cssTag.setAttribute('type', 'text/css');
 	var cssText = document.createTextNode(css);
