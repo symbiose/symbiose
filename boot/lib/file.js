@@ -1,20 +1,24 @@
 /**
- * Bibliotheque de gestion des fichiers.
+ * A library to manage files.
  * @author $imon
- * @since 1.0 alpha 1
+ * @since 1.0alpha1
  */
 
- /**
-*
-*  Base64 encode / decode
-*  http://www.webtoolkit.info/
-*
-**/
+/**
+ *  Base64 encode / decode
+ *  http://www.webtoolkit.info/
+ **/
 Webos.base64 = {
-	// private property
+	/**
+	 * @private
+	 */
 	_keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
  
-	// public method for encoding
+	/**
+	 * Encode a string to base64.
+	 * @param {String} input The string to encode.
+	 * @returns {String} The base64-encoded string.
+	 */
 	encode: function (input) {
 		if (window.btoa) {
 			return window.btoa(unescape(encodeURIComponent(input)));
@@ -50,7 +54,11 @@ Webos.base64 = {
 		return output;
 	},
  
-	// public method for decoding
+	/**
+	 * Decode a base64-string.
+	 * @param {String} input The base64-encoded string.
+	 * @returns {String} The decoded string.
+	 */
 	decode: function (input) {
 		if (window.atob) {
 			return decodeURIComponent(escape(window.atob(input)));
@@ -148,15 +156,19 @@ Webos.base64 = {
 };
 
 /**
- * Représente un fichier.
- * @param {Object} data Les données sur le fichier.
- * @since 1.0 alpha 1
+ * A file.
+ * @param {Object} data The file's data.
+ * @since 1.0alpha1
  * @constructor
  */
 Webos.File = function WFile(data) {
-	Webos.Model.call(this, data); //On appelle la classe parente
+	Webos.Model.call(this, data); //Inherits from Webos.Model
 };
 Webos.File.prototype = {
+	/**
+	 * Update file's data, and complete automatically missing data.
+	 * @param {Object} data The new data.
+	 */
 	hydrate: function(data) {
 		var path = (data.path || this.get('path'));
 		if (path) {
@@ -195,6 +207,11 @@ Webos.File.prototype = {
 
 		return Webos.Model.prototype.hydrate.call(this, data);
 	},
+	/**
+	 * Update file's data.
+	 * @param {Object} data The new data.
+	 * @private
+	 */
 	_updateData: function(data) {
 		var updatedData = {};
 		for (var key in data) {
@@ -253,6 +270,10 @@ Webos.File.prototype = {
 			Webos.File.notify('load', { file: this });
 		}
 	},
+	/**
+	 * Trigger post-removing callbacks.
+	 * @private
+	 */
 	_remove: function() {
 		this.notify('remove');
 		Webos.File.notify('remove', { file: this });
@@ -278,24 +299,24 @@ Webos.File.prototype = {
 		delete this;
 	},
 	/**
-	 * Déclenche une erreur en raison de l'impossibilité d'effectuer une action sur ce type de fichier.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée.
+	 * Trigger an error because the current action is unavailable on this type of file.
+	 * @param {Webos.Callback} [callback] The callback function which will be called.
 	 * @private
 	 */
 	_unsupportedMethod: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
-		callback.error(Webos.Callback.Result.error('Op&eacute;ration impossible sur le type du fichier "'+this.get('path')+'"'));
+		callback.error(Webos.Callback.Result.error('Cannot execute this operation on this type of file "'+this.get('path')+'"'));
 	},
 	/**
-	 * Charge les informations sur le fichier.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que les informations seront chargées.
+	 * Load this file's data.
+	 * @param {Webos.Callback} callback The callback.
 	 */
 	load: function(callback) {
 		this._unsupportedMethod(callback);
 	},
 	/**
-	 * Renomme le fichier.
+	 * Rename this file.
 	 * @param {String} newName Le nouveau nom.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que le fichier sera renommé.
 	 */
