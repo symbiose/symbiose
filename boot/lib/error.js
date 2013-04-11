@@ -1,3 +1,10 @@
+/**
+ * An error.
+ * @param {String} message The error message.
+ * @param {String} [details] The error details.
+ * @since 1.0 alpha 1
+ * @constructor
+ */
 Webos.Error = function WError(message, details) {
 	this.name = 'Webos.Error';
 	this.stack = Webos.Error.getStackTrace();
@@ -30,8 +37,24 @@ Webos.Error = function WError(message, details) {
 };
 Webos.inherit(Webos.Error, Error);
 
+/**
+ * A list of all errors.
+ * @type {Array}
+ * @static
+ * @private
+ */
 Webos.Error.list = [];
+
+/**
+ * The callback triggered when an error occurs.
+ * @type {Function}
+ */
 Webos.Error.callback = function() {};
+
+/**
+ * Log an error.
+ * @param {Error|Webos.Error} error The error.
+ */
 Webos.Error.logError = function(error) {
 	if (!error.process) {
 		error.process = Webos.Process.current();
@@ -58,6 +81,12 @@ Webos.Error.logError = function(error) {
 	
 	return error;
 };
+
+/**
+ * Catch an error.
+ * This method logs the error and triggers the error callback.
+ * @param {Error|Webos.Error} error The error.
+ */
 Webos.Error.catchError = function(error) {
 	if (!error.process) {
 		error.process = Webos.Process.current();
@@ -69,6 +98,13 @@ Webos.Error.catchError = function(error) {
 		Webos.Error.callback(error);
 	}
 };
+
+/**
+ * Build an error.
+ * @param {String} message The error message.
+ * @param {String} [details] The error details.
+ * @returns {Webos.Error} The error.
+ */
 Webos.Error.build = function(message, details) {
 	if (!message) {
 		return;
@@ -80,12 +116,29 @@ Webos.Error.build = function(message, details) {
 
 	return new Webos.Error(message, details);
 };
+
+/**
+ * Build and trigger an error.
+ * @param {String} message The error message.
+ * @param {String} [details] The error details.
+ */
 Webos.Error.trigger = function(message, details) {
 	Webos.Error.catchError(Webos.Error.build(message, details));
 };
+
+/**
+ * Build and log an error.
+ * @param {String} message The error message.
+ * @param {String} [details] The error details.
+ */
 Webos.Error.log = function(message, details) {
 	Webos.Error.logError(Webos.Error.build(message, details));
 };
+
+/**
+ * Get the current stack trace.
+ * @returns {Array} The stack trace.
+ */
 Webos.Error.getStackTrace = function() {
 	var callstack = [];
 	var isCallstackPopulated = false;
@@ -135,6 +188,11 @@ Webos.Error.getStackTrace = function() {
 	}
 	return callstack;
 };
+
+/**
+ * Set the error callback.
+ * @param {Function} The callback.
+ */
 Webos.Error.setErrorHandler = function(handler) {
 	if (typeof handler != 'function') {
 		return false;
