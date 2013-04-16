@@ -1,7 +1,7 @@
 /**
- * Implémentation de la notion d'héritage.
- * @param {Object} C La classe fille.
- * @param {Object} P La classe parente.
+ * An implementation of inheritance.
+ * @param {Object} C The child class.
+ * @param {Object} P The parent class.
  */
 Webos.inherit = function(C, P) {
 	var F = function() {};
@@ -13,10 +13,10 @@ Webos.inherit = function(C, P) {
 };
 
 /**
- * Détermine si un objet est une instance d'une classe.
- * @param {Object} instance L'objet a tester.
- * @param {Object} obj La classe.
- * @returns {Boolean} Vrai si l'objet est une instance de la classe spécifiée.
+ * Check if an object is an instance of a class.
+ * @param {Object} instance The object.
+ * @param {Object} obj The class.
+ * @returns {Boolean} True if the object is an instance of the class, false otherwise.
  */
 Webos.isInstanceOf = function(instance, obj) {
 	if (!instance || typeof instance != 'object' || !obj) {
