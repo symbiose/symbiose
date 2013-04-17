@@ -159,7 +159,7 @@ Webos.base64 = {
  * A file.
  * @param {Object} data The file's data.
  * @constructor
- * @augments Webos.Model
+ * @augments {Webos.Model}
  * @since 1.0alpha1
  */
 Webos.File = function WFile(data) {
@@ -951,6 +951,9 @@ Webos.File.bytesToSize = function(bytes) {
  * A mount point.
  * @param {Object} data The mount point's data.
  * @param {String} local The mount point's local path.
+ * @constructor
+ * @augments {Webos.Model}
+ * @since 1.0beta1
  */
 Webos.File.MountPoint = function WMountPoint(data, local) {
 	Webos.Model.call(this, data);
@@ -1125,7 +1128,7 @@ Webos.File.getDriverData = function(driverName) {
 /**
  * A file on the webos's file system.
  * @param {Object} data The file's data.
- * @augments Webos.File
+ * @augments {Webos.File}
  * @constructor
  * @since 1.0beta1
  */
@@ -1417,7 +1420,7 @@ Webos.inherit(Webos.WebosFile, Webos.File); //Héritage de Webos.File
  * A local file (i.e. a file which is on the user's computer).
  * @param {File} file The native File object.
  * @constructor
- * @augments Webos.File
+ * @augments {Webos.File}
  * @since 1.0beta1
  */
 Webos.LocalFile = function WLocalFile(file) {
