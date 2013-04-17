@@ -1,7 +1,9 @@
 /**
- * Représente un modèle de données.
- * @param data Les données.
- * @contructor
+ * A model of data.
+ * @param data The data.
+ * @constructor
+ * @augments {Webos.Observable}
+ * @since 1.0alpha1
  */
 Webos.Model = function WModel(data) {
 	Webos.Observable.call(this);
@@ -13,8 +15,8 @@ Webos.Model = function WModel(data) {
 };
 Webos.Model.prototype = {
 	/**
-	 * Définir les données internes du modèle.
-	 * @param {Object} data Les données.
+	 * Set this internal model's data.
+	 * @param {Object} data The data.
 	 * @private
 	 */
 	_hydrate: function(data) {
@@ -27,16 +29,16 @@ Webos.Model.prototype = {
 		}
 	},
 	/**
-	 * Définir les données du modèle.
-	 * @param {Object} data Les données.
+	 * Set this model's data.
+	 * @param {Object} data The data.
 	 */
 	hydrate: function(data) {
 		return this._hydrate(data);
 	},
 	/**
-	 * Récupérer une valeur associée à une clef dans les données du modèle.
-	 * @param key La clef.
-	 * @returns La valeur associées à la clef.
+	 * Get a value associated with a key in the model's data.
+	 * @param key The key.
+	 * @returns The value associated with the key.
 	 */
 	get: function(key) {
 		if (typeof this[key] == 'function') {
@@ -51,35 +53,35 @@ Webos.Model.prototype = {
 		}
 	},
 	/**
-	 * Récupérer une valeur associée à une clef dans les données du modèle.
-	 * @param key La clef.
-	 * @returns La valeur associées à la clef.
-	 * @deprecated Depuis la version 1.0 alpha 1, utilisez Model#get().
+	 * Get a value associated with a key in the model's data.
+	 * @param key The key.
+	 * @returns The value associated with the key.
+	 * @deprecated Since 1.0 alpha 1, use Model#get().
 	 */
 	getAttribute: function(key) {
 		return this.get(key);
 	},
 	/**
-	 * Récupérer une valeur associée à une clef dans l'objet interne de données du modèle.
-	 * @param key La clef.
-	 * @returns La valeur associées à la clef.
+	 * Get a value associated with a key in the internal model's data.
+	 * @param key The key.
+	 * @returns The value associated with the key.
 	 * @private
 	 */
 	_get: function(key) {
 		return this._data[key];
 	},
 	/**
-	 * Récupérer toutes les données du modèle.
-	 * @returns {Object} Les données.
+	 * Get this model's data.
+	 * @returns {Object} The data.
 	 */
 	data: function() {
 		return this._data;
 	},
 	/**
-	 * Définir une valeur associée à une clef dans les données du modèle.
-	 * @param key La clef.
-	 * @param value La nouvelle valeur.
-	 * @returns {Boolean} Vrai si la modification a réussi, faux dans le cas contraire.
+	 * Set a value associated with a key in the model's data.
+	 * @param key The key.
+	 * @param value The new value.
+	 * @returns {Boolean} True if there was no error, false otherwise.
 	 */
 	set: function(key, value) {
 		var methodName = 'set' + key.charAt(0).toUpperCase() + key.substr(1);
@@ -95,9 +97,9 @@ Webos.Model.prototype = {
 		return true;
 	},
 	/**
-	 * Définir une valeur associée à une clef dans l'objet interne de données du modèle.
-	 * @param key La clef.
-	 * @param value La nouvelle valeur.
+	 * Set a value associated with a key in the internal model's data.
+	 * @param key The key.
+	 * @param value The new value.
 	 * @private
 	 */
 	_set: function(key, value) {
@@ -105,9 +107,9 @@ Webos.Model.prototype = {
 		return true;
 	},
 	/**
-	 * Tester si une clef existe dans les données du modèle.
-	 * @param key La clef.
-	 * @returns {Boolean} Vrai si la clef existe, faux dans le cas contraire.
+	 * Check if a key exists in the model's data.
+	 * @param key The key.
+	 * @returns {Boolean} True if the key exists, false otherwise.
 	 */
 	exists: function(key) {
 		var methodName = 'get' + key.charAt(0).toUpperCase() + key.substr(1);
@@ -120,9 +122,9 @@ Webos.Model.prototype = {
 		return false;
 	},
 	/**
-	 * Retirer une donnée du modèle.
-	 * @param key La clef.
-	 * @returns Vrai si la modification a réussi, faux sinon.
+	 * Remove a value in the model's data.
+	 * @param key The key associated to the value.
+	 * @returns {Boolean} True if there was no error, false otherwise.
 	 */
 	remove: function(key) {
 		var methodName = 'remove' + key.charAt(0).toUpperCase() + key.substr(1);
@@ -137,16 +139,16 @@ Webos.Model.prototype = {
 		return true;
 	},
 	/**
-	 * Retirer une donnée dans l'objet interne de données du modèle.
-	 * @param key La clef.
+	 * Remove a value in the internal model's data.
+	 * @param key The key associated to the value.
 	 * @private
 	 */
 	_remove: function(key) {
 		this._unsynced[key] = { value: undefined, state: 1 };
 	},
 	/**
-	 * Envoyer les modifications effectuées sur le modèle vers le serveur.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelée une fois que les modifications auront été envoyées.
+	 * Commit modifications on the object.
+	 * @param {Webos.Callback} callback The callback.
 	 */
 	sync: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
@@ -155,4 +157,4 @@ Webos.Model.prototype = {
 		callback.success();
 	}
 };
-Webos.inherit(Webos.Model, Webos.Observable); //Héritage de Webos.Observable
+Webos.inherit(Webos.Model, Webos.Observable);
