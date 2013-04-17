@@ -1,16 +1,16 @@
 /**
- * ServerCall permet de dialoguer avec le serveur.
- * @param object options Un objet contenant les options.
- * <ul>
- * 	<li>string class : la classe a appeler</li>
- * 	<li>string method : la methode a appeler</li>
- * 	<li>object arguments : un objet contenant les arguments a passer a la methode (facultatif)</li>
- * 	<li>string user : le nom d'utilisateur sous lequel doit etre executee la methode (facultatif)</li>
- * 	<li>string password : le mot de passe de l'utilisateur (facultatif)</li>
- * 	<li>int pid : l'ID du processus sous lequel doit etre executee la methode (facultatif)</li>
- * 	<li>string key : la clef du processus (facultatif)</li>
- * 	</ul>
- * @param mixed callback La fonction de retour. Si elle n'est pas de type W.Callback elle sera convertie.
+ * A server call.
+ * @param {Object} options An object containing options.
+ * @param {String} options.class The class' name.
+ * @param {String} options.method The method's name.
+ * @param {Object} [options.arguments] Arguments to provide to the method.
+ * @param {String} [options.user] The username with which the method will be called.
+ * @param {String} [options.password] The password corresponding to the username.
+ * @param {Number} [options.pid] The process' ID with which the method will be called.
+ * @param {String} [options.key] The process' key.
+ * @constructor
+ * @augments {Webos.Observable}
+ * @since  1.0alpha1
  */
 Webos.ServerCall = function WServerCall(opts) {
 	Webos.Observable.call(this);
@@ -51,6 +51,11 @@ Webos.ServerCall = function WServerCall(opts) {
 	this.nbrAttempts = 0;
 };
 Webos.ServerCall.prototype = {
+	/**
+	 * Load this server call.
+	 * @param  {Webos.Callback} callback The callback.
+	 * @private
+	 */
 	_load: function $_WServerCall__load(callback) {
 		//Lien vers l'objet courant
 		var that = this;
@@ -125,6 +130,10 @@ Webos.ServerCall.prototype = {
 			}
 		});
 	},
+	/**
+	 * Load this server call.
+	 * @param  {Webos.Callback} callback The callback.
+	 */
 	load: function $_WServerCall_load(callback) {
 		var that = this;
 
@@ -170,6 +179,12 @@ Webos.ServerCall.prototype = {
 
 		return this;
 	},
+	/**
+	 * Called when the server call is completed.
+	 * @param  {Webos.ServerCall.Response}   response The response.
+	 * @param  {Webos.Callback} callback The callback.
+	 * @private
+	 */
 	_complete: function $_WServerCall__complete(response, callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
@@ -189,6 +204,10 @@ Webos.ServerCall.prototype = {
 		this.notify('complete', { response: response });
 		Webos.ServerCall.callComplete(this);
 	},
+	/**
+	 * Get this server call's stack trace.
+	 * @return {String} The stack.
+	 */
 	stack: function $_WServerCall_stack() {
 		var stack = '    at '+this.url+' calling '+this.data['class']+'->'+this.data.method+'()';
 		if (this.data.arguments && this.data.arguments != '{}') {
@@ -207,31 +226,79 @@ Webos.ServerCall.prototype = {
 };
 Webos.inherit(Webos.ServerCall, Webos.Observable);
 
-Webos.Observable.build(Webos.ServerCall);
-
+/**
+ * Global options for server calls.
+ * @type {Object}
+ * @static
+ * @private
+ */
 Webos.ServerCall.options = {
 	maxAttempts: 3,
 	errorDelay: 1000
 };
+
+/**
+ * A list of all server calls.
+ * @type {Array}
+ * @static
+ * @private
+ */
 Webos.ServerCall.list = []; //Liste des appels au serveur
+
+/**
+ * A list of server calls waiting to be loaded.
+ * @type {Array}
+ * @static
+ * @private
+ */
 Webos.ServerCall._loadStack = [];
+
+/**
+ * Add a server call to the list.
+ * @param {Webos.ServerCall} call The server call.
+ * @returns {Number} The server call's ID.
+ * @static
+ * @private
+ */
 Webos.ServerCall.addCallToList = function $_WServerCall_addCallToList(call) {
 	var id = Webos.ServerCall.list.push(call) - 1;
 	Webos.ServerCall.notify('callregister', { call: call });
 	return id;
 };
+
+/**
+ * Notify that a server call started loading.
+ * @param {Webos.ServerCall} call The server call.
+ * @static
+ * @private
+ */
 Webos.ServerCall.callStart = function $_WServerCall_callStart(call) {
 	if (Webos.ServerCall.getNbrPendingCalls() == 1) {
 		Webos.ServerCall.notify('start', { list: Webos.ServerCall.list });
 	}
 	Webos.ServerCall.notify('callstart', { call: call });
 };
+
+/**
+ * Notify that a server call is completed.
+ * @param {Webos.ServerCall} call The server call.
+ * @static
+ * @private
+ */
 Webos.ServerCall.callComplete = function $_WServerCall_callComplete(call) {
 	if (Webos.ServerCall.getNbrPendingCalls() == 0) {
 		Webos.ServerCall.notify('complete', { list: Webos.ServerCall.list });
 	}
 	Webos.ServerCall.notify('callcomplete', { call: call });
 };
+
+/**
+ * Add a server call to the load stack.
+ * @param {Webos.ServerCall} call The server call.
+ * @param {Webos.Callback} callback The callback.
+ * @static
+ * @private
+ */
 Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, callback) {
 	Webos.ServerCall._loadStack.push({
 		call: call,
@@ -258,6 +325,13 @@ Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call, 
 		}, 0);
 	}
 };
+
+/**
+ * Remove a server call from the load stack.
+ * @param {Webos.ServerCall} call The server call.
+ * @static
+ * @private
+ */
 Webos.ServerCall._removeFromLoadStack = function $_WServerCall__removeFromLoadStack(call) {
 	var stack = [];
 	for (var i = 0; i < Webos.ServerCall._loadStack.length; i++) {
@@ -268,6 +342,12 @@ Webos.ServerCall._removeFromLoadStack = function $_WServerCall__removeFromLoadSt
 	}
 	Webos.ServerCall._loadStack = stack;
 };
+
+/**
+ * Get a list of all server calls.
+ * @param   {Number} [status]    Filter calls with a specific status.
+ * @returns {Webos.ServerCall[]} A list of server calls.
+ */
 Webos.ServerCall.getList = function $_WServerCall_getList(status) {
 	var list = [];
 	for (var i = 0; i < Webos.ServerCall.list.length; i++) {
@@ -301,6 +381,9 @@ Webos.ServerCall.join = function $_WServerCall_join() {
 
 	return new Webos.ServerCall.Group(requests);
 };
+
+Webos.Observable.build(Webos.ServerCall);
+
 
 Webos.ServerCall.Group = function WServerCallGroup(requests, opts) {
 	Webos.Observable.call(this);
