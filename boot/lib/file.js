@@ -158,8 +158,9 @@ Webos.base64 = {
 /**
  * A file.
  * @param {Object} data The file's data.
- * @since 1.0alpha1
  * @constructor
+ * @augments Webos.Model
+ * @since 1.0alpha1
  */
 Webos.File = function WFile(data) {
 	Webos.Model.call(this, data); //Inherits from Webos.Model
