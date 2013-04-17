@@ -1,10 +1,15 @@
-//Executer un script JS en mode "sandbox"
+/**
+ * Execute a script in a sandbox.
+ * @param {String}           js     The Javascript code.
+ * @param {Webos.Arguments}  [args] Arguments to provide to the script.
+ * @constructor
+ */
 Webos.Script = function WScript(js, args) {
 	this.js = js;
 	this.args = args;
 	
 	if (typeof args == 'undefined') { //Si les arguments sont vides
-		args = new W.Arguments({});
+		args = new Webos.Arguments({});
 	}
 	
 	var options = args.getOptions(), params = args.getParams(), paramsString;
@@ -24,13 +29,22 @@ Webos.Script = function WScript(js, args) {
 	Webos.Script.run(js); //On execute le tout
 };
 
-//Executer un script Javascript
+/**
+ * Run a script.
+ * @param  {String} js The Javascript code.
+ * @static
+ */
 Webos.Script.run = function $_WScript_run(js) {
 	js = js.replace(/\/\*([\s\S]*?)\*\//g, ''); //On enleve les commentaires
 	$.globalEval(js);
 };
 
-//Charger un script
+/**
+ * Load a script from a Javascript file.
+ * The script is loaded synchronously.
+ * @param  {String} path The file's path.
+ * @static
+ */
 Webos.Script.load = function $_WScript_load(path) {
 	$.ajax({
 		url: path,
@@ -39,6 +53,11 @@ Webos.Script.load = function $_WScript_load(path) {
 	});
 };
 
+/**
+ * A Javascript file.
+ * @param {String} path The file's path.
+ * @constructor
+ */
 Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Javascript
 	if (!/^(\/|~\/)/.test(path)) {
 		path = '/'+path;
@@ -78,7 +97,19 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 		}
 	});
 };
+
+/**
+ * Cache for Javascript files.
+ * @type {Object}
+ * @private
+ */
 Webos.ScriptFile._cache = {};
+
+/**
+ * Load multiple scripts.
+ * Arguments are strings containing file's path.
+ * @returns {Webos.ServerCall.Group}
+ */
 Webos.ScriptFile.load = function $_WScriptFile_load() {
 	var group = new Webos.ServerCall.Group([], { async: false });
 	for (var i = 0; i < arguments.length; i++) {
@@ -103,7 +134,13 @@ Webos.ScriptFile.load = function $_WScriptFile_load() {
 	return group;
 };
 
-//Obsolete
+/**
+ * Include a script.
+ * @param  {String} path    The file's path.
+ * @param  {Array} [args]    Arguments to provide to the script.
+ * @param  {Object} [thisObj] The scope in which the script will be executed.
+ * @deprecated Use Webos.ScriptFile.load() or Webos.require() instead.
+ */
 function include(path, args, thisObj) {
 	thisObj = thisObj || window;
 	this.ajax = $.ajax({
@@ -122,6 +159,13 @@ function include(path, args, thisObj) {
 	});
 }
 
+/**
+ * Include Javascript files and CSS stylesheets.
+ * @param  {Array|String}   files      File(s).
+ * @param  {Webos.Callback} callback   The callback.
+ * @param  {Object}         [options]  Options.
+ * @static
+ */
 Webos.require = function Wrequire(files, callback, options) {
 	callback = Webos.Callback.toCallback(callback);
 	options = $.extend({
@@ -198,9 +242,29 @@ Webos.require = function Wrequire(files, callback, options) {
 	}
 };
 
+/**
+ * Stack for included Javascript files.
+ * @type {Object}
+ * @static
+ * @private
+ */
 Webos.require._stacks = {};
+
+/**
+ * Current Javascript file which is included.
+ * @type {Webos.ServerCall}
+ * @static
+ * @private
+ */
 Webos.require._currentFile = null;
 
+/**
+ * Evaluate Javascript scripts.
+ * @param  {Array|String}   scripts    Script(s).
+ * @param  {Webos.Callback} callback   The callback.
+ * @param  {Object}         [options]  Options.
+ * @static
+ */
 Webos.eval = function Weval(scripts, callback, options) {
 	callback = Webos.Callback.toCallback(callback);
 	options = $.extend({
@@ -268,7 +332,13 @@ Webos.eval = function Weval(scripts, callback, options) {
 	}
 };
 
-//Permet de specifier des options et des arguments a un script
+/**
+ * Arguments to be provided to a script.
+ * @param {Object} args The arguments' structure.
+ * @constructor
+ * @deprecated  The use of this class is deprecated.
+ * @todo Simplify argument's management.
+ */
 Webos.Arguments = function WArguments(args) {
 	if (typeof args == 'undefined') {
 		args = {};
@@ -308,6 +378,13 @@ Webos.Arguments = function WArguments(args) {
 	};
 };
 
+/**
+ * Parse a command.
+ * @param   {String} cmd The command.
+ * @returns {Webos.Arguments} The parsed arguments.
+ * @static
+ * @deprecated  The use of Webos.Arguments is deprecated.
+ */
 Webos.Arguments.parse = function(cmd) {
 	var cmdArray = cmd.split(' ');
 	cmdArray.shift(); //On enleve le premier element : c'est la commande
