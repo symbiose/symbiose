@@ -1,3 +1,11 @@
+/**
+ * A user interface (i.e. a desktop environment).
+ * @param {Object} data The interface's data.
+ * @param {String} name The interface's name.
+ * @constructor
+ * @augments {Webos.Model}
+ * @since 1.0alpha1
+ */
 Webos.UserInterface = function WUserInterface(data, name) {
 	this._name = name;
 	this._booterData = null;
@@ -7,7 +15,11 @@ Webos.UserInterface = function WUserInterface(data, name) {
 	this.hydrate(data);
 };
 Webos.UserInterface.prototype = {
-	hydrate: function(data) {
+	/**
+	 * Update this UI's data.
+	 * @param  {Object} data The new data.
+	 */
+	hydrate: function (data) {
 		data = data || {};
 
 		data.default = (data.default) ? true : false;
@@ -15,10 +27,19 @@ Webos.UserInterface.prototype = {
 
 		return Webos.Model.prototype.hydrate.call(this, data);
 	},
-	name: function() {
+	/**
+	 * Get this UI's name.
+	 * @return {String} This UI's name.
+	 */
+	name: function () {
 		return this._name;
 	},
-	setTypes: function(types) {
+	/**
+	 * Set this UI's types.
+	 * @param {String[]} types Types.
+	 * @returns {Boolean} False if there was an error, true otherwise.
+	 */
+	setTypes: function (types) {
 		if (!types instanceof Array) {
 			return false;
 		}
@@ -27,13 +48,25 @@ Webos.UserInterface.prototype = {
 
 		return true;
 	},
-	setDefault: function(value) {
+	/**
+	 * Set/unset this UI as default.
+	 * @param {Boolean} value True to set this UI as default, false otherwise.
+	 */
+	setDefault: function (value) {
 		this._set('default', (value) ? true : false);
 	},
-	setEnabled: function(value) {
+	/**
+	 * Enable/disable this UI.
+	 * @param {Boolean} value True to enable this UI, false otherwise.
+	 */
+	setEnabled: function (value) {
 		this._set('enabled', (value) ? true : false);
 	},
-	loadBooter: function(callback) {
+	/**
+	 * Load this UI's booter.
+	 * @param {Webos.Callback} callback The callback.
+	 */
+	loadBooter: function (callback) {
 		callback = Webos.Callback.toCallback(callback);
 		var that = this;
 
@@ -60,7 +93,7 @@ Webos.UserInterface.prototype = {
 			}, callback.error]);
 		}
 	},
-	sync: function(callback) {
+	sync: function (callback) {
 		callback = Webos.Callback.toCallback(callback);
 		var that = this;
 
@@ -98,132 +131,19 @@ Webos.inherit(Webos.UserInterface, Webos.Model);
 
 Webos.Observable.build(Webos.UserInterface);
 
-Webos.UserInterface.Booter = function WUserInterfaceBooter(data, name) {
-	this._data = data;
-	this._element = $();
-	this._id = Webos.UserInterface.Booter._list.push(this) - 1;
-	this._name = name;
-	this._loaded = false;
-
-	Webos.Observable.call(this);
-};
-Webos.UserInterface.Booter.prototype = {
-	id: function() {
-		return this._id;
-	},
-	name: function() {
-		return this._name;
-	},
-	element: function() {
-		return this._element;
-	},
-	load: function loadUI(callback) {
-		callback = Webos.Callback.toCallback(callback);
-		var that = this;
-		this._autoLoad = true;
-
-		this.one('loadcomplete', function() {
-			callback.success();
-		});
-
-		Webos.UserInterface.Booter._current = this.id();
-		this.notify('loadstart');
-
-		var data = this._data;
-
-		//On insere le code HTML de l'UI dans la page
-		this.notify('loadstateupdate', { state: 'structure' });
-		this._element = $('<div></div>', { id: 'userinterface-'+this.id() })
-			.css({
-				'height': '100%',
-				'width': '100%',
-				'position': 'absolute',
-				'top': 0,
-				'left': 0
-			})
-			.html(data.html)
-			.prependTo('#userinterfaces');
-
-		//Chargement du CSS
-		this.notify('loadstateupdate', { state: 'stylesheets' });
-		for (var index in data.css) {
-			this.notify('loadstateupdate', { state: 'stylesheets', item: index });
-			Webos.Stylesheet.insertCss(data.css[index], '#userinterface-'+this.id());
-		}
-
-		//Chargement du Javascript
-		this.notify('loadstateupdate', { state: 'scripts' });
-		for (var index in data.js) {
-			(function loadUIScript(js) {
-				if (!js) {
-					return;
-				}
-
-				that.notify('loadstateupdate', { state: 'scripts', item: index });
-
-				js = 'try {'+js+"\n"+'} catch(error) { Webos.Error.catchError(error); }';
-				Webos.Script.run(js); //On execute le code
-			})(data.js[index]);
-		}
-		this.notify('loadstateupdate', { state: 'scripts' });
-
-		if (this._autoLoad) {
-			this.finishLoading();
-		}
-	},
-	disableAutoLoad: function() {
-		this._autoLoad = false;
-	},
-	finishLoading: function finishUILoading() {
-		if (this.loaded()) {
-			return;
-		}
-
-		delete this._autoLoad;
-
-		this.notify('loadstateupdate', { state: 'cleaning' });
-
-		for (var i = 0; i < Webos.UserInterface.Booter._list.length; i++) {
-			var booter = Webos.UserInterface.Booter._list[i];
-
-			if (booter && booter.loaded()) {
-				this.notify('loadstateupdate', { state: 'cleaning', item: booter });
-				booter.unload();
-			}
-		}
-
-		this._loaded = true;
-		this.notify('loadcomplete');
-	},
-	loaded: function() {
-		return this._loaded;
-	},
-	unload: function unloadUI() {
-		if (!this.loaded()) {
-			return;
-		}
-
-		//Il est plus rapide de vider l'element dans un premier temps, puis de l'enlever
-		this.element().empty().remove();
-	}
-};
-Webos.inherit(Webos.UserInterface.Booter, Webos.Observable);
-
-Webos.Observable.build(Webos.UserInterface.Booter);
-
-Webos.UserInterface.Booter._list = [];
-Webos.UserInterface.Booter._current = null;
-
-Webos.UserInterface.Booter.current = function() {
-	if (Webos.UserInterface.Booter._current === null) {
-		return;
-	}
-
-	return Webos.UserInterface.Booter._list[Webos.UserInterface.Booter._current];
-};
-
+/**
+ * A list of all user interfaces.
+ * @type {Webos.UserInterface[]}
+ * @private
+ */
 Webos.UserInterface._list = [];
 
+/**
+ * Get a user interface, given its data and name.
+ * @param  {String} name         The UI's name.
+ * @param  {Object} data         The UI's data.
+ * @return {Webos.UserInterface} The user interface.
+ */
 Webos.UserInterface.get = function(name, data) {
 	for (var i = 0; i < Webos.UserInterface._list.length; i++) {
 		var ui = Webos.UserInterface._list[i];
@@ -241,6 +161,11 @@ Webos.UserInterface.get = function(name, data) {
 
 	return ui;
 };
+
+/**
+ * Get the current user interface.
+ * @return {Webos.UserInterface} The user interface.
+ */
 Webos.UserInterface.current = function() {
 	var booter = Webos.UserInterface.Booter.current();
 
@@ -250,6 +175,12 @@ Webos.UserInterface.current = function() {
 
 	return Webos.UserInterface.get(booter.name());
 };
+
+/**
+ * Load an UI.
+ * @param  {String}         name     The UI's name.
+ * @param  {Webos.Callback} callback The callback.
+ */
 Webos.UserInterface.load = function(name, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -328,6 +259,11 @@ Webos.UserInterface.load = function(name, callback) {
 		}, callback.error]);
 	}, callback.error]);
 };
+
+/**
+ * Get a list of all enabled user interfaces.
+ * @param  {Webos.Callback} callback The callback.
+ */
 Webos.UserInterface.getList = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 
@@ -351,6 +287,11 @@ Webos.UserInterface.getList = function(callback) {
 		callback.success(list);
 	}, callback.error]);
 };
+
+/**
+ * Get a list of all installed UIs.
+ * @param  {Webos.Callback} callback The callback.
+ */
 Webos.UserInterface.getInstalled = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -369,7 +310,17 @@ Webos.UserInterface.getInstalled = function(callback) {
 		callback.success(list);
 	}, callback.error]);
 };
+
+/**
+ * The loading screen's timer ID.
+ * @type {Number}
+ * @private
+ */
 Webos.UserInterface._loadingScreenTimerId = null;
+
+/**
+ * Show the loading screen.
+ */
 Webos.UserInterface.showLoadingScreen = function() {
 	$('#webos-error p').empty();
 	if (typeof Webos.UserInterface.Booter.current() == 'undefined') {
@@ -382,9 +333,17 @@ Webos.UserInterface.showLoadingScreen = function() {
 		}
 	}
 };
+/**
+ * Set the loading screen's text.
+ * @param {String} msg The text.
+ */
 Webos.UserInterface.setLoadingScreenText = function(msg) {
 	$('#webos-loading p').html(msg);
 };
+
+/**
+ * Hide the loading screen.
+ */
 Webos.UserInterface.hideLoadingScreen = function() {
 	if ($('#webos-loading').is(':animated')) {
 		$('#webos-loading').stop().fadeTo('fast', 0, function() {
@@ -394,4 +353,182 @@ Webos.UserInterface.hideLoadingScreen = function() {
 		$('#webos-loading').fadeOut('fast');
 	}
 	$('#webos-error').fadeOut('fast');
+};
+
+/**
+ * A user interface booter.
+ * It is able to start the UI.
+ * @param {Object} data The booter's data.
+ * @param {String} name The interface's name.
+ * @constructor
+ * @augments {Webos.Observable}
+ * @since 1.0beta2
+ */
+Webos.UserInterface.Booter = function WUserInterfaceBooter(data, name) {
+	this._data = data;
+	this._element = $();
+	this._id = Webos.UserInterface.Booter._list.push(this) - 1;
+	this._name = name;
+	this._loaded = false;
+
+	Webos.Observable.call(this);
+};
+Webos.UserInterface.Booter.prototype = {
+	/**
+	 * Get this booter's ID.
+	 * @return {Number} The ID.
+	 */
+	id: function () {
+		return this._id;
+	},
+	/**
+	 * Get the UI's name.
+	 * @return {String} The interface's name.
+	 */
+	name: function () {
+		return this._name;
+	},
+	/**
+	 * Get the element containing the whole UI.
+	 * @return {jQuery} The container.
+	 */
+	element: function () {
+		return this._element;
+	},
+	/**
+	 * Load the UI.
+	 * @param  {Webos.Callback} callback The callback.
+	 */
+	load: function (callback) {
+		callback = Webos.Callback.toCallback(callback);
+		var that = this;
+		this._autoLoad = true;
+
+		this.one('loadcomplete', function() {
+			callback.success();
+		});
+
+		Webos.UserInterface.Booter._current = this.id();
+		this.notify('loadstart');
+
+		var data = this._data;
+
+		//On insere le code HTML de l'UI dans la page
+		this.notify('loadstateupdate', { state: 'structure' });
+		this._element = $('<div></div>', { id: 'userinterface-'+this.id() })
+			.css({
+				'height': '100%',
+				'width': '100%',
+				'position': 'absolute',
+				'top': 0,
+				'left': 0
+			})
+			.html(data.html)
+			.prependTo('#userinterfaces');
+
+		//Chargement du CSS
+		this.notify('loadstateupdate', { state: 'stylesheets' });
+		for (var index in data.css) {
+			this.notify('loadstateupdate', { state: 'stylesheets', item: index });
+			Webos.Stylesheet.insertCss(data.css[index], '#userinterface-'+this.id());
+		}
+
+		//Chargement du Javascript
+		this.notify('loadstateupdate', { state: 'scripts' });
+		for (var index in data.js) {
+			(function loadUIScript(js) {
+				if (!js) {
+					return;
+				}
+
+				that.notify('loadstateupdate', { state: 'scripts', item: index });
+
+				js = 'try {'+js+"\n"+'} catch(error) { Webos.Error.catchError(error); }';
+				Webos.Script.run(js); //On execute le code
+			})(data.js[index]);
+		}
+		this.notify('loadstateupdate', { state: 'scripts' });
+
+		if (this._autoLoad) {
+			this.finishLoading();
+		}
+	},
+	/**
+	 * Disable autoload.
+	 * The function Webos.UserInterface.Booter#finishLoading() should be called.
+	 */
+	disableAutoLoad: function() {
+		this._autoLoad = false;
+	},
+	/**
+	 * Notify that the UI is loaded.
+	 */
+	finishLoading: function () {
+		if (this.loaded()) {
+			return;
+		}
+
+		delete this._autoLoad;
+
+		this.notify('loadstateupdate', { state: 'cleaning' });
+
+		for (var i = 0; i < Webos.UserInterface.Booter._list.length; i++) {
+			var booter = Webos.UserInterface.Booter._list[i];
+
+			if (booter && booter.loaded()) {
+				this.notify('loadstateupdate', { state: 'cleaning', item: booter });
+				booter.unload();
+			}
+		}
+
+		this._loaded = true;
+		this.notify('loadcomplete');
+	},
+	/**
+	 * Check if this UI is loaded.
+	 * @returns {Boolean} True if this UI is loaded, false otherwise.
+	 */
+	loaded: function () {
+		return this._loaded;
+	},
+	/**
+	 * Unload this UI.
+	 */
+	unload: function () {
+		if (!this.loaded()) {
+			return;
+		}
+
+		//Il est plus rapide de vider l'element dans un premier temps, puis de l'enlever
+		this.element().empty().remove();
+	}
+};
+Webos.inherit(Webos.UserInterface.Booter, Webos.Observable);
+
+Webos.Observable.build(Webos.UserInterface.Booter);
+
+/**
+ * A list of interface booters.
+ * @type {Webos.UserInterface.Booter[]}
+ * @private
+ */
+Webos.UserInterface.Booter._list = [];
+
+/**
+ * The current interface booter.
+ * @type {Webos.UserInterface.Booter}
+ * @private
+ */
+Webos.UserInterface.Booter._current = null;
+
+/**
+ * Get this current interface booter.
+ * @return {Webos.UserInterface.Booter} The booter.
+ */
+Webos.UserInterface.Booter.current = function() {
+	if (Webos.UserInterface.Booter._current === null) {
+		return;
+	}
+
+	return Webos.UserInterface.Booter._list[Webos.UserInterface.Booter._current];
 };
