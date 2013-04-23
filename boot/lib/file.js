@@ -161,6 +161,18 @@ Webos.base64 = {
  * @constructor
  * @augments {Webos.Model}
  * @since 1.0alpha1
+ * @example
+ * //Listing files in the user's home folder
+ * W.File.listDir('~', [function(files) { //We want to list files in the home folder (which is "~")
+ *    var list = 'Files : ';
+ *    for (var i = 0; i < files.length; i++) { //For each file
+ *       var file = files[i];
+ *       list += ' '+file.get('basename'); //Add the file to the list
+ *    }
+ *    alert(list); //Show the list
+ * }, function(response) { //An error occured
+ *    response.triggerError('Cannot list files in folder');
+ * }]);
  */
 Webos.File = function WFile(data) {
 	Webos.Model.call(this, data); //Inherits from Webos.Model
