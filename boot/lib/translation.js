@@ -1,12 +1,25 @@
+/**
+ * A translation dictionary.
+ * @param {Object} data An object containing translations.
+ * @constructor
+ * @augments {Webos.Model}
+ * @since 1.0alpha3
+ */
 Webos.Translation = function WTranslation(data) {
 	Webos.Model.call(this, data);
 };
 Webos.Translation.prototype = {
-	get: function $_WTranslation_get(original, variables) {
-		var translation = this._get(original);
+	/**
+	 * Get a translation.
+	 * @param  {String} key       The translation's key.
+	 * @param  {Object} variables An object containing variables.
+	 * @returns {String}           The matching translation.
+	 */
+	get: function (key, variables) {
+		var translation = this._get(key);
 		
 		if (!translation) {
-			translation = original;
+			translation = key;
 		}
 		
 		if (typeof variables == 'object') {
@@ -20,7 +33,7 @@ Webos.Translation.prototype = {
 							if (typeof variables[condition] == 'undefined') {
 								return str;
 							} else if (variables[condition]) {
-								return replaceVariablesFn(ifValue);
+								originalreturn replaceVariablesFn(ifValue);
 							} else {
 								return replaceVariablesFn(elseValue);
 							}
@@ -45,11 +58,27 @@ Webos.Translation.prototype = {
 };
 Webos.inherit(Webos.Translation, Webos.Model); //Héritage de Webos.Model
 
+/**
+ * The user's language.
+ * @type {String}
+ * @private
+ */
 Webos.Translation._language = null;
-Webos.Translation.language = function $_WTranslation_language() {
+
+/**
+ * Get the user's language.
+ * @returns {String} The user's language.
+ */
+Webos.Translation.language = function () {
 	return Webos.Translation._language;
 };
-Webos.Translation.parse = function $_WTranslation_parse(contents) {
+
+/**
+ * Parse a translation file.
+ * @param  {String} contents The original translation.
+ * @returns {Object}          An object containing translations.
+ */
+Webos.Translation.parse = function (contents) {
 	if (!contents) {
 		return {};
 	}
@@ -106,10 +135,17 @@ Webos.Translation.parse = function $_WTranslation_parse(contents) {
 	
 	return data;
 };
-Webos.Translation.load = function $_WTranslation_load(callback, path, locale) {
+
+/**
+ * Load a translation file.
+ * @param  {Webos.Callback} callback The callback.
+ * @param  {String}         path     The path to the file.
+ * @param  {String}         [locale] The translation's language.
+ */
+Webos.Translation.load = function (callback, path, locale) {
 	callback = Webos.Callback.toCallback(callback);
 	locale = String(locale);
-	
+
 	var loadTranslationFn = function() {
 		locale = ((locale && /[a-z]{2}_[A-Z]{2}/.test(locale)) ? locale : (Webos.Translation.language()) ? Webos.Translation.language() : Webos.Locale._defaultLocale);
 		var file = Webos.File.get('/usr/share/locale/' + locale + '/' + path + '.ini');
@@ -125,7 +161,7 @@ Webos.Translation.load = function $_WTranslation_load(callback, path, locale) {
 			callback.success(new Webos.Translation());
 		}]);
 	};
-	
+
 	if (!Webos.Translation.language() && !(locale && /[a-z]{2}_[A-Z]{2}/.test(locale))) {
 		Webos.Locale.load([function() {
 			loadTranslationFn();
@@ -134,6 +170,12 @@ Webos.Translation.load = function $_WTranslation_load(callback, path, locale) {
 		loadTranslationFn();
 	}
 };
+
+/**
+ * Set the user's language.
+ * @param {String}         locale   The user's language.
+ * @param {Webos.Callback} callback The callback.
+ */
 Webos.Translation.setLanguage = function $_WTranslation_setLanguage(locale, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -150,6 +192,14 @@ Webos.Translation.setLanguage = function $_WTranslation_setLanguage(locale, call
 	}, callback.error]);
 };
 
+/**
+ * A locale.
+ * It contains data and functions specific to the user's locale (i.e. date, numbers format).
+ * @param {Object} data       The locale's data.
+ * @param {String} data.title The locale's title.
+ * @param {Object} functions  An object containing functions which are specific to the locale.
+ * @param {String} name       The locale's name.
+ */
 Webos.Locale = function WLocale(data, functions, name) {
 	this._name = name;
 	this._data = data;
@@ -169,44 +219,115 @@ Webos.Locale = function WLocale(data, functions, name) {
 	Webos.Locale._list[name] = this;
 };
 Webos.Locale.prototype = {
-	name: function $_WLocale_name() {
+	/**
+	 * Get this locale's name.
+	 * @returns {String} This locale's name.
+	 */
+	name: function () {
 		return this._name;
 	},
-	_get: function $_WLocale__get(index) {
+	/**
+	 * Get a data relative to this locale.
+	 * @param  {String} index The key.
+	 * @returns               The data.
+	 * @private
+	 */
+	_get: function (index) {
 		return this._data[index];
 	},
-	title: function $_WLocale_title() {
+	/**
+	 * Get this locale's title.
+	 * @returns {String} This locale's title.
+	 */
+	title: function () {
 		return this._get('title');
 	},
-	toString: function $_WLocale_toString() {
+	toString: function () {
 		return this.name();
 	}
 };
 
 Webos.Observable.build(Webos.Locale);
 
+/**
+ * The user's locale.
+ * @type {Webos.Locale}
+ * @private
+ */
 Webos.Locale._locale = null;
+
+/**
+ * The default locale.
+ * @type {String}
+ * @private
+ */
 Webos.Locale._defaultLocale = 'en_EN';
+
+/**
+ * A list of available locales.
+ * @type {Object}
+ * @private
+ */
 Webos.Locale._list = {};
-Webos.Locale._check = function $_WLocale__check(locale) {
+
+/**
+ * Check if a string represents a locale.
+ * A locale is a string containing the language code followed by the region code, separated by an underscore (e.g. fr_FR, en_US...).
+ * Language and region codes respects ISO 3166-1 alpha-2 (two lowercase letters).
+ * @param  {String} locale The string.
+ * @returns {Boolean}       True if the string represents a locale's name, false otherwise.
+ */
+Webos.Locale._check = function (locale) {
 	return /[a-z]{2}_[A-Z]{2}/.test(locale);
 };
-Webos.Locale.getAll = function $_WLocale_getAll() {
+
+/**
+ * Get a list of all available locales.
+ * @returns {Object} An iobject containing locales associated with their names.
+ */
+Webos.Locale.getAll = function () {
 	return Webos.Locale._list;
 };
-Webos.Locale.get = function $_WLocale_get(name) {
+
+/**
+ * Get a locale.
+ * @param  {String} name  The locale's name.
+ * @returns {Webos.Locale} The locale.
+ */
+Webos.Locale.get = function (name) {
 	return Webos.Locale._list[name] || Webos.Locale._list[Webos.Locale._defaultLocale];
 };
-Webos.Locale.getDefault = function $_WLocale_getDefault() {
+
+/**
+ * Get the default locale.
+ * @returns {Webos.Locale} The locale.
+ */
+Webos.Locale.getDefault = function () {
 	return Webos.Locale.get(Webos.Locale._defaultLocale);
 };
-Webos.Locale.exists = function $_WLocale_exists(name) {
+
+/**
+ * Check if a locale exists.
+ * @param  {String} name The locale's name.
+ * @returns {Boolean}     True if the locale is available, false otherwise.
+ */
+Webos.Locale.exists = function (name) {
 	return (typeof Webos.Locale._list[name] != 'undefined');
 };
-Webos.Locale.current = function $_WLocale_current() {
+
+/**
+ * Get the current locale.
+ * @returns {Webos.Locale} The locale.
+ */
+Webos.Locale.current = function () {
 	return (Webos.Locale._locale) ? Webos.Locale.get(Webos.Locale._locale) : (Webos.Locale.detect()) ? Webos.Locale.get(Webos.Locale.detect()) : Webos.Locale.get(Webos.Locale._defaultLocale);
 };
-Webos.Locale.load = function $_WLocale_load(callback) {
+
+/**
+ * Load the user's locale.
+ * @param  {Webos.Callback} callback The callback.
+ */
+Webos.Locale.load = function (callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
 	var getUserLanguageFn = function() {
@@ -248,7 +369,13 @@ Webos.Locale.load = function $_WLocale_load(callback) {
 		getUserLanguageFn();
 	}]);
 };
-Webos.Locale.detect = function $_WLocale_detect() {
+
+/**
+ * Detect the user's locale.
+ * If the locale can't be detected, nothing won't be returned.
+ * @returns {String} The locale's name.
+ */
+Webos.Locale.detect = function () {
 	if (!navigator.language && !navigator.browserLanguage) {
 		return;
 	}
@@ -276,7 +403,13 @@ Webos.Locale.detect = function $_WLocale_detect() {
 	
 	return Webos.Locale.getDefault().name();
 };
-Webos.Locale.set = function $_WLocale_set(locale, callback) {
+
+/**
+ * Set the user's locale.
+ * @param {String}         locale   The locale's name.
+ * @param {Webos.Callback} callback The callback.
+ */
+Webos.Locale.set = function (locale, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
 	if (!Webos.Locale.exists(locale)) {
@@ -293,13 +426,30 @@ Webos.Locale.set = function $_WLocale_set(locale, callback) {
 	}, callback.error]);
 };
 
+/**
+ * A translated library.
+ * @constructor
+ * @since 1.0beta1
+ */
 Webos.TranslatedLibrary = function WTranslatedLibrary() {
 	this._loadTranslations();
 };
 Webos.TranslatedLibrary.prototype = {
+	/**
+	 * The library's translations.
+	 * @type {Webos.Translation}
+	 */
 	_translations: null,
+	/**
+	 * The library's translations name.
+	 * @type {String}
+	 */
 	_translationsName: '',
-	_loadTranslations: function $_WTranslatedLibrary__loadTranslations() {
+	/**
+	 * Load this library's translations.
+	 * The event "translationsloaded" will be triggered after that.
+	 */
+	_loadTranslations: function () {
 		if (this._translations) {
 			return;
 		}
@@ -317,6 +467,9 @@ Webos.TranslatedLibrary.prototype = {
 		}, this._translationsName);
 	}
 };
+
+
+//Locales
 
 new Webos.Locale({
 	title: 'English (United Kingdom)',
@@ -452,12 +605,12 @@ new Webos.Locale({
 	}
 }, 'de_DE');
 
-
+//When the user logs in/out, reinitialize the language and the locale
 Webos.User.bind('login logout', function() {
-	//Lorsque l'utilisateur quitte sa session, on reinitialise la langue
 	Webos.Translation._language = null;
 	Webos.Locale._locale = null;
 	Webos.Locale.load();
 });
 
+//Load the locale
 Webos.Locale.load();
