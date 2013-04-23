@@ -15,28 +15,28 @@ Webos.User.prototype = {
 	 * Get this user's ID.
 	 * @returns {Number} The ID.
 	 */
-	id: function() {
+	id: function () {
 		return this._id;
 	},
 	/**
 	 * Check if this user is disabled.
 	 * @returns {Boolean} True if the user is disabled, false otherwise.
 	 */
-	disabled: function() {
+	disabled: function () {
 		return (this._get('disabled') == 1) ? true : false;
 	},
 	/**
 	 * Set this user's ID.
 	 * A user's ID cannot be modified, this function always returns false.
 	 */
-	setId: function() {
+	setId: function () {
 		return false;
 	},
 	/**
 	 * Check if this user is logged in on this computer.
 	 * @returns {Boolean} True if this user is logged in, false otherwise.
 	 */
-	isLogged: function() {
+	isLogged: function () {
 		if (!Webos.User.logged) {
 			return;
 		}
@@ -47,7 +47,7 @@ Webos.User.prototype = {
 	 * Get this user's authorizations.
 	 * @param  {Webos.Callback} callback The callback.
 	 */
-	getAuthorizations: function(callback) {
+	getAuthorizations: function (callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
 		if (typeof this._authorizations != 'undefined') {
@@ -78,17 +78,23 @@ Webos.User.prototype = {
 	 * @param  {Webos.Callback} callback The callback.
 	 * @deprecated
 	 */
-	authorizations: function(callback) {
+	authorizations: function (callback) {
 		return this.getAuthorizations(callback);
 	},
 	/**
 	 * Set this user's real name.
-	 * @param {Boolean} value False if there was an error, true otherwise.
+	 * @param   {String} value The real name.
+	 * @returns {Boolean}      False if there was an error, true otherwise.
 	 */
-	setRealname: function(value) {
+	setRealname: function (value) {
 		return this._set('realname', String(value));
 	},
-	setUsername: function(value) {
+	/**
+	 * Set this user's username.
+	 * @param {String} value The username.
+	 * @returns {Boolean} False if there was an error, true otherwise.
+	 */
+	setUsername: function (value) {
 		value = String(value).toLowerCase();
 		
 		if (!/^[a-z0-9_\-\.]{3,}$/.test(value)) {
@@ -97,7 +103,13 @@ Webos.User.prototype = {
 		
 		return this._set('username', String(value));
 	},
-	setPassword: function(actualPassword, newPassword, callback) {
+	/**
+	 * Set this user's password.
+	 * @param {String}         actualPassword The actual password.
+	 * @param {String}         newPassword    The new password.
+	 * @param {Webos.Callback} callback       The callback.
+	 */
+	setPassword: function (actualPassword, newPassword, callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
 		var that = this;
@@ -117,7 +129,12 @@ Webos.User.prototype = {
 			callback.error(response);
 		}));
 	},
-	setAuthorizations: function(authorizations, callback) {
+	/**
+	 * Set this user's authorizations.
+	 * @param {Webos.Authorizations} authorizations Authorizations.
+	 * @param {Webos.Callback}       callback       The callback.
+	 */
+	setAuthorizations: function (authorizations, callback) {
 		callback = Webos.Callback.toCallback(callback);
 
 		return new Webos.ServerCall({
@@ -133,6 +150,11 @@ Webos.User.prototype = {
 			callback.error(response);
 		}));
 	},
+	/**
+	 * Set this user's email.
+	 * @param   {String}  value The email.
+	 * @returns {Boolean}       False if there was an error, true otherwise.
+	 */
 	setEmail: function(value) {
 		value = String(value);
 		
@@ -142,9 +164,18 @@ Webos.User.prototype = {
 		
 		return this._set('email', value);
 	},
+	/**
+	 * Enable/disable the user.
+	 * @param   {Boolean} value True to disable, false to enable.
+	 * @returns {Boolean}       False if there was an error, true otherwise.
+	 */
 	setDisabled: function(value) {
 		return this._set('disabled', (value) ? 1 : 0);
 	},
+	/**
+	 * Remove the user.
+	 * @param {Webos.Callback} callback The callback.
+	 */
 	remove: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
@@ -211,8 +242,27 @@ Webos.inherit(Webos.User, Webos.Model);
 
 Webos.Observable.build(Webos.User);
 
+/**
+ * Cache for users.
+ * @var {Object}
+ * @static
+ * @private
+ */
 Webos.User.cache = {};
+
+/**
+ * Is the user logged ?
+ * @var {Boolean}
+ * @static
+ * @private
+ */
 Webos.User.logged = null;
+
+/**
+ * Get a user.
+ * @param {Webos.Callback} callback The callback.
+ * @param {String}         [user]   The username. If not provided, this will be set to the currently logged in user.
+ */
 Webos.User.get = function(callback, user) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -249,6 +299,11 @@ Webos.User.get = function(callback, user) {
 		callback.error(response);
 	}));
 };
+
+/**
+ * Get the currently logged in user.
+ * @param {Webos.Callback} callback The callback.
+ */
 Webos.User.getLogged = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -279,6 +334,13 @@ Webos.User.getLogged = function(callback) {
 		}
 	}, callback.error));
 };
+
+/**
+ * Login a user.
+ * @param {String}         username The username.
+ * @param {String}         password The password.
+ * @param {Webos.Callback} callback The callback.
+ */
 Webos.User.login = function(username, password, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
@@ -300,6 +362,11 @@ Webos.User.login = function(username, password, callback) {
 		callback.success(user);
 	}, callback.error));
 };
+
+/**
+ * Logout the user.
+ * @param {Webos.Callback} callback The callback.
+ */
 Webos.User.logout = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 
@@ -315,9 +382,26 @@ Webos.User.logout = function(callback) {
 	}, callback.error));
 };
 
+/**
+ * The "ping" timer.
+ * @var {Number}
+ * @private
+ */
 Webos.User._pingTimer = null;
+
+/**
+ * The "ping" interval.
+ * @var {Number}
+ * @private
+ */
 Webos.User._pingInterval = 6 * 60 * 1000;
-Webos.User._startPingTimer = function() {
+
+/**
+ * Start sending "ping" requests.
+ * A "ping" is an empty request sent to the server to keep the user logged in.
+ * @private
+ */
+Webos.User._startPingTimer = function () {
 	if (Webos.User._pingTimer === null) {
 		Webos.User._pingTimer = setInterval(function() {
 			if (!Webos.User.logged) {
@@ -340,12 +424,18 @@ Webos.User._startPingTimer = function() {
 		}, Webos.User._pingInterval);
 	}
 };
+
+/**
+ * Stop sending "ping" requests.
+ */
 Webos.User._stopPingTimer = function() {
 	if (Webos.User._pingTimer !== null) {
 		clearInterval(Webos.User._pingTimer);
 		Webos.User._pingTimer = null;
 	}
 };
+
+//Listen for "login" and "logout" events to start and stop sending "ping" requests
 Webos.User.bind('login', function() {
 	Webos.User._startPingTimer();
 });
@@ -353,6 +443,10 @@ Webos.User.bind('logout', function() {
 	Webos.User._stopPingTimer();
 });
 
+/**
+ * Get a list of all registered users.
+ * @param {Webos.Callback} callback The callback.
+ */
 Webos.User.list = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -374,6 +468,13 @@ Webos.User.list = function(callback) {
 		callback.success(list);
 	}, callback.error));
 };
+
+/**
+ * Create a new user.
+ * @param {Object} data The user's data.
+ * @param {Webos.Authorizations} auth The user's authorizations.
+ * @param {Webos.Callback} callback The callback.
+ */
 Webos.User.create = function(data, auth, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	auth = auth.get().join(';');
@@ -389,6 +490,14 @@ Webos.User.create = function(data, auth, callback) {
 		callback.success();
 	}, callback.error));
 };
+
+/**
+ * Register a new user.
+ * Registering a user is not the same as creating a user : everyone can register, if this feature is enabled, but only administrators can create new users.
+ * @param {Object} data The user's data.
+ * @param {Object} captchaData The captcha data.
+ * @param {Webos.Callback} callback The callback.
+ */
 Webos.User.register = function(data, captchaData, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -406,7 +515,18 @@ Webos.User.register = function(data, captchaData, callback) {
 		callback.success();
 	}, callback.error));
 };
+
+/**
+ * Is the user able to register ?
+ * @var {Boolean}
+ * @private
+ */
 Webos.User._canRegister = null;
+
+/**
+ * Check if registration is enabled.
+ * @param {Webos.Callback} callback The callback.
+ */
 Webos.User.canRegister = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
@@ -423,6 +543,12 @@ Webos.User.canRegister = function(callback) {
 		callback.success(Webos.User._canRegister);
 	}, callback.error));
 };
+
+/**
+ * Evaluate a password's power.
+ * @param {String} s The password.
+ * @returns {Number} A number in percentages, indicating the password's power.
+ */
 Webos.User.evalPasswordPower = function(s) {
 	var cmpx = 0;
 	
@@ -437,6 +563,11 @@ Webos.User.evalPasswordPower = function(s) {
 	
 	return cmpx * 25;
 };
+
+/**
+ * Get statistics about users.
+ * @param {Webos.Callback} callback The callback.
+ */
 Webos.User.stats = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
