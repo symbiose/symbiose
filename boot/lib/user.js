@@ -1,17 +1,41 @@
+/**
+ * A registered user.
+ * @param {Number} id   The user's ID.
+ * @param {Object} data The user's data.
+ * @constructor
+ * @augments {Webos.Model}
+ * @since 1.0alpha1
+ */
 Webos.User = function WUser(id, data) {
 	this._id = parseInt(id);
 	Webos.Model.call(this, data);
 };
 Webos.User.prototype = {
+	/**
+	 * Get this user's ID.
+	 * @returns {Number} The ID.
+	 */
 	id: function() {
 		return this._id;
 	},
+	/**
+	 * Check if this user is disabled.
+	 * @returns {Boolean} True if the user is disabled, false otherwise.
+	 */
 	disabled: function() {
 		return (this._get('disabled') == 1) ? true : false;
 	},
+	/**
+	 * Set this user's ID.
+	 * A user's ID cannot be modified, this function always returns false.
+	 */
 	setId: function() {
 		return false;
 	},
+	/**
+	 * Check if this user is logged in on this computer.
+	 * @returns {Boolean} True if this user is logged in, false otherwise.
+	 */
 	isLogged: function() {
 		if (!Webos.User.logged) {
 			return;
@@ -19,6 +43,10 @@ Webos.User.prototype = {
 		
 		return (this.id() == Webos.User.logged);
 	},
+	/**
+	 * Get this user's authorizations.
+	 * @param  {Webos.Callback} callback The callback.
+	 */
 	getAuthorizations: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
@@ -45,9 +73,18 @@ Webos.User.prototype = {
 			callback.success(that._authorizations);
 		}, callback.error));
 	},
+	/**
+	 * Get this user's authorizations.
+	 * @param  {Webos.Callback} callback The callback.
+	 * @deprecated
+	 */
 	authorizations: function(callback) {
 		return this.getAuthorizations(callback);
 	},
+	/**
+	 * Set this user's real name.
+	 * @param {Boolean} value False if there was an error, true otherwise.
+	 */
 	setRealname: function(value) {
 		return this._set('realname', String(value));
 	},
