@@ -206,7 +206,7 @@ Webos.ServerCall.prototype = {
 	},
 	/**
 	 * Get this server call's stack trace.
-	 * @return {String} The stack.
+	 * @returns {String} The stack.
 	 */
 	stack: function $_WServerCall_stack() {
 		var stack = '    at '+this.url+' calling '+this.data['class']+'->'+this.data.method+'()';
@@ -604,7 +604,7 @@ Webos.ServerCall.Response = function WServerCallResponse(response) {
 Webos.ServerCall.Response.prototype = {
 	/**
 	 * Check if the response is a success.
-	 * @return {Boolean} True if the it's a success, false if an error occured.
+	 * @returns {Boolean} True if the it's a success, false if an error occured.
 	 */
 	isSuccess: function() {
 		if (this._response.success == 1) {
@@ -616,49 +616,49 @@ Webos.ServerCall.Response.prototype = {
 	/**
 	 * Get a channel's content.
 	 * @param  {Number} channel The channel number.
-	 * @return {String}         The channel's content.
+	 * @returns {String}         The channel's content.
 	 */
 	getChannel: function(channel) {
 		return this._response.channels[channel];
 	},
 	/**
 	 * Get the standard channel's content.
-	 * @return {String} The channel's content.
+	 * @returns {String} The channel's content.
 	 */
 	getStandardChannel: function() {
 		return this.getChannel(1);
 	},
 	/**
 	 * Get the errors' channel's content.
-	 * @return {String} The channel's content.
+	 * @returns {String} The channel's content.
 	 */
 	getErrorsChannel: function() {
 		return this.getChannel(2);
 	},
 	/**
 	 * Get all channel's content.
-	 * @return {String} The channels' content.
+	 * @returns {String} The channels' content.
 	 */
 	getAllChannels: function() {
 		return this._response.out;
 	},
 	/**
 	 * Get the response's data.
-	 * @return {Object} The response's data.
+	 * @returns {Object} The response's data.
 	 */
 	getData: function() {
 		return this._response.data;
 	},
 	/**
 	 * Get the embeded Javascript code.
-	 * @return {String} The Javascript code.
+	 * @returns {String} The Javascript code.
 	 */
 	getJavascript: function() {
 		return this._response.js;
 	},
 	/**
 	 * Check if the Javascript code is empty.
-	 * @return {Boolean} True if the JS code empty, false otherwise.
+	 * @returns {Boolean} True if the JS code empty, false otherwise.
 	 */
 	isJavascriptEmpty: function() { //Savoir si il y a du code JS
 		return (this.getJavascript() == null);
@@ -666,7 +666,7 @@ Webos.ServerCall.Response.prototype = {
 	/**
 	 * Get the response's error, if there is one.
 	 * @param  {String} [msg] An error message can be provided.
-	 * @return {Webos.Error}  The error.
+	 * @returns {Webos.Error}  The error.
 	 */
 	getError: function(msg) {
 		if (this.isSuccess()) {
