@@ -29,7 +29,7 @@ Webos.UserInterface.prototype = {
 	},
 	/**
 	 * Get this UI's name.
-	 * @return {String} This UI's name.
+	 * @returns {String} This UI's name.
 	 */
 	name: function () {
 		return this._name;
@@ -142,7 +142,7 @@ Webos.UserInterface._list = [];
  * Get a user interface, given its data and name.
  * @param  {String} name         The UI's name.
  * @param  {Object} data         The UI's data.
- * @return {Webos.UserInterface} The user interface.
+ * @returns {Webos.UserInterface} The user interface.
  */
 Webos.UserInterface.get = function(name, data) {
 	for (var i = 0; i < Webos.UserInterface._list.length; i++) {
@@ -164,7 +164,7 @@ Webos.UserInterface.get = function(name, data) {
 
 /**
  * Get the current user interface.
- * @return {Webos.UserInterface} The user interface.
+ * @returns {Webos.UserInterface} The user interface.
  */
 Webos.UserInterface.current = function() {
 	var booter = Webos.UserInterface.Booter.current();
@@ -376,21 +376,21 @@ Webos.UserInterface.Booter = function WUserInterfaceBooter(data, name) {
 Webos.UserInterface.Booter.prototype = {
 	/**
 	 * Get this booter's ID.
-	 * @return {Number} The ID.
+	 * @returns {Number} The ID.
 	 */
 	id: function () {
 		return this._id;
 	},
 	/**
 	 * Get the UI's name.
-	 * @return {String} The interface's name.
+	 * @returns {String} The interface's name.
 	 */
 	name: function () {
 		return this._name;
 	},
 	/**
 	 * Get the element containing the whole UI.
-	 * @return {jQuery} The container.
+	 * @returns {jQuery} The container.
 	 */
 	element: function () {
 		return this._element;
@@ -523,7 +523,7 @@ Webos.UserInterface.Booter._current = null;
 
 /**
  * Get this current interface booter.
- * @return {Webos.UserInterface.Booter} The booter.
+ * @returns {Webos.UserInterface.Booter} The booter.
  */
 Webos.UserInterface.Booter.current = function() {
 	if (Webos.UserInterface.Booter._current === null) {
