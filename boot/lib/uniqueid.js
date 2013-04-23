@@ -1,7 +1,10 @@
-/* ----------- uniqueid.js ----------- v1.0 ----------- Par Doppelganger ----------- Le  06/06/2011
-==== CLASSE JAVASCRIPT QUI CREE DES ID UNIQUES ====
-*/
-
+/**
+ * A unique ID generator.
+ * @constructor
+ * @since 1.0alpha1
+ * @author Doppelganger
+ * @deprecated
+ */
 Webos.UniqueId = function WUniqueId(options) {
 	this.options = options; // on récupère les options que l'utilisateur a défini
 
