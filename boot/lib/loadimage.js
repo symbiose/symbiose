@@ -1,11 +1,11 @@
-/* ----------- loadimage.js ----------- v1.0 ----------- Par Doppelganger ----------- Le  07/06/2011
-
-==== CLASSE JAVASCRIPT QUI CHARGE DES IMAGES (ET EXECUTE LE CALLBACK APRÈS LE CHARGEMENT) ====
-
-Cette Classe requiert les fichiers suivants:
-	- uniqueid.js
-*/
-
+/**
+ * An image loader.
+ * @constructor
+ * @since 1.0alpha1
+ * @requires {Webos.UniqueId}
+ * @author Doppelganger
+ * @deprecated
+ */
 Webos.LoadImage = function WLoadImage(options) {
 	this.options = options; // on récupère les options que l'utilisateur a défini
 
