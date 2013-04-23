@@ -347,6 +347,7 @@ Webos.ServerCall._removeFromLoadStack = function $_WServerCall__removeFromLoadSt
  * Get a list of all server calls.
  * @param   {Number} [status]    Filter calls with a specific status.
  * @returns {Webos.ServerCall[]} A list of server calls.
+ * @static
  */
 Webos.ServerCall.getList = function $_WServerCall_getList(status) {
 	var list = [];
@@ -357,15 +358,40 @@ Webos.ServerCall.getList = function $_WServerCall_getList(status) {
 	}
 	return list;
 };
+
+/**
+ * Get a list of pending calls.
+ * @returns {Webos.ServerCall[]} A list of server calls.
+ * @static
+ */
 Webos.ServerCall.getPendingCalls = function $_WServerCall_getPendingCalls() {
 	return Webos.ServerCall.getList(1);
 };
+
+/**
+ * Get the number of completed calls.
+ * @returns {Number} The number of completed calls.
+ * @static
+ */
 Webos.ServerCall.getCompletedCalls = function $_WServerCall_getCompletedCalls() {
 	return Webos.ServerCall.getList(2);
 };
+
+/**
+ * Get the number of pending calls.
+ * @returns {Number} The number of pending calls.
+ * @static
+ */
 Webos.ServerCall.getNbrPendingCalls = function $_WServerCall_getNbrPendingCalls() {
 	return Webos.ServerCall.getPendingCalls().length;
 };
+
+/**
+ * Join some server calls in a group.
+ * Server calls must be passed as arguments.
+ * @returns {Webos.ServerCall.Group} The group.
+ * @static
+ */
 Webos.ServerCall.join = function $_WServerCall_join() {
 	var requests = [];
 	for (var i = 0; i < arguments.length; i++) {
@@ -384,28 +410,40 @@ Webos.ServerCall.join = function $_WServerCall_join() {
 
 Webos.Observable.build(Webos.ServerCall);
 
-
+/**
+ * A group of server calls.
+ * @param {Webos.ServerCall[]} requests Server calls in the group.
+ * @param {Object} opts     Options.
+ * @constructor
+ * @augments {Webos.Observable}
+ * @since 1.0beta1
+ */
 Webos.ServerCall.Group = function WServerCallGroup(requests, opts) {
 	Webos.Observable.call(this);
-	
+
 	var defaults = {};
-	
+
 	this.options = $.extend({}, defaults, opts); //On definit toutes les options
 	this.requests = [];
 	this.callbacks = [];
-	
+
 	if (requests instanceof Array) {
 		for (var i = 0; i < requests.length; i++) {
 			this.add(requests[i]);
 		}
 	}
-	
+
 	this.nbrAttempts = 0;
 	this.status = 0;
 	this.url = 'sbin/servercallgroup.php';
 	this.type = 'post';
 };
 Webos.ServerCall.Group.prototype = {
+	/**
+	 * Add a server call to the group.
+	 * @param {Webos.ServerCall}   request  The server call.
+	 * @param {Webos.Observable} callback The callback.
+	 */
 	add: function(request, callback) {
 		var id = this.requests.push(request) - 1;
 		if (callback) {
@@ -414,6 +452,11 @@ Webos.ServerCall.Group.prototype = {
 		}
 		return id;
 	},
+	/**
+	 * Load all server calls in the group.
+	 * @param  {Webos.Callback} callback The callback.
+	 * @private
+	 */
 	_load: function(callback) {
 		var that = this;
 
@@ -517,6 +560,10 @@ Webos.ServerCall.Group.prototype = {
 			}
 		});
 	},
+	/**
+	 * Load all server calls in the group.
+	 * @param  {Webos.Callback} callback The callback.
+	 */
 	load: function(callback) {
 		//Lien vers l'objet courant
 		var that = this;
@@ -529,27 +576,17 @@ Webos.ServerCall.Group.prototype = {
 		this._load(callback);
 
 		return this;
-	},
-	_complete: function(response, callback) {
-		this.status = 2;
-		this.response = response;
-		
-		if (response.isSuccess()) { //Si la requete a reussi
-			callback.success(response); //On execute le callback associe
-			this.notify('success');
-		} else {
-			callback.error(response); //On execute le callback d'erreur
-			this.notify('error');
-		}
-		
-		this.notify('complete');
-		Webos.ServerCall.callComplete(this);
 	}
 };
 Webos.inherit(Webos.ServerCall.Group, Webos.Observable);
 
 
-//Manipuler une reponse du serveur
+/**
+ * A server response.
+ * @param {Object} response The response data.
+ * @constructor
+ * @since  1.0alpha1
+ */
 Webos.ServerCall.Response = function WServerCallResponse(response) { 
 	if (!response || typeof response != 'object') {
 		response = {
@@ -565,34 +602,72 @@ Webos.ServerCall.Response = function WServerCallResponse(response) {
 	this._response = response; //Reponse JSON brute
 };
 Webos.ServerCall.Response.prototype = {
-	isSuccess: function() { //Savoir si la requete a reussi
+	/**
+	 * Check if the response is a success.
+	 * @return {Boolean} True if the it's a success, false if an error occured.
+	 */
+	isSuccess: function() {
 		if (this._response.success == 1) {
 			return true;
 		} else {
 			return false;
 		}
 	},
-	getChannel: function(channel) { //Recuperer le contenu d'un cannal
+	/**
+	 * Get a channel's content.
+	 * @param  {Number} channel The channel number.
+	 * @return {String}         The channel's content.
+	 */
+	getChannel: function(channel) {
 		return this._response.channels[channel];
 	},
-	getStandardChannel: function() { //Recuperer le contenu du cannal par defaut
+	/**
+	 * Get the standard channel's content.
+	 * @return {String} The channel's content.
+	 */
+	getStandardChannel: function() {
 		return this.getChannel(1);
 	},
-	getErrorsChannel: function() { //Recuperer le contenu du cannal d'erreurs
+	/**
+	 * Get the errors' channel's content.
+	 * @return {String} The channel's content.
+	 */
+	getErrorsChannel: function() {
 		return this.getChannel(2);
 	},
-	getAllChannels: function() { //Recuperer la sortie commune de tous les cannaux
+	/**
+	 * Get all channel's content.
+	 * @return {String} The channels' content.
+	 */
+	getAllChannels: function() {
 		return this._response.out;
 	},
-	getData: function() { //Recuperer les donnees associees a la reponse
+	/**
+	 * Get the response's data.
+	 * @return {Object} The response's data.
+	 */
+	getData: function() {
 		return this._response.data;
 	},
-	getJavascript: function() { //Recuperer le code JS
+	/**
+	 * Get the embeded Javascript code.
+	 * @return {String} The Javascript code.
+	 */
+	getJavascript: function() {
 		return this._response.js;
 	},
+	/**
+	 * Check if the Javascript code is empty.
+	 * @return {Boolean} True if the JS code empty, false otherwise.
+	 */
 	isJavascriptEmpty: function() { //Savoir si il y a du code JS
 		return (this.getJavascript() == null);
 	},
+	/**
+	 * Get the response's error, if there is one.
+	 * @param  {String} [msg] An error message can be provided.
+	 * @return {Webos.Error}  The error.
+	 */
 	getError: function(msg) {
 		if (this.isSuccess()) {
 			return;
@@ -606,9 +681,17 @@ Webos.ServerCall.Response.prototype = {
 
 		return Webos.Error.build(msg, details);
 	},
+	/**
+	 * Trigger the response's error, if there is one.
+	 * @param  {String} [msg] An error message can be provided.
+	 */
 	triggerError: function(msg) { //Declancher l'erreur, si elle existe
 		Webos.Error.trigger(this.getError(msg));
 	},
+	/**
+	 * Log the response's error, if there is one.
+	 * @param  {String} [msg] An error message can be provided.
+	 */
 	logError: function(msg) {
 		Webos.Error.log(this.getError(msg));
 	},
