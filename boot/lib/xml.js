@@ -1,5 +1,3 @@
-//Recuperer le contenu d'un fichier XML
-
 /**
  * An XML file.
  * @param {String} path The file's path.
