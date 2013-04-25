@@ -8,7 +8,7 @@
 			this._window = $.w.window.main({
 				title: t.get('Cameleon interface switcher'),
 				icon: new W.Icon('actions/interface'),
-				width: 300,
+				width: 400,
 				resizable: false,
 				dialog: true
 			});
@@ -17,9 +17,10 @@
 
 			var desc = $.w.label(t.get('To switch between interfaces, choose one and click OK :')).appendTo(content);
 			this._uisList = $.w.list().appendTo(content);
+			var btnContainer = $.w.buttonContainer().appendTo(content);
 			var submitBtn = $.w.button(t.get('OK')).click(function() {
 				that._launchUI(that._selectedUI);
-			}).appendTo(content);
+			}).appendTo(btnContainer);
 
 			this._init();
 
@@ -36,6 +37,8 @@
 		_init: function () {
 			var that = this;
 
+			this._window.window('loading', true);
+
 			Webos.UserInterface.getList(function (list) {
 				for (var i = 0; i < list.length; i++) {
 					(function(ui) {
@@ -50,6 +53,8 @@
 						that._uisList.list('content').append($item);
 					})(list[i]);
 				}
+
+				that._window.window('loading', false);
 			});
 		},
 		_launchUI: function(ui) {
