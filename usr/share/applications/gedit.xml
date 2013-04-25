@@ -8,5 +8,6 @@
 	<attribute name="icon" value="apps/text-editor"/>
 	<attribute name="menu" value="applications"/>
 	<attribute name="category" value="accessories"/>
-	<attribute name="open" value=",txt,c,h,c++,java,clj,coffee,aspx,ejs,jsp,html,js,pl,pm,py,rb,diff,gfm,lua,php,css,r,rst,xml"/>
+	<attribute name="open" value="txt,c,h,c++,java,clj,coffee,aspx,ejs,jsp,html,js,pl,pm,py,rb,diff,gfm,lua,php,css,r,rst,xml"/>
+	<attribute name="openMimeTypes" value="text/*"/>
 </shortcut>
