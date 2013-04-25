@@ -33,7 +33,7 @@ Webos.Translation.prototype = {
 							if (typeof variables[condition] == 'undefined') {
 								return str;
 							} else if (variables[condition]) {
-								originalreturn replaceVariablesFn(ifValue);
+								return replaceVariablesFn(ifValue);
 							} else {
 								return replaceVariablesFn(elseValue);
 							}
@@ -117,7 +117,7 @@ Webos.Translation.parse = function (contents) {
 			continue;
 		}
 		
-		var original = words[0];
+		var key = words[0];
 		var translation = '';
 		for (var j = 1; j < words.length; j++) {
 			if (j >= 2) {
@@ -130,7 +130,7 @@ Webos.Translation.parse = function (contents) {
 			continue;
 		}
 		
-		data[original] = translation;
+		data[key] = translation;
 	}
 	
 	return data;
