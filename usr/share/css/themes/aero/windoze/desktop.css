@@ -200,6 +200,9 @@ li {
 	-webkit-border-radius:7px 7px 0 0;
 	border-radius:7px 7px 0 0;
 	background:-moz-linear-gradient(top,rgba(155,155,155,0.6),rgba(0,0,0,0.6) 35%,rgba(0,0,0,0.6) 55%,rgba(155,155,155,0.6));
+	background:-webkit-linear-gradient(top,rgba(155,155,155,0.6),rgba(0,0,0,0.6) 35%,rgba(0,0,0,0.6) 55%,rgba(155,155,155,0.6));
+	background:linear-gradient(top,rgba(155,155,155,0.6),rgba(0,0,0,0.6) 35%,rgba(0,0,0,0.6) 55%,rgba(155,155,155,0.6));
+	background-color: rgba(40,40,40,0.6);
 	border:1px solid rgba(51,51,51,0.8);
 	bottom:40px;
 	display:none;
@@ -256,6 +259,9 @@ li {
 }
 #startmenu_content ul a:hover {
 	background:-moz-linear-gradient(top, #ddecfd, #c2dcfd);
+	background:-webkit-linear-gradient(top, #ddecfd, #c2dcfd);
+	background:linear-gradient(top, #ddecfd, #c2dcfd);
+	background-color:#ddecfd;
 	border-color:#7da2ce;
 	text-decoration:none;
 }
@@ -269,6 +275,8 @@ li {
 	-webkit-border-radius:0 0 3px 3px;
 	border-radius:0 0 3px 3px;
 	background:-moz-linear-gradient(top, #ccd9ea, #f1f5fb 3px);
+	background:-webkit-linear-gradient(top, #ccd9ea, #f1f5fb 3px);
+	background:linear-gradient(top, #ccd9ea, #f1f5fb 3px);
 	height:21px;
 	padding:12px;
 }
@@ -316,7 +324,8 @@ li {
 	-webkit-box-shadow: inset 0 0 1px #fff;
 	background-color:#658da0;
 	background: -moz-linear-gradient(center left, rgba(81,115,132,0.55), rgba(121,163,184,0.55) 50%, rgba(81,115,132,0.55));
-	background: -webkit-gradient(linear, 0% 100%, 100% 100%, from(#517384), color-stop(50%, #79a3b8), to(#517384)); 
+	background: -webkit-gradient(linear, 0% 100%, 100% 100%, from(#517384), color-stop(50%, #79a3b8), to(#517384));
+	background: linear-gradient(center left, rgba(81,115,132,0.55), rgba(121,163,184,0.55) 50%, rgba(81,115,132,0.55));
 }
 #startmenu_links a span {
 	padding:5px;
@@ -382,6 +391,8 @@ li {
 }
 .program:hover {
 	background:-moz-radial-gradient(center bottom, circle, rgba(100,255,255,0.5), rgba(10,200,255,0) 30%);
+	background:-webkit-radial-gradient(center bottom, circle, rgba(100,255,255,0.5), rgba(10,200,255,0) 30%);
+	background:radial-gradient(center bottom, circle, rgba(100,255,255,0.5), rgba(10,200,255,0) 30%);
 }
 #programlist .active {
 	-moz-border-radius:3px;

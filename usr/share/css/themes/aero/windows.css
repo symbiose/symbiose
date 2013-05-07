@@ -109,16 +109,46 @@ Tags: bright, fixed width, two columns, widgets
 	-moz-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
 	-webkit-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
 	box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
-	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, -moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%), -moz-radial-gradient(center center, #cd4327 35%, #a43c29);
+	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, 
+	-moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%), 
+	-moz-radial-gradient(center center, #cd4327 35%, #a43c29);
+	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, 
+	-webkit-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%), 
+	-webkit-radial-gradient(center center, #cd4327 35%, #a43c29);
+	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, 
+	linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%), 
+	radial-gradient(center center, #cd4327 35%, #a43c29);
 }
 .webos-window .header .top .controllers .close:hover {
 	-moz-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset, 0 0 6px 4px rgba(255,100,48,0.5);
 	-webkit-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset, 0 0 6px 4px rgba(255,100,48,0.5);
 	box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset, 0 0 6px 4px rgba(255,100,48,0.5);
-	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, -moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0) 50%), -moz-linear-gradient(bottom, rgba(255,160,60,0.8), rgba(255,160,60,0) 35%), -moz-radial-gradient(center center, #d12300 50%, #a43c29);
+	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, 
+	-moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0) 50%), 
+	-moz-linear-gradient(bottom, rgba(255,160,60,0.8), rgba(255,160,60,0) 35%), 
+	-moz-radial-gradient(center center, #d12300 50%, #a43c29);
+	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, 
+	-webkit-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0) 50%), 
+	-webkit-linear-gradient(bottom, rgba(255,160,60,0.8), rgba(255,160,60,0) 35%), 
+	-webkit-radial-gradient(center center, #d12300 50%, #a43c29);
+	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, 
+	linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0) 50%), 
+	linear-gradient(bottom, rgba(255,160,60,0.8), rgba(255,160,60,0) 35%), 
+	radial-gradient(center center, #d12300 50%, #a43c29);
 }
 .webos-window .header .top .controllers .close:active {
-	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, -moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0) 50%), -moz-linear-gradient(bottom, rgba(255,160,60,0.8), rgba(255,160,60,0) 35%), -moz-radial-gradient(center center, #8d2008 50%, #471307);
+	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, 
+	-moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0) 50%), 
+	-moz-linear-gradient(bottom, rgba(255,160,60,0.8), rgba(255,160,60,0) 35%), 
+	-moz-radial-gradient(center center, #8d2008 50%, #471307);
+	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, 
+	-webkit-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0) 50%), 
+	-webkit-linear-gradient(bottom, rgba(255,160,60,0.8), rgba(255,160,60,0) 35%), 
+	-webkit-radial-gradient(center center, #8d2008 50%, #471307);
+	background:url("usr/share/images/themes/aero/x.png") no-repeat center center, 
+	linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0) 50%), 
+	linear-gradient(bottom, rgba(255,160,60,0.8), rgba(255,160,60,0) 35%), 
+	radial-gradient(center center, #8d2008 50%, #471307);
 }
 .webos-window.not-closeable .header .top .controllers .close {
 	display: none;
@@ -133,14 +163,27 @@ Tags: bright, fixed width, two columns, widgets
 	-moz-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
 	-webkit-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
 	box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
-	background:url("usr/share/images/themes/aero/o.png") no-repeat center center, -moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
+	background:url("usr/share/images/themes/aero/o.png") no-repeat center center, 
+	-moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
+	background:url("usr/share/images/themes/aero/o.png") no-repeat center center, 
+	-webkit-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
+	background:url("usr/share/images/themes/aero/o.png") no-repeat center center, 
+	linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
 }
 .webos-window .header .top .controllers .maximize:hover,
 .webos-window .header .top .controllers .maximize:active {
 	-moz-box-shadow:0 0 1px 1px rgba(255,255,255,0.4) inset, 0 0 6px 4px rgba(90,210,255,0.5);
 	-webkit-box-shadow:0 0 1px 1px rgba(255,255,255,0.4) inset, 0 0 6px 4px rgba(90,210,255,0.5);
 	box-shadow:0 0 1px 1px rgba(255,255,255,0.4) inset, 0 0 6px 4px rgba(90,210,255,0.5);
-	background:url("usr/share/images/themes/aero/o.png") no-repeat center center, -moz-linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), -moz-radial-gradient(center bottom, circle, #0affff, #005aa0 65%);
+	background:url("usr/share/images/themes/aero/o.png") no-repeat center center, 
+	-moz-linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), 
+	-moz-radial-gradient(center bottom, circle, #0affff, #005aa0 65%);
+	background:url("usr/share/images/themes/aero/o.png") no-repeat center center, 
+	-webkit-linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), 
+	-webkit-radial-gradient(center bottom, circle, #0affff, #005aa0 65%);
+	background:url("usr/share/images/themes/aero/o.png") no-repeat center center, 
+	linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), 
+	radial-gradient(center bottom, circle, #0affff, #005aa0 65%);
 }
 .webos-window.maximized .header .top .controllers .maximize {
 	background-image:url("usr/share/images/themes/aero/oo.png");
@@ -150,14 +193,27 @@ Tags: bright, fixed width, two columns, widgets
 	-moz-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
 	-webkit-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
 	box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
-	background:url("usr/share/images/themes/aero/oo.png") no-repeat center center, -moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
+	background:url("usr/share/images/themes/aero/oo.png") no-repeat center center, 
+	-moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
+	background:url("usr/share/images/themes/aero/oo.png") no-repeat center center, 
+	-webkit-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
+	background:url("usr/share/images/themes/aero/oo.png") no-repeat center center, 
+	linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
 }
 .webos-window.maximized .header .top .controllers .maximize:hover,
 .webos-window.maximized:not(.bg-window) .header .top .controllers .maximize:hover {
 	-moz-box-shadow:0 0 1px 1px rgba(255,255,255,0.4) inset, 0 0 6px 4px rgba(90,210,255,0.5);
 	-webkit-box-shadow:0 0 1px 1px rgba(255,255,255,0.4) inset, 0 0 6px 4px rgba(90,210,255,0.5);
 	box-shadow:0 0 1px 1px rgba(255,255,255,0.4) inset, 0 0 6px 4px rgba(90,210,255,0.5);
-	background:url("usr/share/images/themes/aero/oo.png") no-repeat center center, -moz-linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), -moz-radial-gradient(center bottom, circle, #0affff, #005aa0 65%) #0066ab;
+	background:url("usr/share/images/themes/aero/oo.png") no-repeat center center, 
+	-moz-linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), 
+	-moz-radial-gradient(center bottom, circle, #0affff, #005aa0 65%) #0066ab;
+	background:url("usr/share/images/themes/aero/oo.png") no-repeat center center, 
+	-webkit-linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), 
+	-webkit-radial-gradient(center bottom, circle, #0affff, #005aa0 65%) #0066ab;
+	background:url("usr/share/images/themes/aero/oo.png") no-repeat center center, 
+	linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), 
+	radial-gradient(center bottom, circle, #0affff, #005aa0 65%) #0066ab;
 }
 .webos-window.not-maximizable .header .top .controllers .maximize {
 	display: none;
@@ -176,14 +232,27 @@ Tags: bright, fixed width, two columns, widgets
 	-moz-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
 	-webkit-box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
 	box-shadow:0 0 1px 1px rgba(255,255,255,0.6) inset;
-	background:url("usr/share/images/themes/aero/_.png") no-repeat center center, -moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
+	background:url("usr/share/images/themes/aero/_.png") no-repeat center center, 
+	-moz-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
+	background:url("usr/share/images/themes/aero/_.png") no-repeat center center, 
+	-webkit-linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
+	background:url("usr/share/images/themes/aero/_.png") no-repeat center center, 
+	linear-gradient(top, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 50%) rgba(155,155,155,0.5);
 }
 .webos-window .header .top .controllers .hide:hover,
 .webos-window .header .top .controllers .hide:active {
 	-moz-box-shadow:0 0 1px 1px rgba(255,255,255,0.4) inset, 0 0 6px 4px rgba(90,210,255,0.5);
 	-webkit-box-shadow:0 0 1px 1px rgba(255,255,255,0.4) inset, 0 0 6px 4px rgba(90,210,255,0.5);
 	box-shadow:0 0 1px 1px rgba(255,255,255,0.4) inset, 0 0 6px 4px rgba(90,210,255,0.5);
-	background:url("usr/share/images/themes/aero/_.png") no-repeat center center, -moz-linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), -moz-radial-gradient(center bottom, circle, #0affff, #005aa0 65%);
+	background:url("usr/share/images/themes/aero/_.png") no-repeat center center, 
+	-moz-linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), 
+	-moz-radial-gradient(center bottom, circle, #0affff, #005aa0 65%);
+	background:url("usr/share/images/themes/aero/_.png") no-repeat center center, 
+	-webkit-linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), 
+	-webkit-radial-gradient(center bottom, circle, #0affff, #005aa0 65%);
+	background:url("usr/share/images/themes/aero/_.png") no-repeat center center, 
+	linear-gradient(top, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 50%), 
+	radial-gradient(center bottom, circle, #0affff, #005aa0 65%);
 }
 .webos-window.not-hideable .header .top .controllers .hide {
 	display: none;

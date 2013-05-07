@@ -2,9 +2,10 @@ W.UserInterface.Booter.current().disableAutoLoad();
 
 //On definit la hauteur du bureau
 var resizeDesktopFn = function() {
-	$('#desktop').height($(window).height());
+	$('#desktop').height($(window).height() - $('#taskbar').height());
 };
-$(window).resize(resizeDesktopFn).resize();
+$(window).resize(resizeDesktopFn);
+resizeDesktopFn();
 
 //On empeche de faire defiler la page
 $(document).scroll(function() {
