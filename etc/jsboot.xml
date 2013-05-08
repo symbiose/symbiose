@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <includes>
-	<include path="boot/lib/script.js"/>
+	<include path="boot/lib/json2.js"/>
+	<include path="boot/lib/underscore-1.4.4.min.js"/>
+	<include path="boot/lib/backbone-1.0.0.min.js"/>
 	<include path="boot/lib/jquery-1.8.3.min.js"/>
 	<include path="boot/lib/jquery-ui-1.9.2.custom.min.js"/>
+	<include path="boot/lib/script.js"/>
 	<include path="boot/includes/boot.js"/>
 </includes>
