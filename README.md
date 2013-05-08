@@ -1,8 +1,7 @@
-[Symbiose 1.0 beta 2](http://symbiose.fr.cr/)
+[Symbiose 1.0 beta 3](http://symbiose.fr.cr/)
 ==============================================
 
 This version (beta) is unstable.  
-Cette version (beta) n'est pas stable.
 
 Quick start
 -----------
