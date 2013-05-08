@@ -8,12 +8,18 @@ Webos.Observable = function WObservable() {
 };
 Webos.Observable.prototype = {
 	/**
+	 * A list of all observers.
+	 * @type {Array}
+	 * @private
+	 */
+	_observers: [],
+	/**
 	 * Listen to an event.
 	 * @param   {String}   event The event's name. Multiple events can be listened if a space-separated list of events is provided. Namespaces are supported too.
 	 * @param   {Function} fn    The callback which will be called when the event will be triggered.
 	 * @returns {Number}         The callback's ID.
 	 */
-	bind: function $_WObservable_bind(event, fn) {
+	on: function (event, fn) {
 		var namespace = event;
 		var events = event.split(' '), eventsNames = [];
 		for (var i = 0; i < events.length; i++) {
@@ -27,13 +33,19 @@ Webos.Observable.prototype = {
 		}) - 1;
 	},
 	/**
+	 * @deprecated Use Observable#on() instead.
+	 */
+	bind: function (event, fn) {
+		return this.on(event, fn);
+	},
+	/**
 	 * Listen once to an event.
 	 * @param   {String}   event The event's name.
 	 * @param   {Function} fn    The callback which will be called when the event will be triggered.
 	 * @returns {Number}         The callback's ID.
-	 * @see Webos.Observable#bind()
+	 * @see Webos.Observable#on()
 	 */
-	one: function $_WObservable_one(event, fn) {
+	once: function (event, fn) {
 		var that = this;
 
 		var callbackId = this.bind(event, function(data) {
@@ -44,11 +56,17 @@ Webos.Observable.prototype = {
 		return callbackId;
 	},
 	/**
+	 * @deprecated Use Observable#once() instead.
+	 */
+	one: function (event, fn) {
+		return this.once(event, fn);
+	},
+	/**
 	 * Stop listening to an event.
 	 * @param  {Number|String}   key   The callback's ID or the event's name.
 	 * @param  {Function}        [fn]  The callback.
 	 */
-	unbind: function $_WObservable_unbind(key, fn) {
+	off: function (key, fn) {
 		var observers = [];
 		if (typeof key == 'number') {
 			for (var i = 0; i < this._observers.length; i++) {
@@ -81,12 +99,18 @@ Webos.Observable.prototype = {
 		this._observers = observers;
 	},
 	/**
+	 * @deprecated Use Observable#off() instead.
+	 */
+	unbind: function (key, fn) {
+		return this.off(key, fn);
+	},
+	/**
 	 * Trigger an event.
 	 * @param  {String} event     The event's name.
 	 * @param  {Object} [data]    Data to provide to callbacks.
 	 * @param  {Object} [thisObj] Scope in which callbacks will be executed.
 	 */
-	notify: function $_WObservable_notify(event, data, thisObj) {
+	trigger: function (event, data, thisObj) {
 		data = data || {};
 		var scope = thisObj || this, events = event.split(' ');
 
@@ -99,6 +123,12 @@ Webos.Observable.prototype = {
 				}
 			}
 		}
+	},
+	/**
+	 * @deprecated Use Observable#trigger() instead.
+	 */
+	notify: function (event, data, thisObj) {
+		return this.trigger(event, data, thisObj);
 	}
 };
 
@@ -108,20 +138,11 @@ Webos.Observable.prototype = {
  * @returns {Object}        The modified object.
  * @static
  */
-Webos.Observable.build = function $_WObservable_build(object) {
-	object._observers = [];
-	object.bind = function(event, fn) {
-		return Webos.Observable.prototype.bind.call(object, event, fn);
-	};
-	object.one = function(event, fn) {
-		return Webos.Observable.prototype.one.call(object, event, fn);
-	};
-	object.unbind = function(key, fn) {
-		return Webos.Observable.prototype.unbind.call(object, key, fn);
-	};
-	object.notify = function(event, data, thisObj) {
-		return Webos.Observable.prototype.notify.call(object, event, data, thisObj);
-	};
+Webos.Observable.build = function (object) {
+	for (var attr in Webos.Observable.prototype) {
+		object[attr] = Webos.Observable.prototype[attr];
+	}
+
 	return object;
 };
 
