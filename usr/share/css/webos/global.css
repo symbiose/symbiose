@@ -1,13 +1,3 @@
-/* Ubuntu */
-@font-face {
-	font-family: 'Ubuntu';
-	font-style: normal;
-	font-weight: normal;
-	src: local('Ubuntu'),
-		url('../../../../usr/share/fonts/ubuntu-font-familly/Ubuntu-R.woff') format('woff'),
-		url('../../../../usr/share/fonts/ubuntu-font-familly/Ubuntu-R.ttf') format('truetype');
-}
-
 html, body {
 	overflow: hidden;
 }
@@ -19,9 +9,9 @@ html, body {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background-color: #28001b;
+	background: url('../../images/splash/darknoise.png') #262626;
 	z-index: 9000;
-	font-family: Ubuntu, Verdana, serif;
+	font-family: sans-serif;
 }
 
 #webos-loading .center, #webos-unsupported .center, #webos-error .center {
@@ -36,13 +26,16 @@ html, body {
 
 #webos-loading h1, #webos-unsupported h1, #webos-error h1 {
 	font-size: 50px;
-	color: white;
-	text-shadow: 0 0 0.2em white;
+	display: none;
 	margin-bottom: 10px;
 }
 
 #webos-loading p {
-	color: #ffcdf1;
+	background: url('../../images/splash/loader.gif') no-repeat left center;
+	padding: 5px 0 5px 30px;
+	display: inline;
+
+	color: gray;
 }
 #webos-unsupported p, #webos-error p, #webos-error ul {
 	color: #ff6767;
@@ -62,11 +55,11 @@ html, body {
 #webos-loading a:hover, #webos-unsupported a:hover,
 #webos-loading a:active, #webos-unsupported a:active,
 #webos-loading a:visited, #webos-unsupported a:visited {
-	color: #ffcdf1;
+	color: inherit;
 }
 #webos-unsupported p.error a, #webos-error a,
 #webos-unsupported p.error a:hover, #webos-error a:hover,
 #webos-unsupported p.error a:active, #webos-error a:active,
 #webos-unsupported p.error a:visited, #webos-error a:visited {
-	color: #ff6767;
+	color: inherit;
 }
