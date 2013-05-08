@@ -2,6 +2,50 @@ if (typeof window.LibreOffice == 'undefined') {
 	window.LibreOffice = {};
 }
 
+$.fn.setSelectionRange = function(selectionStart, selectionEnd) {
+	return this.each(function() {
+		this.focus();
+
+		if (this.setSelectionRange) {
+			this.setSelectionRange(start, end);
+		} else if (this.createTextRange) {
+			var range = this.createTextRange();
+			range.collapse(true);
+			range.moveEnd('character', end);
+			range.moveStart('character', start);
+			range.select();
+		} else if (document.createRange && window.getSelection) {
+			var range = document.createRange();
+
+			var firstTextNode = $(this).add($(this).find('*')).contents().filter(function() {
+				return (this.nodeType == 3);
+			}).first()[0];
+
+			console.log(firstTextNode, selectionStart, selectionEnd);
+			range.setStart(firstTextNode, selectionStart);
+			range.setEnd(firstTextNode, selectionEnd);
+			var sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange(range);
+		}
+	});
+};
+
+$.fn.setCursorPosition = function(position) {
+	return $(this).setSelectionRange(position, position);
+};
+
+$.fn.focusEnd = function() {
+	var elLength = 0;
+	if (typeof $(this).val() == 'string') {
+		elLength = $(this).val().length;
+	} else {
+		elLength = $(this).html().length;
+	}
+
+	return $(this).setCursorPosition(elLength);
+};
+
 LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 	Webos.Observable.call(this);
 	
@@ -221,7 +265,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			return (typeof $('body')[0].contentEditable != 'undefined');
 		};
 		this.command = function(command, param) {
-			document.execCommand(command, null, param);
+			document.execCommand(command, false, param);
 			that._currentPage.focus();
 		};
 		
@@ -325,8 +369,8 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 				that.command('redo');
 			})
 			.appendTo(toolbar);
-		
-		toolbar = $.w.toolbarWindowHeader().appendTo(headers);
+
+		//-------
 		
 		this._buttons.bold = $.w.toolbarWindowHeaderItem('', new W.Icon('actions/format-text-bold', 'button'))
 			.click(function() {
@@ -387,7 +431,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 				that.command('outdent');
 			})
 			.appendTo(toolbar);
-		
+
 		var windowBeforeCloseFn = function(e) {
 			that.closeFile([function() {
 				that._window.window('close');
@@ -406,6 +450,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			this._open(file);
 		} else {
 			this._refreshTitle();
+			this._setContents('');
 		}
 
 		if (!this.supported()) {
@@ -419,13 +464,15 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 };
 LibreOffice.Writer.prototype = {
 	_translationsName: 'libreoffice.writer',
+	_editable: $(),
 	_pages: $(),
 	_currentPage: $(),
 	openAboutWindow: function() {
 		var t = this._translations;
+
 		return $.w.window.about({
 			name: 'LibreOffice Writer',
-			version: '0.2',
+			version: '0.3',
 			description: t.get('${app} allows you to write letters, reports, documents and web pages.', { app: 'LibreOffice Writer' }),
 			author: '$imon',
 			icon: new W.Icon('applications/libreoffice-writer')
@@ -463,7 +510,7 @@ LibreOffice.Writer.prototype = {
 	exportToPDF: function(callback) {
 		var that = this, t = this._translations;
 		callback = W.Callback.toCallback(callback);
-		
+
 		new NautilusFileSelectorWindow({
 			parentWindow: this._window,
 			title: t.get('Export to PDF'),
@@ -518,16 +565,28 @@ LibreOffice.Writer.prototype = {
 		this._pages = $();
 
 		var page = this._addPage();
-		page.html(contents);
+		page.html(contents).keyup();
 	},
-	goToPage: function(page) {
+	getPage: function(page) {
 		if (typeof page == 'undefined') {
 			page = this._currentPage;
 		} else if (typeof page == 'number') {
 			page = this._pages[page];
 		}
 
-		$(page).focus();
+		return $(page);
+	},
+	getPageIndex: function(page) {
+		var $page = this.getPage(page);
+
+		return $page.parent().index();
+	},
+	goToPage: function(page) {
+		$page = this.getPage(page);
+
+		$page.focus();
+
+		this._currentPage = $page;
 	},
 	_getPageDimentions: function() {
 		var format = LibreOffice.Writer.paperFormat(this._paperFormat);
@@ -541,7 +600,7 @@ LibreOffice.Writer.prototype = {
 
 		return {
 			width: docWidth,
-			height: docHeight
+			minHeight: docHeight
 		};
 	},
 	setPaperFormat: function(name) {
@@ -560,46 +619,44 @@ LibreOffice.Writer.prototype = {
 	_addPage: function() {
 		var that = this;
 
+		var pageContainer = $('<div></div>', { 'class': 'page-container' });
+
 		var page = $('<div></div>', { 'class': 'page cursor-text', contenteditable: 'true' });
+
+		var previousText = '';
+
 		page
 			.css(this._getPageDimentions())
-			.keyup(function(e) {
-				if (page[0].scrollHeight > page[0].clientHeight) {
-					if (page.index() == that._pages.last().index()) { //Last page, add one more
-						var newPage = that._addPage();
-						newPage.focus();
-					} else {
-						that.goToPage(page.index() + 1);
-					}
-				}
-			})
 			.focus(function() {
-				that._currentPage = $(this);
+				that._currentPage = page;
 			})
-			.appendTo(this._container.scrollPane('content'));
+			.appendTo(pageContainer);
+
+		pageContainer.appendTo(this._container.scrollPane('content'));
 
 		this._pages = this._pages.add(page);
 
 		this._container.scrollPane('reload');
 
+		that.goToPage(page);
+
 		return page;
 	},
 	_removePage: function(page) {
-		if (typeof page == 'undefined') {
-			page = this._currentPage;
-		} else if (typeof page == 'number') {
-			page = this._pages[page];
-		}
-		$page = $(page);
+		var $page = this.getPage(page);
 
-		this._currentPage = this._pages[$page.index() - 1];
+		var pageIndex = this.getPageIndex($page);
+
+		this._currentPage = this.getPage(pageIndex - 1);
 		this._pages = this._pages.not($page);
 
-		$page.empty().remove();
+		$page.empty().parent().remove();
 
 		this._container.scrollPane('reload');
 
-		this.goToPage();
+		var previousPage = this.getPage(pageIndex - 1);
+		this.goToPage(previousPage);
+		previousPage.focusEnd();
 	}
 };
 Webos.inherit(LibreOffice.Writer, Webos.Observable);
