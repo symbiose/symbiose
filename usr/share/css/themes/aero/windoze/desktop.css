@@ -155,9 +155,6 @@ li {
 	overflow:hidden;
 	padding:0 0 40px;
 	margin:0;
-	-moz-box-sizing:padding-box;
-	-webkit-box-sizing:padding-box;
-	box-sizing:padding-box;
 	position:absolute;
 	top: 0;
 	left: 0;
