@@ -10,6 +10,7 @@ $(function() { //When the window is ready
 	Webos.Script.load('boot/lib/error.js');
 	Webos.Script.load('boot/lib/model.js');
 	Webos.Script.load('boot/lib/callback.js');
+	Webos.Script.load('boot/lib/operation.js');
 	Webos.Script.load('boot/lib/servercall.js');
 
 	//Webos.ServerCall library loaded, we can now use Webos.ScriptFile.load()
