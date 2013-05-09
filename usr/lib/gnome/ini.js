@@ -43,20 +43,22 @@ Webos.Translation.load(function(t) {
 			desktopFiles = emptyDesktopFiles;
 		} else {
 			//On charge le contenu du bureau
-			var nautilusDesktopFiles = $.w.nautilus({
-				multipleWindows: true,
-				directory: t.get('~/Desktop')
+			Webos.require('/usr/lib/nautilus/widgets.js', function() {
+				var nautilusDesktopFiles = $.w.nautilus({
+					multipleWindows: true,
+					directory: t.get('~/Desktop')
+				});
+
+				nautilusDesktopFiles.one('nautilusreadcomplete', function() {
+					resizeDesktopFn();
+				}).one('nautilusreaderror', function(e, data) {
+					data.response.logError();
+					return false;
+				});;
+
+				desktopFiles.replaceWith(nautilusDesktopFiles);
+				desktopFiles = nautilusDesktopFiles;
 			});
-
-			nautilusDesktopFiles.one('nautilusreadcomplete', function() {
-				resizeDesktopFn();
-			}).one('nautilusreaderror', function(e, data) {
-				data.response.logError();
-				return false;
-			});;
-
-			desktopFiles.replaceWith(nautilusDesktopFiles);
-			desktopFiles = nautilusDesktopFiles;
 
 			GnomeScreenSaver.loadConfig();
 		}

@@ -410,7 +410,7 @@ Webos.User._startPingTimer = function () {
 			}
 
 			var lastCall = Webos.ServerCall.getCompletedCalls().pop(); //On recupere le dernier appel au serveur
-			if (lastCall.completeTime && new Date().getTime() - lastCall.completeTime.getTime() >= Webos.User._pingInterval - 1) {
+			if (lastCall && lastCall._completeTime && new Date().getTime() - lastCall._completeTime.getTime() >= Webos.User._pingInterval - 1) {
 				Webos.User.logged = null;
 				Webos.User.get([function(user) {
 					if (!user) {
