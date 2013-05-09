@@ -135,6 +135,8 @@ Webos.require([
 	Webos.inherit(NautilusFileSelectorWindow, Webos.Observable); //Heritage de Webos.Observable
 	Webos.inherit(NautilusFileSelectorWindow, Webos.TranslatedLibrary); //Heritage de Webos.TranslatedLibrary
 
+	window.NautilusFileSelectorWindow = NautilusFileSelectorWindow; //Export API
+
 	var NautilusDeviceMounterWindow = function NautilusDeviceMounterWindow(driver) {
 		Webos.Observable.call(this);
 		
@@ -329,6 +331,8 @@ Webos.require([
 	};
 	Webos.inherit(NautilusDeviceMounterWindow, Webos.Observable); //Heritage de Webos.Observable
 	Webos.inherit(NautilusDeviceMounterWindow, Webos.TranslatedLibrary); //Heritage de Webos.TranslatedLibrary
+
+	window.NautilusDeviceMounterWindow = NautilusDeviceMounterWindow; //Export API
 
 	var NautilusWindow = function NautilusWindow(dir, userCallback) {
 		Webos.Observable.call(this);
@@ -598,4 +602,6 @@ Webos.require([
 	};
 	Webos.inherit(NautilusWindow, Webos.Observable); //Heritage de Webos.Observable
 	Webos.inherit(NautilusWindow, Webos.TranslatedLibrary); //Heritage de Webos.TranslatedLibrary
+
+	window.NautilusWindow = NautilusWindow; //Export API
 });
