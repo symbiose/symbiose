@@ -558,7 +558,7 @@
 
 						var data = JSON.parse(json); //On essaie de recuperer les donnees JSON
 					} catch (jsonError) { //Si une erreur survient
-						var error = (data) ? data : 'An error occurred while loading a server call';
+						var error = (json) ? json : 'An error occurred while loading a server call';
 						
 						for (var i = 0; i < that._requests.length; i++) {
 							var errorAndStack = error + "\n" + that._requests[i].stack();
