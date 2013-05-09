@@ -96,7 +96,7 @@
 			}
 		}, callback.error]);
 	};
-	Reviver.saveSync = function $_WCompiz_Reviver_save(callback) {
+	Reviver.saveSync = function $_WCompiz_Reviver_saveSync(callback) {
 		callback = Webos.Callback.toCallback(callback);
 
 		var data = Reviver._getSessionData();

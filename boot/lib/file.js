@@ -1358,7 +1358,7 @@ Webos.WebosFile.prototype = {
 		});
 
 		call.bind('success', function(data) {
-			var response = data.response;
+			var response = data.result;
 
 			that._contents = contents;
 

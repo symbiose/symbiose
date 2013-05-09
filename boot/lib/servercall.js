@@ -115,15 +115,15 @@
 				async: (that._options.async === false) ? false : true,
 				context: that,
 				dataType: 'text',
-				success: function(data, textStatus, jqXHR) { //En cas de succes
+				success: function(json, textStatus, jqXHR) { //En cas de succes
 					try {
-						if (!data) {
+						if (!json) {
 							throw new Webos.Error('Empty response');
 						}
 
-						var json = jQuery.parseJSON(data); //On essaie de recuperer les donnees JSON
+						var data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
 					} catch (jsonError) { //Si une erreur survient
-						var error = (data) ? data : 'An error occurred while loading a server call';
+						var error = (json) ? json : 'An error occurred while loading a server call';
 						error += "\n"+that.stack();
 						
 						var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
@@ -140,7 +140,7 @@
 						return; //On stoppe l'execution de la fonction
 					}
 					
-					var response = new W.ServerCall.Response(json); //On cree la reponse
+					var response = new W.ServerCall.Response(data); //On cree la reponse
 					
 					that.setCompleted(response);
 				},
