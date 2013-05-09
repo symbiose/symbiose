@@ -10,6 +10,17 @@ Webos.inherit = function(C, P) {
 	C.uber = P.prototype;
 	C._parent = P;
 	C.prototype.constructor = C;
+	C.prototype._super = function(attr) {
+		if (typeof this.constructor.uber[attr] == 'function') {
+			var args = [];
+			for (var i = 1; i < arguments.length; i++) {
+				args.push(arguments[i]);
+			}
+			return this.constructor.uber[attr].apply(this, args);
+		} else if (typeof this.constructor.uber[attr] != 'undefined') {
+			return this.constructor.uber[attr];
+		}
+	};
 };
 
 /**
