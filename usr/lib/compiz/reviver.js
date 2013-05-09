@@ -104,7 +104,7 @@
 		Webos.User.get([function(user) {
 			if (user) {
 				var call = Webos.File.get('~/.cache/compiz/saved-session.json')._writeAsText(JSON.stringify(data));
-				call.options.async = false;
+				call._options.async = false;
 				call.load([function() {
 					callback.success();
 				}, callback.error]);
