@@ -556,7 +556,7 @@
 							throw new Webos.Error('Empty response');
 						}
 
-						var data = JSON.parse(json); //On essaie de recuperer les donnees JSON
+						var data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
 					} catch (jsonError) { //Si une erreur survient
 						var error = (json) ? json : 'An error occurred while loading a server call';
 						
