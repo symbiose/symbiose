@@ -18,7 +18,7 @@ function FirefoxWindow(url) {
 	this._homePage = 'http://www.duckduckgo.com/html?kd=-1&kn=-1';
 
 	this._proxyEnabled = false;
-	this._proxyUrl = '../phproxy/';
+	this._proxyUrl = '../phproxy-improved/';
 	this._proxyFlags = {
 		'include_form'    : false,
 		'remove_scripts'  : false,
