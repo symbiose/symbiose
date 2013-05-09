@@ -277,11 +277,11 @@
 	margin-right: 4px;
 	list-style-type:none;
 	vertical-align: middle;
-	-moz-user-select: none;
+	/*-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
 	-o-user-select: none;
-	user-select: none;
+	user-select: none;*/
 	max-width: 35%;
 	white-space: nowrap;
 	overflow: hidden;
