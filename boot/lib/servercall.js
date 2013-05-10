@@ -123,7 +123,7 @@
 
 						var data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
 					} catch (jsonError) { //Si une erreur survient
-						var error = (json) ? json : 'An error occurred while loading a server call';
+						var error = 'Malformed JSON data ('+jsonError.name+'): '+jsonError.message+'. Data :'+"\n"+json;
 						error += "\n"+that.stack();
 						
 						var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
@@ -558,8 +558,8 @@
 
 						var data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
 					} catch (jsonError) { //Si une erreur survient
-						var error = (json) ? json : 'An error occurred while loading a server call';
-						
+						var error = 'Malformed JSON data ('+jsonError.name+'): '+jsonError.message+'. Data :'+"\n"+json;
+
 						for (var i = 0; i < that._requests.length; i++) {
 							var errorAndStack = error + "\n" + that._requests[i].stack();
 							var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
