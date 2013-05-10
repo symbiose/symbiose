@@ -45,6 +45,19 @@ Webos.DataFile.prototype = {
 			callback.success(that);
 		}]);
 	},
+	set: function(key, value) {
+		this._set(key, value);
+	},
+	/**
+	 * Set this file's data.
+	 * @param {Object} newData The new data.
+	 */
+	setData: function(newData) {
+		for (var key in newData) {
+			var value = newData[key];
+			this.set(key, value);
+		}
+	},
 	sync: function (callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
