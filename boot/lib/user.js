@@ -261,12 +261,12 @@ Webos.User.logged = null;
 /**
  * Get a user.
  * @param {Webos.Callback} callback The callback.
- * @param {String}         [user]   The username. If not provided, this will be set to the currently logged in user.
+ * @param {Number}         [userId] The user ID. If not provided, this will be set to the currently logged in user.
  */
-Webos.User.get = function(callback, user) {
+Webos.User.get = function(callback, userId) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	if (!user) {
+	if (!userId) {
 		if (!Webos.User.logged || !Webos.User.cache[Webos.User.logged]) {
 			Webos.User.getLogged([function(user) {
 				callback.success(user);
@@ -276,19 +276,17 @@ Webos.User.get = function(callback, user) {
 		}
 		return;
 	}
-	
-	for (var id in Webos.User.cache) {
-		if (Webos.User.cache[id].get('username') === user) {
-			callback.success(Webos.User.cache[id]);
-			return;
-		}
+
+	if (typeof Webos.User.cache[userId] != 'undefined') {
+		callback.success(Webos.User.cache[userId]);
+		return;
 	}
-	
+
 	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'getAttributes',
 		'arguments': {
-			'user': user
+			'userId': userId
 		}
 	}).load(new Webos.Callback(function(response) {
 		var data = response.getData();
@@ -320,7 +318,7 @@ Webos.User.getLogged = function(callback) {
 	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'getLogged'
-	}).load(new Webos.Callback(function(response) {
+	}).load([function(response) {
 		var data = response.getData();
 		if (data.id) {
 			var user = new Webos.User(data.id, data);
@@ -332,7 +330,38 @@ Webos.User.getLogged = function(callback) {
 			Webos.User.logged = false;
 			callback.success();
 		}
-	}, callback.error));
+	}, callback.error]);
+};
+
+/**
+ * Get a user, given his username.
+ * @param {Webos.Callback} callback The callback.
+ * @param {String}         [user]   The username.
+ */
+Webos.User.getByUsername = function(username, callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	for (var id in Webos.User.cache) {
+		if (Webos.User.cache[id].get('username') === username) {
+			callback.success(Webos.User.cache[id]);
+			return;
+		}
+	}
+
+	return new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'getAttributesByUsername',
+		'arguments': {
+			'username': username
+		}
+	}).load(new Webos.Callback(function(response) {
+		var data = response.getData();
+		var user = new Webos.User(data.id, data);
+		Webos.User.cache[user.id()] = user;
+		callback.success(user);
+	}, function(response) {
+		callback.error(response);
+	}));
 };
 
 /**

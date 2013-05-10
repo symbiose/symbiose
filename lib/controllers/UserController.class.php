@@ -157,6 +157,23 @@ class UserController extends \lib\ServerCallComponent {
 	}
 
 	/**
+	 * Recuperer tous les attributs d'un utilisateur, en fournissant son nom d'utilisateur.
+	 * @param string $username Le nom d'utilisateur.
+	 */
+	protected function getAttributesByUsername($username) {
+		$list = $this->webos->managers()->get('User')->getUsersList();
+
+		foreach($list as $userId => $userData) {
+			if ($userData['username'] == $username) {
+				$userData['id'] = $userId;
+				return $userData;
+			}
+		}
+
+		throw new \InvalidArgumentException('There is no user with username "'.$username.'"');
+	}
+
+	/**
 	 * Recuperer la liste des utilisateurs.
 	 */
 	protected function getList() {

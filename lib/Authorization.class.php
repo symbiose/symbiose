@@ -192,7 +192,12 @@ class Authorization extends \lib\WebosComponent {
 				break;
 			case 'user':
 				if (($argumentAction == 'read' || $argumentAction == 'edit') && $this->webos->getUser()->isConnected() && $this->webos->getUser()->getId() == (int) $providedArgument) {
-					return true;
+					if (is_int($providedArgument) && $this->webos->getUser()->getId() == (int) $providedArgument) {
+						return true;
+					}
+					if (is_string($providedArgument) && $this->webos->getUser()->getAttribute('username') == $providedArgument) {
+						return true;
+					}
 				}
 				return 'user.'.$argumentAction;
 			default:

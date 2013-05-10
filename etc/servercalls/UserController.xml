@@ -19,6 +19,9 @@
 		<argument id="0" type="user" action="read"/>
 	</method>
 	<method name="getLogged"></method>
+	<method name="getAttributesByUsername">
+		<argument id="0" type="user" action="read"/>
+	</method>
 	<method name="getList">
 		<authorization action="user.read"/>
 	</method>
