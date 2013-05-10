@@ -75,7 +75,7 @@ Webos.Model.prototype = {
 	 * @returns {Object} The data.
 	 */
 	data: function() {
-		return this._data;
+		return _.clone(this._data);
 	},
 	/**
 	 * Set a value associated with a key in the model's data.
