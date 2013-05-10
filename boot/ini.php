@@ -10,6 +10,7 @@ session_start(); //On demarre les sessions
 chdir(dirname(__FILE__).'/..'); //On se place a la racine
 
 //On definit le fuseau horaire par defaut
+setlocale(LC_ALL, 'en_GB.utf8');
 date_default_timezone_set('Europe/Paris');
 
 //On definit le temps d'execution maximum
