@@ -21,18 +21,29 @@ Webos.DataFile.prototype = {
 		var that = this;
 
 		return this._file.readAsText([function(json) {
-			var data = $.parseJSON(json), updatedData = {};
+			var data;
+			try {
+				data = jQuery.parseJSON(json)
+			} catch(jsonError) {
+				callback.error(jsonError);
+				return;
+			}
+
+			var updatedData = {};
 			for (var key in data) {
 				if (that.get(key) !== data[key]) {
 					updatedData[key] = data[key];
 				}
 			}
 			that.hydrate(updatedData);
+
 			callback.success(that);
 			for (var key in updatedData) {
 				that.trigger('update', { key: key, value: updatedData[key] });
 			}
-		}, callback.error]);
+		}, function(response) {
+			callback.success(that);
+		}]);
 	},
 	sync: function (callback) {
 		callback = Webos.Callback.toCallback(callback);
@@ -91,7 +102,7 @@ Webos.DataFile.get = function (path, data) {
  * @param  {Webos.Callback} callback The callback.
  */
 Webos.DataFile.load = function (path, callback) {
-	var file = Webos.File.get(path);
+	var file = Webos.DataFile.get(path);
 
 	return file.load(callback);
 };
