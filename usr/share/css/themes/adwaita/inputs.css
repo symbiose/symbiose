@@ -2,7 +2,7 @@ textarea {
 	resize: none;
 }
 
-input[type="text"], input[type="password"] {
+input[type="text"], input[type="password"], input[type="number"], input[type="email"] {
 	width: 170px;
 	border: 1px solid #b0b3ab;
 	-moz-border-radius: 4px;
@@ -10,7 +10,8 @@ input[type="text"], input[type="password"] {
 	border-radius: 4px;
 }
 
-input[type="text"]:focus, input[type="password"]:focus {
+input[type="text"]:focus, input[type="password"]:focus,
+input[type="number"]:focus, input[type="email"]:focus {
 	border:1px solid #599fea;
 	outline: none;
 }
