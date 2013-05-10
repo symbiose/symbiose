@@ -1330,8 +1330,7 @@ $.webos.window.allToBackground = function() { //Envoyer toutes les fenetres a l'
 $.webos.window.allToBackGroundExcluding = function(excludedWindow) { //Envoyer ttes les fenetres a l'arriere-plan sauf la fenetre specifiee
 	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
 	$list.each(function() {
-		if ($(this).window('id') != excludedWindow.window('id')) {
-			console.log($(this).window('id'));
+		if ($(this).window('id') != $(excludedWindow).window('id')) {
 			$(this).window('toBackground');
 		}
 	});
