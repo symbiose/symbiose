@@ -1256,11 +1256,11 @@ $.webos.widget('listItem', 'container', {
 				}
 
 				list.list('selection', range[0]+'-'+range[1]);
+
+				e.preventDefault();
 			} else {
 				that.active(true, !$.webos.keyboard.pressed('ctrl'));
 			}
-
-			e.preventDefault();
 		});
 		
 		this.active(this.options.active);
