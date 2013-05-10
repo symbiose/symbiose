@@ -1657,9 +1657,9 @@ $.webos.widget('textEntry', 'checkableEntry', {
 	_create: function() {
 		this._super('_create');
 		
-		this.options._content = $('<input />', { type: 'text' }).val(this.options.defaultValue);
+		this.options._content = $('<input />', { type: 'text' });
 		this.element.append(this.options._content);
-		
+
 		this.value(this.options.value);
 	}
 });
@@ -1749,6 +1749,8 @@ $.webos.widget('searchEntry', 'entry', {
 		
 		this.options._content = $('<input />', { type: 'text' });
 		this.element.append(this.options._content);
+
+		this.value(this.options.value);
 	}
 });
 $.webos.searchEntry = function(label) {
@@ -1777,7 +1779,7 @@ $.webos.passwordEntry = function(label) {
 
 //NumberEntry
 $.webos.widget('numberEntry', 'checkableEntry', {
-	_name: 'password-entry',
+	_name: 'number-entry',
 	options: {
 		min: null,
 		max: null,
@@ -1792,6 +1794,8 @@ $.webos.widget('numberEntry', 'checkableEntry', {
 		this.option('min', this.options.min);
 		this.option('max', this.options.max);
 		this.option('step', this.options.step);
+
+		this.value(this.options.value);
 	},
 	_update: function(key, value) {
 		switch (key) {
