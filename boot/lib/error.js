@@ -21,10 +21,10 @@ Webos.Error = function WError(message, details) {
 	this.details = (typeof details != 'undefined' && details !== null && typeof details.toString == 'function') ? trim(details.toString()) : '';
 
 	this.html = {
-		message: this.message.replace("\n",'<br />').replace(/"([^"]+)"/g, '<em>$1</em>'),
-		details: this.details.replace("\n",'<br />').replace(/"([^"]+)"/g, '<em>$1</em>'),
-		process: (this.process) ? 'Process : '+this.process.getPid()+'; command : <em>'+this.process.cmdText+'</em>' : '',
-		text: (this.message + ((this.details != '') ? ("\n"+this.details) : '')).replace("\n",'<br />').replace(/"([^"]+)"/g, '<em>$1</em>')
+		message: this.message.replace("\n",'<br />'),
+		details: this.details.replace("\n",'<br />'),
+		process: (this.process) ? 'Process : '+this.process.getPid()+'; command : "'+this.process.cmdText+'"' : '',
+		text: (this.message + ((this.details != '') ? ("\n"+this.details) : '')).replace("\n",'<br />')
 	};
 
 	this.message = $('<span></span>').html(this.message).text(); //On enleve les tags HTML
