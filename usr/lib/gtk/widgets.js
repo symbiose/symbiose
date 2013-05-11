@@ -1797,6 +1797,13 @@ $.webos.widget('numberEntry', 'checkableEntry', {
 
 		this.value(this.options.value);
 	},
+	value: function(value) {
+		if (typeof value == 'undefined') {
+			return parseInt(this.content().val());
+		} else if (this.value() != value) {
+			this.content().val(value);
+		}
+	},
 	_update: function(key, value) {
 		switch (key) {
 			case 'min':
