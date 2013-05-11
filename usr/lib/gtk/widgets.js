@@ -1610,6 +1610,8 @@ $.webos.widget('checkableEntry', 'entry', {
 		this.option('autoCheck', this.options.autoCheck);
 	},
 	_update: function(key, value) {
+		this._super(key, value);
+
 		switch(key) {
 			case 'autoCheck':
 				if (value) {
@@ -1805,6 +1807,8 @@ $.webos.widget('numberEntry', 'checkableEntry', {
 		}
 	},
 	_update: function(key, value) {
+		this._super(key, value);
+
 		switch (key) {
 			case 'min':
 			case 'max':
@@ -1844,6 +1848,8 @@ $.webos.widget('textAreaEntry', 'checkableEntry', {
 		this.option('label', this.options.label);
 	},
 	_update: function(key, value) {
+		this._super(key, value);
+
 		switch (key) {
 			case 'label':
 				this.options._components.br.toggle((value) ? true : false);
@@ -1970,6 +1976,8 @@ $.webos.widget('selectButton', 'entry', {
 		}
 	},
 	_update: function(key, value) {
+		this._super(key, value);
+
 		switch(key) {
 			case 'choices':
 				this._setChoices(value);
