@@ -65,7 +65,10 @@ W.Application.list([function(apps) {
 				}
 
 				if (nbrChoices == 0) {
-					item.selectButton('option', 'choices', { '': 'No application available' });
+					item.selectButton('option', {
+						choices: { '': 'No application available' },
+						disabled: true
+					});
 				}
 
 				item.appendTo(content);
