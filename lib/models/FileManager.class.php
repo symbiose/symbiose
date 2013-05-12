@@ -36,9 +36,28 @@ class FileManager extends \lib\Manager {
 		$cacheFile = '/var/cache/diskusage.json';
 
 		if (empty($this->quotas)) {
-			$config = new Config($this->webos);
-			$config->load('/etc/quotas.xml');
-			$this->quotas['home'] = (int) $config->get('home');
+			$dataFile = new DataFile($this->webos);
+			if ($dataFile->load('/etc/quotas.json') !== false) {
+				$quotasData = $dataFile->getData();
+				
+				if ($this->webos->getUser()->isConnected()) {
+					$username = $this->webos->getUser()->getAttribute('username');
+					if (isset($quotasData['specific'][$username])) {
+						$userQuotas = $quotasData['specific'][$username];
+					}
+				}
+
+				if (!isset($userQuotas)) {
+					if (!isset($quotasData['global'])) {
+						$quotasData['global'] = array('home' => -1);
+					}
+
+					$userQuotas = $quotasData['global'];
+				}
+
+				$this->quotas = array();
+				$this->quotas['home'] = (int) $userQuotas['home'];
+			}
 		}
 
 		$usersSizes = null;
@@ -58,7 +77,7 @@ class FileManager extends \lib\Manager {
 
 		foreach($paths as $name => $dirname) {
 			if (strpos($path, $dirname) === 0) {
-				if ($this->quotas[$name] == -1)
+				if ($this->quotas[$name] < 0)
 					continue;
 
 				if (!array_key_exists($name, $this->sizes)) {
@@ -72,7 +91,7 @@ class FileManager extends \lib\Manager {
 				}
 
 				$dirAvailableSpace = $this->quotas[$name] - $this->sizes[$name];
-				if ($availableSpace == -1 or $dirAvailableSpace < $availableSpace) {
+				if ($availableSpace == -1 || $dirAvailableSpace < $availableSpace) {
 					$availableSpace = $dirAvailableSpace;
 				}
 			}

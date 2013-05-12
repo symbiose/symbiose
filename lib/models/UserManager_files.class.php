@@ -184,23 +184,11 @@ class UserManager_files extends UserManager {
 		$users = $xml->getElementsByTagName('user');
 
 		$lastId = 0;
-		$nbrUsers = 0;
 
 		foreach ($users as $user) {
 			if ((int) $user->getAttribute('id') > $lastId) {
 				$lastId = (int) $user->getAttribute('id');
 			}
-			$nbrUsers++;
-		}
-
-		//Verification du quota d'utilisateurs
-		$config = new Config($this->webos);
-		$config->load('/etc/quotas.xml');
-		$maxUsers = (int) $config->get('accounts');
-
-		if ($maxUsers != -1 && $nbrUsers + 1 > $maxUsers) {
-			$s = ($nbrUsers > 1) ? 's' : '';
-			throw new \RuntimeException('Le nombre maximal de comptes est atteint ('.$nbrUsers.' compte'.$s.' cr&eacute;&eacute;'.$s.')');
 		}
 
 		$userId = $lastId + 1;

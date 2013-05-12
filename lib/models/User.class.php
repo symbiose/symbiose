@@ -43,14 +43,14 @@ class User extends \lib\WebosComponent {
 
 				//On verifie que l'utilisateur est bien active
 				if (isset($userData['disabled']) && (int) $userData['disabled'] == 1) {
-					throw new \Exception('L\'utilisateur "'.$userData['username'].'" est d&eacute;sactiv&eacute;');
+					throw new \Exception('User "'.$userData['username'].'" is disabled');
 				}
 
 				//On teste le mot de passe
 				if ($this->webos->managers()->get('User')->encodePassword($password) != $this->webos->managers()->get('User')->getPassword($this)) {
-					//On stoppe le script pendant 4 secondes pour eviter l'attque par force brute
+					//On stoppe le script pendant 4 secondes pour eviter l'attqque par force brute
 					sleep(4);
-					throw new \InvalidArgumentException('Le nom d\'utilisateur ou le mot de passe est incorrect');
+					throw new \InvalidArgumentException('Bad username or password');
 				}
 
 				$filesManager = $this->webos->managers()->get('File');
@@ -68,9 +68,9 @@ class User extends \lib\WebosComponent {
 			}
 		}
 
-		//On stoppe le script pendant 4 secondes pour eviter l'attque par force brute
+		//On stoppe le script pendant 4 secondes pour eviter l'attqque par force brute
 		sleep(4);
-		throw new \InvalidArgumentException('Le nom d\'utilisateur ou le mot de passe est incorrect');
+		throw new \InvalidArgumentException('Bad username or password');
 	}
 
 	/**

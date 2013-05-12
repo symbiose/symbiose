@@ -31,7 +31,7 @@ Webos.DataFile.prototype = {
 
 			var updatedData = {};
 			for (var key in data) {
-				if (that.get(key) !== data[key]) {
+				if (that._get(key) !== data[key]) {
 					updatedData[key] = data[key];
 				}
 			}
@@ -45,8 +45,47 @@ Webos.DataFile.prototype = {
 			callback.success(that);
 		}]);
 	},
-	set: function(key, value) {
-		this._set(key, value);
+	get: function(key) {
+		return this.data()[key];
+	},
+	data: function() {
+		var cloneArray = function(arr) {
+			var clonedArr = [];
+
+			for (var i = 0; i < arr.length; i++) {
+				var value = arr[i];
+
+				clonedArr.push(clone(value));
+			}
+
+			return clonedObj;
+		};
+
+		var cloneObject = function(obj) {
+			var clonedObj = {};
+
+			for (var key in obj) {
+				var value = obj[key];
+
+				clonedObj[key] = clone(value);
+			}
+
+			return clonedObj;
+		};
+
+		var clone = function(value) {
+			if (_.isString(value) || _.isNumber(value) || _.isBoolean(value) || !value) {
+				return value;
+			} else if (_.isArray(value)) {
+				return cloneArray(value);
+			} else if (_.isObject(value)) {
+				return cloneObject(value);
+			} else {
+				return value;
+			}
+		};
+
+		return clone(this._data);
 	},
 	/**
 	 * Set this file's data.
@@ -63,34 +102,18 @@ Webos.DataFile.prototype = {
 		
 		var that = this;
 		
-		var data = {};
-		var nbrChanges = 0;
-		for (var key in this._unsynced) {
-			if (this._unsynced[key].state === 1) {
-				var value = this._unsynced[key].value;
-
-				data[key] = value;
-				
-				this._unsynced[key].state = 2;
-				nbrChanges++;
-			}
-		}
-		
-		if (nbrChanges === 0) {
+		if (!this.hasChanged()) {
 			callback.success(this);
 			return;
 		}
 
-		var json = JSON.stringify(jQuery.extend({}, this._data, data));
+		var json = JSON.stringify(jQuery.extend({}, this._data, this.changedData()));
+
+		var changedKeys = this._stageChanges();
 
 		return this._file.writeAsText(json, [function() {
-			for (var key in that._unsynced) {
-				if (that._unsynced[key].state === 2) {
-					that._data[key] = that._unsynced[key].value;
-					delete that._unsynced[key];
-					that.trigger('update', { key: key, value: that._data[key] });
-				}
-			}
+			that._propagateChanges(changedKeys);
+
 			callback.success(that);
 		}, callback.error]);
 	}

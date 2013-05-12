@@ -70,7 +70,7 @@ class UserController extends \lib\ServerCallComponent {
 	 * @throws InvalidArgumentException
 	 */
 	protected function setAttribute($attribute, $value, $userId = null) {
-		if ($attribute == 'disabled') {
+		if ($attribute == 'username' || $attribute == 'disabled') {
 			$authorisations = $this->webos->getAuthorization();
 			$requiredAuthorisation = $authorisations->getArgumentAuthorizations($userId, 'user', 'manage');
 			$authorisations->control($requiredAuthorisation);
@@ -245,16 +245,28 @@ class UserController extends \lib\ServerCallComponent {
 	 * Determiner si l'inscription est activee.
 	 */
 	protected function canRegister() {
+		$canRegister = true;
+
 		$config = new \lib\models\Config($this->webos);
 		$config->load('/etc/register.xml');
-		$canRegister = (int) $config->get('register');
+		$registrationEnabled = (int) $config->get('register');
+		if (!$registrationEnabled) {
+			$canRegister = false;
+		} else {
+			$maxUsers = (int) $config->get('maxUsers');
+			$nbrUsers = count($this->webos->managers()->get('User')->getUsersList());
+			if ($maxUsers >= 0 && $nbrUsers + 1 > $maxUsers) {
+				$canRegister = false;
+			}
+		}
 
-		return array('register' => ($canRegister) ? true : false);
+		return array('register' => $canRegister);
 	}
 
 	/**
 	 * Inscrire un nouvel utilisateur.
-	 * @param string $data Les informations sur l'utilisateur, encodees en JSON.
+	 * @param array $data Les informations sur l'utilisateur.
+	 * @param array $captchaData Les donnees du code de verification.
 	 */
 	protected function register($data, $captchaData) {
 		//Verification du captcha
@@ -265,11 +277,18 @@ class UserController extends \lib\ServerCallComponent {
 		//Chargement de la configuration
 		$config = new \lib\models\Config($this->webos);
 		$config->load('/etc/register.xml');
-		$canRegister = (int) $config->get('register');
+		$registrationEnabled = (int) $config->get('register');
+		$maxUsers = (int) $config->get('maxUsers');
 		$authorizations = explode(';', $config->get('authorizations'));
 
-		if (!$canRegister) {
-			throw new \RuntimeException('L\'inscription a &eacute;t&eacute; d&eacute;sactiv&eacute;e. Pour obtenir un compte, veuillez contacter l\'administrateur syst&egrave;me');
+		if (!$registrationEnabled) {
+			throw new \RuntimeException('Registration has been disabled');
+		}
+
+		//Verification du quota d'utilisateurs
+		$nbrUsers = count($this->webos->managers()->get('User')->getUsersList());
+		if ($maxUsers >= 0 && $nbrUsers + 1 > $maxUsers) {
+			throw new \RuntimeException('The maximum number of accounts has been reached');
 		}
 
 		//On inscrit le membre
