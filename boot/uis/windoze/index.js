@@ -14,11 +14,28 @@ $(document).scroll(function() {
 
 var loadThemeFn = function() {
 	//Chargement du theme
-	W.Theme.get(new W.Callback(function(theme) {
-		theme.load();
+	W.Theme.get([function(theme) {
+		theme.load(function() {
+			var bgRule = 'url("'+W.File.get(theme.get('background')).get('realpath')+'") no-repeat fixed center center / cover';
+
+			var windowCss = '.webos-window {', bgWindowCss = '.webos-window:not(.bg-window) {';
+			var vendorPrefixes = ['-moz-', '-webkit-', ''];
+			for (var i = 0; i < vendorPrefixes.length; i++) {
+				var vendorPrefix = vendorPrefixes[i];
+
+				windowCss += 'background: '+vendorPrefix+'linear-gradien(top, rgba(160,160,160,0.4) 0%, rgba(160,160,160,0.4) 100%), '+bgRule+';';
+				bgWindowCss += 'background: '+vendorPrefix+'linear-gradient(top, rgba(180,180,180,0.4) 0%, rgba(180,180,180,0.4) 100%), '+bgRule+';';
+			}
+
+			windowCss += '}';
+			bgWindowCss += '}';
+
+			Webos.Stylesheet.insertCss(windowCss, '#'+W.UserInterface.Booter.current().element().attr('id'));
+			Webos.Stylesheet.insertCss(bgWindowCss, '#'+W.UserInterface.Booter.current().element().attr('id'));
+		});
 	}, function(response) {
 		response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
-	}));
+	}]);
 };
 
 Webos.User.bind('login logout', function() {
@@ -152,20 +169,22 @@ Webos.Translation.load(function(t) {
 			desktopFiles = emptyDesktopFiles;
 		} else {
 			//On charge le contenu du bureau
-			var nautilusDesktopFiles = $.w.nautilus({
-				multipleWindows: true,
-				directory: t.get('~/Desktop')
+			Webos.require('/usr/lib/nautilus/widgets.js', function() {
+				var nautilusDesktopFiles = $.w.nautilus({
+					multipleWindows: true,
+					directory: t.get('~/Desktop')
+				});
+
+				nautilusDesktopFiles.one('nautilusreadcomplete', function() {
+					resizeDesktopFn();
+				}).one('nautilusreaderror', function(e, data) {
+					data.response.logError();
+					return false;
+				});;
+
+				desktopFiles.replaceWith(nautilusDesktopFiles);
+				desktopFiles = nautilusDesktopFiles;
 			});
-
-			nautilusDesktopFiles.one('nautilusreadcomplete', function() {
-				resizeDesktopFn();
-			}).one('nautilusreaderror', function(e, data) {
-				data.response.logError();
-				return false;
-			});;
-
-			desktopFiles.replaceWith(nautilusDesktopFiles);
-			desktopFiles = nautilusDesktopFiles;
 		}
 	};
 
