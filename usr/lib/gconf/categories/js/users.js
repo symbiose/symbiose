@@ -128,7 +128,7 @@ var editables = {
 			});
 			group.oneEach('error', function(data) {
 				confWindow.window('loading', false);
-				data.response.triggerError('Impossible de modifier les utilisateurs s&eacute;lectionn&eacute;s');
+				data.result.triggerError('Impossible de modifier les utilisateurs s&eacute;lectionn&eacute;s');
 			});
 		}
 	},
@@ -197,7 +197,7 @@ var editables = {
 				});
 				group.oneEach('error', function(data) {
 					confWindow.window('loading', false);
-					data.response.triggerError('Impossible de modifier les autorisations des utilisateurs s&eacute;lectionn&eacute;s');
+					data.result.triggerError('Impossible de modifier les autorisations des utilisateurs s&eacute;lectionn&eacute;s');
 				});
 			};
 
@@ -620,17 +620,37 @@ var refreshUsersListFn = function() {
 		}
 
 		removeButton.click(function() {
+			var msg;
+			if (!usersBeingEdited || usersBeingEdited.length() == 0) {
+				return;
+			} else if (usersBeingEdited.length() == 1) {
+				var user = usersBeingEdited.item(0);
+				msg = '&Ecirc;tes-vous s&ucirc;r de vouloir supprimer l\'utilisateur <em>'+user.get('username')+'</em> ?';
+			} else {
+				msg = '&Ecirc;tes-vous s&ucirc;r de vouloir supprimer les '+usersBeingEdited.length()+' utilisateurs s&eacute;lectionn&eacute;s ?';
+			}
+
 			var confirm = $.w.window.confirm({
 				parentWindow: confWindow,
-				label: '&Ecirc;tes-vous s&ucirc;r de vouloir supprimer l\'utilisateur <em>'+user.get('username')+'</em> ?',
+				label: msg,
 				confirm: function() {
 					confWindow.window('loading', true);
-					user.remove(new W.Callback(function() {
+
+					var calls = [];
+					usersBeingEdited.each(function() {
+						var call = this.remove([function() {}, function() {}]);
+
+						calls.push(call);
+					});
+
+					var group = Webos.Observable.group(calls);
+					group.one('success', function() {
 						confWindow.window('loading', false);
-					}, function(response) {
+					});
+					group.oneEach('error', function(data) {
 						confWindow.window('loading', false);
-						response.triggerError('Impossible de supprimer l\'utilisateur "'+user.get('username')+'"');
-					}));
+						data.result.triggerError('Impossible de supprimer les utilisateurs s&eacute;lectionn&eacute;s');
+					});
 				}
 			});
 			confirm.window('open');
