@@ -45,7 +45,8 @@ class Captcha extends \lib\WebosComponent {
 	protected function _save() {
 		if (empty($this->id)) {
 			$_SESSION['captcha'][] = serialize($this);
-			$this->id = array_pop(array_keys($_SESSION['captcha']));
+			$keys = array_keys($_SESSION['captcha']);
+			$this->id = array_pop($keys);
 		}
 		return $this->id;
 	}
