@@ -72,6 +72,7 @@ Webos.Error.setErrorHandler(function(error) {
 	
 	$.w.notification({
 		title: 'An error occured',
+		icon: new W.Icon('status/error'),
 		shortMessage: shortMessage,
 		message: message,
 		widgets: [
