@@ -160,7 +160,7 @@ class FileCall extends Webos {
 				break;
 			default:
 				$this->getHTTPResponse()->addHeader('HTTP/1.0 403 Forbidden');
-				throw new \InvalidArgumentException('Type de requ&ecirc;te de fichier "'.$requestType.'" inconnu');
+				throw new \InvalidArgumentException('Unknown request type "'.$requestType.'"');
 		}
 
 		$this->filename = $filename;
@@ -174,7 +174,7 @@ class FileCall extends Webos {
 
 		if ($file->isDir()) {
 			$this->getHTTPResponse()->addHeader('HTTP/1.0 403 Forbidden');
-			throw new \InvalidArgumentException('Ce fichier est un dossier');
+			throw new \InvalidArgumentException('This file is a directory');
 		}
 
 		$authorizations = new Authorization($this, $this->user);
@@ -193,22 +193,25 @@ class FileCall extends Webos {
 	public function run() {
 		$file = $this->managers()->get('File')->get($this->filename);
 
-		$cacheOffset = 7 * 24 * 3600;
 		$this->getHTTPResponse()->addHeader('Content-Type: '.$file->mime());
-		$this->getHTTPResponse()->addHeader('Content-Transfer-Encoding: binary');
-		$this->getHTTPResponse()->addHeader('Content-Length: ' . $file->size());
-		$this->getHTTPResponse()->addHeader('Cache-Control: max-age=' . $cacheOffset . ', must-revalidate');
-		$this->getHTTPResponse()->addHeader('Expires: ' . gmdate('D, d M Y H:i:s', time() + $cacheOffset) . ' GMT');
-		$this->getHTTPResponse()->removeHeader('Pragma');
 
-		//Desactivation de la compression des reponses
-		if (false && preg_match('#^(image|audio|video)/#', $file->mime())) {
+		$cacheOffset = 7 * 24 * 3600;
+		$this->getHTTPResponse()->addHeader('Cache-Control: max-age=' . $cacheOffset . ', must-revalidate');
+		$this->getHTTPResponse()->removeHeader('Pragma');
+		$this->getHTTPResponse()->removeHeader('Expires');
+
+		$useGzipCompression = (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') && extension_loaded('zlib') && !ini_get('zlib.output_compression'));
+
+		if ($useGzipCompression) {
 			ob_start('ob_gzhandler');
+		} else {
+			$this->getHTTPResponse()->addHeader('Content-Length: ' . $file->size());
 		}
 
 		readfile($file->realpath());
 
-		if (false) {
+		if ($useGzipCompression) {
+			$this->getHTTPResponse()->addHeader('Content-Length: ' . ob_get_length());
 			ob_end_flush();
 		}
 
