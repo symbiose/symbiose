@@ -17,6 +17,7 @@ $.webos.widget('window', 'container', {
 		maximizable: true,
 		hideable: true,
 		opened: false,
+		maximized: false,
 		parentWindow: $(),
 		childWindow: $(),
 		dialog: false
@@ -44,9 +45,17 @@ $.webos.widget('window', 'container', {
 		if (typeof this.options.stylesheet != 'undefined') {
 			this.stylesheet(this.options.stylesheet);
 		}
-		
-		var windowContents = this.element.html();
-		
+
+		var windowChildren = this.element.children();
+
+		var windowTitleEl = windowChildren.filter('h1');
+		if (windowTitleEl.length) {
+			this.options.title = windowTitleEl.text();
+			windowTitleEl.remove();
+		}
+
+		var windowContents = this.element.contents().detach();
+
 		this.element
 			.empty()
 			.css('position', 'absolute')
@@ -752,7 +761,7 @@ $.webos.widget('window', 'container', {
 		var that = this;
 		
 		this.options._components.header.bind('mousedown.window.widget.webos', function(e) {
-			if ($(e.target).is('.controllers, .header-specific ul *')) {
+			if ($(e.target).add($(e.target).parents()).is('.controllers, .header-specific ul *')) {
 				return;
 			}
 			
@@ -966,7 +975,13 @@ $.webos.widget('window', 'container', {
 		if (typeof stylesheet == 'undefined') {
 			return this.options.stylesheet;
 		} else {
-			new W.Stylesheet(stylesheet, this.selector());
+			var that = this;
+
+			Webos.require(stylesheet, function() {
+				that._trigger('stylesheetload', { type: 'stylesheetload' }, { window: that.element });
+			}, {
+				styleContainer: this.selector()
+			});
 		}
 	},
 	dialog: function(value) {

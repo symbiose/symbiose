@@ -85,6 +85,10 @@ $.webos.widget.is = function(element, widgetName) {
 	return $(element).is(':' + $.webos.widget.namespace() + '-' + widgetName);
 };
 
+$.webos.widget.list = function() {
+	return $[$.webos.widget.namespace()];
+};
+
 $.webos.widgets = [];
 $.webos.getWidgets = function(widgetName) {
 	if (widgetName) {
@@ -934,6 +938,38 @@ $.webos.image = function(src, title, loadHidden) {
 	});
 };
 
+//Image
+$.webos.widget('icon', 'image', {
+	options: {
+		src: new Webos.Icon(),
+		size: undefined
+	},
+	_create: function() {
+		this.option('size', this.options.size);
+	},
+	_update: function(key, value) {
+		switch(key) {
+			case 'src':
+				this.options.src = W.Icon.toIcon({
+					name: value,
+					size: this.options.size
+				});
+				this.load();
+				break;
+			case 'size':
+				this.options.src.size = parseInt(value);
+				this.load();
+				break;
+		}
+	}
+});
+$.webos.icon = function(src, title) {
+	return $('<img />').icon({
+		src: src,
+		title: title
+	});
+};
+
 
 //Progressbar
 $.webos.widget('progressbar', 'container', {
@@ -993,7 +1029,7 @@ $.webos.buttonContainer = function() {
 //Button
 $.webos.widget('button', 'container', {
 	options: {
-		label: 'Bouton',
+		label: '',
 		icon: undefined,
 		submit: false,
 		disabled: false,
@@ -1003,6 +1039,14 @@ $.webos.widget('button', 'container', {
 	_name: 'button',
 	_create: function() {
 		this._super('_create');
+
+		if (!this.options.label) {
+			if (!this.element.is(':empty') && !this.options.label) {
+				this.options.label = this.element.html();
+			} else {
+				this.options.label = 'Bouton';
+			}
+		}
 				
 		this._update('submit', this.options.submit);
 		this._update('label', this.options.label);
@@ -1663,6 +1707,7 @@ $.webos.widget('textEntry', 'checkableEntry', {
 		this.element.append(this.options._content);
 
 		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
 	}
 });
 $.webos.textEntry = function(label, value) {
@@ -1753,6 +1798,7 @@ $.webos.widget('searchEntry', 'entry', {
 		this.element.append(this.options._content);
 
 		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
 	}
 });
 $.webos.searchEntry = function(label) {
@@ -1770,6 +1816,8 @@ $.webos.widget('passwordEntry', 'checkableEntry', {
 		
 		this.options._content = $('<input />', { type: 'password' });
 		this.element.append(this.options._content);
+
+		this.option('disabled', this.options.disabled);
 	}
 });
 $.webos.passwordEntry = function(label) {
@@ -1798,6 +1846,7 @@ $.webos.widget('numberEntry', 'checkableEntry', {
 		this.option('step', this.options.step);
 
 		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
 	},
 	value: function(value) {
 		if (typeof value == 'undefined') {
@@ -1845,6 +1894,7 @@ $.webos.widget('textAreaEntry', 'checkableEntry', {
 		this.options._content = $('<textarea></textarea>').appendTo(this.element);
 		
 		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
 		this.option('label', this.options.label);
 	},
 	_update: function(key, value) {
@@ -1880,6 +1930,7 @@ $.webos.widget('checkButton', 'entry', {
 		this.element.prepend(this.content());
 		
 		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
 	},
 	value: function(value) {
 		if (typeof value == 'undefined') {
@@ -1924,6 +1975,7 @@ $.webos.widget('radioButton', 'entry', {
 		
 		this.element.prepend(this.options._content);
 		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
 	},
 	value: function(value) {
 		if (typeof value == 'undefined') {
@@ -1953,7 +2005,9 @@ $.webos.widget('selectButton', 'entry', {
 		
 		this.options._content = $('<select></select>').appendTo(this.element);
 		this._setChoices(this.options.choices);
+
 		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
 	},
 	_setChoices: function(choices) {
 		this.content().empty();
@@ -2027,6 +2081,7 @@ $.webos.widget('switchButton', 'entry', {
 		});
 		
 		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
 	},
 	_value: function(choice) {
 		choice = (choice) ? true : false;
