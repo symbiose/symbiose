@@ -203,7 +203,8 @@ class FileCall extends Webos {
 		$useGzipCompression = (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') && extension_loaded('zlib') && !ini_get('zlib.output_compression'));
 
 		if ($useGzipCompression) {
-			ob_start('ob_gzhandler');
+			ob_start(); //Main buffer
+			ob_start('ob_gzhandler'); //Gzip buffer
 		} else {
 			$this->getHTTPResponse()->addHeader('Content-Length: ' . $file->size());
 		}
@@ -211,8 +212,9 @@ class FileCall extends Webos {
 		readfile($file->realpath());
 
 		if ($useGzipCompression) {
+			ob_end_flush(); //Flush gzip buffer
 			$this->getHTTPResponse()->addHeader('Content-Length: ' . ob_get_length());
-			ob_end_flush();
+			ob_end_flush(); //Flush main buffer
 		}
 
 		//On envoie la reponse HTTP
