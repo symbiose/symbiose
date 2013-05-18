@@ -90,14 +90,14 @@ Webos.Icon.toIcon = function(arg) {
 	
 	if (arg instanceof Array) {
 		if (typeof arg[0] == 'string') {
-			return new Webos.Icon(String(arg[0]), String(arg[1]), String(arg[2]));
+			return new Webos.Icon(arg[0], arg[1], arg[2]);
 		}
 	}
 	
 	switch (typeof arg) {
 		case 'object':
 			if (arg.name) {
-				return new Webos.Icon(String(arg.name), String(arg.size), String(arg.theme));
+				return new Webos.Icon(arg.name, arg.size, arg.theme);
 			}
 		case 'string':
 			return new Webos.Icon(arg);
