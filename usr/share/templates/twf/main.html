@@ -1,0 +1,49 @@
+<x-window width="400">
+	<h1>The Widget Factory</h1>
+
+	<p>This is a test window.</p>
+
+	<p>
+		<x-button>Hello World !</x-button>
+		<x-button disabled>I'm disabled !</x-button>
+	</p>
+
+	<p>
+		<x-textEntry value="You can enter some text here..."></x-textEntry>
+		<x-textEntry value="But not there !" disabled></x-textEntry>
+	</p>
+
+	<p>
+		<x-passwordEntry label="Password : "></x-passwordEntry>
+	</p>
+
+	<p>
+		<x-radioButtonContainer>
+			<x-radioButton label="Choice 1"></x-radioButton>
+			<x-radioButton label="Choice 2" value="1"></x-radioButton>
+		</x-radioButtonContainer>
+
+		<x-radioButtonContainer>
+			<x-radioButton label="Choice 1" disabled></x-radioButton>
+			<x-radioButton label="Choice 2" value="1" disabled></x-radioButton>
+		</x-radioButtonContainer>
+	</p>
+
+	<p>
+		<x-checkButton label="Choice 1"></x-checkButton>
+		<x-checkButton label="Choice 2" value="1"></x-checkButton>
+		<x-checkButton label="Choice 3" disabled></x-checkButton>
+		<x-checkButton label="Choice 4" value="1" disabled></x-checkButton>
+	</p>
+
+	<p>
+		<x-switchButton></x-switchButton>
+		<x-switchButton value="1"></x-switchButton>
+		<x-switchButton disabled></x-switchButton>
+		<x-switchButton value="1" disabled></x-switchButton>
+	</p>
+
+	<p>
+		<x-progressbar value="50"></x-progressbar>
+	</p>
+</x-window>
