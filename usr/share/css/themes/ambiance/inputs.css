@@ -169,6 +169,7 @@ input[type="submit"][disabled]:active,
 }
 
 .webos-progressbar {
+	display: block;
 	min-height: 12px;
 	min-width: 75px;
 	color: white;
