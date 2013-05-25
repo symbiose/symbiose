@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userinterface>
+	<attribute name="displayname" value="CLI"/>
+	<includes>
+		<file path="/usr/share/css/cli/main.css"/>
+	</includes>
+</userinterface>
