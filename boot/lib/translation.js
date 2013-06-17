@@ -471,6 +471,7 @@ Webos.TranslatedLibrary.prototype = {
 
 //Locales
 
+//English (UK)
 new Webos.Locale({
 	title: 'English (United Kingdom)',
 	integerGroupsSeparator: ',',
@@ -543,6 +544,7 @@ new Webos.Locale({
 	}
 }, 'en_EN');
 
+//French (France)
 new Webos.Locale({
 	title: 'Fran&ccedil;ais (France)',
 	integerGroupsSeparator: ' ',
@@ -575,8 +577,9 @@ new Webos.Locale({
 	}
 }, 'fr_FR');
 
+//German
 new Webos.Locale({
-	title: 'Deutsch (Deutschland)',
+	title: 'Deutsch',
 	integerGroupsSeparator: ' ',
 	decimalSeparator: ',',
 	days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
@@ -604,6 +607,32 @@ new Webos.Locale({
 		return this.number(value) + ' ' + this._get('currency');
 	}
 }, 'de_DE');
+
+//Italian
+new Webos.Locale({
+	title: 'Italian',
+	integerGroupsSeparator: ' ',
+	decimalSeparator: ',',
+	days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+	months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+	currency: '&#x20AC;'
+}, {
+	date: function(date) {
+		return this.day(date.getDay()) + ' ' + 
+			date.getDate() + ' ' + 
+			this.month(date.getMonth()).toLowerCase();
+	},
+	dateAbbreviation: function(date) {
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' + 
+			date.getDate() + ' ' + 
+			this.monthAbbreviation(date.getMonth()).toLowerCase();
+	},
+	completeDate: function(date) {
+		return this.dateAbbreviation(date) + ' ' + 
+			date.getFullYear() + ' ' + 
+			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
+	}
+}, 'it_IT');
 
 //When the user logs in/out, reinitialize the language and the locale
 Webos.User.bind('login logout', function() {
