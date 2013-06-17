@@ -8,6 +8,8 @@ Quick start
 
 Clone the repo, `git clone git://github.com/symbiose/symbiose.git`, or [download the latest release](https://github.com/symbiose/symbiose/zipball/master).
 
+You can explore the [wiki](https://github.com/symbiose/symbiose/wiki/) too.
+
 Bug tracker
 -----------
 
@@ -18,7 +20,7 @@ Installing
 
 To install Symbiose you just need to unzip files on your web server, and chmod all of them to 0777, except */.htaccess*, */sbin/* and */index.php* which you'll have to chmod to 0755.
 
-For more information, please see the wiki : http://symbiose.simonser.fr.nf/wiki/index.php/Manuel:Guide_d%27installation.
+For more information, please see the wiki : https://github.com/symbiose/symbiose/wiki/Installing.fr_FR.
 
 Software requirements
 ---------------------
