@@ -8,6 +8,8 @@ Quick start
 
 Clone the repo, `git clone git://github.com/symbiose/symbiose.git`, or [download the latest release](https://github.com/symbiose/symbiose/zipball/master).
 
+You can explore the [wiki](https://github.com/symbiose/symbiose/wiki/) too.
+
 Bug tracker
 -----------
 
