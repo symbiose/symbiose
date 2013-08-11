@@ -11,7 +11,7 @@
 // Helper functions
 //
 
-var qq = qq || {};
+var qq = window.qq || {};
 
 /**
  * Adds all missing properties from second obj to first obj
@@ -1244,3 +1244,5 @@ qq.extend(qq.UploadHandlerXhr.prototype, {
         }
     }
 });
+
+window.qq = qq;
