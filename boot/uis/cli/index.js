@@ -87,6 +87,11 @@
 			var label = data.username+'@'+data.host+':'+data.location+((data.root) ? '#' : '$');
 
 			Cli.prompt(function(cmd) {
+				if (!cmd) {
+					Cli.displayCmdPrompt();
+					return;
+				}
+
 				var process = Cli._terminal.enterCmd(cmd, [function() {
 					var onStopFn = function() {
 						Cli.displayCmdPrompt();
@@ -97,7 +102,7 @@
 							onStopFn();
 						});
 					} else {
-						onStopFn()
+						onStopFn();
 					}
 				}, function(response) {
 					Cli.displayCmdPrompt();
