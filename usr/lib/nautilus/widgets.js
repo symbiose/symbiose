@@ -893,12 +893,12 @@ Webos.require([
 				}
 			});
 			var form = $('<form></form>')
-				.attr('action', serverCall.url)
-				.attr('method', serverCall.type)
+				.attr('action', serverCall._url)
+				.attr('method', serverCall._type)
 				.attr('target', '_blank')
 				.appendTo('body');
-			for (var key in serverCall.data) {
-				form.append($('<input />', { type: 'hidden', name: key, value: serverCall.data[key] }));
+			for (var key in serverCall._data) {
+				form.append($('<input />', { type: 'hidden', name: key, value: serverCall._data[key] }));
 			}
 			
 			form.submit().remove();
