@@ -5,6 +5,8 @@
 
 	background-color: black;
 	color: white;
+
+	overflow: auto;
 }
 
 .cli-container, .cli-container * {

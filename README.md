@@ -8,6 +8,8 @@ Quick start
 
 Clone the repo, `git clone git://github.com/symbiose/symbiose.git`, or [download the latest release](https://github.com/symbiose/symbiose/zipball/master).
 
+You can explore the [wiki](https://github.com/symbiose/symbiose/wiki/) too.
+
 Bug tracker
 -----------
 
@@ -16,23 +18,23 @@ Have a bug ? Please create an issue here on GitHub : https://github.com/symbiose
 Installing
 ----------
 
-To install Symbiose you just need to unzip files on your web server, and chmod all of them to 0777, except */.htaccess*, */sbin/* and */index.php* which you'll have to chmod to 0755.
+To install Symbiose you just need to unzip files on your web server and chmod all of them to 0777. If a HTTP 500 error occurs, chmod */.htaccess*, */sbin/* and */index.php* to 0755.
 
-For more information, please see the wiki : http://symbiose.simonser.fr.nf/wiki/index.php/Manuel:Guide_d%27installation.
+For more information, please see the wiki : https://github.com/symbiose/symbiose/wiki/Installing.fr_FR.
 
 Software requirements
 ---------------------
 
 * Server : 
  * PHP >= 5.3
- * No database required
-* Client : a fast and modern web browser (e.g. *Mozilla Firefox*)
+ * Database : optional (off by default)
+* Client : a fast and modern web browser (e.g. the latest *Mozilla Firefox*)
 
 Authors
 -------
 
 **$imon**
-+ http://simonser.fr.nf/
++ http://emersion.fr/
 + http://github.com/simonser
 
 **Codel**
@@ -44,7 +46,7 @@ Authors
 Copyright
 ---------
 
-Contact: contact@symbiose.fr.nf  
+Contact: symbiose@emersion.fr  
 Copyright (C) 2012 Simon Ser
 
     This program is free software: you can redistribute it and/or modify
