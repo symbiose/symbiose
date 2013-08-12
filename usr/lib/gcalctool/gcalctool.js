@@ -141,19 +141,19 @@ function GCalcTool() {
 			gcalctool.insert($(this).html());
 		});
 		container.append(button);
-		
-		var button = $.w.button(t.get('Cancel'));
-		button.addClass('gray');
-		button.bind('click', function() {
-			gcalctool.insert('', true);
-		});
-		container.append(button);
-		
-		var button = $.w.button(t.get('Delete'));
+
+		var button = $.w.button(t.get('C'));
 		button.addClass('gray');
 		button.bind('click', function() {
 			var nbrCar = gcalctool.textarea.textAreaEntry('value').length - 1;
 			gcalctool.insert(gcalctool.textarea.textAreaEntry('value').substring(0, nbrCar), true);
+		});
+		container.append(button);
+		
+		var button = $.w.button('⌫');
+		button.addClass('gray');
+		button.bind('click', function() {
+			gcalctool.insert('', true);
 		});
 		container.append(button);
 		

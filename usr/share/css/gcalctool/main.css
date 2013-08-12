@@ -1,20 +1,31 @@
+textarea, .gcalctool .webos-button {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-o-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.gcalctool, .gcalctool .webos-container {
+	overflow: hidden;
+}
+
 textarea {
-	border: 2px solid #c4c1bd;
-	width: 363px;
-	text-align: right;
+	width: 100%;
 	padding-top: 11px;
 	padding-bottom: 11px;
+	margin: 0;
 	margin-top: 5px;
-	height: 70px;
+	height: 50px;
+
+	border: 2px solid #c4c1bd;
+
+	text-align: right;
 	font-size: 18px;
 }
 
 .result textarea {
 	font-weight: bold;
-}
-
-textarea {
-	margin-left: 2px;
 }
 
 .content .gcalctool {
@@ -23,7 +34,7 @@ textarea {
 
 .webos-button.violet, .webos-button.pink,
 .webos-button.blue, .webos-button.gray {
-	width: 15.5%;
+	width: 14%;
 	margin-bottom: 1px;
 	height: 27px;
 	text-align: center;
@@ -32,7 +43,7 @@ textarea {
 }
 
 .webos-button.enter {
-	width: 32%;
+	width: 28%;
 	background-image: url('usr/share/images/gcalctool/green.png');
 	background-position: 0px top;
 	background-repeat: repeat-x;
