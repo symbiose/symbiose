@@ -186,36 +186,15 @@ Webos.UserInterface.load = function(name, callback) {
 	
 	var actualCallNbr = Webos.ServerCall.getList().length - 1;
 	Webos.Error.setErrorHandler(function(error) {
-		if ($('#webos-error').is(':hidden')) {
-			$('#webos-error p').html('<strong>An error occured while loading user interface.</strong>');
-			$('#webos-error').show();
-		}
-
-		var message = '<li>';
+		var msg = '';
 		if (error instanceof Webos.Error) {
-			message += error.toString();
+			msg += error.toString();
 		} else {
-			message += error.name + ' : ' + error.message + '<br />Stack trace :<pre>' + error.stack + '</pre>';
+			msg += error.name + ' : ' + error.message + '<br />Stack trace :<br />' + error.stack.replace(/\n/g, '<br />') + '';
 		}
 
-		message += '<br />Server calls :</li><ul>';
-		var calls = Webos.ServerCall.getList();
-		for (var i = actualCallNbr; i < calls.length; i++) {
-			var call = calls[i];
-
-			if (!call) {
-				continue;
-			}
-
-			if (call.status == 2) {
-				message += '<li>Loaded call<br /><pre>'+call.stack()+'</pre></li>';
-			} else if (call.status == 1) {
-				message += '<li>Loading call<br /><pre>'+call.stack()+'</pre></li>';
-			}
-		}
-		message += '</ul>';
-
-		$('#webos-error ul').append(message);
+		Webos.UserInterface.writeConsole(msg);
+		Webos.UserInterface.showConsole();
 		
 		if (typeof Webos.UserInterface.Booter.current() != 'undefined') {
 			Webos.UserInterface.Booter.current().disableAutoLoad();
@@ -223,12 +202,20 @@ Webos.UserInterface.load = function(name, callback) {
 	});
 	
 	Webos.UserInterface.showLoadingScreen();
-
 	Webos.UserInterface.setLoadingScreenText('Retrieving interface...');
+
+	Webos.UserInterface.clearConsole();
+	if (name) {
+		Webos.UserInterface.writeConsole('Loading interface "'+name+'"...');
+	} else {
+		Webos.UserInterface.writeConsole('Loading default interface...');
+	}
+
+	Webos.UserInterface.writeConsole('Retrieving booter...');
 
 	var ui = Webos.UserInterface.get(name);
 	ui.loadBooter([function(booter) {
-		booter.bind('loadstateupdate', function(data) {
+		booter.on('loadstateupdate', function(data) {
 			var msg = 'Loading interface...';
 			switch (data.state) {
 				case 'structure':
@@ -252,10 +239,13 @@ Webos.UserInterface.load = function(name, callback) {
 			}
 
 			Webos.UserInterface.setLoadingScreenText(msg);
+			Webos.UserInterface.writeConsole(msg);
 		});
 		booter.load([function() {
 			Webos.UserInterface.setLoadingScreenText('Interface loaded.');
 			Webos.UserInterface.hideLoadingScreen();
+
+			Webos.UserInterface.writeConsole('Interface loaded.');
 		}, callback.error]);
 	}, callback.error]);
 };
@@ -322,7 +312,6 @@ Webos.UserInterface._loadingScreenTimerId = null;
  * Show the loading screen.
  */
 Webos.UserInterface.showLoadingScreen = function() {
-	$('#webos-error p').empty();
 	if (typeof Webos.UserInterface.Booter.current() == 'undefined') {
 		$('#webos-loading').show();
 	} else {
@@ -352,7 +341,39 @@ Webos.UserInterface.hideLoadingScreen = function() {
 	} else {
 		$('#webos-loading').fadeOut('fast');
 	}
-	$('#webos-error').fadeOut('fast');
+};
+
+/**
+ * Write a message in the console.
+ * @param  {String} msg The message.
+ * @since 1.0beta3
+ */
+Webos.UserInterface.writeConsole = function(msg) {
+	$('#webos-loading-console').append(msg + '<br />');
+};
+
+/**
+ * Clear the console.
+ * @since 1.0beta3
+ */
+Webos.UserInterface.clearConsole = function() {
+	$('#webos-loading-console').empty();
+};
+
+/**
+ * Show the console.
+ * @since 1.0beta3
+ */
+Webos.UserInterface.showConsole = function() {
+	$('#webos-loading-console').show();
+};
+
+/**
+ * Hide the console.
+ * @since 1.0beta3
+ */
+Webos.UserInterface.hideConsole = function() {
+	$('#webos-loading-console').hide();
 };
 
 /**

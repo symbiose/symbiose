@@ -36,7 +36,7 @@ $t = $this->managers()->get('Translation')->load('webos');
 		}
 	</script>
 	<?php
-	foreach($jsIncludes as $include) { //On inclut les fichiers JS de base
+	foreach($jsIncludes as $include) { //Basic JS files
 		echo '<script type="text/javascript" src="'.$include.'"></script>';
 	}
 	?>
@@ -45,7 +45,6 @@ $t = $this->managers()->get('Translation')->load('webos');
 	<div id="userinterfaces"></div>
 	<noscript id="webos-unsupported">
 		<div class="center">
-			<h1>symbiose</h1>
 			<p class="error">
 				<strong><?php echo $t->get('Your web browser doesn\'t support ${webos}', array('webos' => 'Symbiose')); ?></strong> : <?php echo $t->get('Javascript is required to launch it.'); ?><br /><?php echo $t->get('Please update your web browser (${download-link}) or turn on Javascript.', array('download-link' => '<a href="http://www.mozilla.org/fr/firefox/new/" target="_blank">'.$t->get('download ${browser}', array('browser' => 'Mozilla Firefox')).'</a>')); ?>
 			</p>
@@ -53,16 +52,9 @@ $t = $this->managers()->get('Translation')->load('webos');
 	</noscript>
 	<div id="webos-loading" style="display: none;">
 		<div class="center">
-			<h1>symbiose</h1>
 			<p><?php echo $t->get('Loading...'); ?></p>
 		</div>
 	</div>
-	<div id="webos-error" style="display: none;">
-		<div class="center">
-			<h1>symbiose</h1>
-			<p></p>
-			<ul></ul>
-		</div>
-	</div>
+	<div id="webos-loading-console" style="display: none;"></div>
 </body>
 </html>
