@@ -23,4 +23,4 @@ AddType video/ogg ogg
 AddType video/webm webm
 AddType video/webm webmv
 
-AddType application/x-web-app-manifest+json .webapp
+AddType application/x-web-app-manifest+json webapp
