@@ -15,7 +15,7 @@ $t = $this->managers()->get('Translation')->load('webos');
 	<link rel="stylesheet" type="text/css" href="usr/share/css/webos/global.css" />
 
 	<!-- MOBILE METAS -->
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1" />
 
 	<!-- FAVICONS -->
 	<link rel="shortcut icon" href="usr/share/images/distributor/icons/favicon.ico" />
