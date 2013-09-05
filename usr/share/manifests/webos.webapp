@@ -1,0 +1,19 @@
+{
+  "name": "Symbiose",
+  "description": "Symbiose, a free and flexible webos.",
+  "version":"1.0beta3",
+  "launch_path": "/",
+  "icons": {
+    "128": "/usr/share/images/distributor/logo-128.png",
+    "60": "/usr/share/images/distributor/logo-60.png",
+    "48": "/usr/share/images/distributor/logo-48.png",
+    "32": "/usr/share/images/distributor/logo-32.png",
+    "24": "/usr/share/images/distributor/logo-24.png"
+  },
+  "developer": {
+    "name": "Symbiose",
+    "url": "http://symbiose.fr.cr"
+  },
+  "default_locale": "en",
+  "fullscreen": "true"
+}
