@@ -1,0 +1,97 @@
+/* FONTS */
+
+/* CURSORS */
+
+* {
+	cursor: default;
+}
+p, textarea, input[type="text"], input[type="password"],
+*::selection, *::-moz-selection, *::-webkit-selection, *::-o-selection {
+	cursor: text;
+}
+a, a * {
+	cursor: pointer, hand;
+}
+
+.cursor-default,.cursor-default * {
+	cursor: default;
+}
+.cursor-text, .cursor-text * {
+	cursor: text;
+}
+.cursor-pointer, .cursor-pointer * {
+	cursor: pointer, hand;
+}
+.cursor-wait, .cursor-wait * {
+	cursor: wait;
+}
+.cursor-move, .cursor-move * {
+	cursor: move;
+}
+.cursor-none, .cursor-none * {
+	cursor: none;
+}
+
+#welcome-container {
+	padding: 20px;
+	text-align: center;
+}
+#welcome-container .welcome-hint {
+	color: white;
+	text-shadow: 0 0 2px black;
+}
+
+/* OVERLAYS */
+
+#overlay-top, #overlay-bottom {
+	background-color: rgba(0, 0, 0, 0.85);
+	color: white;
+	font-family: Cantarell, 'Droid Sans', Ubuntu, 'DejaVu Sans', Arial, sans-serif;
+}
+
+#overlay-top h1, #overlay-bottom h1 {
+	margin: 4px;
+
+	font-size: 14px;
+}
+
+/* APPS */
+
+#apps-content {
+	display: block;
+	list-style: none;
+	margin: 2px;
+	padding: 0;
+}
+#apps-content li {
+	display: inline-block;
+	width: 55px;
+	height: 55px;
+	padding: 1px;
+	margin: 2px;
+	overflow: hidden;
+
+	text-align: center;
+	vertical-align: middle;
+}
+#apps-content li .app-icon {
+	display: block;
+	margin: auto;
+
+	width: 35px;
+	height: 35px;
+}
+#apps-content li .app-title {
+	overflow: hidden;
+
+	font-size: 10px;
+
+	-o-text-overflow: ellipsis; /* for Opera 9 */
+	text-overflow: ellipsis; /* for everybody else */
+}
+
+/* CLIENTS */
+
+#tags-container .tag .client-frame {
+	background-color: white;
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userinterface>
+	<attribute name="displayname" value="Stunning"/>
+	<includes>
+		<file path="/usr/share/css/stunning/main.css"/>
+
+		<file path="/usr/lib/webos/icons.js"/>
+		<file path="/usr/lib/webos/theme.js"/>
+		<file path="/usr/lib/webos/fullscreen.js"/>
+		<file path="/usr/lib/webos/jquery.mousewheel.js"/>
+		<file path="/usr/lib/webos/clipboard.js"/>
+
+		<file path="/usr/lib/gtk/widgets.js"/>
+
+		<file path="/usr/lib/compiz/widgets.js"/>
+		<file path="/usr/lib/the4/widgets.js"/>
+
+		<file path="/usr/lib/gnome/widgets.js"/>
+		<file path="/usr/lib/gnome/dashboard.js"/>
+		<file path="/usr/lib/gnome/messages.js"/>
+		<file path="/usr/lib/gnome/jquery.scrollto.js"/>
+
+		<file path="/usr/lib/webos/applications.js"/>
+
+		<file path="/usr/lib/hammer/jquery.hammer.min.js"/>
+
+		<!--<file path="/usr/lib/gnome/ini.js"/>-->
+	</includes>
+</userinterface>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config>
+	<attribute name="desktop" value="ginn"/>
+	<attribute name="icons" value="humanity"/>
+	<attribute name="background" value=""/>
+	<attribute name="animations" value="1"/>
+</config>

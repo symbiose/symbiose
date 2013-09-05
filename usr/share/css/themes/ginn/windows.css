@@ -1,0 +1,150 @@
+.webos-window {
+	width: 100%;
+	height: 100%;
+}
+
+.webos-window .header .top {
+	display: none;
+}
+
+.webos-window .content {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+
+	background-color: white;
+}
+
+/* HEADERS SPECIFIQUES */
+.webos-window .header .header-specific ul.webos-menuwindowheader {
+	background-color: #ededed;
+	color: #303638;
+	height: 25px;
+	margin: 0;
+	padding-left: 0;
+}
+.webos-window.bg-window .header .header-specific ul.webos-menuwindowheader {
+	background-color: #ededed;
+}
+
+.webos-window .header .header-specific ul.webos-menuwindowheader li {
+	list-style-type: none;
+}
+
+.webos-window .header .header-specific ul.webos-buttonwindowheader {
+	background: url('usr/share/images/themes/adwaita/windows/button-header.png') repeat-x;
+	height: 65px;
+	padding-left: 13px;
+	margin:0;
+	overflow: hidden;
+	color: #303638;
+	border-top: 1px solid #969a96;
+	border-bottom: 1px solid #b8bcb8;
+}
+.webos-window .header .header-specific ul.webos-buttonwindowheader li {
+	height: 56px;
+	float:left;
+	padding-top: 9px;
+	list-style-type:none;
+	display: inline;
+}
+.webos-window .header .header-specific ul.webos-buttonwindowheader .buttonwindowheaderseparator {
+	float: right;
+	height: 56px;
+	position: relative;
+	top: -9px;
+	width: 1px;
+	background: url('usr/share/images/themes/adwaita/windows/button-header-border.png');
+}
+.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem {
+	width: 100px;
+	text-align: center;
+}
+.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem.active,
+.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem:active {
+	background: url('usr/share/images/themes/adwaita/windows/button-header-active.png');
+}
+.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem img {
+	height: 30px;
+	width: 30px;
+}
+
+.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem:last-child .buttonwindowheaderseparator {
+	display: none;
+}
+
+.webos-window .header .header-specific ul.webos-buttonwindowheader input[type="text"] {
+	margin-top: 13px;
+	margin-bottom: 22px;
+}
+
+.webos-window .header .header-specific ul.webos-toolbarwindowheader {
+	background: url('usr/share/images/themes/adwaita/windows/toolbar-header.png') repeat-x;
+	height: 40px;
+	padding-left: 5px;
+	margin: 0;
+	overflow: hidden;
+	color: #303638;
+	border-top: 1px solid #969a96;
+	border-bottom: 1px solid #b8bcb8;
+}
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li {
+	height: 19px;
+	float:left;
+	padding: 5px 4px;
+	margin-top: 5px;
+	margin-left: 1px;
+	margin-right: 4px;
+	list-style-type:none;
+	vertical-align: middle;
+	/*-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-o-user-select: none;
+	user-select: none;*/
+	max-width: 35%;
+	white-space: nowrap;
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+}
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem img {
+	height: 22px;
+	width: 22px;
+	float: left;
+}
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem span {
+	margin-left: 2px;
+}
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem.hover,
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem:hover,
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem.active,
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem:active {
+	background: url('usr/share/images/themes/adwaita/windows/toolbar-header-hover.png');
+	margin-top: 4px;
+	margin-left: 0px;
+	margin-right: 3px;
+	border: 1px solid #bdbdb5;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem.active,
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem:active {
+	background-color: #a2a296;
+	background-image: none;
+	border: 1px solid #898988;
+}
+.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-search-entry,
+.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-search-entry {
+	float: right;
+}
+.webos-window .header .header-specific ul.webos-toolbarwindowheader input[type="text"],
+.webos-window .header .header-specific ul.webos-buttonwindowheader input[type="text"] {
+	border: 1px solid #abaea6;
+	height: 18px;
+}
+.webos-window .header .header-specific ul.webos-toolbarwindowheader input[type="text"]:focus,
+.webos-window .header .header-specific ul.webos-buttonwindowheader input[type="text"]:focus {
+	border: 1px solid #62a2e8;
+}
