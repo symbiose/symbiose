@@ -95,6 +95,11 @@ W.UserInterface.Booter.current().disableAutoLoad();
 
 		var gestureStarted = false;
 		$(document).hammer().on('drag', function(e) {
+			if (!e.gesture) {
+				console.log(e);
+				return;
+			}
+
 			var gestureOriginBorder;
 			var gestureOriginPos = e.gesture.startEvent.center;
 
@@ -160,7 +165,7 @@ W.UserInterface.Booter.current().disableAutoLoad();
 
 	Stunning._initTopOverlay = function() {
 		Stunning.on('bordergesturestart', function(eventData) {
-			if (eventData.origin == 'top' && !Stunning.isOverlayOpened('top')) {
+			if (eventData.origin == 'top' && !Stunning.isOverlayOpened()) {
 				Stunning.on('bordergesturemove.topoverlay.stunning', function(eventData) {
 					Stunning._overlays.top.height(eventData.y);
 				});
@@ -219,8 +224,52 @@ W.UserInterface.Booter.current().disableAutoLoad();
 		});
 	};
 
+	Stunning._initBottomOverlay = function() {
+		Stunning.on('bordergesturestart', function(eventData) {
+			if (eventData.origin == 'bottom' && !Stunning.isOverlayOpened()) {
+				var docHeight = $(document).height();
+
+				Stunning.on('bordergesturemove.bottomoverlay.stunning', function(eventData) {
+					Stunning._overlays.bottom.css({
+						top: eventData.y,
+						height: docHeight - eventData.y
+					});
+				});
+
+				Stunning.once('bordergestureend', function(eventData) {
+					Stunning.off('bordergesturemove.bottomoverlay.stunning');
+
+					if (eventData.direction == 'up') {
+						Stunning.openOverlay('bottom');
+					} else {
+						Stunning.closeOverlay('bottom');
+					}
+				});
+			} else if (eventData.origin == 'top' && Stunning.isOverlayOpened('bottom')) {
+				var docHeight = $(document).height();
+
+				Stunning.on('bordergesturemove.bottomoverlay.stunning', function(eventData) {
+					Stunning._overlays.bottom.css({
+						top: eventData.y,
+						height: docHeight - eventData.y
+					});
+				});
+
+				Stunning.once('bordergestureend', function(eventData) {
+					Stunning.off('bordergesturemove.bottomoverlay.stunning');
+
+					Stunning.closeOverlay('bottom');
+				});
+			}
+		});
+	};
+
 	Stunning.isOverlayOpened = function(overlayName) {
-		return (Stunning._openedOverlay == overlayName);
+		if (overlayName) {
+			return (Stunning._openedOverlay == overlayName);
+		} else {
+			return (Stunning._openedOverlay) ? true : false;
+		}
 	};
 
 	Stunning.openOverlay = function(overlayName) {
@@ -228,9 +277,10 @@ W.UserInterface.Booter.current().disableAutoLoad();
 			return;
 		}
 
-		Stunning._openedOverlay = 'top';
+		Stunning._openedOverlay = overlayName;
 
 		Stunning._overlays[overlayName].animate({
+			top: 0,
 			height: '100%'
 		}, 'fast', function() {
 			$(this).addClass('overlay-opened');
@@ -251,6 +301,13 @@ W.UserInterface.Booter.current().disableAutoLoad();
 		Stunning.trigger('closeoverlay', {
 			name: overlayName
 		});
+
+		if (overlayName == 'bottom') {
+			Stunning._overlays[overlayName].css({
+				top: '',
+				bottom: 0
+			});
+		}
 
 		Stunning._overlays[overlayName].removeClass('overlay-opened').animate({
 			height: 0
@@ -286,11 +343,42 @@ W.UserInterface.Booter.current().disableAutoLoad();
 				options: jQuery.extend({}, Stunning._layouts.rows.options, { primaryRow: 'bottom' })
 			}
 		];
+
+		Stunning.on('bordergesturestart', function(eventData) {
+			if ((eventData.origin == 'right' || eventData.origin == 'left') && !Stunning.isOverlayOpened()) {
+				/*Stunning.on('bordergesturemove.topoverlay.stunning', function(eventData) {
+					//...
+				});*/
+
+				Stunning.once('bordergestureend', function(eventData) {
+					//Stunning.off('bordergesturemove.topoverlay.stunning');
+
+					var tagIndex = Stunning.currentTagIndex();
+					if (eventData.direction == 'left') {
+						tagIndex++;
+					} else if (eventData.direction == 'right') {
+						tagIndex--;
+					}
+
+					if (Stunning.tagExists(tagIndex)) {
+						Stunning.switchToTag(tagIndex);
+					}
+				});
+			}
+		});
+	};
+
+	Stunning.currentTagIndex = function () {
+		return Stunning._currentTag;
+	};
+
+	Stunning.tagExists = function (tagIndex) {
+		return (typeof Stunning._tags[tagIndex] != 'undefined');
 	};
 
 	Stunning.tagData = function(tagIndex) {
 		if (typeof tagIndex == 'undefined') {
-			tagIndex = Stunning._currentTag;
+			tagIndex = Stunning.currentTagIndex();
 		}
 
 		return Stunning._tags[tagIndex];
@@ -298,12 +386,20 @@ W.UserInterface.Booter.current().disableAutoLoad();
 
 	Stunning.tagFrame = function(tagIndex) {
 		if (typeof tagIndex == 'undefined') {
-			tagIndex = Stunning._currentTag;
+			tagIndex = Stunning.currentTagIndex();
 		}
 
 		return Stunning._$tagsContainer.children('.tag').filter(function (index) {
 			return (index == tagIndex);
 		});
+	};
+
+	Stunning.countClientFrames = function(tagIndex) {
+		if (typeof tagIndex == 'undefined') {
+			tagIndex = Stunning.currentTagIndex();
+		}
+
+		return Stunning.tagFrame().children().length;
 	};
 
 	Stunning.requestClientFrame = function(tagIndex) {
@@ -315,7 +411,51 @@ W.UserInterface.Booter.current().disableAutoLoad();
 		var layout = Stunning._layouts[tagData.layout];
 		layout.addClient.call($tag[0], $clientFrame, tagData.options);
 
+		Stunning.trigger('addclient', {
+			$frame: $clientFrame
+		});
+
 		return $clientFrame;
+	};
+
+	Stunning.switchToTag = function (tagIndex) {
+		if (!Stunning.tagExists(tagIndex)) {
+			return false; //Animation ?
+		}
+
+		var currentTag = Stunning.currentTagIndex(),
+			$currentTagFrame = Stunning.tagFrame(),
+			$tagFrame = Stunning.tagFrame(tagIndex);
+
+		if (tagIndex == currentTag) { //Same tag as current
+			return;
+		}
+
+		Stunning._currentTag = tagIndex;
+
+		Stunning.trigger('switchtag', {
+			previousTag: currentTag,
+			currentTag: tagIndex
+		});
+
+		var direction = (tagIndex > currentTag) ? 'left' : 'right',
+			currentFramePos = (direction == 'left') ? - $tagFrame.width() : $tagFrame.width(),
+			tagFrameOriginPos = (direction == 'left') ? $currentTagFrame.width() : - $currentTagFrame.width(),
+			tagFrameDestPos = 0;
+
+		$tagFrame.css({
+			position: 'absolute',
+			left: tagFrameOriginPos
+		}).show();
+
+		$currentTagFrame.animate({
+			left: currentFramePos
+		}, 'fast', function() {
+			$(this).hide();
+		});
+		$tagFrame.animate({
+			left: tagFrameDestPos
+		}, 'fast');
 	};
 
 	Stunning._initErrorHandler = function() {
@@ -323,7 +463,7 @@ W.UserInterface.Booter.current().disableAutoLoad();
 	};
 
 	Stunning._initWelcome = function() {
-		var fullscreenBtn = $.w.button('Passer en plein &eacute;cran').click(function() {
+		var fullscreenBtn = $.w.button('Switch to fullscreen').click(function() {
 			Webos.fullscreen.request('html');
 		}).appendTo(Stunning._$welcomeContainer);
 
@@ -337,8 +477,16 @@ W.UserInterface.Booter.current().disableAutoLoad();
 
 		var hint = $('<p></p>')
 			.addClass('welcome-hint')
-			.html('⇃ Faites glisser pour lancer une application')
+			.html('⇃ Drag down to launch an application<br /><br /><small>Drag right or left to switch between tags<br />Drag up to show notifications</small>')
 			.appendTo(Stunning._$welcomeContainer);
+
+		Stunning.on('addclient switchtag', function(eventData) {
+			if (Stunning.countClientFrames()) {
+				Stunning._$welcomeContainer.hide();
+			} else {
+				Stunning._$welcomeContainer.show();
+			}
+		});
 	};
 
 	Stunning._init = function() {
@@ -346,6 +494,7 @@ W.UserInterface.Booter.current().disableAutoLoad();
 		Stunning._initBordersGestures();
 
 		Stunning._initTopOverlay();
+		Stunning._initBottomOverlay();
 		Stunning._initTheme();
 		Stunning._initTags();
 
