@@ -24,6 +24,12 @@
 
 		<file path="/usr/lib/hammer/jquery.hammer.min.js"/>
 
+		<file path="/usr/lib/stunning/notifications.js"/>
+
+		<file path="/usr/lib/gnome/network.js"/>
+		<file path="/usr/lib/gnome/power.js"/>
+		<file path="/usr/lib/gnome/webapp.js"/>
+
 		<!--<file path="/usr/lib/gnome/ini.js"/>-->
 	</includes>
 </userinterface>

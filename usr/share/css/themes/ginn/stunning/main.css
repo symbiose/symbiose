@@ -55,14 +55,17 @@ a, a * {
 	font-size: 14px;
 }
 
-/* APPS */
+/* OVERLAYS CONTENT */
 
-#apps-content {
+#apps-content, #notifications-content {
 	display: block;
 	list-style: none;
 	margin: 2px;
 	padding: 0;
 }
+
+/* APPS */
+
 #apps-content li {
 	display: inline-block;
 	width: 55px;
@@ -88,6 +91,47 @@ a, a * {
 
 	-o-text-overflow: ellipsis; /* for Opera 9 */
 	text-overflow: ellipsis; /* for everybody else */
+}
+
+/* NOTIFICATIONS */
+
+#notifications-container .notifications-clear {
+	float: right;
+	font-size: 14px;
+}
+
+#notifications-content li {
+	display: block;
+	width: 100%;
+	padding: 3px;
+	overflow: hidden;
+
+	vertical-align: middle;
+
+	font-size: 14px;
+}
+
+#notifications-content li .icon {
+	float: left;
+	margin: 0 1px 2px 1px;
+
+	max-width: 24px;
+	max-height: 24px;
+}
+
+#notifications-content li .header {
+	max-height: 26px;
+	overflow: hidden;
+
+	vertical-align: middle;
+
+	white-space: nowrap;
+	-o-text-overflow: ellipsis; /* for Opera 9 */
+	text-overflow: ellipsis; /* for everybody else */
+}
+
+#notifications-content li .content {
+	margin-left: 26px;
 }
 
 /* CLIENTS */
