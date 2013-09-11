@@ -141,6 +141,9 @@ Webos.Theme._defaultBackground = 'usr/share/images/backgrounds/default.jpg';
 Webos.Theme.defaultBackground = function() {
 	return Webos.Theme._defaultBackground;
 };
+Webos.Theme.setDefaultBackground = function(bg) {
+	Webos.Theme._defaultBackground = bg;
+};
 
 Webos.Theme.get = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
