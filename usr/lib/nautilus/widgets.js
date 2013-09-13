@@ -275,9 +275,9 @@ Webos.require([
 				
 				var uploadsIds = {};
 				that.element.filedrop({
-					url: serverCall.url,
+					url: serverCall._url,
 					paramname: 'file',
-					data: serverCall.data,
+					data: serverCall._data,
 					error: function(event, data) {
 						switch(data.error) {
 							case 'BrowserNotSupported':
@@ -940,8 +940,8 @@ Webos.require([
 			});
 			var uploadsIds = {};
 			new qq.FileUploaderBasic({
-				action: serverCall.url,
-				params: serverCall.data,
+				action: serverCall._url,
+				params: serverCall._data,
 				button: uploadButton[0],
 				onSubmit: function(id, fileName){
 					uploadsIds[id] = $.w.nautilus.progresses.add(0, 'Envoi de '+fileName);
