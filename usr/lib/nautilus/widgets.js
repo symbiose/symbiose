@@ -1629,6 +1629,12 @@ Webos.require([
 					that.options.open('/');
 				}).appendTo(listContent);
 			}
+
+			if (listContent.children().length > 0) {
+				this.options._content.show();
+			} else {
+				this.options._content.hide();
+			}
 			
 			this._refreshDevices();
 			
