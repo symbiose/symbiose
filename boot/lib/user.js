@@ -320,7 +320,7 @@ Webos.User.getLogged = function(callback) {
 		'method': 'getLogged'
 	}).load([function(response) {
 		var data = response.getData();
-		if (data.id) {
+		if (typeof data.id != 'undefined') {
 			var user = new Webos.User(data.id, data);
 			Webos.User.cache[user.id()] = user;
 			Webos.User.logged = user.id();
