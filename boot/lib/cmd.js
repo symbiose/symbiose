@@ -163,7 +163,7 @@ Webos.Terminal.prototype = {
 	_refreshUserData: function(username, callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
-		Webos.User.get([function(user) {
+		Webos.User.getByUsername(username, [function(user) {
 			if (!user) {
 				var data = {
 					root: false
@@ -179,7 +179,7 @@ Webos.Terminal.prototype = {
 				};
 				callback.success(data);
 			}, callback.error]);
-		}, callback.error], username);
+		}, callback.error]);
 	},
 	/**
 	 * Rafraichir les donnees sur le terminal.

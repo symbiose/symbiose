@@ -37,11 +37,11 @@ Webos.User.prototype = {
 	 * @returns {Boolean} True if this user is logged in, false otherwise.
 	 */
 	isLogged: function () {
-		if (!Webos.User.logged) {
+		if (Webos.User.logged === null) {
 			return;
 		}
 		
-		return (this.id() == Webos.User.logged);
+		return (this.id() === Webos.User.logged);
 	},
 	/**
 	 * Get this user's authorizations.
@@ -267,7 +267,7 @@ Webos.User.get = function(callback, userId) {
 	callback = Webos.Callback.toCallback(callback);
 	
 	if (!userId) {
-		if (!Webos.User.logged || !Webos.User.cache[Webos.User.logged]) {
+		if (typeof Webos.User.logged != 'number' || !Webos.User.cache[Webos.User.logged]) {
 			Webos.User.getLogged([function(user) {
 				callback.success(user);
 			}, callback.error]);
@@ -305,7 +305,7 @@ Webos.User.get = function(callback, userId) {
 Webos.User.getLogged = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	if (Webos.User.logged && Webos.User.cache[Webos.User.logged]) {
+	if (typeof Webos.User.logged == 'number' && Webos.User.cache[Webos.User.logged]) {
 		callback.success(Webos.User.cache[Webos.User.logged]);
 		return;
 	}
@@ -433,7 +433,7 @@ Webos.User._pingInterval = 6 * 60 * 1000;
 Webos.User._startPingTimer = function () {
 	if (Webos.User._pingTimer === null) {
 		Webos.User._pingTimer = setInterval(function() {
-			if (!Webos.User.logged) {
+			if (!typeof Webos.User.logged != 'number') {
 				Webos.User._stopPingTimer();
 				return;
 			}
