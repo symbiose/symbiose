@@ -200,7 +200,8 @@ class FileCall extends Webos {
 		$this->getHTTPResponse()->removeHeader('Pragma');
 		$this->getHTTPResponse()->removeHeader('Expires');
 
-		$useGzipCompression = (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') && extension_loaded('zlib') && !ini_get('zlib.output_compression'));
+		$acceptEncoding = (isset($_SERVER['HTTP_ACCEPT_ENCODING'])) ? $_SERVER['HTTP_ACCEPT_ENCODING'] : '';
+		$useGzipCompression = (substr_count($acceptEncoding, 'gzip') && extension_loaded('zlib') && !ini_get('zlib.output_compression'));
 
 		if ($useGzipCompression) {
 			ob_start(); //Main buffer
