@@ -6,6 +6,8 @@ This version (beta) is unstable.
 Quick start
 -----------
 
+You can try Symbiose on our website : http://symbiose.fr.cr/ (username : _demo_, password : _demo_).
+
 Clone the repo, `git clone git://github.com/symbiose/symbiose.git`, or [download the latest release](https://github.com/symbiose/symbiose/zipball/master).
 
 You can explore the [wiki](https://github.com/symbiose/symbiose/wiki/) too.
