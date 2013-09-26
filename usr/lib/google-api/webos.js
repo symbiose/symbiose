@@ -5,11 +5,32 @@
  */
 
 Webos.GoogleApi = {};
-Webos.GoogleApi._apiData = {
-	clientId: '1084163783148.apps.googleusercontent.com',
-	apiKey: 'AIzaSyB2ZHMlEYZMl_UBNIbTxaxjNA1XRzE8M_Y'
-};
+Webos.GoogleApi._apiData = null;
 Webos.GoogleApi._libLoaded = false;
+Webos.GoogleApi.loadAPIConfig = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	if (Webos.GoogleApi._apiData === null) {
+		window._WebosGoogleApiFileOnClientLoad = function() {
+			delete window._WebosGoogleApiFileOnClientLoad;
+
+			window.setTimeout(function() {
+				gapi.client.setApiKey(Webos.GoogleApi._apiData.apiKey);
+				Webos.GoogleApi.checkAuth(callback, true);
+			}, 1);
+		};
+
+		var configFile = W.File.get('/usr/etc/google-api/api-access.json');
+
+		configFile.readAsText([function(contents) {
+			var conf = $.parseJSON(contents);
+			Webos.GoogleApi._apiData = conf;
+			callback.success(conf);
+		}, callback.error]);
+	} else {
+		callback.success(Webos.GoogleApi._apiData);
+	}
+};
 Webos.GoogleApi.loadClient = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 
@@ -18,8 +39,10 @@ Webos.GoogleApi.loadClient = function(callback) {
 			delete window._WebosGoogleApiFileOnClientLoad;
 
 			window.setTimeout(function() {
-				gapi.client.setApiKey(Webos.GoogleApi._apiData.apiKey);
-				Webos.GoogleApi.checkAuth(callback, true);
+				Webos.GoogleApi.loadAPIConfig([function(conf) {
+					gapi.client.setApiKey(conf.apiKey);
+					Webos.GoogleApi.checkAuth(callback, true);
+				}, callback.error]);
 			}, 1);
 		};
 
@@ -34,26 +57,28 @@ Webos.GoogleApi.loadClient = function(callback) {
 Webos.GoogleApi.checkAuth = function(callback, forceImmediate) {
 	callback = Webos.Callback.toCallback(callback);
 
-	gapi.auth.authorize({
-		'client_id': Webos.GoogleApi._apiData.clientId,
-		'scope': 'https://www.googleapis.com/auth/drive',
-		'immediate': forceImmediate || Webos.GoogleApi._libLoaded
-	}, function(authResult) {
-		if (authResult && !authResult.error) {
-			// Access token has been successfully retrieved, requests can be sent to the API.
-			window.setTimeout(function() {
-				Webos.GoogleApi.checkAuth();
-			}, (authResult.expires_in - 60) * 1000);
-			callback.success();
-		} else {
-			// No access token could be retrieved.
-			if (forceImmediate) {
-				Webos.GoogleApi.checkAuth(callback);
+	Webos.GoogleApi.loadAPIConfig([function(conf) {
+		gapi.auth.authorize({
+			'client_id': conf.clientId,
+			'scope': 'https://www.googleapis.com/auth/drive',
+			'immediate': forceImmediate || Webos.GoogleApi._libLoaded
+		}, function(authResult) {
+			if (authResult && !authResult.error) {
+				// Access token has been successfully retrieved, requests can be sent to the API.
+				window.setTimeout(function() {
+					Webos.GoogleApi.checkAuth();
+				}, (authResult.expires_in - 60) * 1000);
+				callback.success();
 			} else {
-				callback.error((authResult) ? authResult.error : authResult);
+				// No access token could be retrieved.
+				if (forceImmediate) {
+					Webos.GoogleApi.checkAuth(callback);
+				} else {
+					callback.error((authResult) ? authResult.error : authResult);
+				}
 			}
-		}
-	});
+		});
+	}, callback.error]);
 };
 
 
