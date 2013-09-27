@@ -143,6 +143,8 @@ Webos.Observable.build = function (object) {
 		object[attr] = Webos.Observable.prototype[attr];
 	}
 
+	object._observers = [];
+
 	return object;
 };
 
