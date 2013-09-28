@@ -45,15 +45,27 @@ Webos.Theme.prototype = {
 	applyBackgroundOn: function(el) {
 		var $el = $(el);
 
-		var bg = Webos.File.get(this.get('background')).get('realpath');
-		$el
-			.css('background', 'url("'+bg+'") no-repeat center center #27001f')
-			.css('-webkit-background-size', 'cover')
-			.css('-moz-background-size', 'cover')
-			.css('-o-background-size', 'cover')
-			.css('background-size', 'cover')
-			.css('filter', 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bg+'\', sizingMethod=\'scale\')')
-			.css('-ms-filter', '"progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bg+'\', sizingMethod=\'scale\')"');
+		var bgImg = Webos.File.get(this.get('background')).get('realpath'),
+		bgColor = this.get('backgroundColor'),
+		bgRepeat = this.get('backgroundRepeat'),
+		bgCover = (bgRepeat == 'no-repeat') ? true : false;
+
+		if (this.get('hideBackground')) {
+			$el.css('background-color', bgColor);
+			return;
+		}
+
+		$el.css('background', 'url("'+bgImg+'") '+bgRepeat+' center center '+bgColor);
+
+		if (bgCover) {
+			$el
+				.css('-webkit-background-size', 'cover')
+				.css('-moz-background-size', 'cover')
+				.css('-o-background-size', 'cover')
+				.css('background-size', 'cover')
+				.css('filter', 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bgImg+'\', sizingMethod=\'scale\')')
+				.css('-ms-filter', '"progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bgImg+'\', sizingMethod=\'scale\')"');
+		}
 	},
 	_loadBackground: function() {
 		this.applyBackgroundOn(Webos.UserInterface.Booter.current().element());
@@ -67,6 +79,15 @@ Webos.Theme.prototype = {
 			bg = Webos.Theme.defaultBackground();
 		}
 		return bg;
+	},
+	backgroundColor: function() {
+		return this._get('backgroundColor') || 'black';
+	},
+	backgroundRepeat: function() {
+		return this._get('backgroundRepeat') || 'no-repeat';
+	},
+	hideBackground: function() {
+		return (this._get('hideBackground') ? true : false);
 	},
 	setDesktop: function(value) {
 		this._set('desktop', String(value));
