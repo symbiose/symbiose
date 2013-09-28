@@ -34,7 +34,7 @@
 	
 	var errors = ['BrowserNotSupported', 'TooManyFiles', 'FileTooLarge'];
 	
-	$.widget('weboswidgets.filedrop', {
+	$.widget($.webos.widget.namespace()+'.filedrop', {
 		options: {
 			fallback: false, //Selecteur de fichiers (<input type="file" />) qui permet de gerer l'envoi de fichiers si le navigateur n'est pas supporte
 			url: '', //URL vers laquelle le fichier sera envoye
@@ -49,9 +49,9 @@
 		},
 		_create: function() {
 			var that = this;
-			
+
 			this.element
-				.bind('drop', function(e) {
+				.on('drop', function(e) {
 					if (typeof e.dataTransfer == 'undefined' || e.dataTransfer === null) {
 						return;
 					}
@@ -68,29 +68,29 @@
 						return;
 					}
 					
-					that._trigger('drop', e);
+					//that._trigger('drop', e);
 					
 					that._upload();
 					
 					e.preventDefault();
 					e.stopPropagation();
 				})
-				.bind('dragenter', function(e) {
+				.on('dragenter', function(e) {
 					e.preventDefault();
-					that._trigger('dragenter', e);
+					//that._trigger('dragenter', e);
 				})
-				.bind('dragover', function(e) {
+				.on('dragover', function(e) {
 					e.preventDefault();
-					that._trigger('drag', e);
+					//that._trigger('drag', e);
 				})
-				.bind('dragleave', function(e) {
-					that._trigger('dragleave', e);
+				.on('dragleave', function(e) {
 					e.stopPropagation();
+					//that._trigger('dragleave', e);
 				});
 			
 			if (this.options.fallback != false) {
 				$(this.options.fallback).change(function(e) {
-					this._trigger('drop', e);
+					//this._trigger('drop', e);
 					this.options._files = e.target.files;
 					this.options._files_count = this.options._files.length;
 					this.upload();
@@ -344,18 +344,18 @@
 		},
 		destroy: function() {
 			this.element
-				.unbind('drop', this.options.drop)
-				.unbind('dragenter', this.options.dragEnter)
-				.unbind('dragover', this.options.dragOver)
-				.unbind('dragleave', this.options.dragLeave);
+				.off('drop', this.options.drop)
+				.off('dragenter', this.options.dragEnter)
+				.off('dragover', this.options.dragOver)
+				.off('dragleave', this.options.dragLeave);
 			$(document)
-				.unbind('drop', this.options.docDrop)
-				.unbind('dragenter', this.options.docEnter)
-				.unbind('dragover', this.options.docOver)
-				.unbind('dragleave', this.options.docLeave);
+				.off('drop', this.options.docDrop)
+				.off('dragenter', this.options.docEnter)
+				.off('dragover', this.options.docOver)
+				.off('dragleave', this.options.docLeave);
 			
 			if (this.options.fallback_id != '') {
-				$('#' + this.options.fallback_id).unbind('change');
+				$('#' + this.options.fallback_id).off('change');
 			}
 			
 			$.Widget.prototype.destroy.call(this);
