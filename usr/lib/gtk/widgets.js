@@ -74,6 +74,10 @@ $.webos.widget.namespace = function() {
 	return $.webos.widget._namespace;
 };
 
+$.webos.widget._widgetSelector = function(widgetName) {
+	return ':data(\'' + $.webos.widget.namespace() + '-' + widgetName +'\')';
+};
+
 /**
  * Determiner si est element est un widget.
  * @param {jQuery} element L'element.
@@ -82,7 +86,7 @@ $.webos.widget.namespace = function() {
  * @static
  */
 $.webos.widget.is = function(element, widgetName) {
-	return $(element).is(':' + $.webos.widget.namespace() + '-' + widgetName);
+	return $(element).is($.webos.widget._widgetSelector(widgetName));
 };
 
 $.webos.widget.list = function() {
@@ -92,7 +96,7 @@ $.webos.widget.list = function() {
 $.webos.widgets = [];
 $.webos.getWidgets = function(widgetName) {
 	if (widgetName) {
-		return $($.webos.widgets).filter(':' + $.webos.widget.namespace() + '-' + widgetName);
+		return $($.webos.widgets).filter($.webos.widget._widgetSelector(widgetName));
 	}
 	
 	return $($.webos.widgets);
