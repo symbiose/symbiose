@@ -145,7 +145,7 @@ abstract class UserManager extends \lib\Manager {
 				$list = $this->getUsersList();
 
 				foreach ($list as $id => $data) {
-					if ($data['email'] == $value) {
+					if (isset($data['email']) && $data['email'] == $value) {
 						return 'Un compte est d&eacute;j&agrave; existant avec cette adresse e-mail';
 					}
 				}

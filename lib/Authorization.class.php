@@ -173,7 +173,7 @@ class Authorization extends \lib\WebosComponent {
 				}
 
 				if (preg_match('#^/home/#', $path))
-					return 'file.home.'.$path;
+					return 'file.home.'.$argumentAction;
 
 				if ($argumentAction == 'read' && (preg_match('#^/usr/#', $path) || preg_match('#^/boot/#', $path)))
 					return true;
@@ -191,7 +191,7 @@ class Authorization extends \lib\WebosComponent {
 					return 'package.unchecked.'.$argumentAction;
 				break;
 			case 'user':
-				if (($argumentAction == 'read' || $argumentAction == 'edit') && $this->webos->getUser()->isConnected() && $this->webos->getUser()->getId() == (int) $providedArgument) {
+				if (($argumentAction == 'read' || $argumentAction == 'edit') && $this->webos->getUser()->isConnected()) {
 					if (is_int($providedArgument) && $this->webos->getUser()->getId() == (int) $providedArgument) {
 						return true;
 					}
