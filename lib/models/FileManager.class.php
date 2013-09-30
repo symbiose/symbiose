@@ -68,9 +68,12 @@ class FileManager extends \lib\Manager {
 			}
 		}
 
-		$paths = array(
-			'home' => $this->userDirectory()
-		);
+		$paths = array();
+		if ($this->webos->getUser()->isConnected()) {
+			$paths = array(
+				'home' => $this->userDirectory()
+			);
+		}
 
 		$availableSpace = -1;
 		$sizesModified = false;
