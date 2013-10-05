@@ -278,11 +278,10 @@ Webos.Authorizations.all = [
 	'file.system.write',
 	'user.read',
 	'user.edit',
+	'user.self.edit',
 	'user.manage',
 	'package.read',
-	'package.write',
-	'package.checked.manage',
-	'package.unchecked.manage'
+	'package.manage'
 ];
 
 /**
@@ -293,8 +292,8 @@ Webos.Authorizations.all = [
 Webos.Authorizations.models = {
 	'user': ['file.user.read',
              'file.user.write',
-             'package.read',
-             'package.checked.manage'],
+             'user.self.edit',
+             'package.read'],
     'admin': Webos.Authorizations.all,
     'guest': ['file.user.read']
 };

@@ -52,9 +52,9 @@ Webos.Icon = function WIcon(name, size, theme) {
 	this.realpath = function(size, theme) {
 		var id = this.id(size, theme);
 		if (typeof id == 'undefined') {
-			return 'sbin/filecall.php?file='+this.name;
+			return 'sbin/rawdatacall.php?type=file&path='+this.name;
 		} else {
-			return 'sbin/filecall.php?file='+id+'&type=icon';
+			return 'sbin/rawdatacall.php?type=icon&index='+id;
 		}
 	};
 	

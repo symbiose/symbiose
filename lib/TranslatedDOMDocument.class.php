@@ -4,18 +4,18 @@ namespace lib;
 use \DOMDocument;
 
 /**
- * TranslatedDOMDocument represente une structure XML traduite.
+ * TranslatedDOMDocument represents a translated XML tree.
  * @author  $imon
  * @since   1.0beta2
  * @version 1.0
  */
 class TranslatedDOMDocument extends DOMDocument {
 	/**
-	 * Recuperer tous les elements de la structure en les traduisant.
-	 * @param string $name Le nom des elements.
-	 * @param string $lang La langue des elements a recuperer.
-	 * @param string $groupBy L'attribut selon lequel on doit grouper les elements.
-	 * @return array Les elements traduits.
+	 * Retrieve elements and translate it.
+	 * @param string $name Elements' tag name.
+	 * @param string $lang The language.
+	 * @param string $groupBy The attribute for element grouping.
+	 * @return array Translated elements.
 	 */
 	public function getTranslatedElementsByTagName($name, $lang, $groupBy = null) {
 		$elements = $this->getElementsByTagName($name);

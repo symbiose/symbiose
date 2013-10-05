@@ -2,14 +2,15 @@
 namespace lib;
 
 /**
- * HTTPRequest represente la requete HTTP
- * @author $imon
- * @version 1.0
+ * The HTTP request.
+ * @author Simon Ser
+ * @since 1.0beta3
  */
 class HTTPRequest {
 	/**
-	 * Recuperer le contenu d'un cookie.
-	 * @param string $key La clef du cookie.
+	 * Get a cookie's content.
+	 * @param string $key The cookie's name.
+	 * @return string The cookie's content.
 	 */
 	public function cookieData($key)
 	{
@@ -17,8 +18,9 @@ class HTTPRequest {
 	}
 
 	/**
-	 * Verifier si un cookie existe.
-	 * @param string $key La clef du cookie.
+	 * Determine if a cookie exists.
+	 * @param string $key The cookie's name.
+	 * @return bool True if it exists, false otherwise.
 	 */
 	public function cookieExists($key)
 	{
@@ -26,8 +28,9 @@ class HTTPRequest {
 	}
 
 	/**
-	 * Recuperer le contenu des informations de la requete de type GET
-	 * @param string $key La clef de l'information.
+	 * Get this request's GET data.
+	 * @param string $key The data name.
+	 * @return string The data's content.
 	 */
 	public function getData($key)
 	{
@@ -35,8 +38,9 @@ class HTTPRequest {
 	}
 
 	/**
-	 * Verifier si une information de type GET existe
-	 * @param string $key La clef de l'information.
+	 * Determine if a GET data exists.
+	 * @param string $key The data name.
+	 * @return bool True if the data exists, false otherwise.
 	 */
 	public function getExists($key)
 	{
@@ -44,8 +48,9 @@ class HTTPRequest {
 	}
 
 	/**
-	 * Recuperer le contenu des informations de la requete de type POST
-	 * @param string $key La clef de l'information.
+	 * Get this request's POST data.
+	 * @param string $key The data name.
+	 * @return string The data's content.
 	 */
 	public function postData($key)
 	{
@@ -53,8 +58,9 @@ class HTTPRequest {
 	}
 
 	/**
-	 * Verifier si une information de type POST existe
-	 * @param string $key La clef de l'information.
+	 * Determine if a POST data exists.
+	 * @param string $key The data name.
+	 * @return bool True if the data exists, false otherwise.
 	 */
 	public function postExists($key)
 	{
@@ -62,8 +68,8 @@ class HTTPRequest {
 	}
 
 	/**
-	 * Recuperer l'URI de la requete.
-	 * @return L'URI.
+	 * Get this request's URI.
+	 * @return string
 	 */
 	public function requestURI()
 	{

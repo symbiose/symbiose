@@ -1156,7 +1156,7 @@ Webos.WebosFile.prototype = {
 			data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
 
 			if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
-				data.realpath = 'sbin/filecall.php?file='+data.path;
+				data.realpath = 'sbin/rawdatacall.php?type=file&path='+data.path;
 			}
 		}
 		

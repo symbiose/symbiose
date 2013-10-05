@@ -58,7 +58,7 @@ Webos.DataFile.prototype = {
 				clonedArr.push(clone(value));
 			}
 
-			return clonedObj;
+			return clonedArr;
 		};
 
 		var cloneObject = function(obj) {

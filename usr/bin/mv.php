@@ -1,18 +1,22 @@
 <?php
-if (!$this->arguments->isParam(0)) {
-	throw new InvalidArgumentException('Aucun fichier source specifi&eacute;');
+$authManager = $this->managers()->getManagerOf('authorization');
+$fileManager = $this->managers()->getManagerOf('file');
+$params = $this->cmd->params();
+$optionsNames = array_keys($this->cmd->options());
+
+if (count($params) == 0) {
+	throw new \InvalidArgumentException('No source file specified');
 }
-if (!$this->arguments->isParam(1)) {
-	throw new InvalidArgumentException('Aucun fichier de destination specifi&eacute;');
+if (count($params) == 1) {
+	throw new \InvalidArgumentException('No destination file specified');
 }
 
-$source = $this->terminal->getAbsoluteLocation($this->arguments->getParam(0));
-$dest = $this->terminal->getAbsoluteLocation($this->arguments->getParam(1));
+$source = $this->terminal->absoluteLocation($params[0]);
+$dest = $this->terminal->absoluteLocation($params[1]);
 
-$authorisations = $this->webos->getAuthorization();
-$requiredAuthorisation = $authorisations->getArgumentAuthorizations($source, 'file', 'write');
-$authorisations->control($requiredAuthorisation);
-$requiredAuthorisation = $authorisations->getArgumentAuthorizations($dest, 'file', 'write');
-$authorisations->control($requiredAuthorisation);
+//Authorizations
+$processAuths = $authManager->getByPid($this->cmd['id']);
+$this->guardian->controlArgAuth('file.write', $source, $processAuths);
+$this->guardian->controlArgAuth('file.write', $dest, $processAuths);
 
-$this->webos->managers()->get('File')->get($source)->move($dest);
+$fileManager->move($source, $dest);

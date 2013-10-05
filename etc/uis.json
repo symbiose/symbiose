@@ -1,0 +1,38 @@
+[
+    {
+        "name": "gnome-shell",
+        "labels": [
+            "userInterface",
+            "guestInterface"
+        ],
+        "isDefault": true
+    },
+    {
+        "name": "gnome-panel",
+        "labels": [
+            "userInterface",
+            "guestInterface"
+        ]
+    },
+    {
+        "name": "windoze",
+        "labels": [
+            "userInterface",
+            "guestInterface"
+        ]
+    },
+    {
+        "name": "cli",
+        "labels": [
+            "userInterface",
+            "guestInterface"
+        ]
+    },
+    {
+        "name": "stunning",
+        "labels": [
+            "userInterface",
+            "guestInterface"
+        ]
+    }
+]

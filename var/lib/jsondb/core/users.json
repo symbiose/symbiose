@@ -1,0 +1,18 @@
+[
+    {
+        "username": "demo",
+        "realname": "Demo",
+        "password": "26c669cd0814ac40e5328752b21c4aa6450d16295e4eec30356a06a911c23983aaebe12d5da38eeebfc1b213be650498df8419194d5a26c7e0a50af156853c79",
+        "email": "contact@example.com",
+        "disabled": false,
+        "id": 0
+    },
+    {
+        "username": "admin",
+        "realname": "admin",
+        "password": "c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd472634dfac71cd34ebc35d16ab7fb8a90c81f975113d6c7538dc69dd8de9077ec",
+        "email": "contact@example.com",
+        "disabled": false,
+        "id": 1
+    }
+]

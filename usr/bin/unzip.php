@@ -1,42 +1,45 @@
 <?php
 // Unzip for Symbiose WebOS
 // Coded by TiBounise (http://tibounise.com)
+// Reviewed by $imon
 // Released as GPL v3 software
 
-if (!$this->arguments->isParam(0))
-	throw new InvalidArgumentException('Aucun fichier fourni');
+$authManager = $this->managers()->getManagerOf('authorization');
+$fileManager = $this->managers()->getManagerOf('file');
+$params = $this->cmd->params();
 
-$FileManager = $this->webos->managers()->get('File');
-$AbsoluteLocation = $this->terminal->getAbsoluteLocation($this->arguments->getParam(0));
+if (count($params) == 0)
+	throw new \InvalidArgumentException('No file specified');
 
-if (!$FileManager->exists($AbsoluteLocation))
-	throw new InvalidArgumentException('Le fichier n\'existe pas !');
+$zipPath = $this->terminal->absoluteLocation($params[0]);
 
-$file = $FileManager->get($AbsoluteLocation);
+//Authorizations
+$processAuths = $authManager->getByPid($this->cmd['id']);
+$this->guardian->controlArgAuth('file.read', $zipPath, $processAuths);
+
+if (!$fileManager->exists($zipPath))
+	throw new \InvalidArgumentException('The file doesn\'t exist');
 
 // Check file type
-if ($file->extension() != 'zip')
-	throw new InvalidArgumentException('Le fichier fourni ne semble pas être au format .zip');
+if ($fileManager->extension($zipPath) != 'zip')
+	throw new \InvalidArgumentException('Specified file is not a zip file');
 
 // Generate the real paths
-$FilePath = $file->realpath();
-$ZipFilename = $file->basename();
-$dest = $file->dirname();
+$internalZipPath = $fileManager->toInternalPath($zipPath);
+$zipFilename = $fileManager->basename($zipPath);
+$dest = $this->terminal->dir();
 
-if (!$FileManager->exists($dest)) {
-	$FolderPath = $FileManager->createDir($dest)->realpath();
-} else {
-	$FolderPath = $FileManager->get($dest)->realpath();
-}
+//Authorizations episode 2
+$this->guardian->controlArgAuth('file.write', $dest, $processAuths);
 
 // Stores the times at the beginning of the script
 $startTime = time();
 
 //Check available space
 $zip = new ZipArchive;
-$result = $zip->open($FilePath);
+$result = $zip->open($internalZipPath);
 
-echo 'Archive: '.$file->basename()."\n";
+echo 'Archive: '.$zipFilename."\n";
 
 // Unzip :P
 if ($result === TRUE) {
@@ -45,22 +48,22 @@ if ($result === TRUE) {
 
 		if (substr($entry, -1) == '/') { // Is this entry a directory ?
 			echo '&nbsp;&nbsp;&nbsp;creating: '.$entry."\n";
-			$FileManager->createDir($dest.'/'.$entry);
+			$fileManager->mkdir($dest.'/'.$entry);
 		} else {
 			echo '&nbsp;extracting: '.$entry."\n";
 			$handle = $zip->getStream($entry);
-			$file = $FileManager->createFile($dest.'/'.$entry);
 			$contents = @stream_get_contents($handle);
 			if ($contents === false) {
-				echo 'Erreur : impossible d\'extraire « '.$entry.' ».'."\n";
+				echo 'Error : cannot extract "'.$entry.'".'."\n";
+			} else {
+				$fileManager->write($dest.'/'.$entry, $contents);
 			}
-			$file->setContents($contents);
 		}
 	}
 
 	$zip->close();
 
-	echo $ZipFilename.' a été décompressé en '.(time() - $startTime).' secondes.';
+	echo $zipFilename.' has been unzipped in '.(time() - $startTime).' seconds.';
 } else {
-	throw new InvalidArgumentException('L\'archive n\'a pu etre extraite');
+	throw new \RuntimeException('Error while opening zip file');
 }

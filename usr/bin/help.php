@@ -1,7 +1,9 @@
 <?php
-$version = $this->webos->managers()->get('File')->get('/usr/share/docs/bash/version.txt')->contents();
+$fileManager = $this->managers()->getManagerOf('file');
+
+$version = $fileManager->read('/usr/share/docs/bash/version.txt');
 
 echo 'GNU bash, version '.$version.'<br />';
 echo 'Liste des commandes :<br />';
 
-echo $this->webos->managers()->get('File')->get('/usr/share/docs/bash/cmds.html')->contents();
+echo $fileManager->read('/usr/share/docs/bash/cmds.html');
