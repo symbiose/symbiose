@@ -1,17 +1,22 @@
 <?php
-if (!$this->arguments->isParam(0)) {
-	throw new InvalidArgumentException('Aucun fichier specifi&eacute;');
+$authManager = $this->managers()->getManagerOf('authorization');
+$fileManager = $this->managers()->getManagerOf('file');
+$params = $this->cmd->params();
+$optionsNames = array_keys($this->cmd->options());
+
+if (count($params) == 0) {
+	throw new \InvalidArgumentException('No file specified');
 }
 
-$path = $this->terminal->getAbsoluteLocation($this->arguments->getParam(0));
+$path = $this->terminal->absoluteLocation($params[0]);
 
-$authorisations = $this->webos->getAuthorization();
-$requiredAuthorisation = $authorisations->getArgumentAuthorizations($path, 'file', 'read');
-$authorisations->control($requiredAuthorisation);
+//Authorizations
+$processAuths = $authManager->getByPid($this->cmd['id']);
+$this->guardian->controlArgAuth('file.read', $path, $processAuths);
 
-$content = $this->webos->managers()->get('File')->get($path)->contents();
+$content = $fileManager->read($path);
 
-if ($this->arguments->isOption('n')) {
+if (in_array('n', $optionsNames)) {
 	$lines = explode("\n", $content);
 
 	$i = 1;
@@ -22,4 +27,4 @@ if ($this->arguments->isOption('n')) {
 	}
 }
 
-echo nl2br(htmlspecialchars($content));
+echo htmlspecialchars($content);

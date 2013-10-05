@@ -1,51 +1,60 @@
 <?php
 // Wget for Symbiose WebOS
 // Coded by TiBounise (http://tibounise.com)
+// Reviewed by $imon
 // Released as GPL v3 software
 
-if (!$this->arguments->isParam(0))
-  throw new InvalidArgumentException('Aucune URL spécifiée');
+$authManager = $this->managers()->getManagerOf('authorization');
+$fileManager = $this->managers()->getManagerOf('file');
+$params = $this->cmd->params();
 
-$ParsedUrl = parse_url($this->arguments->getParam(0));
-$Url = $this->arguments->getParam(0);
-$FileManager = $this->webos->managers()->get('File');
+if (count($params) == 0) {
+	throw new \InvalidArgumentException('No URL specified');
+}
+
+$Url = $params[0];
+$ParsedUrl = parse_url($Url);
 
 if (!isset($ParsedUrl['host'])) {
-  throw new InvalidArgumentException('URL invalide');
+	throw new \InvalidArgumentException('Invalid URL');
 }
 
 // Dirty part to generate a new name for the file
 if (isset($ParsedUrl['path'])) {
-  $baseFilename = end(explode('/',$ParsedUrl['path']));
+	$baseFilename = end(explode('/',$ParsedUrl['path']));
 } else {
-  $baseFilename = 'index.html';
+	$baseFilename = 'index.html';
 }
 
 $filename = $baseFilename;
 $i = 1;
 
-while ($FileManager->exists($this->terminal->getAbsoluteLocation($filename))) {
-  $filename = $baseFilename . '.' . $i;
-  $i++;
+while ($fileManager->exists($this->terminal->absoluteLocation($filename))) {
+	$filename = $baseFilename . '.' . $i;
+	$i++;
 }
+$filePath = $this->terminal->absoluteLocation($filename);
 
-echo 'Connexion vers '.$ParsedUrl['host'].'...';
+//Authorizations
+$processAuths = $authManager->getByPid($this->cmd['id']);
+$this->guardian->controlArgAuth('file.write', $filePath, $processAuths);
+
+echo 'Connecting to '.$ParsedUrl['host'].'...';
 // Check if the file exists
 $handle = @fopen($Url,'rb');
 if ($handle === false) {
-	throw new InvalidArgumentException('URL inaccessible');
+	throw new \RuntimeException('URL unreachable');
 }
-echo ' connecté.'."\n";
+echo ' connected.'."\n";
 
-echo 'Sauvegarde en : « '.$filename.' »...'."\n";
+echo 'Saving as : "'.$filename.'"...'."\n";
 $contents = @stream_get_contents($handle);
 if ($contents === false) {
-	throw new InvalidArgumentException('Impossible de lire le fichier');
+	throw new \RuntimeException('Cannot read remote file');
 }
 
 fclose($handle);
 
-$file = $FileManager->createFile($this->terminal->getAbsoluteLocation($filename));
-$file->setContents($contents);
+$fileManager->write($filePath, $contents);
 
-echo date('Y-m-d H:i:s').' - « '.$filename.' » sauvegardé ['.$file->size().']';
+echo date('Y-m-d H:i:s').' - "'.$filename.'" saved ['.$fileManager->size($filePath).']';

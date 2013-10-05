@@ -1,26 +1,19 @@
-<?php
-$t = $this->managers()->get('Translation')->load('webos');
-?><!DOCTYPE html>
-<!--[if lt IE 7 ]><html class="ie ie6" lang="fr"> <![endif]-->
-<!--[if IE 7 ]><html class="ie ie7" lang="fr"> <![endif]-->
-<!--[if IE 8 ]><html class="ie ie8" lang="fr"> <![endif]-->
-<!--[if (gte IE 9)|!(IE)]><!--><html lang="fr"> <!--<![endif]-->
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html> <!--<![endif]-->
 <head>
 	<title>Symbiose</title>
 	<meta charset="utf-8" />
-	<meta name="description" content="#" />
+	<meta name="description" content="Symbiose, the free and open-source webos." />
 	<meta name="author" content="$imon" />
 
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" href="usr/share/css/webos/global.css" />
 
 	<!-- MOBILE METAS -->
-	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1" />
-	<meta name="format-detection" content="telephone=no">
-	<meta name="HandheldFriendly" content="true" />
-
-	<!-- APPLE SPECIFIC MOBILE METAS -->
-	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
 	<!-- FAVICONS -->
 	<link rel="shortcut icon" href="usr/share/images/distributor/icons/favicon.ico" />
@@ -41,7 +34,7 @@ $t = $this->managers()->get('Translation')->load('webos');
 		}
 	</script>
 	<?php
-	foreach($jsIncludes as $include) { //Basic JS files
+	foreach($jsIncludes as $include) { //Include base JS files
 		echo '<script type="text/javascript" src="'.$include.'"></script>';
 	}
 	?>

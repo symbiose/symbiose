@@ -1,16 +1,26 @@
 <?php
-if (!$this->arguments->isParam(0)) {
-	if ($this->webos->getUser()->isConnected()) {
+$terminalManager = $this->managers()->getManagerOf('terminal');
+$authManager = $this->managers()->getManagerOf('authorization');
+$fileManager = $this->managers()->getManagerOf('file');
+$params = $this->cmd->params();
+
+if (count($params) == 0) {
+	if ($this->app()->user()->isLogged()) {
 		$path = '~';
 	} else {
 		$path = '/';
 	}
 } else {
-	$path = $this->terminal->getAbsoluteLocation($this->arguments->getParam(0));
+	$path = $fileManager->beautifyPath($this->terminal->absoluteLocation($params[0]));
 }
 
-$authorisations = $this->webos->getAuthorization();
-$requiredAuthorisation = $authorisations->getArgumentAuthorizations($path, 'file', 'read');
-$authorisations->control($requiredAuthorisation);
+//Authorizations
+$processAuths = $authManager->getByPid($this->cmd['id']);
+$this->guardian->controlArgAuth('file.read', $path, $processAuths);
 
-$this->terminal->changeLocation($path);
+if (!$fileManager->isDir($path)) {
+	throw new \RuntimeException('"'.$path.'" : not a directory');
+}
+
+$this->terminal->setDir($path);
+$terminalManager->updateTerminal($this->terminal);

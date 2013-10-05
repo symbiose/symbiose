@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<config>
-	<attribute name="register" value="1"/>
-	<attribute name="maxUsers" value="-1"/>
-	<attribute name="authorizations" value="file.user.read;file.user.write"/>
-</config>

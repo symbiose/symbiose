@@ -1,0 +1,13 @@
+{
+	"executeConnect":[],
+	"executeGetMetadata":[],
+	"executeGetFile":[],
+	"executeGetFileAsBinary":[],
+	"executePutFile":[],
+	"executePutFileAsBinary":[],
+	"executeGetFileList":[],
+	"executeCreateFile":[],
+	"executeCreateFolder":[],
+	"executeRename":[],
+	"executeDelete":[]
+}

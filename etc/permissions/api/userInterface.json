@@ -1,0 +1,24 @@
+{
+	"executeLoadBooter":[],
+	"executeGetList":[],
+	"executeGetInstalled":[
+		{
+			"permission":"file.system.read"
+		}
+	],
+	"executeSetDefault":[
+		{
+			"permission":"file.system.write"
+		}
+	],
+	"executeSetEnabled":[
+		{
+			"permission":"file.system.write"
+		}
+	],
+	"executeChangeConfig":[
+		{
+			"permission":"file.system.write"
+		}
+	]
+}

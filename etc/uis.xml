@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<uis>
-	<ui name="gnome-shell" types="gi,ui" default="1"/>
-	<ui name="gnome-panel" types="ui" default="1"/>
-	<ui name="windoze" types="ui" default="0"/>
-	<ui name="cli" types="ui" default="0"/>
-	<ui name="stunning" types="ui" default="0"/>
-</uis>

@@ -1,21 +1,20 @@
 <?php
-$path = $this->terminal->getLocation();
+$authManager = $this->managers()->getManagerOf('authorization');
+$fileManager = $this->managers()->getManagerOf('file');
+$options = $this->cmd->options();
+$optionsNames = array_keys($options);
+$processAuths = $authManager->getByPid($this->cmd['id']);
 
-$authorisations = $this->webos->getAuthorization();
-$requiredAuthorisation = $authorisations->getArgumentAuthorizations($path, 'file', 'read');
-$authorisations->control($requiredAuthorisation);
+$colors = array('blue'=>'729fcf','green'=>'8ae234','white'=>'a9a9a9','magenta'=>'ac7fa7','red'=>'ee2929');
 
-/**
- *
- */
-function print_file_ls($file, $LOption, $colors) {
+$print_file_ls = function ($file) use ($fileManager, $colors, $optionsNames) {
 	$color = 'white';
 	
-	if ($file->isDir()) {
+	if ($fileManager->isDir($file)) {
 		$color = 'blue';
 		$balise = 'strong';
 	} else {
-		$ext = $file->extension();
+		$ext = $fileManager->extension($file);
 		if($ext == 'php' OR $ext == 'js')
 			$color = 'green';
 		elseif($ext == 'jpeg' OR $ext == 'jpg' OR $ext == 'gif' OR $ext == 'png' OR $ext == 'tiff'
@@ -29,45 +28,36 @@ function print_file_ls($file, $LOption, $colors) {
 		else
 			$balise = 'span';
 	}
-	if ($LOption)
-		echo $file->size().' '.date ('D m y H:i', $file->mtime()).' <'.$balise.' style="color: #'.$colors[$color].';">'.$file->basename().'</'.$balise.'>&emsp;<br />' ;
+	if (in_array('l', $optionsNames))
+		echo $fileManager->size($file).' '.date ('D m y H:i', $fileManager->mtime($file)).' <'.$balise.' style="color: #'.$colors[$color].';">'.$fileManager->basename($file).'</'.$balise.'><br />' ;
 	else
-		echo '<'.$balise.' style="color: #'.$colors[$color].';">'.$file->basename().'</'.$balise.'>&emsp; ' ;
-}
+		echo '<'.$balise.' style="color: #'.$colors[$color].';">'.$fileManager->basename($file).'</'.$balise.'>&emsp; ' ;
+};
 
+$params = $this->cmd->params(); //On récupères les paramètres qui ne sont pas de Options
+if(count($params) == 0)
+	$params = array('./') ;
 
+foreach ($params as $param) {
+	$dirPath = $this->terminal->absoluteLocation($param);
 
-$colors = array('blue'=>'729fcf','green'=>'8ae234','white'=>'a9a9a9','magenta'=>'ac7fa7','red'=>'ee2929');
-
-$Params = $this->arguments->getParams() ;// On récupères les paramètres qui ne sont pas de Options
-if(sizeof($Params) == 0)
-	$Params = array('./') ;
-
-foreach ($Params as $param) {
-	$files = 0 ;// on initialise le tableaux de fichiers
-	$fileName = htmlspecialchars($param, ENT_QUOTES) ;// on récupère le contenu d'un paramètres
+	//Authorizations
+	$this->guardian->controlArgAuth('file.read', $dirPath, $processAuths);
 	
-	try {
-		$files = $this->webos->managers()->get('File')->get($path.(($fileName != '') ?'/'.$fileName : '')) ;//On ouvre le dossier ->contents()
-		
-	}
-	catch(Exception $e) {
-		echo '<strong style="color: #'.$colors['red'].';">Le dossier : '.$fileName.' n\'existe pas!</strong><br />' ;
-		continue ;
-	}
+	if($fileManager->isDir($dirPath)) {
+		$files = $fileManager->readDir($dirPath); //On ouvre le dossier
 
-	
-	if($files->isDir()) {
-		$files = $files->contents() ;
-		if ($this->arguments->isOption('r'))
+		if (in_array('r', $optionsNames)) {
 			$files = array_reverse($files, true);
-		foreach ($files as $file) {
-			if (!$this->arguments->isOption('a') && preg_match('#^\.#', $file->basename()))
-				continue;
-			print_file_ls($file, $this->arguments->isOption('l'), $colors) ;
 		}
+
+		foreach ($files as $filepath) {
+			if (!in_array('a', $optionsNames) && preg_match('#^\.#', $fileManager->basename($filepath)))
+				continue;
+
+			$print_file_ls($filepath);
+		}
+	} else {
+		$print_file_ls($dirPath);
 	}
-	else
-		print_file_ls($files, $this->arguments->isOption('l'), $colors) ;
-	
 }

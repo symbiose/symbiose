@@ -27,7 +27,7 @@
 		 * @type {String}
 		 * @private
 		 */
-		_url: 'sbin/servercall.php',
+		_url: 'sbin/apicall.php',
 		/**
 		 * This server call's request data.
 		 * @type {Object}
@@ -80,9 +80,12 @@
 			var options = $.extend({}, defaults, opts);
 			this._options = options;
 
+			var module = options['class'].replace(/Controller$/, '');
+			module = module.charAt(0).toLowerCase() + module.substr(1);
+
 			this._data = {
-				'class': options['class'],
-				method: options.method,
+				module: module,
+				action: options.method,
 				arguments: JSON.stringify(options.arguments, function(key, value) { //Convert all arguments to strings/numbers
 					if (typeof value === 'number' && !isFinite(value)) {
 						return String(value);
@@ -251,7 +254,7 @@
 		 * @returns {String} The stack.
 		 */
 		stack: function $_WServerCall_stack() {
-			var stack = '    at '+this._url+' calling '+this._data['class']+'->'+this._data.method+'()';
+			var stack = '    at '+this._url+' calling action "'+this._data.action+'" in module "'+this._data.module+'"';
 			if (this._data.arguments && this._data.arguments != '{}') {
 				stack += "\n"+'    with arguments '+JSON.stringify(this._data.arguments);
 			} else {
@@ -472,7 +475,7 @@
 		 * This server calls group's request URL.
 		 * @type {String}
 		 */
-		_url: 'sbin/servercallgroup.php',
+		_url: 'sbin/apicallgroup.php',
 		/**
 		 * This server calls group's request type.
 		 * @type {String}

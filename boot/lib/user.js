@@ -23,7 +23,7 @@ Webos.User.prototype = {
 	 * @returns {Boolean} True if the user is disabled, false otherwise.
 	 */
 	disabled: function () {
-		return (this._get('disabled') == 1) ? true : false;
+		return (this._get('disabled')) ? true : false;
 	},
 	/**
 	 * Set this user's ID.
@@ -170,7 +170,7 @@ Webos.User.prototype = {
 	 * @returns {Boolean}       False if there was an error, true otherwise.
 	 */
 	setDisabled: function(value) {
-		return this._set('disabled', (value) ? 1 : 0);
+		return this._set('disabled', (value) ? true : false);
 	},
 	/**
 	 * Remove the user.
@@ -266,7 +266,7 @@ Webos.User.logged = null;
 Webos.User.get = function(callback, userId) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	if (!userId) {
+	if (typeof userId == 'undefined') {
 		if (typeof Webos.User.logged != 'number' || !Webos.User.cache[Webos.User.logged]) {
 			Webos.User.getLogged([function(user) {
 				callback.success(user);
@@ -506,7 +506,7 @@ Webos.User.list = function(callback) {
  */
 Webos.User.create = function(data, auth, callback) {
 	callback = Webos.Callback.toCallback(callback);
-	auth = auth.get().join(';');
+	auth = auth.get();
 	
 	return new Webos.ServerCall({
 		'class': 'UserController',

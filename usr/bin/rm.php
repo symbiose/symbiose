@@ -1,12 +1,19 @@
 <?php
-if (!$this->arguments->isParam(0)) {
-	throw new InvalidArgumentException('Aucun fichier specifi&eacute;');
+$authManager = $this->managers()->getManagerOf('authorization');
+$fileManager = $this->managers()->getManagerOf('file');
+$params = $this->cmd->params();
+$optionsNames = array_keys($this->cmd->options());
+
+if (count($params) == 0) {
+	throw new \InvalidArgumentException('No file specified');
 }
 
-$path = $this->terminal->getAbsoluteLocation($this->arguments->getParam(0));
+$path = $this->terminal->absoluteLocation($params[0]);
 
-$authorisations = $this->webos->getAuthorization();
-$requiredAuthorisation = $authorisations->getArgumentAuthorizations($path, 'file', 'write');
-$authorisations->control($requiredAuthorisation);
+//Authorizations
+$processAuths = $authManager->getByPid($this->cmd['id']);
+$this->guardian->controlArgAuth('file.write', $path, $processAuths);
 
-$this->webos->managers()->get('File')->get($path)->delete();
+$recursive = (in_array('r', $optionsNames));
+
+$fileManager->delete($path, $recursive);

@@ -35,6 +35,18 @@ $.webos.widget('terminal', 'container', {
 	terminal: function () {
 		return this.options._terminal;
 	},
+	promptStr: function() {
+		var data = this.options._terminal.data();
+
+		var promptStr = '';
+		if (data.username) {
+			promptStr +=  data.username+'@';
+		}
+
+		promptStr += data.host+':'+data.location+((data.root) ? '#' : '$');
+
+		return promptStr;
+	},
 	prompt: function () {
 		return this.options._components.prompt;
 	},
@@ -47,13 +59,8 @@ $.webos.widget('terminal', 'container', {
 		this.options._terminal.refreshData(new W.Callback(function() {
 			var data = that.options._terminal.data();
 			
-			if (data.username === false) {
-				W.Error.trigger(that.translations().get('You are disconnected (the idle time is possibly exceeded)'));
-				return;
-			}
-			
 			var historyPos = that.options._history.length, typpedCmd = '';
-			that.options._components.prompt = $.w.textEntry(data.username+'@'+data.host+':'+data.location+((data.root) ? '#' : '$')+' ')
+			that.options._components.prompt = $.w.textEntry(that.promptStr()+' ')
 				.appendTo(that.element)
 				.keydown(function(e) {
 					switch (e.keyCode) {
@@ -246,12 +253,7 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 		this._terminal.bind('terminalexecute terminalready', function() {
 			scrollPane.scrollPane('reload');
 			
-			var data = that._terminal.terminal('terminal').data();
-			if (data.username !== false) {
-				that._window.window('option', 'title', data.username + '@' + data.host + ': ' + data.location);
-			} else {
-				that._window.window('option', 'title', t.get('Terminal'));
-			}
+			that._window.window('option', 'title', that._terminal.terminal('promptStr'));
 		});
 		
 		//On ouvre la fenetre

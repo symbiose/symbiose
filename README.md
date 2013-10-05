@@ -24,6 +24,20 @@ To install Symbiose you just need to unzip files on your web server and chmod al
 
 For more information, please see the wiki : https://github.com/symbiose/symbiose/wiki/Installing.
 
+Upgrading from 1.0 beta 2
+-------------------------
+
+If you are using Symbiose 1.0 beta 2 or a commit which is [`9e1d0cd`](https://github.com/symbiose/symbiose/commit/9e1d0cd503acca9fd91df14652771887659a2635) or older, you must do a specific operation for migrating to 1.0 beta 3 (newer than `9e1d0cd`).
+
+* Login as administrator and open a terminal
+* Run `migrate-to-beta3`
+* Save files stored in the newly created folder `webos-export`
+* Upgrade the webos to the newest version
+* Copy files from `webos-export` to `/` (the webos root)
+* Clear sessions (e.g. by deleting cookies) and refresh the page
+
+You have to do that because users are now stored in more organized JSON files and configuration files have been modified.
+
 Software requirements
 ---------------------
 
