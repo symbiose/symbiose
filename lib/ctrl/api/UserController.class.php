@@ -230,7 +230,12 @@ class UserController extends \lib\ApiBackController {
 		}
 
 		//Password check
-		if ($manager->hashPassword($password) != $userData['password']) { //Invalid password ?
+		if (strlen($userData['password']) == 40) { //SHA1 support for old accounts (before 1.0 beta 3)
+			$hashedPasswd = sha1($password);
+		} else {
+			$hashedPasswd = $manager->hashPassword($password);
+		}
+		if ($hashedPasswd != $userData['password']) { //Invalid password ?
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Bad username or password');
 		}
@@ -326,7 +331,12 @@ class UserController extends \lib\ApiBackController {
 		$userData = $manager->getById($user->id());
 
 		//Check password
-		if ($manager->hashPassword($currentPassword) != $userData['password']) { //Invalid password ?
+		if (strlen($userData['password']) == 40) { //SHA1 support for old accounts (before 1.0 beta 3)
+			$hashedPasswd = sha1($currentPassword);
+		} else {
+			$hashedPasswd = $manager->hashPassword($currentPassword);
+		}
+		if ($hashedPasswd != $userData['password']) { //Invalid password ?
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Bad password');
 		}
