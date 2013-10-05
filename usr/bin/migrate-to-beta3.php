@@ -49,7 +49,7 @@ foreach ($usersList as $userId => $userData) {
 		'realname' => $userData['realname'],
 		'password' => $passwd,
 		'email' => (isset($userData['email'])) ? $userData['email'] : 'no-reply@example.com',
-		'disabled' => ((int) $userData['disabled']) ? true : false
+		'disabled' => (isset($userData['disabled']) && (int) $userData['disabled']) ? true : false
 	);
 
 	$userPermissions = $userManager->getAuthorisations($userId);
