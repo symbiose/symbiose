@@ -26,7 +26,11 @@ class AuthorizationManager_jsondb extends AuthorizationManager {
 		$authsFile = $this->dao->open('core/users_permissions');
 		$items = $authsFile->read();
 
-		$authId = (count($items) > 0) ? $items->last()['id'] + 1 : 0;
+		if (count($items) > 0) {
+			$authId = $items->last()['id'] + 1;
+		} else {
+			$authId = 0;
+		}
 		$auth->setId($authId);
 
 		$item = $this->dao->createItem($auth->toArray());

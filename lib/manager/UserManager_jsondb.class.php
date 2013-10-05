@@ -83,7 +83,11 @@ class UserManager_jsondb extends UserManager {
 			throw new RuntimeException('The email "'.$user['email'].'" is already registered');
 		}
 
-		$userId = (count($items) > 0) ? $items->last()['id'] + 1 : 0;
+		if (count($items) > 0) {
+			$userId = $items->last()['id'] + 1;
+		} else {
+			$userId = 0;
+		}
 		$user->setId($userId);
 
 		$item = $this->dao->createItem($user->toArray());
