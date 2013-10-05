@@ -1,4 +1,6 @@
 <?php
+@set_time_limit(120);
+
 $fileManager = $this->webos->managers()->get('File');
 $userManager = $this->webos->managers()->get('User');
 
