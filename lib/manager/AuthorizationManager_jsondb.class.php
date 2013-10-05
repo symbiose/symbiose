@@ -27,7 +27,8 @@ class AuthorizationManager_jsondb extends AuthorizationManager {
 		$items = $authsFile->read();
 
 		if (count($items) > 0) {
-			$authId = $items->last()['id'] + 1;
+			$last = $items->last();
+			$authId = $last['id'] + 1;
 		} else {
 			$authId = 0;
 		}

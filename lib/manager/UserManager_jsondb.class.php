@@ -84,7 +84,8 @@ class UserManager_jsondb extends UserManager {
 		}
 
 		if (count($items) > 0) {
-			$userId = $items->last()['id'] + 1;
+			$last = $items->last();
+			$userId = $last['id'] + 1;
 		} else {
 			$userId = 0;
 		}
