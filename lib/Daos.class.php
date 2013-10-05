@@ -92,7 +92,8 @@ class Daos extends ApplicationComponent {
 
 		//No default API found, return the first one
 		if (count($this->config) > 0) {
-			return array_keys($this->config)[0];
+			$apis = array_keys($this->config);
+			return $apis[0];
 		}
 	}
 
