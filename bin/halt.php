@@ -1,7 +1,9 @@
 <?php
 echo 'Stopping processes...'."\n";
-$processes = $this->webos->managers()->get('Process')->getAll();
+
+$processManager = $this->managers()->getManagerOf('process');
+$processes = $processManager->listAll();
 foreach($processes as $process) {
 	echo 'Stopping process #'.$process->getId().'...'."\n";
-	$process->stop();
+	$processManager->kill($process->getId());
 }

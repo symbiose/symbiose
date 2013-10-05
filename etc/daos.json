@@ -1,0 +1,17 @@
+{
+    "jsondb": {
+        "callback": [
+            "\\lib\\dao\\JSONDBFactory",
+            "getLocalConnexion"
+        ],
+        "config": {},
+        "default": true
+    },
+    "localfs": {
+        "callback": [
+            "\\lib\\dao\\LocalFSFactory",
+            "getLocalConnexion"
+        ],
+        "config": {}
+    }
+}

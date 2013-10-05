@@ -1,21 +1,38 @@
 <?php
 namespace lib;
 
-use \lib\models\Config;
-
 /**
- * UserInterfaceBooter est une classe basique permettant de demarrer un interface via JavaScript.
- * @author $imon
- * @version 1.0
- * @since 1.0
+ * An interface booter.
+ * @author Simon Ser
+ * @since 1.0beta3
  */
-class UserInterfaceBooter extends Webos {
+class UserInterfaceBooter extends \lib\Application {
+	const INCLUDES_CONF = 'etc/boot-includes.json';
+
 	/**
-	 * Afficher l'interface utilisateur (via JavaScript).
+	 * Initialize this interface booter.
 	 */
+	public function __construct() {
+		parent::__construct();
+
+		$this->name = 'userInterfaceBooter';
+	}
+
+	protected function _getIncludes() {
+		$conf = new JsonConfig(self::INCLUDES_CONF);
+
+		$files = $conf->read();
+
+		foreach ($files as $i => $path) {
+			$files[$i] = './' . $path;
+		}
+
+		return $files;
+	}
+
 	public function run() {
-		//On detecte la langue du visiteur si elle ne l'est pas
-		$conf = new Config($this);
+		//TODO: Language detection
+		/*$conf = new Config($this);
 		if ($this->managers()->get('File')->exists('~/.config/locale.xml')) {
 			$conf->load('~/.config/locale.xml');
 		}
@@ -27,38 +44,22 @@ class UserInterfaceBooter extends Webos {
 				$conf->set('language', $lang);
 				$conf->save('~/.config/locale.xml');
 			}
-		}
-		
-		//On recupere les fichiers JavaScript de base a inclure
-		$jsIncludes = $this->_getJsBootFiles();
+		}*/
+
+		$jsIncludes = $this->_getIncludes();
+		$t = new TranslationDictionary();
 
 		ob_start();
 
-		//On inclut le layout (structure HTMl de base)
+		//Include layout (basic HTML structure)
 		require('boot/includes/layout.php');
 
 		$out = ob_get_contents();
 		ob_end_clean();
 
-		//On ajoute le HTML genere a la reponse HTTP
-		$this->getHTTPResponse()->addContent($out);
+		$resp = new RawResponse();
+		$resp->setValue($out);
 
-		//On envoie la reponse HTTP
-		$this->getHTTPResponse()->send();
-	}
-
-	/**
-	 * Recuperer les fichier JavaScript de base permettant de demarrer une interface utilisateur.
-	 * @return array Un tableau contenant les chemins vers les fichiers JavaScript.
-	 */
-	protected function _getJsBootFiles() {
-		$xml = new \DOMDocument;
-		$xml->load('etc/jsboot.xml');
-		$includes = $xml->getElementsByTagName('include');
-		$list = array();
-		foreach ($includes as $include) {
-			$list[] = $include->getAttribute('path');
-		}
-		return $list;
+		$this->httpResponse->setContent($resp);
 	}
 }

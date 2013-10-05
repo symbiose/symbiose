@@ -2,54 +2,124 @@
 namespace lib;
 
 /**
- * Managers represente les gestionnaires.
- * @author $imon
- * @version 1.0
+ * A class providing access to managers.
+ * @author Simon Ser
+ * @since 1.0beta3
  */
-class Managers extends \lib\WebosComponent {
+class Managers {
+	const CONFIG_FILE = '/etc/managers.json';
+
 	/**
-	 * Tableau contenant les gestionnaires.
+	 * The managers' config.
 	 * @var array
 	 */
-	protected $managers = array();
+	protected $config;
+
 	/**
-	 * L'objet d'acces aux DAOs.
+	 * Data Access Objects.
 	 * @var Daos
 	 */
 	protected $daos;
 
 	/**
-	 * Initialiser la classe.
-	 * @param Webos $webos
+	 * Cache to store initialized managers.
+	 * @var array
 	 */
-	public function __construct(\lib\Webos $webos) {
-		parent::__construct($webos);
+	protected $managers = array();
 
-		$this->daos = new Daos($webos);
+	/**
+	 * Initialize the managers.
+	 * @param Daos $daos The DAOs.
+	 */
+	public function __construct(Daos $daos) {
+		$this->daos = $daos;
 	}
 
 	/**
-	 * Recuperer un gestionnaire pour un module.
-	 * @param string $module le nom du module.
-	 * @return Manager Le gestionnaire.
-	 * @throws InvalidArgumentException
+	 * Get this configuration.
+	 * @return Config The configuration.
 	 */
-	public function get($module) {
-		$module = ucfirst($module);
-		if (!is_string($module) || empty ($module)) {
-			throw new InvalidArgumentException('Le module spécifié est invalide');
+	protected function _getConfig() {
+		$configPath = './' . self::CONFIG_FILE;
+
+		return new JsonConfig($configPath);
+	}
+
+	/**
+	 * Get the API's name for a specified module.
+	 * @param  string $module The module's name.
+	 * @return string         The API's name.
+	 */
+	protected function _getApiOf($module) {
+		if (empty($this->config)) { //Config not loaded yet
+			$config = $this->_getConfig();
+
+			$this->config = $config->read();
+		}
+
+		$api = null;
+		
+		if (isset($this->config[$module])) {
+			$api = $this->config[$module];
+		}
+
+		return $api;
+	}
+
+	/**
+	 * Get the manager associated to a given module.
+	 * @param  string $module The module's name.
+	 * @return Manager        The manager.
+	 */
+	public function getManagerOf($module) {
+		if (!is_string($module) || empty($module)) {
+			throw new \InvalidArgumentException('Invalid module name');
 		}
 
 		if (!isset($this->managers[$module])) {
-			$api = $this->daos->api($module);
-			if (empty($api)) {
-				$manager = '\lib\models\\' . $module . 'Manager';
-				$this->managers[$module] = new $manager($this->webos);
-			} else {
-				$dao = $this->daos->get($module);
-				$manager = '\lib\models\\' . $module . 'Manager_' . $api;
-				$this->managers[$module] = new $manager($this->webos, $dao);
+			$managerBaseName = '\\lib\\manager\\'.ucfirst($module).'Manager';
+
+			$useBaseManager = false;
+			if (class_exists($managerBaseName)) {
+				$reflectBaseManager = new \ReflectionClass($managerBaseName);
+
+				$useBaseManager = (!$reflectBaseManager->isAbstract());
 			}
+
+			if ($useBaseManager) {
+				$manager = new $managerBaseName(null);
+			} else {
+				$api = $this->_getApiOf($module);
+				if (empty($api)) { //Auto-detect API
+					$availableApis = $this->daos->listApis();
+					$compatibleApis = array();
+
+					foreach ($availableApis as $apiName) {
+						if (class_exists($managerBaseName.'_'.$apiName)) {
+							$compatibleApis[] = $apiName;
+						}
+					}
+
+					if (in_array($this->daos->getDefaultApi(), $compatibleApis)) {
+						$api = $this->daos->getDefaultApi();
+					} else if (count($compatibleApis) > 0) {
+						$api = $compatibleApis[0];
+					} else {
+						throw new \RuntimeException('No DAO available for manager "'.$managerBaseName.'"');
+					}
+				}
+
+				$dao = $this->daos->getDao($api);
+				$managerName = $managerBaseName.'_'.$api;
+
+				if (!class_exists($managerName)) {
+					throw new \RuntimeException('Unable to find manager "'.$managerName.'"');
+				}
+
+				$manager = new $managerName($dao);
+			}
+
+			$this->managers[$module] = $manager;
 		}
 
 		return $this->managers[$module];

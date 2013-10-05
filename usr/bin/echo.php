@@ -1,2 +1,5 @@
 <?php
-echo htmlspecialchars($this->arguments->getParam(0));
+$params = $this->cmd->params();
+$text = implode(' ', $params);
+
+echo htmlspecialchars($text);

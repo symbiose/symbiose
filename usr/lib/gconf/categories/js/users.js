@@ -498,6 +498,10 @@ var createUserFn = function() {
 					
 					entries[key] = newPassword;
 					break;
+				case 'boolean':
+					editEntry = $.w.checkButton(editable.label);
+					entries[key] = editEntry;
+					break;
 				case 'authorizations':
 					editEntry = $.w.selectButton(editable.label, editable.choices);
 					entries[key] = editEntry;
@@ -538,7 +542,8 @@ var createUserFn = function() {
 			'username': entries.username.textEntry('value'),
 			'realname': entries.realname.textEntry('value'),
 			'password': entries.password.passwordEntry('value'),
-			'email': entries.email.textEntry('value')
+			'email': entries.email.textEntry('value'),
+			'disabled': entries.disabled.checkButton('value')
 		};
 		
 		var authObject = W.Authorizations.models[entries.authorizations.selectButton('value')];

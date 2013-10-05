@@ -1,0 +1,72 @@
+[
+    {
+        "id": 0,
+        "userId": 1,
+        "name": "file.user.read"
+    },
+    {
+        "id": 1,
+        "userId": 1,
+        "name": "file.user.write"
+    },
+    {
+        "id": 2,
+        "userId": 1,
+        "name": "file.home.read"
+    },
+    {
+        "id": 3,
+        "userId": 1,
+        "name": "file.home.write"
+    },
+    {
+        "id": 4,
+        "userId": 1,
+        "name": "file.system.read"
+    },
+    {
+        "id": 5,
+        "userId": 1,
+        "name": "file.system.write"
+    },
+    {
+        "id": 6,
+        "userId": 1,
+        "name": "user.read"
+    },
+    {
+        "id": 7,
+        "userId": 1,
+        "name": "user.edit"
+    },
+    {
+        "id": 8,
+        "userId": 1,
+        "name": "user.manage"
+    },
+    {
+        "id": 9,
+        "userId": 1,
+        "name": "package.read"
+    },
+    {
+        "id": 10,
+        "userId": 1,
+        "name": "package.manage"
+    },
+    {
+        "userId": 1,
+        "name": "user.self.edit",
+        "id": 11
+    },
+    {
+        "userId": 0,
+        "name": "file.user.read",
+        "id": 12
+    },
+    {
+        "userId": 0,
+        "name": "file.user.write",
+        "id": 13
+    }
+]

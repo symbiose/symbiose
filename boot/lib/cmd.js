@@ -40,9 +40,8 @@ Webos.Cmd.prototype = {
 				that.getTerminal().echo(out);
 			}
 
-			if (!response.isJavascriptEmpty()) { //Si il y a du code JS a executer, on l'execute
-				var data = response.getData();
-
+			var data = response.getData();
+			if (data.script) { //Si il y a du code JS a executer, on l'execute
 				var auth = new Webos.Authorizations();
 				for (var index in data.authorizations) {
 					auth.add(data.authorizations[index]);
@@ -52,7 +51,7 @@ Webos.Cmd.prototype = {
 					pid: data.pid,
 					key: data.key,
 					authorizations: auth,
-					fn: response.getJavascript()
+					fn: data.script
 				});
 				Webos.Cmd.uber.run.call(that);
 
@@ -162,7 +161,14 @@ Webos.Terminal.prototype = {
 	},
 	_refreshUserData: function(username, callback) {
 		callback = Webos.Callback.toCallback(callback);
-		
+
+		if (!username) {
+			callback.success({
+				root: false
+			});
+			return;
+		}
+
 		Webos.User.getByUsername(username, [function(user) {
 			if (!user) {
 				var data = {

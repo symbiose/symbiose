@@ -54,56 +54,56 @@ var notifyLoadedFn = function() {
 	}
 };
 
-Webos.ConfigFile.load('/etc/register.xml', [function(configFile) {
-	notifyLoadedFn();
-
-	var displayConfig = function() {
-		inputs.register.switchButton('value', parseInt(configFile.get('register')));
-		inputs.accounts.numberEntry('value', parseInt(configFile.get('maxUsers')));
-	};
-	
-	var saveConfig = function() {
-		confWindow.window('loading', true);
-		configFile.sync([function() {
-			confWindow.window('loading', false);
-		}, function(response) {
-			confWindow.window('loading', false);
-			displayConfig();
-			response.triggerError('Impossible de modifier la configuration des inscriptions');
-		}]);
-	};
-	
-	inputs.register.bind('switchbuttonchange', function(e, data) {
-		if (!configFile.set('register', (data.value) ? 1 : 0)) {
-			W.Error.trigger('Impossible de modifier la configuration des inscriptions');
-		} else {
-			saveConfig();
-		}
-	});
-
-	inputs.accounts.bind('numberentrychange', function(e, data) {
-		configFile.set('maxUsers', data.value);
-		saveConfig();
-	});
-
-	displayConfig();
-}, function(response) {
-	notifyLoadedFn();
-	response.triggerError('Impossible d\'acc&eacute;der au fichier de configuration des inscriptions');
-}]);
-
 Webos.require('/usr/lib/webos/data.js', function() {
+	Webos.DataFile.loadSystemData('register', [function(configFile) {
+		notifyLoadedFn();
+
+		var displayConfig = function() {
+			inputs.register.switchButton('value', configFile.get('register'));
+			inputs.accounts.numberEntry('value', parseInt(configFile.get('maxUsers')));
+		};
+		
+		var saveConfig = function() {
+			confWindow.window('loading', true);
+			configFile.sync([function() {
+				confWindow.window('loading', false);
+			}, function(response) {
+				confWindow.window('loading', false);
+				displayConfig();
+				response.triggerError('Impossible de modifier la configuration des inscriptions');
+			}]);
+		};
+		
+		inputs.register.bind('switchbuttonchange', function(e, data) {
+			if (!configFile.set('register', (data.value) ? 1 : 0)) {
+				W.Error.trigger('Impossible de modifier la configuration des inscriptions');
+			} else {
+				saveConfig();
+			}
+		});
+
+		inputs.accounts.bind('numberentrychange', function(e, data) {
+			configFile.set('maxUsers', data.value);
+			saveConfig();
+		});
+
+		displayConfig();
+	}, function(response) {
+		notifyLoadedFn();
+		response.triggerError('Impossible d\'acc&eacute;der au fichier de configuration des inscriptions');
+	}]);
+
 	Webos.DataFile.loadSystemData('quotas', [function(dataFile) {
 		notifyLoadedFn();
 
 		var userSpecificData = dataFile.get('specific') || {},
 		globalData = dataFile.get('global') || {
-			home: -1
+			'~': -1
 		},
 		selectedRuleUser = null, $selectedItem = $();
 
 		var displayGlobalData = function() {
-			inputs.home.numberEntry('value', globalData.home);
+			inputs.home.numberEntry('value', globalData['~']);
 		};
 
 		var saveData = function() {
@@ -119,7 +119,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 		};
 		
 		inputs.home.bind('numberentrychange', function(e, data) {
-			globalData.home = data.value;
+			globalData['~'] = data.value;
 			dataFile.set('global', globalData);
 			saveData();
 		});
