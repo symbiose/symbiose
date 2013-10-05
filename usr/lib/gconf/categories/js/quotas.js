@@ -172,7 +172,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 				}
 
 				var newUserData = {
-					home: maxHomeSize
+					'~': maxHomeSize
 				};
 
 				var userSpecificData = dataFile.get('specific') || {};
@@ -217,7 +217,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 
 		inputs.specificEdit.click(function() {
 			if ($selectedItem.length) {
-				var $maxHomeSizeEntry = $.w.numberEntry('', userSpecificData[selectedRuleUser].home);
+				var $maxHomeSizeEntry = $.w.numberEntry('', userSpecificData[selectedRuleUser]['~']);
 				var $maxHomeSizeUnitEntry = $.w.selectButton('', {
 					0: 'octets',
 					1: 'Kio',
@@ -238,7 +238,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 						maxHomeSize = maxHomeSize * Math.pow(1024, $maxHomeSizeUnitEntry.selectButton('value'));
 					}
 
-					userSpecificData[selectedRuleUser].home = maxHomeSize;
+					userSpecificData[selectedRuleUser]['~'] = maxHomeSize;
 					dataFile.set('specific', userSpecificData);
 					saveData();
 				}));
