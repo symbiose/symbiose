@@ -188,11 +188,16 @@ Webos.require = function Wrequire(files, callback, options) {
 		list = [String(files)];
 	}
 
+	var loadOperation = new Webos.Operation();
+
 	var loadedFiles = 0;
-	var onLoadFn = function() {
+	var onLoadFn = function(file) {
 		loadedFiles++;
+		delete Webos.require._stacks[file.get('path')];
+
 		if (loadedFiles == list.length) {
 			callback.success();
+			loadOperation.setCompleted(true);
 		}
 	};
 
@@ -206,8 +211,8 @@ Webos.require = function Wrequire(files, callback, options) {
 					Webos.require._stacks[file.get('path')] = [];
 					Webos.require._currentFile = file.get('path');
 
-					var fn = new Function(contents);
 					try {
+						var fn = new Function(contents);
 						fn();
 					} catch(error) {
 						W.Error.catchError(error);
@@ -219,26 +224,26 @@ Webos.require = function Wrequire(files, callback, options) {
 					var group = Webos.Observable.group(stack);
 					if (group.observables().length > 0) {
 						group.one('success', function() {
-							onLoadFn();
+							onLoadFn(file);
 						});
 						group.oneEach('error', function() {
 							callback.error();
 						});
 					} else {
-						onLoadFn();
+						onLoadFn(file);
 					}
 				} else if (file.get('extension') == 'css') {
 					Webos.Stylesheet.insertCss(contents, options.styleContainer);
-					onLoadFn();
+					onLoadFn(file);
 				} else {
 					callback.error(Webos.Callback.Result.error('Unknown file type : "'+file.get('extension')+'" (file path: "'+file.get('path')+'")'));
 				}
 			}, callback.error]);
-
-			if (Webos.require._currentFile) {
-				Webos.require._stacks[Webos.require._currentFile].push(call);
-			}
 		})(list[i]);
+	}
+
+	if (Webos.require._currentFile) {
+		Webos.require._stacks[Webos.require._currentFile].push(loadOperation);
 	}
 };
 
@@ -257,6 +262,8 @@ Webos.require._stacks = {};
  * @private
  */
 Webos.require._currentFile = null;
+
+Webos.require._currentOperation = null;
 
 /**
  * Evaluate Javascript scripts.
