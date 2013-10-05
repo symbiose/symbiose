@@ -6,7 +6,7 @@ namespace lib;
  * @author Simon Ser
  * @since 1.0beta3
  */
-abstract class Entity implements \ArrayAccess, \JsonSerializable {
+abstract class Entity implements \ArrayAccess {
 	/**
 	 * The identifier of this entity.
 	 * @var int

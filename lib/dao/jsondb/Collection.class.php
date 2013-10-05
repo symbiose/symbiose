@@ -1,7 +1,7 @@
 <?php
 namespace lib\dao\jsondb;
 
-class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSerializable {
+class Collection implements \ArrayAccess, \IteratorAggregate, \Countable {
 	protected $data;
 
 	public function __construct($data = array()) {

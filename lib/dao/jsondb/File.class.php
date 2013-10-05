@@ -52,11 +52,11 @@ class File {
 
 		$this->items = $items;
 
-		if (defined('JSON_PRETTY_PRINT')) { //PHP >= 5.4
-			$json = json_encode($items, JSON_PRETTY_PRINT); //JSON_PRETTY_PRINT: for debugging issues
-		} else {
-			$json = json_encode($items);
-		}
+		//if (defined('JSON_PRETTY_PRINT')) { //PHP >= 5.4
+		//	$json = json_encode($items->convertToArray(), JSON_PRETTY_PRINT); //JSON_PRETTY_PRINT: for debugging issues
+		//} else {
+			$json = json_encode($items->convertToArray());
+		//}
 
 		if ($json === false) {
 			throw new \RuntimeException('Cannot encode data to JSON');

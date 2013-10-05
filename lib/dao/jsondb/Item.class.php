@@ -1,7 +1,7 @@
 <?php
 namespace lib\dao\jsondb;
 
-class Item implements \ArrayAccess, \IteratorAggregate, \JsonSerializable {
+class Item implements \ArrayAccess, \IteratorAggregate {
 	protected $data = array();
 
 	public function __construct($data) {
