@@ -162,7 +162,7 @@ class UserInterfaceManager extends \lib\Manager {
 					$jsFiles[$filePath] = $fileContents;
 					break;
 				case 'css':
-					$cssFiles[] = $ffileContents;
+					$cssFiles[] = $fileContents;
 					break;
 			}
 		}
