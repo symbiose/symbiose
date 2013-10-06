@@ -158,7 +158,11 @@ $.webos.widget('window', 'container', {
 	_update: function(key, value) {
 		switch(key) {
 			case 'icon':
-				this.options.icon = W.Icon.toIcon(value);
+				if (/^(https?)?\:\/\//.test(value)) {
+					this.options.icon = { realpath: function() { return value; } };
+				} else {
+					this.options.icon = W.Icon.toIcon(value);
+				}
 				break;
 			case 'title':
 				this.options._components.title.html(value);
