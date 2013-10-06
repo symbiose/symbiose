@@ -120,6 +120,10 @@ Webos.require([
 				var windowSize = { width: 320, height: 480 };
 				var isMaximized = false;
 
+				if ($.inArray('desktop', that.get('device_types')) != -1 || $.inArray('tablet', that.get('device_types')) != -1) {
+					isMaximized = true;
+				}
+
 				var appWindow = $.w.window({
 					title: that.get('title'),
 					icon: that.get('icon'),

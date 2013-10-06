@@ -334,7 +334,7 @@ Webos.require([
 			Webos.Package.categories([function(categories) {
 				that.home.menu = $.w.container()
 					.addClass('menu')
-					.appendTo(that._views.home);
+					.prependTo(that._views.home);
 
 				var menu = $('<ul></ul>').appendTo(that.home.menu);
 
