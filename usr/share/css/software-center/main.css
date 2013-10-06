@@ -17,9 +17,11 @@
 .home .menu {
 	width: 150px;
 	float: left;
+	max-height: 100%;
 }
 .home .box {
 	margin-left: 155px;
+	margin-bottom: 5px;
 	overflow: visible;
 }
 .home .box .webos-button {
@@ -43,14 +45,16 @@
 	min-height: 40px;
 	overflow: hidden;
 }
-.home .box ul li {
-	height: 40px;
-	width: 25%;
-	float: left;
+.home .box ul li, .home .menu ul li {
 	overflow: hidden;
 	-o-text-overflow: ellipsis; /* pour Opera 9 */
 	text-overflow: ellipsis; /* pour le reste du monde */
 	white-space: nowrap;
+}
+.home .box ul li {
+	height: 40px;
+	width: 25%;
+	float: left;
 }
 .home .box ul li .icon {
 	height: 32px;
