@@ -146,5 +146,88 @@
 
 	Webos.inherit(Operation, Webos.Observable);
 
+
+	/**
+	 * A group of operations objects.
+	 * @param {Array|Webos.Observable} operations Operation(s).
+	 * @constructor
+	 * @since  1.0beta3
+	 */
+	Operation.Group = function(operations) {
+		Webos.Observable.Group.call(this, operations);
+	};
+	Operation.Group.prototype = {
+		started: function () {
+			var results = this._eachObservable('started');
+
+			//If one operation has started
+			for(var i = 0; i < results.length; i++) {
+				if (results[i]) {
+					return true;
+				}
+			}
+
+			return false;
+		},
+		progress: function () {
+			var results = this._eachObservable('progress'),
+				globalProgress = 0,
+				operationsNbr = results.length;
+
+			for(var i = 0; i < results.length; i++) {
+				globalProgress += results[i] / operationsNbr;
+			}
+
+			return globalProgress;
+		},
+		completed: function () {
+			var results = this._eachObservable('completed');
+
+			//If all operations has been completed
+			for(var i = 0; i < results.length; i++) {
+				if (!results[i]) {
+					return false;
+				}
+			}
+
+			return true;
+		},
+		failed: function () {
+			var results = this._eachObservable('failed');
+
+			//If one operation has failed
+			for(var i = 0; i < results.length; i++) {
+				if (results[i]) {
+					return true;
+				}
+			}
+
+			return false;
+		},
+		addCallbacks: function (callbacks) {
+			callbacks = Webos.Callback.toCallback(callbacks);
+
+			this.on('success', function(eventData) {
+				callbacks.fire('success', [eventData.result]);
+			});
+
+			this.on('error', function(eventData) {
+				callbacks.fire('error', [eventData.result]);
+			});
+		}
+	};
+	Webos.inherit(Operation.Group, Webos.Observable.Group);
+
+	/**
+	 * Put operations in a group.
+	 * @param   {Array|Webos.Operation} observables Operation(s).
+	 * @returns {Webos.Operation.Group}             The group.
+	 * @static
+	 */
+	Operation.group = function (operations) {
+		return new Webos.Operation.Group(operations);
+	};
+
+
 	Webos.Operation = Operation; //Export API
 })();

@@ -221,8 +221,8 @@ Webos.require = function Wrequire(files, callback, options) {
 					Webos.require._currentFile = previousFile;
 
 					var stack = Webos.require._stacks[file.get('path')];
-					var group = Webos.Observable.group(stack);
-					if (group.observables().length > 0) {
+					var group = Webos.Operation.group(stack);
+					if (group.observables().length > 0 && !group.completed()) {
 						group.one('success', function() {
 							onLoadFn(file);
 						});
