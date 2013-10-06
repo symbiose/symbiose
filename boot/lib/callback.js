@@ -210,20 +210,33 @@ Webos.Callback.Result.prototype = {
 	 * Check if the result is a success.
 	 * @returns {Boolean} True if the result is a success, false otherwise.
 	 */
-	isSuccess: function $_WCallbackResult_isSuccess() {
+	isSuccess: function () {
 		return this._data.success;
+	},
+	/**
+	 * Get the response's error, if there is one.
+	 * @param  {String} [msg] An error message can be provided.
+	 * @returns {Webos.Error}  The error.
+	 */
+	getError: function (msg) {
+		if (this.isSuccess()) {
+			return;
+		}
+		msg = this._data.out;
+
+		return Webos.Error.build(msg);
 	},
 	/**
 	 * Trigger the error if the result is not a success.
 	 */
-	triggerError: function $_WCallbackResult_triggerError() {
+	triggerError: function () {
 		if (this.isSuccess()) {
 			return;
 		}
 		
 		Webos.Error.trigger(this._data.out);
 	},
-	toString: function $_WCallbackResult_toString() {
+	toString: function () {
 		return this._data.out;
 	}
 };
