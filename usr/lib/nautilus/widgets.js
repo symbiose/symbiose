@@ -200,8 +200,8 @@ Webos.require([
 			
 			dir = W.File.cleanPath(dir);
 			
-			userCallback = W.Callback.toCallback(userCallback, new W.Callback(function() {}, function(response) {
-				response.triggerError(t.get('Can\'t find « ${dir} ».', { dir: dir }));
+			userCallback = W.Callback.toCallback(userCallback, new W.Callback(function() {}, function(res) {
+				that._handleError(res.getError(t.get('Can\'t find « ${dir} ».', { dir: dir })));
 			}));
 
 			this._trigger('readstart', { type: 'readstart' }, { location: dir });
@@ -737,6 +737,19 @@ Webos.require([
 				this.content().list('content').append(item);
 			}
 		},
+		_handleError: function(error) {
+			var t = this.translations();
+
+			var errorWindow = $.webos.window.messageDialog({
+				type: 'error',
+				title: t.get('Error'),
+				label: error.html.message,
+				details: error.html.details,
+				closeLabel: t.get('Close')
+			});
+
+			errorWindow.window('open');
+		},
 		_openProperties: function(file) {
 			var t = this.translations(), that = this;
 			
@@ -878,7 +891,7 @@ Webos.require([
 					displayPropertiesFn(file);
 				}, function(response) {
 					propertiesWindow.window('close');
-					response.triggerError();
+					that._handleError(response.getError());
 				}]);
 			}
 
@@ -944,7 +957,7 @@ Webos.require([
 				params: serverCall._data,
 				button: uploadButton[0],
 				onSubmit: function(id, fileName){
-					uploadsIds[id] = $.w.nautilus.progresses.add(0, 'Envoi de '+fileName);
+					uploadsIds[id] = $.w.nautilus.progresses.add(0, t.get('Sending ${filename}', { filename: fileName }));
 				},
 				onProgress: function(id, fileName, loaded, total){
 					$.w.nautilus.progresses.update(uploadsIds[id], Math.round(loaded / total * 100));
@@ -953,18 +966,18 @@ Webos.require([
 					var response = new W.ServerCall.Response(responseJSON);
 					var success = true;
 					if (!response.isSuccess()) {
-						W.Error.trigger('Impossible d\'envoyer le fichier "'+fileName+'"', response.getAllChannels());
+						that._handleError(Webos.Error.build(t.get('Cannot send file "${filename}"', { filename: fileName }), response.getAllChannels()));
 						success = false;
 					} else if (!response.getData().success) {
-						W.Error.trigger('Impossible d\'envoyer le fichier "'+fileName+'"', response.getData().msg);
+						that._handleError(Webos.Error.build(t.get('Cannot send file "${filename}"', { filename: fileName }), response.getData().msg));
 						success = false;
 					}
 					
 					var msg;
 					if (success) {
-						msg = 'Envoi termin&eacute;.';
+						msg = t.get('Upload completed.');
 					} else {
-						msg = 'Erreur lors de l\'envoi.';
+						msg = t.get('Error while uploading file.');
 					}
 					$.w.nautilus.progresses.update(uploadsIds[id], 100, msg);
 					
@@ -976,12 +989,12 @@ Webos.require([
 						}
 						
 						$.w.notification({
-							title: 'Fichier envoy&eacute;',
-							message: 'Le fichier '+newFile.get('basename')+' a &eacute;t&eacute; envoy&eacute;.',
+							title: t.get('File sent'),
+							message: t.get('File "${filename}" has been uploaded.', { filename: newFile.get('basename') }),
 							icon: that._getFileIcon(newFile),
 							widgets: [
-								$.w.button('Ouvrir le dossier parent').click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
-								$.w.button('Ouvrir').click(function() { newItem.data('nautilus').open(); })
+								$.w.button(t.get('Open parent folder')).click(function() { W.Cmd.execute('nautilus "'+newFile.get('dirname')+'"'); }),
+								$.w.button(t.get('Open')).click(function() { newItem.data('nautilus').open(); })
 							]
 						});
 					}
@@ -991,14 +1004,14 @@ Webos.require([
 				},
 				// messages
 				messages: {
-					typeError: "Le type du fichier <em>{file}</em> est incorrect. Seules les extensions {extensions} sont autoris&eacute;es.",
-					sizeError: "Le fichier <em>{file}</em> est trop gros, la taille maximum est {sizeLimit}.",
-					minSizeError: "Le fichier <em>{file}</em> est trop petit, la taille minimum est {minSizeLimit}.",
-					emptyError: "Le fichier <em>{file}</em> est vide, veuillez r&eacute;essayer.",
+					typeError: t.get('The type of the file "{file}" is invalid, only these extensions are accepted : {extensions}'),
+					sizeError: t.get('File is too large, maximum size is {sizeLimit}.'),
+					minSizeError: t.get('File "{file}" is too small, minimum size is {minSizeLimit}'),
+					emptyError: t.get('File "{file}" is empty, please try again'),
 					onLeave: t.get('Files are being uploaded, if you leave this page now, they will be canceled.')
 				},
-				showMessage: function(message){
-					W.Error.trigger(message);
+				showMessage: function(msg){
+					that._handleError(Webos.Error.build(msg));
 				}
 	        });
 			
@@ -1282,14 +1295,14 @@ Webos.require([
 			dest = W.File.get(dest);
 			callback = W.Callback.toCallback(callback);
 
-			var progressId = $.w.nautilus.progresses.add(0, 'Copie de '+source.get('basename')+' vers '+dest.get('basename'));
+			var progressId = $.w.nautilus.progresses.add(0, t.get('Copying ${source} to ${dest}', { source: source.get('basename'), dest: dest.get('basename') }));
 
 			W.File.copy(source, dest, [function() {
-				$.w.nautilus.progresses.update(progressId, 100, 'Copie termin&eacute;.');
+				$.w.nautilus.progresses.update(progressId, 100, t.get('Copying completed.'));
 
 				callback.success();
 			}, function(response) {
-				$.w.nautilus.progresses.update(progressId, 100, 'Erreur lors de la copie.');
+				$.w.nautilus.progresses.update(progressId, 100, t.get('Error while copying file.'));
 
 				callback.error(response);
 			}]);
@@ -1299,14 +1312,14 @@ Webos.require([
 			dest = W.File.get(dest);
 			callback = W.Callback.toCallback(callback);
 
-			var progressId = $.w.nautilus.progresses.add(0, 'D&eacute;placement de '+source.get('basename')+' vers '+dest.get('basename'));
+			var progressId = $.w.nautilus.progresses.add(0, t.get('Moving ${source} to ${dest}', { source: source.get('basename'), dest: dest.get('basename') }));
 
 			W.File.move(source, dest, [function() {
-				$.w.nautilus.progresses.update(progressId, 100, 'D&eacute;placement termin&eacute;.');
+				$.w.nautilus.progresses.update(progressId, 100, t.get('Moving completed.'));
 
 				callback.success();
 			}, function(response) {
-				$.w.nautilus.progresses.update(progressId, 100, 'Erreur lors du d&eacute;placement.');
+				$.w.nautilus.progresses.update(progressId, 100, t.get('Error while moving file.'));
 
 				callback.error(response);
 			}]);
@@ -1315,14 +1328,14 @@ Webos.require([
 			file = W.File.get(file);
 			callback = W.Callback.toCallback(callback);
 
-			var progressId = $.w.nautilus.progresses.add(0, 'Suppression de '+file.get('basename'));
+			var progressId = $.w.nautilus.progresses.add(0, t.get('Deleting ${filename}', { filename: file.get('basename') }));
 
 			file.remove([function() {
-				$.w.nautilus.progresses.update(progressId, 100, 'Suppression termin&eacute;e.');
+				$.w.nautilus.progresses.update(progressId, 100, t.get('Deleting completed.'));
 
 				callback.success();
 			}, function(response) {
-				$.w.nautilus.progresses.update(progressId, 100, 'Erreur lors de la suppression.');
+				$.w.nautilus.progresses.update(progressId, 100, t.get('Error while deleting file.'));
 
 				callback.error(response);
 			}]);
