@@ -33,7 +33,7 @@ class RawResponse implements ResponseContent {
 	 * Get this response content's value.
 	 * @return string $value The response content's value.
 	 */
-	public function value($value) {
+	public function value() {
 		return $this->value;
 	}
 }
