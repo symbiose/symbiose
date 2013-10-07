@@ -28,7 +28,7 @@ class FileManager_localfs extends FileManager {
 
 		$aliases = $this->dao->aliases();
 		if (isset($aliases['~'])) {
-			$isLogged = true;
+			$isUserLogged = true;
 			$username = $_SESSION['user_data_username']; //TODO: better way to retrieve the username
 		}
 
@@ -76,13 +76,18 @@ class FileManager_localfs extends FileManager {
 				continue;
 			}
 
-			if (strpos($path, $dirname) === 0) {
+			if (strpos($path, $dirname.'/') === 0 || $path == $dirname) {
 				if (!isset($this->diskusage[$dirname])) {
 					if (!$this->exists($dirname) || !$this->isDir($dirname)) {
 						continue;
 					}
 
 					$this->diskusage[$dirname] = $this->size($dirname, true);
+
+					if ($isUserLogged) {
+						$userDiskusage[$dirname] = $this->diskusage[$dirname];
+					}
+
 					$sizesModified = true;
 				}
 
