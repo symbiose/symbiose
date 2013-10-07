@@ -132,17 +132,38 @@ Webos.require([
 					maximized: isMaximized
 				});
 
-				appWindow.window('open');
+				appWindow.window('open').window('loading', true, {
+					message: 'Checking app compatibility...'
+				});
 
-				var iframe = $('<iframe></iframe>', {
-					src: launchUrl
-				}).css({
-					border: 'none',
-					width: '100%',
-					height: '100%'
-				}).appendTo(appWindow.window('content'));
+				FirefoxMarketplace._checkLaunchPage(launchUrl, [function(launchData) {
+					if (!launchData.isLaunchable) {
+						appWindow.window('close');
+						callback.error(Webos.Callback.Result.error('This app is not supported'));
+						return;
+					}
 
-				appWindow.window('content').css('overflow', 'hidden');
+					appWindow.window('loading', true, {
+						lock: false
+					});
+
+					var iframe = $('<iframe></iframe>', {
+						src: launchUrl
+					}).css({
+						border: 'none',
+						width: '100%',
+						height: '100%'
+					}).appendTo(appWindow.window('content'));
+
+					iframe.one('load', function() {
+						appWindow.window('loading', false);
+					});
+
+					appWindow.window('content').css('overflow', 'hidden');
+				}, function(res) {
+					appWindow.window('close');
+					callback.error(res);
+				}]);
 			}, callback.error]);
 		}
 	};
@@ -239,6 +260,20 @@ Webos.require([
 			var manifest = $.parseJSON(res.getData().manifest);
 
 			callback.success(manifest);
+		}, callback.error]);
+	};
+
+	FirefoxMarketplace._checkLaunchPage = function(launchPage, callback) {
+		callback = W.Callback.toCallback(callback);
+
+		return new Webos.ServerCall({
+			'class': 'FirefoxMarketplaceController',
+			'method': 'checkLaunchPage',
+			'arguments': {
+				'launchPage': launchPage
+			}
+		}).load([function(res) {
+			callback.success(res.getData());
 		}, callback.error]);
 	};
 
