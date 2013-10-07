@@ -209,6 +209,8 @@ class LocalFs {
 			$dirname = preg_replace('#/[^/]*/?$#', '', $path);
 		} else if (strpos($path, '/') === 0) {
 			$dirname = '/';
+		} else {
+			$dirname = null;
 		}
 
 		return $dirname;
