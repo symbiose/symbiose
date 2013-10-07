@@ -63,7 +63,9 @@ class FileController extends \lib\ApiBackController {
 			'mime_type' => $manager->mimetype($path)
 		);
 
-		if (!$data['is_dir']) {
+		if ($data['is_dir']) {
+			$data['available_space'] = $manager->availableSpace($path);
+		} else {
 			$data['extension'] = $manager->extension($path);
 		}
 

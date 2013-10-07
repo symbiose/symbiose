@@ -858,11 +858,14 @@ Webos.require([
 				}
 
 				var data = [t.get('Name : ${name}', { name: file.get('basename') }),
-					(file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : ((file.get('mime_type')) ? t.get('MIME type : ${mime}', { mime: file.get('mime_type') }) : t.get('Type : ${extension} file', { extension: file.get('extension') })),
-					t.get('Location : ${location}', { location: file.get('dirname') })];
+					(file.get('is_dir')) ? t.get('Type : folder', { extension: file.get('extension') }) : ((file.get('mime_type')) ? t.get('MIME type : ${mime}', { mime: file.get('mime_type') }) : t.get('Type : ${extension} file', { extension: file.get('extension') }))
+				];
 				
+				if (file.exists('dirname') && file.get('dirname')) {
+					data.push(t.get('Location : ${location}', { location: file.get('dirname') }));
+				}
 				if (file.exists('size')) {
-					data.push(((file.get('is_dir')) ? t.get('Contents : ${size} file${size|s}', { size: file.get('size') }) : t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) })));
+					data.push(t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }));
 				}
 				if (file.exists('atime')) {
 					var atime = new Date(file.get('atime') * 1000);
@@ -871,6 +874,9 @@ Webos.require([
 				if (file.exists('mtime')) {
 					var mtime = new Date(file.get('mtime') * 1000);
 					data.push(t.get('Last modification : ${date}', { date: Webos.Locale.current().completeDate(mtime) }));
+				}
+				if (file.exists('available_space') && file.get('available_space') >= 0) {
+					data.push(t.get('Available space : ${availableSpace}', { availableSpace: W.File.bytesToSize(file.get('available_space')) }));
 				}
 
 				dataTab.append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
