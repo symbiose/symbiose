@@ -43,7 +43,7 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 			foreach($headersLines as $header) {
 				$parts = explode(':', $header, 2);
 
-				if (count($parts) == 2 && preg_match('#x-frame-options#i', trim($parts[0])) && preg_match('#"?sameorigin"?#i', trim($parts[1]))) {
+				if (count($parts) == 2 && preg_match('#x-frame-options#i', trim($parts[0])) && preg_match('#"?(sameorigin|deny)"?#i', trim($parts[1]))) {
 					$isLaunchable = false;
 					break;
 				}
