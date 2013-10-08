@@ -253,9 +253,14 @@
 	display: none;
 }
 
-.webos-window .header .header-specific ul.webos-buttonwindowheader input[type="text"] {
+.webos-window .header .header-specific ul.webos-buttonwindowheader input[type="text"],
+.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-windowheaderitem {
+	margin: 3px;
 	margin-top: 13px;
 	margin-bottom: 22px;
+}
+.webos-window .header .header-specific ul.webos-buttonwindowheader .webos-button {
+	background-size: auto;
 }
 
 .webos-window .header .header-specific ul.webos-toolbarwindowheader {

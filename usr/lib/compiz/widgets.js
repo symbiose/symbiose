@@ -768,6 +768,20 @@ $.webos.widget('window', 'container', {
 			if ($(e.target).add($(e.target).parents()).is('.controllers, .header-specific ul *')) {
 				return;
 			}
+
+			//Add an overlay over iframes
+			var iframesOverlays = $();
+			that.element.find('iframe').each(function() {
+				var pos = $(this).position();
+
+				iframesOverlays = iframesOverlays.add($('<div></div>').css({
+					position: 'absolute',
+					top: pos.top,
+					left: pos.left,
+					width: $(this).outerWidth(),
+					height: $(this).outerHeight()
+				}).insertAfter(this));
+			});
 			
 			var el = that.element[0];
 			var posX = that.element.position().left,
@@ -916,6 +930,8 @@ $.webos.widget('window', 'container', {
 				}
 				
 				that.element.removeClass('dragging cursor-move');
+
+				iframesOverlays.remove();
 				
 				that._saveDimentions();
 
@@ -1562,6 +1578,9 @@ $.webos.windowHeaderSearch = function() {
 };
 
 //ButtonWindowHeader
+/**
+ * @deprecated Will be moved as tabWindowHeader
+ */
 $.webos.widget('buttonWindowHeader', 'windowHeader', {
 	_name: 'buttonwindowheader'
 });
@@ -1612,6 +1631,19 @@ $.webos.buttonWindowHeaderItem = function(label, icon) {
 		label: label,
 		icon: icon
 	});
+};
+
+//windowHeaderItem
+$.webos.widget('windowHeaderItem', 'container', {
+	_name: 'windowheaderitem'
+});
+$.webos.windowHeaderItem = function() {
+	var contents = [];
+	for (var i = 0; i < arguments.length; i++) {
+		contents.push(arguments[i]);
+	}
+
+	return $('<li></li>').windowHeaderItem().html(contents);
 };
 
 })(jQuery);
