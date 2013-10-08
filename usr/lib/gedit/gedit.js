@@ -578,6 +578,13 @@ function GEditWindow(file) {
 		
 		this._gedit.appendTo(this._content.scrollPane('content'));
 		
+		this._gedit.parent().mouseup(function(event) {
+			if ($(event.target).is(this)) {
+				that._gedit.gedit('codemirror', 'focus');
+				that._gedit.gedit('codemirror', 'setCursor', that._gedit.gedit('codemirror', 'getValue').length);
+			}
+		});
+
 		var closeStackLength = 0;
 		this._window.bind('windowbeforeclose', function(event) {
 			if (closeStackLength > 0) {
