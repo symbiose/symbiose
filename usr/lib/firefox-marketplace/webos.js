@@ -99,6 +99,9 @@ Webos.require([
 		runnable: function() {
 			return (this.get('app_type') == 'hosted');
 		},
+		category: function() {
+			return this._get('categories')[0];
+		},
 		run: function(callback) {
 			callback = W.Callback.toCallback(callback);
 			var that = this;

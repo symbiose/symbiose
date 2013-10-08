@@ -105,6 +105,13 @@ Webos.require([
 			this._header = $.w.buttonWindowHeader().appendTo(this._window.window('header'));
 			var headerContent = this._header.buttonWindowHeader('content');
 			
+			$.w.windowHeaderItem($.w.button('<').click(function() {
+				softwareCenter.previousView();
+			}),
+			$.w.button('>').click(function() {
+				softwareCenter.nextView();
+			})).appendTo(headerContent);
+
 			$.w.buttonWindowHeaderItem(t.get('Software'), getHeaderImgDirFn()+'/packages.png')
 				.buttonWindowHeaderItem('select')
 				.click(function() {
@@ -161,7 +168,9 @@ Webos.require([
 		_views: {},
 		_viewsData: {},
 		_categories: {},
-		_getActions: function $_SoftwareCenter__getActions(pkg) {
+		_history: [],
+		_historyCurrentView: null,
+		_getActions: function (pkg) {
 			var that = this, t = this._translations;
 
 			var actions = {
@@ -212,7 +221,7 @@ Webos.require([
 			
 			return actions;
 		},
-		switchToView: function $_SoftwareCenter_switchToView(view, data) { //Basculer vers une vue
+		_switchToView: function (view, data) {
 			for (var key in this._views) {
 				this._views[key].hide();
 			}
@@ -221,10 +230,43 @@ Webos.require([
 
 			this._viewsData[view] = data;
 		},
-		viewData: function $_SoftwareCenter_viewData(view) {
+		switchToView: function (view, data) { //Basculer vers une vue
+			this._switchToView(view, data);
+
+			if (this._historyCurrentView != this._history.length - 1) {
+				this._history = this._history.slice(0, this._historyCurrentView + 1);
+			}
+
+			var historyLength = this._history.push({
+				name: view,
+				data: data
+			});
+			this._historyCurrentView = historyLength - 1;
+		},
+		viewData: function (view) {
 			return this._viewsData[view];
 		},
-		_triggerError: function $_SoftwareCenter__triggerError(error) {
+		previousView: function () {
+			if (this._historyCurrentView <= 0) {
+				return;
+			}
+
+			this._historyCurrentView--;
+
+			var view = this._history[this._historyCurrentView];
+			this._switchToView(view.name, view.data);
+		},
+		nextView: function () {
+			if (this._historyCurrentView >= this._history.length - 1) {
+				return;
+			}
+
+			this._historyCurrentView++;
+
+			var view = this._history[this._historyCurrentView];
+			this._switchToView(view.name, view.data);
+		},
+		_triggerError: function (error) {
 			if (typeof this._views.error == 'undefined') {
 				this._views.error = $.w.container().addClass('error');
 
@@ -255,39 +297,56 @@ Webos.require([
 
 			this._window.window('loading', true);
 
-			var displayPkgsList = function(packages, container) {
-				var list = $();
-				for (var i = 0; i < packages.length; i++) {
-					var pkg = packages[i];
+			var loadedParts = 0, partsToLoad = 3;
+			var partLoaded = function() {
+				loadedParts++;
 
-					if (i > 8) {
-						break;
-					}
-					if (i % 4 == 0) {
-						list = $('<ul></ul>');
-						container.append(list);
-					}
-					
-					var item = (function(pkg) {
-						var item = $('<li></li>');
-
-						var imgUrl = pkg.get('icon');
-						if (!imgUrl) {
-							imgUrl = W.File.get('/usr/share/images/software-center/package.png').get('realpath');
-						}
-						var img = $.w.image(imgUrl, pkg.get('title')).addClass('icon');
-						item.append(img);
-
-						item.append('<span class="name">'+pkg.get('title')+'</span><br /><span class="category">'+(SoftwareCenter.getHumanCategory(pkg.get('category')) || '')+'</span>');
-						item.click(function() {
-							that.displayPackage(pkg);
-						});
-						
-						return item;
-					})(pkg);
-					
-					list.append(item);
+				if (loadedParts >= partsToLoad) {
+					that._window.window('loading', false);
+				} else {
+					that._window.window('loading', true, {
+						lock: false
+					});
 				}
+			};
+
+			var displayPkgsList = function(packages, container) {
+				Webos.Package.categories([function (categories) {
+					var list = $();
+					for (var i = 0; i < packages.length; i++) {
+						var pkg = packages[i];
+
+						if (i > 8) {
+							break;
+						}
+						if (i % 4 == 0) {
+							list = $('<ul></ul>');
+							container.append(list);
+						}
+						
+						var item = (function(pkg) {
+							var item = $('<li></li>');
+
+							var imgUrl = pkg.get('icon');
+							if (!imgUrl) {
+								imgUrl = W.File.get('/usr/share/images/software-center/package.png').get('realpath');
+							}
+							var img = $.w.image(imgUrl, pkg.get('title')).addClass('icon');
+							item.append(img);
+
+							item.append('<span class="name">'+pkg.get('title')+'</span><br /><span class="category">'+(categories[pkg.get('category')] || '')+'</span>');
+							item.click(function() {
+								that.displayPackage(pkg);
+							});
+							
+							return item;
+						})(pkg);
+						
+						list.append(item);
+					}
+				}, function(res) {
+					that._triggerError(res.getError());
+				}]);
 			};
 
 			W.Package.getLastPackages(8, [function(packages) {
@@ -306,10 +365,10 @@ Webos.require([
 
 				displayPkgsList(packages, that.home.whatsnew);
 
-				that._window.window('loading', false);
+				partLoaded();
 				that.home.whatsnew.hide().fadeIn('fast');
 			}, function(res) {
-				that._window.window('loading', false);
+				partLoaded();
 				that._triggerError(res.getError());
 			}]);
 
@@ -324,10 +383,10 @@ Webos.require([
 
 				displayPkgsList(packages, that.home.featured);
 
-				that._window.window('loading', false);
+				partLoaded();
 				that.home.featured.hide().fadeIn('fast');
 			}, function(res) {
-				that._window.window('loading', false);
+				partLoaded();
 				that._triggerError(res.getError());
 			}]);
 
@@ -348,10 +407,10 @@ Webos.require([
 					})(cat, categories[cat]);
 				}
 				
-				that._window.window('loading', false);
+				partLoaded();
 				that.home.menu.hide().fadeIn('fast');
 			},function(res) {
-				that._window.window('loading', false);
+				partLoaded();
 				that._triggerError(res.getError());
 			}]);
 
@@ -359,7 +418,7 @@ Webos.require([
 			
 			this.switchToView('home');
 		},
-		displayPackageList: function $_SoftwareCenter_displayPackageList(list, filter) { //Afficher une liste de paquets
+		displayPackageList: function $_SoftwareCenter_displayPackageList(list, filter, filterValue) { //Afficher une liste de paquets
 			var that = this, t = this._translations;
 
 			var insertView = false;
@@ -373,128 +432,143 @@ Webos.require([
 			if (typeof filter == 'undefined') {
 				filter = 'name';
 			}
-			
-			var getFilterCategory = function(value) {
-				switch(filter) {
-					case 'category':
-						return SoftwareCenter.getHumanCategory(value);
-					case 'lastupdate':
-						return t.get('News');
-					case 'installed_time':
-						return t.get('Recently installed');
-					default:
-						return t.get('All software');
-				}
-			};
 
-			var $images = $();
-			
-			var orderedList = {};
-			var i = 0;
-			for (var name in list) {
-				var pkg = list[name];
+			var categories = {};
 
-				var category = getFilterCategory(pkg.get(filter));
-
-				var item = (function(pkg) {
-					var item = $.w.listItem();
-					var itemContent = item.listItem('addColumn');
-					
-					var imgUrl = pkg.get('icon');
-					if (!imgUrl) {
-						imgUrl = 'usr/share/images/software-center/package.png';
+			var displayList = function() {
+				var getFilterCategory = function(value) {
+					switch(filter) {
+						case 'category':
+							return categories[value];
+						case 'lastupdate':
+							return t.get('News');
+						case 'installed_time':
+							return t.get('Recently installed');
+						default:
+							return t.get('All software');
 					}
-					var img = $.w.image(imgUrl, pkg.get('name'), false).addClass('icon');
-					img.image('option', {
-						animate: true,
-						parent: that._views.list
-					});
-					$images = $images.add(img);
-					itemContent.append(img);
+				};
 
-					itemContent.append('<span class="name">'+pkg.get('title')+'</span><br /><span class="shortdescription">'+pkg.get('shortdescription')+'</span><br />');
-					var more = $('<span></span>')
-						.addClass('more')
-						.appendTo(itemContent);
+				var $images = $();
+				
+				var orderedList = {};
+				for (var i = 0; i < list.length; i++) {
+					var pkg = list[i];
+
+					var category = getFilterCategory((typeof filterValue == 'undefined') ? pkg.get(filter) : filterValue);
+
+					var item = (function(pkg) {
+						var item = $.w.listItem();
+						var itemContent = item.listItem('addColumn');
+						
+						var imgUrl = pkg.get('icon');
+						if (!imgUrl) {
+							imgUrl = 'usr/share/images/software-center/package.png';
+						}
+						var img = $.w.image(imgUrl, pkg.get('name'), false).addClass('icon');
+						img.image('option', {
+							animate: true,
+							parent: that._views.list
+						});
+						$images = $images.add(img);
+						itemContent.append(img);
+
+						itemContent.append('<span class="name">'+pkg.get('title')+'</span><br /><span class="shortdescription">'+pkg.get('shortdescription')+'</span><br />');
+						var more = $('<span></span>')
+							.addClass('more')
+							.appendTo(itemContent);
 
 
-					var actions = that._getActions(pkg);
-					actions.action.appendTo(more);
+						var actions = that._getActions(pkg);
+						actions.action.appendTo(more);
 
-					var updatePkgStatus = function updatePkgStatus() {
-						actions.action.remove();
-						actions = that._getActions(pkg);
-						actions.action.prependTo(more);
-					};
+						var updatePkgStatus = function updatePkgStatus() {
+							actions.action.remove();
+							actions = that._getActions(pkg);
+							actions.action.prependTo(more);
+						};
 
-					pkg.bind('installstart.software-center installcomplete.software-center removestart.software-center removecomplete.software-center', function() {
-						updatePkgStatus();
-					});
-					
-					$.w.button(t.get('More information'))
-						.click(function() {
-							that.displayPackage(pkg);
-						})
-						.appendTo(more);
-					
-					item.bind('listitemselect', function() {
-						more.show();
-					});
-					item.bind('listitemunselect', function() {
+						pkg.bind('installstart.software-center installcomplete.software-center removestart.software-center removecomplete.software-center', function() {
+							updatePkgStatus();
+						});
+						
+						$.w.button(t.get('More information'))
+							.click(function() {
+								that.displayPackage(pkg);
+							})
+							.appendTo(more);
+						
+						item.bind('listitemselect', function() {
+							more.show();
+						});
+						item.bind('listitemunselect', function() {
+							more.hide();
+						});
+						
 						more.hide();
-					});
+						
+						return item;
+					})(pkg);
 					
-					more.hide();
+					if (typeof orderedList[category] == 'undefined') {
+						orderedList[category] = $();
+					}
 					
-					return item;
-				})(pkg);
-				
-				if (typeof orderedList[category] == 'undefined') {
-					orderedList[category] = $();
+					orderedList[category] = orderedList[category].add(item);
 				}
 				
-				orderedList[category] = orderedList[category].add(item);
-				
-				i++;
-			}
-			
-			var nbrCategories = 0, lastCategory;
-			for (var cat in orderedList) {
-				nbrCategories++;
-			}
-			lastCategory = cat;
-			
-			if (i == 0) {
-				var label = $.w.label()
-					.addClass('empty')
-					.html(t.get('Empty'))
-					.appendTo(this._views.list.container('content'));
-			} else if (nbrCategories == 1) {
-				$('<h1></h1>').html(lastCategory).appendTo(this._views.list);
-				var list = $.w.list();
-				list.list('content').append(orderedList[lastCategory]);
-				list.appendTo(this._views.list);
-			} else {
-				var nbrCategories = 0;
-				for (var category in orderedList) {
-					var spoiler = $.w.spoiler(category).appendTo(this._views.list);
-					var list = $.w.list();
-					list.list('content').append(orderedList[category]);
-					list.appendTo(spoiler.spoiler('content'));
-					if (nbrCategories == 0) {
-						spoiler.spoiler('option', 'shown', true);
-					}
+				var nbrCategories = 0, lastCategory;
+				for (var cat in orderedList) {
 					nbrCategories++;
 				}
-			}
+				lastCategory = cat;
+				
+				if (list.length == 0) {
+					var label = $.w.label()
+						.addClass('empty')
+						.html(t.get('Empty'))
+						.appendTo(that._views.list.container('content'));
+				} else if (nbrCategories == 1) {
+					$('<h1></h1>').html(lastCategory).appendTo(that._views.list);
+					var $list = $.w.list();
+					$list.list('content').append(orderedList[lastCategory]);
+					$list.appendTo(that._views.list);
+				} else {
+					var nbrCategories = 0;
+					for (var category in orderedList) {
+						var spoiler = $.w.spoiler(category).appendTo(that._views.list);
+						var $list = $.w.list();
+						$list.list('content').append(orderedList[category]);
+						$list.appendTo(spoiler.spoiler('content'));
+						if (nbrCategories == 0) {
+							spoiler.spoiler('option', 'shown', true);
+						}
+						nbrCategories++;
+					}
+				}
 
-			if (insertView) {
-				this._window.window('content').append(this._views.list);
-			}
-			
-			this.switchToView('list', { packages: list, filter: filter });
+				if (insertView) {
+					that._window.window('content').append(that._views.list);
+				}
+				
+				that.switchToView('list', { packages: list, filter: filter });
 
-			$images.image('load');
+				$images.image('load');
+			};
+
+			if (filter == 'category') {
+				this._window.window('loading', true);
+
+				Webos.Package.categories([function (cats) {
+					that._window.window('loading', false);
+					categories = cats;
+					displayList();
+				}, function(res) {
+					that._triggerError(res.getError());
+				}]);
+			} else {
+				displayList();
+			}
 		},
 		displayCategory: function $_SoftwareCenter_displayCategory(category) { //Afficher une categorie
 			var that = this;
@@ -505,7 +579,7 @@ Webos.require([
 				that._window.window('loading', false);
 
 				that.reinitSearch();
-				that.displayPackageList(list, 'category');
+				that.displayPackageList(list, 'category', category);
 			}, function(res) {
 				that._window.window('loading', false);
 				that._triggerError(res.getError());

@@ -55,6 +55,10 @@
 
 	Webos.Observable.build(Webos.Package);
 	Webos.Package._sources = [];
+	Webos.Package._cache = {
+		categories: null
+	};
+
 	Webos.Package.sources = function() {
 		return Webos.Package._sources;
 	};
@@ -156,7 +160,12 @@
 		
 		return Webos.Package._getPackagesList('searchPackages', {
 			cat: name
-		}, callback);
+		}, [function(list) {
+			for (var i = 0; i < list.length; i++) {
+				list[i]._set('category', name);
+			}
+			callback.success(list);
+		}, callback.error]);
 	};
 
 	/**
@@ -226,6 +235,11 @@
 	Webos.Package.categories = function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 
+		if (Webos.Package._cache.categories) {
+			callback.success(Webos.Package._cache.categories);
+			return;
+		}
+
 		var sources = Webos.Package.sources(),
 			operationsList = [],
 			categories = {};
@@ -239,9 +253,11 @@
 		var operations = Webos.Operation.group(operationsList);
 		if (operations.observables().length > 0) {
 			operations.one('success', function() {
+				Webos.Package._cache.categories = categories;
 				callback.success(categories);
 			});
 		} else {
+			Webos.Package._cache.categories = categories;
 			callback.success(categories);
 		}
 
