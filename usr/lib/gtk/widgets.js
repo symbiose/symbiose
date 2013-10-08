@@ -244,12 +244,12 @@ $.webos.widget('scrollPane', 'container', {
 			).appendTo(this.element);
 			
 			this._track();
-			
-			this._update('autoReload', this.options.autoReload);
-			this._update('expand', this.options.expand);
-			this._update('keyUpResize', this.options.keyUpResize);
-			this._update('alsoResize', this.options.alsoResize);
 		}
+
+		this._update('autoReload', this.options.autoReload);
+		this._update('expand', this.options.expand);
+		this._update('keyUpResize', this.options.keyUpResize);
+		this._update('alsoResize', this.options.alsoResize);
 		
 		this.reload();
 
@@ -400,21 +400,28 @@ $.webos.widget('scrollPane', 'container', {
 				break;
 			case 'alsoResize':
 				if (value) {
-					this.element.bind('scrollpanereload.scrollpane.widget.webos', function(e, data) {
+					if (this.isNatural()) {
 						$(value).css({
-							'min-width': data.containerWidth - data.verticalTrackWidth,
-							'min-height': data.containerHeight - data.horizontalTrackHeight,
-							width: data.paneWidth,
-							height: data.paneHeight
+							'min-width': '100%',
+							'min-height': '100%'
 						});
-					}).bind('scrollpanebeforereload.scrollpane.widget.webos', function() {
-						$(value).css({
-							'min-width': 'auto',
-							'min-height': 'auto',
-							width: 'auto',
-							height: 'auto'
+					} else {
+						this.element.bind('scrollpanereload.scrollpane.widget.webos', function(e, data) {
+							$(value).css({
+								'min-width': data.containerWidth - data.verticalTrackWidth,
+								'min-height': data.containerHeight - data.horizontalTrackHeight,
+								width: data.paneWidth,
+								height: data.paneHeight
+							});
+						}).bind('scrollpanebeforereload.scrollpane.widget.webos', function() {
+							$(value).css({
+								'min-width': 'auto',
+								'min-height': 'auto',
+								width: 'auto',
+								height: 'auto'
+							});
 						});
-					});
+					}
 				} else {
 					this.element.unbind('scrollpanereload.scrollpane.widget.webos');
 				}
