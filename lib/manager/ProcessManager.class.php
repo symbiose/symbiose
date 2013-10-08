@@ -31,11 +31,9 @@ class ProcessManager extends \lib\Manager {
 	 */
 	public function get($pid) {
 		if (!$this->exists($pid))
-			return false;
+			return null;
 		else {
-			$process = unserialize($_SESSION['processes'][$pid]);
-			$process->setWebos($this->webos);
-			return $process;
+			return unserialize($_SESSION['processes'][$pid]);
 		}
 	}
 
