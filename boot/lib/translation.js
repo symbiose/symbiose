@@ -634,6 +634,39 @@ new Webos.Locale({
 	}
 }, 'it_IT');
 
+//Spanish (Spain)
+new Webos.Locale({
+	title: 'Espa&ntilde;ol (Espa&ntilde;a)',
+	integerGroupsSeparator: ' ',
+	decimalSeparator: ',',
+	days: ['Domingo', 'Lunes', 'Martes', 'Mi&eacute;rcoles', 'Jueves', 'Viernes', 'S&aacute;bado'],
+	months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+	monthsAbbreviations: ['Ene.', 'Feb.', 'Mar.', 'Abr.', 'May.', 'Jun.', 'Jul.', 'Ago.', 'Sep.', 'Oct.', 'Nov.', 'Dic.'],
+	currency: '&#x20AC;'
+}, {
+	monthAbbreviation: function(nbr) {
+		return this._get('monthsAbbreviations')[nbr];
+	},
+	date: function(date) {
+		return this.day(date.getDay()) + ' ' + 
+			date.getDate() + ' ' + 
+			this.month(date.getMonth()).toLowerCase();
+	},
+	dateAbbreviation: function(date) {
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' + 
+			date.getDate() + ' ' + 
+			this.monthAbbreviation(date.getMonth()).toLowerCase();
+	},
+	completeDate: function(date) {
+		return this.dateAbbreviation(date) + ' ' + 
+			date.getFullYear() + ' ' + 
+			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
+	},
+	currency: function(value) {
+		return this.number(value) + ' ' + this._get('currency');
+	}
+}, 'es_ES');
+
 //When the user logs in/out, reinitialize the language and the locale
 Webos.User.bind('login logout', function() {
 	Webos.Translation._language = null;
