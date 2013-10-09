@@ -188,6 +188,8 @@ Webos.File.prototype = {
 			if (!data.dirname) { //On définit automatiquement le dossier parent si non présent
 				if (path.indexOf('/', 1) != -1) {
 					data.dirname = path.replace(/\/[^\/]*\/?$/, '');
+				} else if (path.indexOf('/') == -1 || path == '/') {
+					data.dirname = undefined;
 				} else if (path.indexOf('/') == 0) {
 					data.dirname = '/';
 				}
