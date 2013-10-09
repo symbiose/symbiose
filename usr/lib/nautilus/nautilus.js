@@ -552,6 +552,17 @@ Webos.require([
 			
 			var viewItem = $.w.menuItem(t.get('View')).appendTo(this._menu);
 			viewItemContent = viewItem.menuItem('content');
+
+			$.w.menuItem(t.get('List'))
+				.click(function() {
+					that.nautilus.nautilus('option', 'display', 'list');
+				})
+				.appendTo(viewItemContent);
+			$.w.menuItem(t.get('Icons'))
+				.click(function() {
+					that.nautilus.nautilus('option', 'display', 'icons');
+				})
+				.appendTo(viewItemContent);
 			
 			$.w.menuItem(t.get('Refresh'), true)
 				.click(function() {

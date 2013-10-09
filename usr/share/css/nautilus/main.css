@@ -7,9 +7,11 @@
 .webos-nautilus ul.icons {
 	list-style-type: none;
 	list-style-position: inside;
+	position: absolute;
+	width: 100%;
 	height: 100%;
 	margin: 0;
-	padding: 0px 2px;
+	padding: 0;
 }
 .webos-nautilus ul.icons li {
 	width:110px;

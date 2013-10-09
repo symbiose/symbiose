@@ -42,10 +42,86 @@ Webos.require([
 			});
 			this.options._components.container = this.element.scrollPane('content');
 			
+			this._insertContent();
+
+			this.content().click(function(event) {
+				var item;
+				if ($(event.target).is('li, tr')) {
+					item = $(event.target);
+				} else if ($(event.target).parents('li, tr').length > 0) {
+					item = $(event.target).parents('li, tr').first();
+				} else {
+					that.getSelection().removeClass('active').trigger('unselect');
+					return;
+				}
+				
+				if ($.webos.keyboard.pressed('ctrl')) {
+					item.addClass('active').trigger('select');
+				} else {
+					that.getSelection().trigger('unselect').removeClass('active');
+					item.addClass('active').trigger('select');
+				}
+			});
+			
+			$.webos.keyboard.bind(this.element, 'enter', function(e) {
+				if (e.isFocused) {
+					return;
+				}
+				
+				that.getSelection().each(function() {
+					$(this).data('nautilus').open();
+				});
+			});
+			$.webos.keyboard.bind(this.element, 'del', function(e) {
+				if (e.isFocused) {
+					return;
+				}
+				
+				that.getSelection().each(function() {
+					$(this).data('nautilus').remove();
+				});
+			});
+			
+			$.webos.keyboard.bind(this.element, 'right', function(e) {
+				if (e.isFocused) {
+					return;
+				}
+				
+				var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
+				var elementToSelect = selectedElements.last().next(':visible');
+				if (elementToSelect.length > 0) {
+					elementToSelect.addClass('active').trigger('select');
+				}
+			});
+			$.webos.keyboard.bind(this.element, 'left', function(e) {
+				if (e.isFocused) {
+					return;
+				}
+				
+				var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
+				var elementToSelect = selectedElements.last().prev(':visible');
+				if (elementToSelect.length > 0) {
+					elementToSelect.addClass('active').trigger('select');
+				}
+			});
+
+			//Webos.User.bind('login logout', function() {
+			//	that.refresh();
+			//});
+
+			this.readDir(this.options.directory);
+		},
+		_insertContent: function() {
+			var that = this, t = this.translations();
+
+			if (this.options._content) {
+				$(this.options._components.filesList).remove();
+			}
+
 			if (this.options.display == 'icons') {
 				this.options._content = $('<ul></ul>').addClass('icons').appendTo(this.options._components.container);
-				
-				that.content().mousedown(function(e) {
+
+				this.content().mousedown(function(e) {
 					if(e.button !== 0) {
 						return;
 					}
@@ -115,72 +191,7 @@ Webos.require([
 				this.options._content = $.w.list([t.get('Name'), t.get('Size'), t.get('Type')]).appendTo(this.options._components.container);
 			}
 
-			this.content().click(function(event) {
-				var item;
-				if ($(event.target).is('li, tr')) {
-					item = $(event.target);
-				} else if ($(event.target).parents('li, tr').length > 0) {
-					item = $(event.target).parents('li, tr').first();
-				} else {
-					that.getSelection().removeClass('active').trigger('unselect');
-					return;
-				}
-				
-				if ($.webos.keyboard.pressed('ctrl')) {
-					item.addClass('active').trigger('select');
-				} else {
-					that.getSelection().trigger('unselect').removeClass('active');
-					item.addClass('active').trigger('select');
-				}
-			});
-			
-			$.webos.keyboard.bind(this.element, 'enter', function(e) {
-				if (e.isFocused) {
-					return;
-				}
-				
-				that.getSelection().each(function() {
-					$(this).data('nautilus').open();
-				});
-			});
-			$.webos.keyboard.bind(this.element, 'del', function(e) {
-				if (e.isFocused) {
-					return;
-				}
-				
-				that.getSelection().each(function() {
-					$(this).data('nautilus').remove();
-				});
-			});
-			
-			$.webos.keyboard.bind(this.element, 'right', function(e) {
-				if (e.isFocused) {
-					return;
-				}
-				
-				var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
-				var elementToSelect = selectedElements.last().next(':visible');
-				if (elementToSelect.length > 0) {
-					elementToSelect.addClass('active').trigger('select');
-				}
-			});
-			$.webos.keyboard.bind(this.element, 'left', function(e) {
-				if (e.isFocused) {
-					return;
-				}
-				
-				var selectedElements = that.getSelection().trigger('unselect').removeClass('active');
-				var elementToSelect = selectedElements.last().prev(':visible');
-				if (elementToSelect.length > 0) {
-					elementToSelect.addClass('active').trigger('select');
-				}
-			});
-
-			//Webos.User.bind('login logout', function() {
-			//	that.refresh();
-			//});
-
-			this.readDir(this.options.directory);
+			this.options._components.filesList = this.content();
 		},
 		items: function() {
 			if (this.options.display == 'icons') {
@@ -386,6 +397,15 @@ Webos.require([
 				
 				userCallback.error(response);
 			}]);
+		},
+		_update: function(name, value) {
+			switch(name) {
+				case 'display':
+					this.options.display = value;
+					this._insertContent();
+					this.readDir(this.options.directory);
+					break;
+			}
 		},
 		_render: function(files) {
 			var that = this;
