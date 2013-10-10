@@ -1,4 +1,4 @@
-2013-05-08 Simon Ser simon@kegtux.org
+2013-05-08 Simon Ser contact@emersion.fr
 
 * Rewrited all PHP API.
 * Added Spanish and Italian translations.
