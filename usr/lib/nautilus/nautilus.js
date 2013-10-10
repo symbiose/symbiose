@@ -615,4 +615,6 @@ Webos.require([
 	Webos.inherit(NautilusWindow, Webos.TranslatedLibrary); //Heritage de Webos.TranslatedLibrary
 
 	window.NautilusWindow = NautilusWindow; //Export API
+}, {
+	styleContainer: Webos.UserInterface.Booter.current().element()
 });

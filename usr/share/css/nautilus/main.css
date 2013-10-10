@@ -83,7 +83,13 @@
 	height: 100%;
 	padding-right: 2px;
 }
-
+.webos-nautilusshortcuts strong.title {
+	font-size: 1.05em;
+}
+.webos-nautilusshortcuts .webos-list table {
+	border: none;
+	background: none;
+}
 .webos-nautilusshortcuts .webos-list-item img {
 	width: 20px;
 	height: 20px;

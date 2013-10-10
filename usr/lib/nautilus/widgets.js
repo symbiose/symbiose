@@ -1635,8 +1635,11 @@ Webos.require([
 				canReadSystemFiles = thisProcess.getAuthorizations().can('file.system.read');
 			}
 			
-			this.options._content = $.w.list(['Raccourcis']).appendTo(this.element);
-			var listContent = this.options._content.list('content');
+			this.options._shortcuts = $('<div></div>').appendTo(this.element);
+			this.options._shortcuts.append('<strong class="title">'+t.get('Shortcuts')+'</strong>');
+
+			var shortcutsList = $.w.list().appendTo(this.options._content),
+				listContent = shortcutsList.list('content');
 			
 			if (canReadUserFiles) {
 				$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> '+t.get('Private folder')]).bind('listitemselect', function() {
@@ -1675,29 +1678,31 @@ Webos.require([
 			}
 
 			if (listContent.children().length > 0) {
-				this.options._content.show();
+				this.options._shortcuts.show();
 			} else {
-				this.options._content.hide();
+				this.options._shortcuts.hide();
 			}
+
+			this.options._devices = $('<div></div>').appendTo(this.element);
 			
 			this._refreshDevices();
 			
-			this.options._mountCallback = Webos.File.bind('mount', function() {
+			this.options._mountCallback = Webos.File.on('mount', function() {
 				that._refreshDevices();
 			});
-			this.options._umountCallback = Webos.File.bind('umount', function() {
+			this.options._umountCallback = Webos.File.on('umount', function() {
 				that._refreshDevices();
 			});
 		},
 		_refreshDevices: function() {
 			var that = this, t = this.translations();
-			
-			if (this.options._devices) {
-				this.options._devices.remove();
-			}
+
+			this.options._devices
+				.empty()
+				.append('<strong class="title">'+t.get('Volumes')+'</strong>');
 			
 			var mountedDevices = Webos.File.mountedDevices();
-			var devicesShortcuts = $.w.list(['Volumes']);
+			var devicesShortcuts = $.w.list();
 			var i = 0;
 			
 			for (var local in mountedDevices) {
@@ -1721,10 +1726,9 @@ Webos.require([
 				})(local, mountedDevices[local]);
 				i++;
 			}
-			
-			if (i > 0) {
-				this.options._devices = devicesShortcuts.appendTo(this.element);
-			}
+
+			devicesShortcuts.appendTo(this.options._devices);
+			this.options._devices.toggle(i > 0);
 		},
 		destroy: function() {
 			Webos.File.unbind(this.options._mountCallback);

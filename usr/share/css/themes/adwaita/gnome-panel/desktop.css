@@ -270,6 +270,14 @@ body {
 	background: rgba(73, 142, 214, 0.3);
 }
 
+.webos-nautilus ul.icons li.active span.filename {
+	background-color: #4a90d9 !important;
+	color: white;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+}
+
 #workspace-switcher {
 	margin-top: 3px;
 }

@@ -46,6 +46,10 @@ Webos.Stylesheet._cache = {};
  */
 Webos.Stylesheet.insertCss = function insertCss(css, container) {
 	if (container) {
+		if (typeof container != 'string') {
+			container = '#'+$(container).attr('id');
+		}
+
 		css = css
 			.replace(/\/\*([\s\S]*?)\*\//g, '') //Delete comments
 			.replace(/([\s\S]+?)\{([\s\S]*?)\}/g, function(str, p1, p2) { //Replace each selector

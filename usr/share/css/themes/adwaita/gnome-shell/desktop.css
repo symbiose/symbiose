@@ -542,7 +542,7 @@ body {
 }
 
 .webos-nautilus ul.icons li.active span.filename {
-	background-color: #4a90d9;
+	background-color: #4a90d9 !important;
 	color: white;
 	-moz-border-radius: 2px;
 	-webkit-border-radius: 2px;
