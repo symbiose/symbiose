@@ -1638,8 +1638,9 @@ Webos.require([
 			this.options._shortcuts = $('<div></div>').appendTo(this.element);
 			this.options._shortcuts.append('<strong class="title">'+t.get('Shortcuts')+'</strong>');
 
-			var shortcutsList = $.w.list().appendTo(this.options._content),
+			var shortcutsList = $.w.list().appendTo(this.options._shortcuts),
 				listContent = shortcutsList.list('content');
+			this.options._components.shortcuts = shortcutsList;
 			
 			if (canReadUserFiles) {
 				$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> '+t.get('Private folder')]).bind('listitemselect', function() {
@@ -1793,7 +1794,7 @@ Webos.require([
 					
 					input.appendTo(content);
 					
-					item.appendTo(this.options._content.list('content'));
+					item.appendTo(this.component('shortcuts').list('content'));
 				}
 			}
 		}
