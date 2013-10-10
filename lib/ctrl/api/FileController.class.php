@@ -51,6 +51,10 @@ class FileController extends \lib\ApiBackController {
 	public function executeGetData($path) {
 		$manager = $this->managers()->getManagerOf('file');
 
+		if (!$manager->exists($path)) {
+			throw new \RuntimeException('"'.$path.'" : no such file or directory');
+		}
+
 		$data = array(
 			'basename' => $manager->basename($path),
 			'path' => $path,
