@@ -572,13 +572,13 @@ Webos.require([
 			$.w.menuItem(t.get('Show hidden files'), true)
 				.click(function() {
 					var value = !(that.nautilus.nautilus('option', 'showHiddenFiles'));
-					
+
 					if (value) {
 						$(this).menuItem('option', 'label', t.get('Don\'t show hidden files'));
 					} else {
 						$(this).menuItem('option', 'label', t.get('Show hidden files'));
 					}
-					
+
 					that.nautilus.nautilus('option', 'showHiddenFiles', value);
 					that.nautilus.nautilus('refresh');
 				})
