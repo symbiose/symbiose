@@ -20,11 +20,11 @@
 // [dammit]: acorn_loose.js
 // [walk]: util/walk.js
 
-(function(mod) {
+(function(root, mod) {
   if (typeof exports == "object" && typeof module == "object") return mod(exports); // CommonJS
   if (typeof define == "function" && define.amd) return define(["exports"], mod); // AMD
-  mod(this.acorn || (this.acorn = {})); // Plain browser env
-})(function(exports) {
+  mod(root.acorn || (root.acorn = {})); // Plain browser env
+})(this, function(exports) {
   "use strict";
 
   exports.version = "0.3.2";
@@ -500,7 +500,7 @@
     var start = tokPos;
     var startLoc = options.onComment && options.locations && new line_loc_t;
     var ch = input.charCodeAt(tokPos+=2);
-    while (tokPos < inputLen && ch !== 10 && ch !== 13 && ch !== 8232 && ch !== 8329) {
+    while (tokPos < inputLen && ch !== 10 && ch !== 13 && ch !== 8232 && ch !== 8233) {
       ++tokPos;
       ch = input.charCodeAt(tokPos);
     }
@@ -517,13 +517,13 @@
       var ch = input.charCodeAt(tokPos);
       if (ch === 32) { // ' '
         ++tokPos;
-      } else if(ch === 13) {
+      } else if (ch === 13) {
         ++tokPos;
         var next = input.charCodeAt(tokPos);
-        if(next === 10) {
+        if (next === 10) {
           ++tokPos;
         }
-        if(options.locations) {
+        if (options.locations) {
           ++tokCurLine;
           tokLineStart = tokPos;
         }
@@ -531,10 +531,10 @@
         ++tokPos;
         ++tokCurLine;
         tokLineStart = tokPos;
-      } else if(ch < 14 && ch > 8) {
+      } else if (ch > 8 && ch < 14) {
         ++tokPos;
       } else if (ch === 47) { // '/'
-        var next = input.charCodeAt(tokPos+1);
+        var next = input.charCodeAt(tokPos + 1);
         if (next === 42) { // '*'
           skipBlockComment();
         } else if (next === 47) { // '/'
@@ -563,52 +563,69 @@
   // `tokRegexpAllowed` trick does not work. See `parseStatement`.
 
   function readToken_dot() {
-    var next = input.charCodeAt(tokPos+1);
+    var next = input.charCodeAt(tokPos + 1);
     if (next >= 48 && next <= 57) return readNumber(true);
     ++tokPos;
     return finishToken(_dot);
   }
 
   function readToken_slash() { // '/'
-    var next = input.charCodeAt(tokPos+1);
+    var next = input.charCodeAt(tokPos + 1);
     if (tokRegexpAllowed) {++tokPos; return readRegexp();}
     if (next === 61) return finishOp(_assign, 2);
     return finishOp(_slash, 1);
   }
 
   function readToken_mult_modulo() { // '%*'
-    var next = input.charCodeAt(tokPos+1);
+    var next = input.charCodeAt(tokPos + 1);
     if (next === 61) return finishOp(_assign, 2);
     return finishOp(_bin10, 1);
   }
 
   function readToken_pipe_amp(code) { // '|&'
-    var next = input.charCodeAt(tokPos+1);
+    var next = input.charCodeAt(tokPos + 1);
     if (next === code) return finishOp(code === 124 ? _bin1 : _bin2, 2);
     if (next === 61) return finishOp(_assign, 2);
     return finishOp(code === 124 ? _bin3 : _bin5, 1);
   }
 
   function readToken_caret() { // '^'
-    var next = input.charCodeAt(tokPos+1);
+    var next = input.charCodeAt(tokPos + 1);
     if (next === 61) return finishOp(_assign, 2);
     return finishOp(_bin4, 1);
   }
 
   function readToken_plus_min(code) { // '+-'
-    var next = input.charCodeAt(tokPos+1);
-    if (next === code) return finishOp(_incdec, 2);
+    var next = input.charCodeAt(tokPos + 1);
+    if (next === code) {
+      if (next == 45 && input.charCodeAt(tokPos + 2) == 62 && lastEnd < tokLineStart) {
+        // A `-->` line comment
+        tokPos += 3;
+        skipLineComment();
+        skipSpace();
+        return readToken();
+      }
+      return finishOp(_incdec, 2);
+    }
     if (next === 61) return finishOp(_assign, 2);
     return finishOp(_plusmin, 1);
   }
 
   function readToken_lt_gt(code) { // '<>'
-    var next = input.charCodeAt(tokPos+1);
+    var next = input.charCodeAt(tokPos + 1);
     var size = 1;
     if (next === code) {
       size = code === 62 && input.charCodeAt(tokPos+2) === 62 ? 3 : 2;
       if (input.charCodeAt(tokPos + size) === 61) return finishOp(_assign, size + 1);
       return finishOp(_bin8, size);
+    }
+    if (next == 33 && code == 60 && input.charCodeAt(tokPos + 2) == 45 &&
+        input.charCodeAt(tokPos + 3) == 45) {
+      // `<!--`, an XML-style comment that should be interpreted as a line comment
+      tokPos += 4;
+      skipLineComment();
+      skipSpace();
+      return readToken();
     }
     if (next === 61)
       size = input.charCodeAt(tokPos+2) === 61 ? 3 : 2;
@@ -616,7 +633,7 @@
   }
 
   function readToken_eq_excl(code) { // '=!'
-    var next = input.charCodeAt(tokPos+1);
+    var next = input.charCodeAt(tokPos + 1);
     if (next === 61) return finishOp(_bin6, input.charCodeAt(tokPos+2) === 61 ? 3 : 2);
     return finishOp(code === 61 ? _eq : _prefix, 1);
   }
@@ -642,7 +659,7 @@
 
       // '0x' is a hexadecimal number.
     case 48: // '0'
-      var next = input.charCodeAt(tokPos+1);
+      var next = input.charCodeAt(tokPos + 1);
       if (next === 120 || next === 88) return readHexNumber();
       // Anything else beginning with a digit is an integer, octal
       // number, or float.
@@ -841,7 +858,7 @@
           }
         }
       } else {
-        if (ch === 13 || ch === 10 || ch === 8232 || ch === 8329) raise(tokStart, "Unterminated string constant");
+        if (ch === 13 || ch === 10 || ch === 8232 || ch === 8233) raise(tokStart, "Unterminated string constant");
         out += String.fromCharCode(ch); // '\'
         ++tokPos;
       }
@@ -1099,7 +1116,7 @@
   // does not help.
 
   function parseStatement() {
-    if (tokType === _slash)
+    if (tokType === _slash || tokType === _assign && tokVal == "/=")
       readToken(true);
 
     var starttype = tokType, node = startNode();
@@ -1476,6 +1493,7 @@
       var node = startNode(), update = tokType.isUpdate;
       node.operator = tokVal;
       node.prefix = true;
+      tokRegexpAllowed = true;
       next();
       node.argument = parseMaybeUnary();
       if (update) checkLVal(node.argument);
@@ -1717,6 +1735,7 @@
   function parseIdent(liberal) {
     var node = startNode();
     node.name = tokType === _name ? tokVal : (liberal && !options.forbidReserved && tokType.keyword) || unexpected();
+    tokRegexpAllowed = false;
     next();
     return finishNode(node, "Identifier");
   }

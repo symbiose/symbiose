@@ -78,7 +78,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Canlı Önizlemeyi server-side dosyalarınız ile açmak istiyorsanız, lütfen bu proje için kullanılabilir bir link belirtiniz.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Canlı Önizlemeye Hoşgeldiniz!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Canlı önizleme için {APP_NAME} programı tarayıcınıza bağlanıyor ve sizin HTML dosyanızın örnek görüntüsünü tarayıcınızda açıyor. Sonrasında ise değişiklik yaptığınız sayfayı anında tarayıcıda yenileyerek gösteriyor.<br /><br />{APP_NAME} programının bu versiyonunda, Canlı önizleme özelliği sadece <strong>CSS dosyaları</strong> değişikliğine izin veriyor ve sadece <strong>Google Chrome</strong> üzerinde çalışıyor. Yakında HTML ve Javascript değişikliğini de ekleyeceğiz!<br /><br />(Bu mesaj sadece tek sefer gösterilecektir.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Detaylı bilgi için lütfen <a href='#' class='clickable-link' data-href='{0}'>Troubleshooting Live Development connection errors</a> sayfasına bakınız.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Detaylı bilgi için lütfen <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a> sayfasına bakınız.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Canlı Önizleme",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Canlı Önizleme: Bağlanılıyor\u2026",
@@ -238,8 +238,8 @@ define({
     "ABOUT"                                : "Hakkında",
     "CLOSE"                                : "Kapat",
     "ABOUT_TEXT_LINE1"                     : "sprint 14 test sürümü",
-    "ABOUT_TEXT_LINE3"                     : "Üçüncü parti yazılımlara ilişkin bildirimler, şartlar ve koşullar <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> adresinde bulunmaktadır ve bu adreste referans olarak dahil edilmiştir",
-    "ABOUT_TEXT_LINE4"                     : "Döküman ve kodlar için <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span> adresine bakabilirsiniz.",
+    "ABOUT_TEXT_LINE3"                     : "Üçüncü parti yazılımlara ilişkin bildirimler, şartlar ve koşullar <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> adresinde bulunmaktadır ve bu adreste referans olarak dahil edilmiştir",
+    "ABOUT_TEXT_LINE4"                     : "Döküman ve kodlar için <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> adresine bakabilirsiniz.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME} programının yeni versiyonu bulunmakta! Detaylar için tıklayın.",
     "UPDATE_AVAILABLE_TITLE"               : "Yeni versiyon hazır",
     "UPDATE_MESSAGE"                       : "Hey, {APP_NAME} programının yeni versiyonu hazır. İşte bazı yeni özellikler:",
@@ -251,7 +251,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Ana URL \"{0}\" gibi arama karakterleri bulunduramaz.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Ana URL \"{0}\" gibi karakterler bulunduramaz.",
     "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' gibi özel karakterler %-kodlanması gerekiyor.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "Ana URL'yi işlerken bilinmeyen hata",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ana URL'yi işlerken bilinmeyen hata",
     
     
     // extensions/default/DebugCommands
@@ -267,6 +267,26 @@ define({
     "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
     "LANGUAGE_SUBMIT"                      : "{APP_NAME} Yenile",
     "LANGUAGE_CANCEL"                      : "İptal",
+    
+    /**
+     * Locales
+     */
+    "LOCALE_DE"                                 : "Almanca",
+    "LOCALE_EN"                                 : "Ingilizce",
+    "LOCALE_FR"                                 : "Fransizca",
+    "LOCALE_CS"                                 : "Çekçe",
+    "LOCALE_ES"                                 : "İspanyolca",
+    "LOCALE_IT"                                 : "İtalyanca",
+    "LOCALE_JA"                                 : "Japonca",
+    "LOCALE_NB"                                 : "Norveççe",
+    "LOCALE_PL"                                 : "Polonyaca",
+    "LOCALE_PT_BR"                              : "Portekizce, Brezilya",
+    "LOCALE_PT_PT"                              : "Portekizce",
+    "LOCALE_RU"                                 : "Rusça",
+    "LOCALE_SV"                                 : "İsveççe",
+    "LOCALE_TR"                                 : "Türkçe",
+    "LOCALE_ZH_CN"                              : "Çince, basitleştirilmiş",
+    "LOCALE_HU"                                 : "Macarca",
     
     // extensions/default/JSLint
     "CMD_JSLINT"                           : "JSLint Aç",

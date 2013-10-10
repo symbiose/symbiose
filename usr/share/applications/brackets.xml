@@ -8,6 +8,4 @@
 	<attribute name="icon" value="applications/brackets"/>
 	<attribute name="menu" value="applications"/>
 	<attribute name="category" value="accessories"/>
-	<attribute name="open" value="txt,html,js,php,css,xml"/>
-	<attribute name="openMimeTypes" value="text/*"/>
 </shortcut>

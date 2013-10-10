@@ -74,7 +74,8 @@ define(function (require, exports, module) {
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils"),
-        Async              = require("utils/Async");
+        Async              = require("utils/Async"),
+        AnimationUtils     = require("utils/AnimationUtils");
     
     var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
                          showLineNumbers: true, styleActiveLine: false, wordWrap: true };
@@ -249,7 +250,25 @@ define(function (require, exports, module) {
             }
         }
     }
-
+    
+    /**
+     * @private
+     * Handle any cursor movement in editor, including selecting and unselecting text.
+     * @param {jQueryObject} jqEvent jQuery event object
+     * @param {Editor} editor Current, focused editor (main or inline)
+     * @param {!Event} event
+     */
+    function _handleCursorActivity(jqEvent, editor, event) {
+        // If there is a selection in the editor, temporarily hide Active Line Highlight
+        if (editor.hasSelection()) {
+            if (editor._codeMirror.getOption("styleActiveLine")) {
+                editor._codeMirror.setOption("styleActiveLine", false);
+            }
+        } else {
+            editor._codeMirror.setOption("styleActiveLine", _styleActiveLine);
+        }
+    }
+    
     function _handleKeyEvents(jqEvent, editor, event) {
         _checkElectricChars(jqEvent, editor, event);
 
@@ -364,6 +383,7 @@ define(function (require, exports, module) {
             styleActiveLine: _styleActiveLine,
             coverGutterNextToScrollbar: true,
             matchBrackets: true,
+            matchTags: {bothTags: true},
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: _closeBrackets,
@@ -382,6 +402,7 @@ define(function (require, exports, module) {
         this._installEditorListeners();
         
         $(this)
+            .on("cursorActivity", _handleCursorActivity)
             .on("keyEvent", _handleKeyEvents)
             .on("change", this._handleEditorChange.bind(this));
         
@@ -486,6 +507,11 @@ define(function (require, exports, module) {
         });
     };
     
+    /** @return {boolean} True if editor is not showing the entire text of the document (i.e. an inline editor) */
+    Editor.prototype.isTextSubset = function () {
+        return Boolean(this._visibleRange);
+    };
+    
     /**
      * Ensures that the lines that are actually hidden in the inline editor correspond to
      * the desired visible range.
@@ -573,7 +599,7 @@ define(function (require, exports, module) {
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
         
-        CodeHintManager.handleChange(this);
+        CodeHintManager.handleChange(this, changeList);
     };
     
     /**
@@ -645,6 +671,9 @@ define(function (require, exports, module) {
         // Document
         this._codeMirror.on("change", function (instance, changeList) {
             $(self).triggerHandler("change", [self, changeList]);
+        });
+        this._codeMirror.on("beforeChange", function (instance, changeObj) {
+            $(self).triggerHandler("beforeChange", [self, changeObj]);
         });
         this._codeMirror.on("cursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
@@ -757,6 +786,15 @@ define(function (require, exports, module) {
         if (center) {
             this.centerOnCursor();
         }
+    };
+    
+    /**
+     * Set the editor size in pixels or percentage
+     * @param {(number|string)} width
+     * @param {(number|string)} height
+     */
+    Editor.prototype.setSize = function (width, height) {
+        this._codeMirror.setSize(width, height);
     };
     
     var CENTERING_MARGIN = 0.15;
@@ -1064,11 +1102,9 @@ define(function (require, exports, module) {
             self._inlineWidgets.push(inlineWidget);
 
             // Set up the widget to start closed, then animate open when its initial height is set.
-            inlineWidget.$htmlContent
-                .height(0)
-                .addClass("animating")
-                .one("webkitTransitionEnd", function () {
-                    inlineWidget.$htmlContent.removeClass("animating");
+            inlineWidget.$htmlContent.height(0);
+            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                .done(function () {
                     deferred.resolve();
                 });
 
@@ -1097,10 +1133,11 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
+        var deferred = new $.Deferred(),
+            self = this;
+
         if (!inlineWidget.closePromise) {
-            var lineNum = this._getInlineWidgetLineNumber(inlineWidget),
-                deferred = new $.Deferred(),
-                self = this;
+            var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
             
             // Remove the inline widget from our internal list immediately, so
             // everyone external to us knows it's essentially already gone. We
@@ -1108,15 +1145,13 @@ define(function (require, exports, module) {
             // the other stuff in _removeInlineWidgetInternal to wait until then).
             self._removeInlineWidgetFromList(inlineWidget);
             
-            inlineWidget.$htmlContent.addClass("animating")
-                .one("webkitTransitionEnd", function () {
-                    inlineWidget.$htmlContent.removeClass("animating");
+            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                .done(function () {
                     self._codeMirror.removeLineWidget(inlineWidget.info);
                     self._removeInlineWidgetInternal(inlineWidget);
                     deferred.resolve();
-                })
-                .height(0);
-                
+                });
+            inlineWidget.$htmlContent.height(0);
             inlineWidget.closePromise = deferred.promise();
         }
         return inlineWidget.closePromise;
@@ -1227,9 +1262,15 @@ define(function (require, exports, module) {
         }
         
         function setOuterHeight() {
+            function finishAnimating(e) {
+                if (e.target === node) {
+                    updateHeight();
+                    $(node).off("webkitTransitionEnd", finishAnimating);
+                }
+            }
             $(node).height(height);
             if ($(node).hasClass("animating")) {
-                $(node).one("webkitTransitionEnd", updateHeight);
+                $(node).on("webkitTransitionEnd", finishAnimating);
             } else {
                 updateHeight();
             }
@@ -1459,6 +1500,14 @@ define(function (require, exports, module) {
     function _setEditorOption(value, cmOption) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption(cmOption, value);
+            
+            // If there is a selection in the editor, temporarily hide Active Line Highlight
+            if ((cmOption === "styleActiveLine") && (value === true)) {
+                if (editor.hasSelection()) {
+                    editor._codeMirror.setOption("styleActiveLine", false);
+                }
+            }
+            
             $(editor).triggerHandler("optionChange", [cmOption, value]);
         });
     }

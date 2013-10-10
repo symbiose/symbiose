@@ -25,7 +25,19 @@ tls.createServer({}, function(stream) {
   stream.authorized; //: bool
 });
 
+require("timers").setInterval; //: fn(callback: fn(), ms: number) -> timers.Timer
+setInterval; //: fn(callback: fn(), ms: number) -> timers.Timer
+setTimeout(function(){}, 10).ref; //: fn()
+
+
+require("module");
+
+// don't attempt to handle .node binary modules
+require("./binary.node").binary; //: ?
+
 var mymod = require("mymod");
+
+require("_stream_readable");
 
 mymod.foo; //: number
 mymod.bar; //: string
@@ -46,6 +58,8 @@ require("mod1/secondfile").secondExport.u; //: number
 require("mod1/dir1").foo.a; //: number
 
 require("mod1/reassign_exports").funcPropExport; //loc: 2, 15
+
+require("mod1/reassign_exports_to_required"); //:: {A: number}
 
 // inference should continue even if a module is not found
 require("mod_not_found"); //: ?

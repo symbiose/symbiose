@@ -516,9 +516,7 @@ if (!appshell.app) {
 		// enableRemoteDebugging flag is ignored on mac
 		callback = callback || _dummyCallback;
 
-		setTimeout(function() {
-			callback(appshell.fs.ERR_NOT_FOUND);
-		}, 10);
+		callback(appshell.fs.ERR_UNKNOWN);
 	};
 	
 	/**
@@ -535,7 +533,11 @@ if (!appshell.app) {
 	 * @return None. This is an asynchronous call that sends all return information to the callback.
 	 */
 	appshell.app.closeLiveBrowser = function (callback) {
+		callback = callback || _dummyCallback;
+
 		//CloseLiveBrowser(callback || _dummyCallback);
+		
+		callback(appshell.fs.ERR_UNKNOWN);
 	};
 	 
 	/**
@@ -774,7 +776,9 @@ if (!appshell.app) {
 	 */
 	Object.defineProperty(appshell.app, "language", {
 		writeable: false,
-		get : function() { return 'en'; },
+		get : function() {
+			return Webos.Locale.current().name().substr(0,2).toLowerCase();
+		},
 		enumerable : true,
 		configurable : false
 	});
@@ -787,7 +791,7 @@ if (!appshell.app) {
 	 * @return {string} Full path of the application support directory
 	 */
 	appshell.app.getApplicationSupportDirectory = function () {
-		return '/usr/lib/brackets';
+		return '/usr/lib/brackets/src';
 	};
 	 
 	/**
@@ -844,5 +848,5 @@ if (!appshell.app) {
 	// Alias the appshell object to brackets. This is temporary and should be removed.
 	brackets = appshell;
 
-	window.appshell = appshell;
+	window.brackets = appshell;
 })();

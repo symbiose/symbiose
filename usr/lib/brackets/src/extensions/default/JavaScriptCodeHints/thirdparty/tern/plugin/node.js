@@ -20,24 +20,20 @@
     return data.modules[name] || (data.modules[name] = new infer.AVal);
   }
 
+  var WG_DEFAULT_EXPORT = 95;
+
   function buildWrappingScope(parent, origin, node) {
     var scope = new infer.Scope(parent);
     scope.node = node;
     infer.cx().definitions.node.require.propagate(scope.defProp("require"));
     var module = new infer.Obj(infer.cx().definitions.node.Module.getProp("prototype").getType());
     module.propagate(scope.defProp("module"));
-    var exports = new infer.Obj(true, "exports", origin);
+    var exports = new infer.Obj(true, "exports");
+    module.origin = exports.origin = origin;
     exports.propagate(scope.defProp("exports"));
-    exports.propagate(module.defProp("exports"));
+    var moduleExports = scope.exports = module.defProp("exports");
+    exports.propagate(moduleExports, WG_DEFAULT_EXPORT);
     return scope;
-  }
-
-  function exportsFromScope(scope) {
-    var mType = scope.getProp("module").getType(), exportsVal = mType && mType.getProp("exports");
-    if (!(exportsVal instanceof infer.AVal) || exportsVal.isEmpty())
-      return scope.getProp("exports");
-    else
-      return exportsVal.types[exportsVal.types.length - 1];
   }
 
   function resolveModule(server, name) {
@@ -47,7 +43,7 @@
 
   // Assume node.js & access to local file system
   if (require) (function() {
-    var module_ = require("module"), path = require("path");
+    var fs = require("fs"), module_ = require("module"), path = require("path");
 
     resolveModule = function(server, name, parent) {
       var data = server._node;
@@ -67,7 +63,9 @@
       if (known) {
         return data.modules[name] = known;
       } else {
-        server.addFile(file);
+        // If the module resolves to a file that doesn't exist, then it is likely a node.js stdlib
+        // module that is not predefined below.
+        if (fs.existsSync(file) && /^(\.js)?$/.test(path.extname(file))) server.addFile(file);
         return data.modules[file] = data.modules[name] = new infer.AVal;
       }
     };
@@ -92,7 +90,7 @@
     if (data.options.modules && data.options.modules.hasOwnProperty(name)) {
       var scope = buildWrappingScope(cx.topScope, name);
       infer.def.load(data.options.modules[name], scope);
-      result = data.modules[name] = exportsFromScope(scope);
+      result = data.modules[name] = scope.exports;
     } else {
       result = resolveModule(server, name, data.currentFile);
     }
@@ -114,7 +112,7 @@
 
     server.on("afterLoad", function(file) {
       this._node.currentFile = null;
-      exportsFromScope(file.scope).propagate(getModule(this._node, file.name));
+      file.scope.exports.propagate(getModule(this._node, file.name));
     });
 
     server.on("reset", function() {
@@ -2488,6 +2486,56 @@
         ca: "string",
         crl: "string",
         ciphers: "string"
+      },
+      buffer: {
+        Buffer: "Buffer",
+        INSPECT_MAX_BYTES: "number",
+        SlowBuffer: "Buffer"
+      },
+      module: {},
+      timers: {
+        setTimeout: {
+          "!type": "fn(callback: fn(), ms: number) -> timers.Timer",
+          "!url": "http://nodejs.org/api/globals.html#globals_settimeout_cb_ms",
+          "!doc": "Run callback cb after at least ms milliseconds. The actual delay depends on external factors like OS timer granularity and system load."
+        },
+        clearTimeout: {
+          "!type": "fn(id: timers.Timer)",
+          "!url": "http://nodejs.org/api/globals.html#globals_cleartimeout_t",
+          "!doc": "Stop a timer that was previously created with setTimeout(). The callback will not execute."
+        },
+        setInterval: {
+          "!type": "fn(callback: fn(), ms: number) -> timers.Timer",
+          "!url": "http://nodejs.org/api/globals.html#globals_setinterval_cb_ms",
+          "!doc": "Run callback cb repeatedly every ms milliseconds. Note that the actual interval may vary, depending on external factors like OS timer granularity and system load. It's never less than ms but it may be longer."
+        },
+        clearInterval: {
+          "!type": "fn(id: timers.Timer)",
+          "!url": "http://nodejs.org/api/globals.html#globals_clearinterval_t",
+          "!doc": "Stop a timer that was previously created with setInterval(). The callback will not execute."
+        },
+        setImmediate: {
+          "!type": "fn(callback: fn(), ms: number) -> timers.Timer",
+          "!url": "http://nodejs.org/api/timers.html#timers_setimmediate_callback_arg",
+          "!doc": "Schedule the 'immediate' execution of callback after I/O events callbacks."
+        },
+        clearImmediate: {
+          "!type": "fn(id: timers.Timer)",
+          "!url": "http://nodejs.org/api/timers.html#timers_clearimmediate_immediateid",
+          "!doc": "Stops an immediate from triggering."
+        },
+        Timer: {
+          unref: {
+            "!type": "fn()",
+            "!url": "http://nodejs.org/api/timers.html#timers_unref",
+            "!doc": "Create a timer that is active but if it is the only item left in the event loop won't keep the program running."
+          },
+          ref: {
+            "!type": "fn()",
+            "!url": "http://nodejs.org/api/timers.html#timers_unref",
+            "!doc": "Explicitly request the timer hold the program open (cancel the effect of 'unref')."
+          }
+        }
       }
     },
     process: {
@@ -2726,26 +2774,10 @@
       "!url": "http://nodejs.org/api/globals.html#globals_dirname",
       "!doc": "The name of the directory that the currently executing script resides in."
     },
-    setTimeout: {
-      "!type": "fn(callback: fn(), ms: number) -> ?",
-      "!url": "http://nodejs.org/api/globals.html#globals_settimeout_cb_ms",
-      "!doc": "Run callback cb after at least ms milliseconds. The actual delay depends on external factors like OS timer granularity and system load."
-    },
-    clearTimeout: {
-      "!type": "fn(timeoutId: ?)",
-      "!url": "http://nodejs.org/api/globals.html#globals_cleartimeout_t",
-      "!doc": "Stop a timer that was previously created with setTimeout(). The callback will not execute."
-    },
-    setInterval: {
-      "!type": "fn(callback: fn(), ms: number) -> ?",
-      "!url": "http://nodejs.org/api/globals.html#globals_setinterval_cb_ms",
-      "!doc": "Run callback cb repeatedly every ms milliseconds. Note that the actual interval may vary, depending on external factors like OS timer granularity and system load. It's never less than ms but it may be longer."
-    },
-    clearInterval: {
-      "!type": "fn(intervalId: ?)",
-      "!url": "http://nodejs.org/api/globals.html#globals_clearinterval_t",
-      "!doc": "Stop a timer that was previously created with setInterval(). The callback will not execute."
-    },
+    setTimeout: "timers.setTimeout",
+    clearTimeout: "timers.clearTimeout",
+    setInterval: "timers.setInterval",
+    clearInterval: "timers.clearInterval",
     module: {
       "!type": "+Module",
       "!url": "http://nodejs.org/api/globals.html#globals_module",
@@ -2788,8 +2820,7 @@
         writeFloatBE: "fn(value: number, offset: number, noAssert?: bool)",
         writeDoubleLE: "fn(value: number, offset: number, noAssert?: bool)",
         writeDoubleBE: "fn(value: number, offset: number, noAssert?: bool)",
-        fill: "fn(value: ?, offset?: number, end?: number)",
-        INSPECT_MAX_BYTES: "number"
+        fill: "fn(value: ?, offset?: number, end?: number)"
       },
       isBuffer: "fn(obj: ?) -> bool",
       byteLength: "fn(string: string, encoding?: string) -> number",

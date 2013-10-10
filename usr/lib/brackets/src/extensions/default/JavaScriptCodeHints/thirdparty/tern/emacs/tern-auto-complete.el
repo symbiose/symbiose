@@ -3,6 +3,7 @@
 
 ;; Author:  <m.sakurai at kiwanami.net>
 ;; Version: 0.0.1
+;; Package-Requires: ((tern "0.0.1") (auto-complete "1.4") (emacs "24"))
 
 ;;; Commentary:
 
@@ -59,19 +60,16 @@
 (defun tern-ac-complete ()
   "Complete code at point by tern."
   (interactive)
-  (let ((cur-ac-sources ac-sources))
-    (tern-ac-complete-request
-     (lambda ()
-       (auto-complete (cons 'ac-source-tern-completion cur-ac-sources))))))
+  (tern-ac-complete-request
+   (lambda ()
+     (let ((ac-sources (cons 'ac-source-tern-completion ac-sources)))
+       (ac-start)))))
 
 (defun tern-ac-dot-complete ()
   "Insert dot and complete code at point by tern."
   (interactive)
   (insert ".")
-  (let ((cur-ac-sources ac-sources))
-    (tern-ac-complete-request
-     (lambda ()
-       (auto-complete (cons 'ac-source-tern-completion cur-ac-sources))))))
+  (tern-ac-complete))
 
 (defvar tern-ac-completion-truncate-length 22
   "[AC] truncation length for type summary.")
@@ -103,6 +101,7 @@
          (prefix . tern-ac-completion-prefix)
          (requires . -1)))))
 
+;;;###autoload
 (defun tern-ac-setup ()
   "Setup auto-complete for tern-mode."
   (interactive)

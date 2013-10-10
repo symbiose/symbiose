@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -60,7 +60,6 @@ define(function (require, exports, module) {
     /** @type {number} The z-index used for the dialogs. Each new dialog increase this number by 2 */
     var zIndex = 1050;
 
-
     /**
      * @private
      * Dismises a modal dialog
@@ -69,8 +68,8 @@ define(function (require, exports, module) {
      */
     function _dismissDialog($dlg, buttonId) {
         $dlg.data("buttonId", buttonId);
-        $(".clickable-link", $dlg).off("click");
         $dlg.modal("hide");
+        $(".modal-wrapper:last").remove();
     }
 
     /**
@@ -225,21 +224,16 @@ define(function (require, exports, module) {
             autoDismiss = true;
         }
         
+        $("body").append("<div class='modal-wrapper'><div class='modal-inner-wrapper'></div></div>");
+        
         var result  = $.Deferred(),
             promise = result.promise(),
             $dlg    = $(template)
                 .addClass("instance")
-                .appendTo(window.document.body);
+                .appendTo(".modal-inner-wrapper:last");
         
         // Save the dialog promise for unit tests
         $dlg.data("promise", promise);
-
-        $(".clickable-link", $dlg).on("click", function _handleLink(e) {
-            // Links use data-href (not href) attribute so Brackets itself doesn't redirect
-            if (e.currentTarget.dataset && e.currentTarget.dataset.href) {
-                NativeApp.openURLInDefaultBrowser(e.currentTarget.dataset.href);
-            }
-        });
 
         var keydownHook = function (e) {
             return _keydownHook.call($dlg, e, autoDismiss);
@@ -261,6 +255,7 @@ define(function (require, exports, module) {
             
             // Remove the dialog instance from the DOM.
             $dlg.remove();
+            $(".modal-backdrop:last").addClass("last-backdrop");
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
@@ -282,17 +277,22 @@ define(function (require, exports, module) {
                 _dismissDialog($dlg, $(this).attr("data-button-id"));
             });
         }
-
+        
+        $(".last-backdrop").removeClass("last-backdrop");
+        
         // Run the dialog
         $dlg
             .modal({
                 backdrop: "static",
                 show:     true,
+                selector: ".modal-inner-wrapper:last",
                 keyboard: false // handle the ESC key ourselves so we can deal with nested dialogs
             })
             // Updates the z-index of the modal dialog and the backdrop
             .css("z-index", zIndex + 1)
-            .next().css("z-index", zIndex);
+            .next()
+            .css("z-index", zIndex)
+            .addClass("last-backdrop");
         
         zIndex += 2;
         
@@ -325,14 +325,15 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
+     * Immediately closes any dialog instances with the given class. The dialog callback for each instance will
      * be called with the special buttonId DIALOG_CANCELED (note: callback is run asynchronously).
      * @param {string} dlgClass The class name identifier for the dialog.
+     * @param {string=} buttonId The button id to use when closing the dialog. Defaults to DIALOG_CANCELED
      */
-    function cancelModalDialogIfOpen(dlgClass) {
+    function cancelModalDialogIfOpen(dlgClass, buttonId) {
         $("." + dlgClass + ".instance").each(function () {
             if ($(this).is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-                _dismissDialog($(this), DIALOG_CANCELED);
+                _dismissDialog($(this), buttonId || DIALOG_CANCELED);
             }
         });
     }

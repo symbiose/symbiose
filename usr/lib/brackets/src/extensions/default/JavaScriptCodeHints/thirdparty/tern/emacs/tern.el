@@ -4,6 +4,7 @@
 ;; Author: Marijn Haverbeke
 ;; URL: http://ternjs.net/
 ;; Version: 0.0.1
+;; Package-Requires: ((json "1.2") (emacs "24"))
 
 (eval-when-compile (require 'cl))
 (require 'json)
@@ -210,10 +211,15 @@ list of strings, giving the binary name and arguments.")
 
 ;; Completion
 
+(defun tern-completion-at-point-fn ()
+  (tern-run-query #'tern-do-complete "completions" (point)))
+
 (defun tern-completion-at-point ()
   (or (tern-completion-matches-last)
-      (lambda ()
-        (tern-run-query #'tern-do-complete "completions" (point)))))
+      ;; Do not return a closure, as calling car-safe (e.g. in
+      ;; completion-at-point) on such an object returns 'closure
+      ;; instead of nil.
+      'tern-completion-at-point-fn))
 
 (defun tern-do-complete (data)
   (let ((cs (loop for elt across (cdr (assq 'completions data)) collect elt))
@@ -363,6 +369,28 @@ list of strings, giving the binary name and arguments.")
   (interactive "MNew variable name: ")
   (tern-run-query #'tern-do-refactor `((type . "rename") (newName . ,new-name)) (point) :full-file))
 
+;; Highlight references in scope
+
+(defvar tern-flash-timeout 0.5 "Delay before highlight overlay dissappears.")
+
+(defun tern-flash-region (start end)
+  "Temporarily highlight region from START to END."
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'face 'highlight)
+    (run-with-timer tern-flash-timeout nil 'delete-overlay overlay)))
+
+(defun tern-do-highlight (data)
+  (loop for ref across (cdr (assq 'refs data)) do
+        (let ((file (cdr (assq 'file ref))))
+          (when (string= buffer-file-name (expand-file-name file (tern-project-dir)))
+            (let ((start (1+ (cdr (assq 'start ref))))
+                  (end (1+ (cdr (assq 'end ref)))))
+              (tern-flash-region start end))))))
+
+(defun tern-highlight-refs ()
+  (interactive)
+  (tern-run-query #'tern-do-highlight "refs" (point) :silent))
+
 ;; Jump-to-definition
 
 (defvar tern-find-definition-stack ())
@@ -459,6 +487,7 @@ list of strings, giving the binary name and arguments.")
 
 ;; Connection management
 
+;;;###autoload
 (defun tern-use-server (port)
   (interactive "nPort to connect to: ")
   (setf tern-known-port port))
@@ -505,6 +534,7 @@ list of strings, giving the binary name and arguments.")
 (define-key tern-mode-keymap [(control ?c) (control ?c)] 'tern-get-type)
 (define-key tern-mode-keymap [(control ?c) (control ?d)] 'tern-get-docs)
 
+;;;###autoload
 (define-minor-mode tern-mode
   "Minor mode binding to the Tern JavaScript analyzer"
   nil

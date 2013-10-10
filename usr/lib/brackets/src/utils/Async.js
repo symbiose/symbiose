@@ -316,6 +316,50 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Chains a series of synchronous and asynchronous (jQuery promise-returning) functions 
+     * together, using the result of each successive function as the argument(s) to the next. 
+     * A promise is returned that resolves with the result of the final call if all calls 
+     * resolve or return normally. Otherwise, if any of the functions reject or throw, the 
+     * computation is halted immediately and the promise is rejected with this halting error.
+     * 
+     * @param {Array.<function(*)>} functions Functions to be chained
+     * @param {?Array} args Arguments to call the first function with
+     * @return {jQuery.Promise} A promise that resolves with the result of the final call, or
+     *      rejects with the first error.
+     */
+    function chain(functions, args) {
+        var deferred = $.Deferred();
+        
+        function chainHelper(index, args) {
+            if (functions.length === index) {
+                deferred.resolveWith(null, args);
+            } else {
+                var nextFunction = functions[index++];
+                try {
+                    var responseOrPromise = nextFunction.apply(null, args);
+                    if (responseOrPromise.hasOwnProperty("done") &&
+                            responseOrPromise.hasOwnProperty("fail")) {
+                        responseOrPromise.done(function () {
+                            chainHelper(index, arguments);
+                        });
+                        responseOrPromise.fail(function () {
+                            deferred.rejectWith(null, arguments);
+                        });
+                    } else {
+                        chainHelper(index, [responseOrPromise]);
+                    }
+                } catch (e) {
+                    deferred.reject(e);
+                }
+            }
+        }
+        
+        chainHelper(0, args || []);
+        
+        return deferred.promise();
+    }
+
+    /**
      * @constructor
      * Creates a queue of async operations that will be executed sequentially. Operations can be added to the
      * queue at any time. If the queue is empty and nothing is currently executing when an operation is added, 
@@ -375,13 +419,40 @@ define(function (require, exports, module) {
             });
         }
     };
+    
+    
+    /**
+     * Implements "debouncing." Returns a function that can be called frequently, triggering 'callback' only when calls
+     * to this function have paused for >= 'idleDelay' ms. The callback may be called multiple times, if there are
+     * multiple idleDelay-sized gaps in the event sequence. Invoking the callback can be delayed *indefinitely* if the
+     * event sequence continues forever with no idleDelay-sized gaps at all.
+     * 
+     * @param {number} idleDelay  Minimum delay (ms) before invoking callback.
+     * @param {!function()} callback
+     * @return {!function()}
+     */
+    function whenIdle(idleDelay, callback) {
+        var timer;
+        return function () {
+            if (timer) {
+                window.clearTimeout(timer);
+            }
+            timer = window.setTimeout(function () {
+                timer = null;
+                callback();
+            }, idleDelay);
+        };
+    }
+    
 
     // Define public API
     exports.doInParallel   = doInParallel;
     exports.doSequentially = doSequentially;
-    exports.doSequentiallyInBackground = doSequentiallyInBackground;
+    exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
-    exports.PromiseQueue   = PromiseQueue;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
+    exports.chain          = chain;
+    exports.PromiseQueue   = PromiseQueue;
+    exports.whenIdle       = whenIdle;
 });

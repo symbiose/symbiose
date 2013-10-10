@@ -20,8 +20,12 @@ Webos.require(bracketsLibPath+'/webos.js', function() {
 	$iframe.appendTo($windowContent);
 
 	if ($iframe[0].contentWindow) {
-		$iframe[0].contentWindow.appshell = appshell;
-		$iframe[0].contentWindow.brackets = appshell;
+		brackets.app.quit = function() {
+			$window.window('close');
+		};
+
+		$iframe[0].contentWindow.appshell = brackets;
+		$iframe[0].contentWindow.brackets = brackets;
 	}
 
 	$window.window('loading', true, {

@@ -387,8 +387,20 @@
       <dd>When highlighting long lines, in order to stay responsive,
       the editor will give up and simply style the rest of the line as
       plain text when it reaches a certain position. The default is
-      10000. You can set this to <code>Infinity</code> to turn off
+      10 000. You can set this to <code>Infinity</code> to turn off
       this behavior.</dd>
+
+      <dt id="option_crudeMeasuringFrom"><code><strong>crudeMeasuringFrom</strong>: number</code></dt>
+      <dd>When measuring the character positions in long lines, any
+      line longer than this number (default is 10 000),
+      when <a href="#option_lineWrapping">line wrapping</a>
+      is <strong>off</strong>, will simply be assumed to consist of
+      same-sized characters. This means that, on the one hand,
+      measuring will be inaccurate when characters of varying size,
+      right-to-left text, markers, or other irregular elements are
+      present. On the other hand, it means that having such a line
+      won't freeze the user interface because of the expensiveness of
+      the measurements.</dd>
 
       <dt id="option_viewportMargin"><code><strong>viewportMargin</strong>: integer</code></dt>
       <dd>Specifies the amount of lines that are rendered above and
@@ -501,6 +513,16 @@
       argument, the CSS class of the gutter that was clicked as third
       argument, and the raw <code>mousedown</code> event object as
       fourth argument.</dd>
+
+      <dt id="event_gutterContextMenu"><code><strong>"gutterContextMenu"</strong> (instance: CodeMirror, line: integer, gutter: string, contextMenu: Event: Event)</code></dt>
+      <dd>Fires when the editor gutter (the line-number area)
+      receives a <code>contextmenu</code> event. Will pass the editor
+      instance as first argument, the (zero-based) number of the line
+      that was clicked as second argument, the CSS class of the
+      gutter that was clicked as third argument, and the raw
+      <code>contextmenu</code> mouse event object as fourth argument.
+      You can <code>preventDefault</code> the event, to signal that
+      CodeMirror should do no further handling.</dd>
 
       <dt id="event_focus"><code><strong>"focus"</strong> (instance: CodeMirror)</code></dt>
       <dd>Fires whenever the editor is focused.</dd>
@@ -930,7 +952,7 @@
       <dd>Set the cursor position. You can either pass a
       single <code>{line, ch}</code> object, or the line and the
       character as two separate parameters.</dd>
-      <dt id="setSelection"><code><strong>doc.setSelection</strong>(anchor: {line, ch}, head: {line, ch})</code></dt>
+      <dt id="setSelection"><code><strong>doc.setSelection</strong>(anchor: {line, ch}, ?head: {line, ch})</code></dt>
       <dd>Set the selection range. <code>anchor</code>
       and <code>head</code> should be <code>{line, ch}</code>
       objects. <code>head</code> defaults to <code>anchor</code> when
@@ -941,7 +963,7 @@
       will, if shift is held or
       the <a href="#setExtending">extending</a> flag is set, move the
       head of the selection while leaving the anchor at its current
-      place. <code>pos2</code> is optional, and can be passed to
+      place. <code>to</code> is optional, and can be passed to
       ensure a region (for example a word or paragraph) will end up
       selected (in addition to whatever lies between that region and
       the current anchor).</dd>
@@ -2027,6 +2049,10 @@
       schema data. See
       the <a href="../demo/html5complete.html">demo</a>.</dd>
 
+      <dt id="addon_css-hint"><a href="../addon/hint/css-hint.js"><code>hint/css-hint.js</code></a></dt>
+      <dd>A minimal hinting function for CSS code.
+      Defines <code>CodeMirror.hint.css</code>.</dd>
+
       <dt id="addon_python-hint"><a href="../addon/hint/python-hint.js"><code>hint/python-hint.js</code></a></dt>
       <dd>A very simple hinting function for Python code.
       Defines <code>CodeMirror.hint.python</code>.</dd>
@@ -2113,6 +2139,13 @@
       Also gives the editor a <code>CodeMirror-empty</code> CSS class
       whenever it doesn't contain any text.
       See <a href="../demo/placeholder.html">the demo</a>.</dd>
+
+      <dt id="addon_fullscreen"><a href="../addon/display/fullscreen.js"><code>display/fullscreen.js</code></a></dt>
+      <dd>Defines an option <code>fullScreen</code> that, when set
+      to <code>true</code>, will make the editor full-screen (as in,
+      taking up the whole browser window). Depends
+      on <a href="../addon/display/fullscreen.css"><code>fullscreen.css</code></a>. <a href="../demo/fullscreen.html">Demo
+      here</a>.</dd>
 
       <dt id="addon_merge"><a href="../addon/merge/merge.js"><code>merge/merge.js</code></a></dt>
       <dd>Implements an interface for merging changes, using either a
@@ -2326,7 +2359,7 @@
     state.</p>
 
     <p id="innerMode">In a nested mode, it is recommended to add an
-    extra methods, <code>innerMode</code> which, given a state object,
+    extra method, <code>innerMode</code> which, given a state object,
     returns a <code>{state, mode}</code> object with the inner mode
     and its state for the current position. These are used by utility
     scripts such as the <a href="#addon_closetag">tag closer</a> to

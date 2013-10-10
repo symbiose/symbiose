@@ -46,7 +46,7 @@
         state.addedToForeign.push(actual, path);
       curOrigin = origPos;
     }
-    if (actual.path && pathLen(actual.path) <= pathLen(path)) return;
+    if (path && actual.path && pathLen(actual.path) <= pathLen(path)) return;
     actual.setPath(path, state, curOrigin);
   }
 
@@ -186,7 +186,7 @@
     if (rec.mayCull == null && !proto && !hasProps(this)) rec.mayCull = true;
     if (proto) structure["!proto"] = proto;
     if (this.doc) structure["!doc"] = this.doc;
-    addSpan(this, getSpan(state, structure, span));
+    addSpan(structure, getSpan(state, structure, span));
     setProps(this, structure, state);
     return this.path;
   };
