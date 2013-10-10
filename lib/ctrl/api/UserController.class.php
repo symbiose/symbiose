@@ -62,6 +62,37 @@ class UserController extends \lib\ApiBackController {
 	}
 
 	/**
+	 * Check if home directory exists. If not, create it.
+	 * @param  string $homeDir The home directory path.
+	 */
+	protected function _checkHomeDir($homeDir) {
+		$fileManager = $this->managers()->getManagerOf('file');
+		$translationManager = $this->managers()->getManagerOf('translation');
+
+		//Copy default home directory files
+		if (!$fileManager->exists($homeDir)) {
+			$fileManager->copy('/etc/ske1/', $homeDir, true);
+		}
+
+		//Create default folders
+		$dict = $translationManager->load('webos');
+		$userDirnames = array(
+			'Documents',
+			'Desktop',
+			'Pictures',
+			'Music',
+			'Videos',
+			'Downloads'
+		);
+		foreach($userDirnames as $dirname) {
+			$dirpath = $homeDir . '/' . $dict->get($dirname);
+			if (!$fileManager->exists($dirpath)) {
+				$fileManager->mkdir($dirpath);
+			}
+		}
+	}
+
+	/**
 	 * Check if registration is enabled.
 	 * @return array An array containing the registration status.
 	 */
@@ -244,10 +275,7 @@ class UserController extends \lib\ApiBackController {
 		$user->loggedIn($userData['id'], $userData['username']);
 
 		//No home directory ?
-		$fileManager = $this->managers()->getManagerOf('file');
-		if (!$fileManager->exists('/home/'.$username.'/')) {
-			$fileManager->copy('/etc/ske1/', '/home/'.$username.'/', true); //Copy it from the default one
-		}
+		$this->_checkHomeDir('/home/'.$username);
 
 		return $this->_userPublicAttributes($userData);
 	}
@@ -441,10 +469,7 @@ class UserController extends \lib\ApiBackController {
 		}
 
 		//Copy default home directory files
-		$fileManager = $this->managers()->getManagerOf('file');
-		if (!$fileManager->exists('/home/'.$user['username'].'/')) {
-			$fileManager->copy('/etc/ske1/', '/home/'.$user['username'].'/', true);
-		}
+		$this->_checkHomeDir('/home/'.$user['username']);
 
 		return $this->_userPublicAttributes($user);
 	}

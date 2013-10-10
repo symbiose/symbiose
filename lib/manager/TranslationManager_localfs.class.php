@@ -42,4 +42,36 @@ class TranslationManager_localfs extends TranslationManager {
 		
 		return new TranslationDictionary($dictData);
 	}
+
+	protected function _loadUserConfig() {
+		$configFile = new \lib\XmlConfig($this->dao->toInternalPath('~/.config/locale.xml'));
+		$config = $configFile->read();
+
+		//Detect the browser locale
+		$browserLocale = $this->detectLanguage();
+
+		$locale = (isset($config['locale'])) ? $config['locale'] : $browserLocale;
+		$language = (isset($config['language'])) ? $config['language'] : $browserLocale;
+
+		if ($this->dao->exists('~')) { //If the user is logged
+			$config['locale'] = $locale;
+			$config['language'] = $language;
+			$configFile->write($config);
+		}
+
+		$this->locale = $locale;
+		$this->language = $language;
+	}
+
+	public function language() {
+		$this->_loadUserConfig();
+
+		return $this->language;
+	}
+
+	public function locale() {
+		$this->_loadUserConfig();
+
+		return $this->locale;
+	}
 }

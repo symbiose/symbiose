@@ -9,15 +9,11 @@ class FileManager_localfs extends FileManager {
 	protected $quotas;
 
 	protected function _getQuotasConfig() {
-		$configPath = './' . self::DISKUSAGE_QUOTAS_FILE;
-
-		return new \lib\JsonConfig($configPath);
+		return $this->openConfig(self::DISKUSAGE_QUOTAS_FILE);
 	}
 
 	protected function _getDiskusageCache() {
-		$configPath = './' . self::DISKUSAGE_CACHE_FILE;
-
-		return new \lib\JsonConfig($configPath);
+		return $this->openConfig(self::DISKUSAGE_CACHE_FILE);
 	}
 
 	// GETTERS
@@ -255,5 +251,22 @@ class FileManager_localfs extends FileManager {
 
 	public function tmpfile() {
 		return $this->dao()->tmpfile();
+	}
+
+	/**
+	 * Open a configuration file.
+	 * @param  string $path The configuration file path.
+	 * @return Config       The configuration file.
+	 */
+	public function openConfig($path) {
+		$internalPath = $this->dao->toInternalPath($path);
+		switch ($this->dao->extension($path)) {
+			case 'json':
+				return new \lib\JsonConfig($internalPath);
+			case 'xml':
+				return new \lib\XmlConfig($internalPath);
+			default:
+				throw new \RuntimeException('Cannot open configuration file "'.$path.'" : not a JSON or XML file');
+		}
 	}
 }

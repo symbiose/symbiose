@@ -12,9 +12,14 @@ abstract class TranslationManager extends \lib\Manager {
 	protected $language;
 
 	/**
-	 * @var string The default language.
+	 * @var string The user locale.
 	 */
-	protected $defaultLanguage = 'en_EN';
+	protected $locale;
+
+	/**
+	 * @var string The default locale.
+	 */
+	protected $defaultLocale = 'en_EN';
 
 	/**
 	 * Load a translation.
@@ -26,7 +31,7 @@ abstract class TranslationManager extends \lib\Manager {
 
 	/**
 	 * Get the user language.
-	 * @return string The language.
+	 * @return string The locale.
 	 */
 	public function language() {
 		if (empty($this->language)) {
@@ -37,11 +42,23 @@ abstract class TranslationManager extends \lib\Manager {
 	}
 
 	/**
+	 * Get the user locale.
+	 * @return string The locale.
+	 */
+	public function locale() {
+		if (empty($this->locale)) {
+			$this->locale = $this->detectLanguage();
+		}
+
+		return $this->locale;
+	}
+
+	/**
 	 * Get the default language.
 	 * @return string The default language.
 	 */
-	public function defaultLanguage() {
-		return $this->defaultLanguage;
+	public function defaultLocale() {
+		return $this->defaultLocale;
 	}
 	
 	/**
@@ -50,12 +67,11 @@ abstract class TranslationManager extends \lib\Manager {
 	 * @return bool True if there was no error.
 	 */
 	public function setLanguage($locale) {
-		if ($this->_checkLanguage($locale)) {
-			$this->language = $locale;
-			return true;
-		} else {
-			return false;
+		if (!$this->_checkLocale($locale)) {
+			throw new \InvalidArgumentException('Invalid locale "'.$locale.'"');
 		}
+
+		$this->language = $locale;
 	}
 	
 	/**
@@ -63,16 +79,21 @@ abstract class TranslationManager extends \lib\Manager {
 	 * @param string $locale The locale.
 	 * @return bool True if the passed string is a locale.
 	 */
-	protected function _checkLanguage($locale) {
+	protected function _checkLocale($locale) {
 		return preg_match('#[a-z]{2}_[A-Z]{2}#', $locale);
 	}
 	
 	/**
-	 * Detect the user locale.
-	 * @return string The detected locale.
+	 * Detect the browser language.
+	 * @return string The detected language.
 	 */
 	public function detectLanguage() {
 		$languages = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+
+		if (count($languages) == 0) {
+			return $this->defaultLocale();
+		}
+
 		$language = $languages[0];
 		$language = str_replace('-', '_', $language);
 
@@ -82,10 +103,11 @@ abstract class TranslationManager extends \lib\Manager {
 		}
 		$locale = implode('_', $parts);
 
-		if ($this->setLanguage($locale)) {
+		if ($this->_checkLocale($locale)) {
+			$this->setLanguage($locale);
 			return $locale;
 		} else {
-			return $this->defaultLanguage();
+			return $this->defaultLocale();
 		}
 	}
 }
