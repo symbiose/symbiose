@@ -943,8 +943,7 @@ Webos.require([
 			form.submit().remove();
 		},
 		openUploadWindow: function() {
-			var that = this;
-			var t = this.translations();
+			var that = this, t = this.translations();
 			
 			if (typeof this.options._components.uploadWindow != 'undefined') {
 				this.options._components.uploadWindow.window('hideOrShowOrToForeground');
@@ -1317,6 +1316,8 @@ Webos.require([
 			return selectedFiles;
 		},
 		_copy: function(source, dest, callback) {
+			var t = this.translations();
+
 			source = W.File.get(source);
 			dest = W.File.get(dest);
 			callback = W.Callback.toCallback(callback);
@@ -1334,6 +1335,8 @@ Webos.require([
 			}]);
 		},
 		_move: function(source, dest, callback) {
+			var t = this.translations();
+
 			source = W.File.get(source);
 			dest = W.File.get(dest);
 			callback = W.Callback.toCallback(callback);
@@ -1351,6 +1354,8 @@ Webos.require([
 			}]);
 		},
 		_remove: function(file, callback) {
+			var t = this.translations();
+
 			file = W.File.get(file);
 			callback = W.Callback.toCallback(callback);
 
