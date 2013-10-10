@@ -37,13 +37,13 @@ abstract class ApiBackController extends BackController {
 
 			$result = $this->_callMethod($method, $args);
 		} catch (\ErrorException $e) {
-			$errMsg = '[#'.$e->getSeverity().'] ' . $e->getMessage() . ' in '.$e->getFile().':'.$e->getLine()."\n".'Stack trace:'."\n".$e->getTraceAsString();
+			$errMsg = htmlspecialchars('[#'.$e->getSeverity().'] ' . $e->getMessage() . ' in '.$e->getFile().':'.$e->getLine()."\n".'Stack trace:'."\n".$e->getTraceAsString());
 
 			$this->responseContent()->setSuccess(false);
 			$this->responseContent()->setChannel(2, $errMsg);
 			$this->responseContent()->setValue($errMsg);
 		} catch(\Exception $e) {
-			$errMsg = $e->getMessage();
+			$errMsg = htmlspecialchars($e->getMessage());
 
 			$this->responseContent()->setSuccess(false);
 			$this->responseContent()->setChannel(2, $errMsg);
