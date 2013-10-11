@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Cameleon interface switcher"/>
 	<attribute name="title" lang="fr_FR" value="Commutateur d'interface Cameleon"/>
+	<attribute name="title" lang="es_ES" value="Selector de interfaz Cameleon"/>
 	<attribute name="description" value="Switch between interfaces"/>
 	<attribute name="description" lang="fr_FR" value="Changer d'interface"/>
+	<attribute name="description" lang="es_ES" value="Cambie de interfaz"/>
 	<attribute name="command" value="cameleon"/>
 	<attribute name="icon" value="actions/interface"/>
 	<attribute name="menu" value="applications"/>
