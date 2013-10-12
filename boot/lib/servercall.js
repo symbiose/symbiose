@@ -679,39 +679,28 @@
 	 * @constructor
 	 * @since  1.0alpha1
 	 */
-	Webos.ServerCall.Response = function WServerCallResponse(response) { 
+	Webos.ServerCall.Response = function WServerCallResponse(response) {
 		if (!response || typeof response != 'object') {
 			response = {
+				success: false,
 				channels: {
 					1: (response || null)
 				},
 				out: (response || null),
-				data: {},
-				js: null
+				data: {}
 			};
 		}
-		
-		this._response = response; //Reponse JSON brute
+
+		Webos.Callback.Result.call(this, response);
 	};
 	Webos.ServerCall.Response.prototype = {
-		/**
-		 * Check if the response is a success.
-		 * @returns {Boolean} True if the it's a success, false if an error occured.
-		 */
-		isSuccess: function() {
-			if (this._response.success == 1) {
-				return true;
-			} else {
-				return false;
-			}
-		},
 		/**
 		 * Get a channel's content.
 		 * @param  {Number} channel The channel number.
 		 * @returns {String}         The channel's content.
 		 */
 		getChannel: function(channel) {
-			return this._response.channels[channel];
+			return this._data.channels[channel];
 		},
 		/**
 		 * Get the standard channel's content.
@@ -732,28 +721,7 @@
 		 * @returns {String} The channels' content.
 		 */
 		getAllChannels: function() {
-			return this._response.out;
-		},
-		/**
-		 * Get the response's data.
-		 * @returns {Object} The response's data.
-		 */
-		getData: function() {
-			return this._response.data;
-		},
-		/**
-		 * Get the embeded Javascript code.
-		 * @returns {String} The Javascript code.
-		 */
-		getJavascript: function() {
-			return this._response.js;
-		},
-		/**
-		 * Check if the Javascript code is empty.
-		 * @returns {Boolean} True if the JS code empty, false otherwise.
-		 */
-		isJavascriptEmpty: function() { //Savoir si il y a du code JS
-			return (this.getJavascript() == null);
+			return this._data.out;
 		},
 		/**
 		 * Get the response's error, if there is one.
@@ -773,22 +741,10 @@
 
 			return Webos.Error.build(msg, details);
 		},
-		/**
-		 * Trigger the response's error, if there is one.
-		 * @param  {String} [msg] An error message can be provided.
-		 */
-		triggerError: function(msg) { //Declancher l'erreur, si elle existe
-			Webos.Error.trigger(this.getError(msg));
-		},
-		/**
-		 * Log the response's error, if there is one.
-		 * @param  {String} [msg] An error message can be provided.
-		 */
-		logError: function(msg) {
-			Webos.Error.log(this.getError(msg));
-		},
 		toString: function() {
 			return (this.getAllChannels() !== null) ? this.getAllChannels() : '';
 		}
 	};
+
+	Webos.inherit(Webos.ServerCall.Response, Webos.Callback.Result);
 })();

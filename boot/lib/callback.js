@@ -214,7 +214,14 @@ Webos.Callback.Result.prototype = {
 		return this._data.success;
 	},
 	/**
-	 * Get the response's error, if there is one.
+	 * Get this result's data.
+	 * @returns {Object} This result's data.
+	 */
+	getData: function() {
+		return this._data.data;
+	},
+	/**
+	 * Get the error, if there is one.
 	 * @param  {String} [msg] An error message can be provided.
 	 * @returns {Webos.Error}  The error.
 	 */
@@ -235,6 +242,13 @@ Webos.Callback.Result.prototype = {
 		}
 		
 		Webos.Error.trigger(this._data.out);
+	},
+	/**
+	 * Log the error, if there is one.
+	 * @param  {String} [msg] An error message can be provided.
+	 */
+	logError: function(msg) {
+		Webos.Error.log(this.getError(msg));
 	},
 	toString: function () {
 		return this._data.out;
