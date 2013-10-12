@@ -59,7 +59,21 @@
 		 * @returns {Boolean} True if this operations is failed, false otherwise.
 		 */
 		failed: function () {
-			return (this._result === false || Webos.isInstanceOf(this._result, Webos.Error));
+			var result = this._result;
+
+			if (result === false) {
+				return true;
+			}
+
+			if (Webos.isInstanceOf(result, Webos.Callback.Result)) {
+				return (!result.isSuccess());
+			}
+
+			if (Webos.isInstanceOf(result, Webos.Error)) {
+				return true;
+			}
+
+			return false;
 		},
 		/**
 		 * Mark this operation as started.
