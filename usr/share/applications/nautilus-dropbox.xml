@@ -3,6 +3,7 @@
 	<attribute name="title" value="Dropbox"/>
 	<attribute name="description" value="Open your Dropbox"/>
 	<attribute name="description" lang="fr_FR" value="Accéder a votre Dropbox"/>
+	<attribute name="description" lang="es_ES" value="Acceda a su Dropbox"/>
 	<attribute name="command" value="nautilus-mounter DropboxFile"/>
 	<attribute name="icon" value="applications/dropbox"/>
 	<attribute name="category" value="internet"/>

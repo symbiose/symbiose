@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Software center"/>
 	<attribute name="title" lang="fr_FR" value="Logithèque"/>
+	<attribute name="title" lang="es_ES" value="Centro de Software"/>
 	<attribute name="description" value="Manage installed softwares"/>
 	<attribute name="description" lang="fr_FR" value="Gérer les logiciels installés"/>
+	<attribute name="description" lang="es_ES" value="Gestionar los programas instalados"/>
 	<attribute name="command" value="software-center"/>
 	<attribute name="icon" value="applications/software-center"/>
 	<attribute name="menu" value="applications"/>

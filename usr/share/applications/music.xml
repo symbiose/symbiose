@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Music"/>
 	<attribute name="title" lang="fr_FR" value="Musique"/>
+	<attribute name="title" lang="es_ES" value="Música"/>
 	<attribute name="description" value="Open music"/>
 	<attribute name="description" lang="fr_FR" value="Ouvrir la musique"/>
+	<attribute name="description" lang="es_ES" value="Abrir música"/>
 	<attribute name="command" value="nautilus ~/Music"/>
 	<attribute name="command" lang="fr_FR" value="nautilus ~/Musique"/>
 	<attribute name="icon" value="places/folder-music"/>
