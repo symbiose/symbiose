@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Terminal"/>
 	<attribute name="title" lang="fr_FR" value="Terminal"/>
+	<attribute name="title" lang="es_ES" value="Terminal"/>
 	<attribute name="description" value="Use the command line interface"/>
 	<attribute name="description" lang="fr_FR" value="Utiliser la ligne de commande"/>
+	<attribute name="description" lang="es_ES" value="Utilizar la línea de comandos"/>
 	<attribute name="command" value="gnome-terminal"/>
 	<attribute name="icon" value="apps/terminal"/>
 	<attribute name="category" value="accessories"/>

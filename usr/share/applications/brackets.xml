@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Brackets text editor"/>
 	<attribute name="title" lang="fr_FR" value="Éditeur de texte Brackets"/>
+	<attribute name="title" lang="es_ES" value="Editor de texto Brackets"/>
 	<attribute name="description" value="An open-source code editor built with the web for the web"/>
 	<attribute name="description" lang="fr_FR" value="Un éditeur de code construit avec le web pour le web"/>
+	<attribute name="description" lang="es_ES" value="Un editor de código contruido con la web para la web"/>
 	<attribute name="command" value="brackets"/>
 	<attribute name="icon" value="applications/brackets"/>
 	<attribute name="menu" value="applications"/>

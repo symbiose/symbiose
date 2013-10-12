@@ -2,10 +2,13 @@
 <shortcut>
 	<attribute name="title" value="Pictures"/>
 	<attribute name="title" lang="fr_FR" value="Images"/>
+	<attribute name="title" lang="es_ES" value="Imágenes"/>
 	<attribute name="description" value="Open your pictures"/>
 	<attribute name="description" lang="fr_FR" value="Ouvrir les images"/>
+	<attribute name="description" lang="es_ES" value="Abrir las imágenes"/>
 	<attribute name="command" value="nautilus ~/Pictures"/>
 	<attribute name="command" lang="fr_FR" value="nautilus ~/Images"/>
+	<attribute name="command" lang="es_ES" value="nautilus ~/Imágenes"/>
 	<attribute name="icon" value="places/folder-pictures"/>
 	<attribute name="menu" value="places"/>
 </shortcut>

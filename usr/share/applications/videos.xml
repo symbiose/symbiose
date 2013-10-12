@@ -2,10 +2,13 @@
 <shortcut>
 	<attribute name="title" value="Videos"/>
 	<attribute name="title" lang="fr_FR" value="Vidéos"/>
+	<attribute name="title" lang="es_ES" value="Vídeos"/>
 	<attribute name="description" value="Open videos"/>
 	<attribute name="description" lang="fr_FR" value="Ouvrir les vidéos"/>
+	<attribute name="description" lang="es_ES" value="Abrir vídeos"/>
 	<attribute name="command" value="nautilus ~/Videos"/>
 	<attribute name="command" lang="fr_FR" value="nautilus ~/Vidéos"/>
+	<attribute name="command" lang="es_ES" value="nautilus ~/Vídeos"/>
 	<attribute name="icon" value="places/folder-videos"/>
 	<attribute name="menu" value="places"/>
 </shortcut>

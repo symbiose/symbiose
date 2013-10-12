@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Firefox web browser"/>
 	<attribute name="title" lang="fr_FR" value="Navigateur web Firefox"/>
+	<attribute name="title" lang="es_ES" value="Navegador web Firefox"/>
 	<attribute name="description" value="Browse the web"/>
 	<attribute name="description" lang="fr_FR" value="Naviguer sur le web"/>
+	<attribute name="description" lang="es_ES" value="Navegar por la web"/>
 	<attribute name="command" value="firefox"/>
 	<attribute name="icon" value="applications/firefox"/>
 	<attribute name="menu" value="applications"/>

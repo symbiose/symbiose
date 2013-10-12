@@ -2,10 +2,13 @@
 <shortcut>
 	<attribute name="title" value="Downloads"/>
 	<attribute name="title" lang="fr_FR" value="Téléchargements"/>
+	<attribute name="title" lang="es_ES" value="Descargas"/>
 	<attribute name="description" value="Open downloads"/>
 	<attribute name="description" lang="fr_FR" value="Ouvrir les téléchargements"/>
+	<attribute name="description" lang="es_ES" value="Abrir las descargas"/>
 	<attribute name="command" value="nautilus ~/Downloads"/>
 	<attribute name="command" lang="fr_FR" value="nautilus ~/Téléchargements"/>
+	<attribute name="command" lang="es_ES" value="nautilus ~/Descargas"/>
 	<attribute name="icon" value="places/folder-downloads"/>
 	<attribute name="menu" value="places"/>
 </shortcut>
