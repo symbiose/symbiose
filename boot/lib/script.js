@@ -410,7 +410,7 @@ Webos.Arguments.parse = function(cmd) {
 		strOptionType: '',
 		strStage: 'index'
 	};
-	var cache = cacheBase;
+	var cache = $.extend({}, cacheBase);
 	
 	for (var i = 0; i < argsStr.length; i++) { //Pour chaque caractere char
 		var char = argsStr[i];
@@ -437,7 +437,7 @@ Webos.Arguments.parse = function(cmd) {
 			} else { //Sinon, c'est un argument
 				args.params.push(cache.strIndex); //On sauvegarde
 			}
-			cache = cacheBase; //On remet le cache a zero
+			cache = $.extend({}, cacheBase);; //On remet le cache a zero
 		} else if (char == '-') { //Si c'est un tiret
 			if (cache.previous == '-') { //Si le caractere precedant etait aussi un tiret, c'est une option type --fruit=abricot
 				cache.strOptionType = 'long'; //Type de l'option
