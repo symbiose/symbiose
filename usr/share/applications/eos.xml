@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Image viewer"/>
 	<attribute name="title" lang="fr_FR" value="Visionneuse d'images"/>
+	<attribute name="title" lang="es_ES" value="Visor de imágenes"/>
 	<attribute name="description" value="Display images"/>
 	<attribute name="description" lang="fr_FR" value="Afficher des images"/>
+	<attribute name="description" lang="es_ES" value="Mostrar imágenes"/>
 	<attribute name="command" value="eos"/>
 	<attribute name="icon" value="applications/eos"/>
 	<attribute name="category" value="accessories"/>

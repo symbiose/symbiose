@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Intermezzo media player"/>
 	<attribute name="title" lang="fr_FR" value="Lecteur multimédia Intermezzo"/>
+	<attribute name="title" lang="es_ES" value="Reproductor multimedia Intermezzo"/>
 	<attribute name="description" value="Play audio and video files"/>
 	<attribute name="description" lang="fr_FR" value="Lire des fichiers audio et vidéo"/>
+	<attribute name="description" lang="es_ES" value="Reproducir ficheros de audio y vídeo"/>
 	<attribute name="command" value="intermezzo"/>
 	<attribute name="icon" value="applications/intermezzo"/>
 	<attribute name="menu" value="applications"/>

@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Archive manager"/>
 	<attribute name="title" lang="fr_FR" value="Gestionnaire d'archives"/>
+	<attribute name="title" lang="es_ES" value="Gestor de archivos"/>
 	<attribute name="description" value="Zip and unzip archives"/>
 	<attribute name="description" lang="fr_FR" value="Compresser et décompresser des archives"/>
+	<attribute name="description" lang="es_ES" value="Compresor y descompresor de archivos"/>
 	<attribute name="command" value="file-roller"/>
 	<attribute name="icon" value="applications/file-roller"/>
 	<attribute name="menu" value="applications"/>

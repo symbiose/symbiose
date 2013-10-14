@@ -2,8 +2,10 @@
 <shortcut>
 	<attribute name="title" value="Files"/>
 	<attribute name="title" lang="fr_FR" value="Fichiers"/>
+	<attribute name="title" lang="es_ES" value="Ficheros"/>
 	<attribute name="description" value="Browse your files"/>
 	<attribute name="description" lang="fr_FR" value="Naviguez dans vos fichiers"/>
+	<attribute name="description" lang="es_ES" value="Navegue por sus ficheros"/>
 	<attribute name="command" value="nautilus"/>
 	<attribute name="icon" value="apps/filemanager"/>
 	<attribute name="category" value="accessories"/>
