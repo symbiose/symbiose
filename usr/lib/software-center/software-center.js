@@ -2,6 +2,12 @@ Webos.require([
 	'/usr/lib/apt/apt.js',
 	'/usr/lib/firefox-marketplace/webos.js'
 ], function() {
+	var thisProcess = W.Process.current(), permissions = {
+		managePackages: true
+	};
+	if (thisProcess) {
+		permissions.managePackages = thisProcess.getAuthorizations().can('package.manage');
+	}
 
 	/**
 	 * SoftwareCenter represente une logitheque.
@@ -174,7 +180,8 @@ Webos.require([
 			var that = this, t = this._translations;
 
 			var actions = {
-				labels: {}
+				labels: {},
+				action: $('<div></div>')
 			};
 
 			if (pkg.get('operationPending')) {
@@ -191,32 +198,63 @@ Webos.require([
 					actions.labels.status = t.get('Available');
 					if (pkg.get('runnable')) {
 						actions.labels.action = t.get('Run');
-					} else {
+					} else if (pkg.get('installable')) {
 						actions.labels.action = t.get('Install');
+					} else {
+						actions.labels.action = '';
+						actions.labels.status = t.get('This app is not compatible with your platform.');
 					}
 				}
 			}
 			
 			if (!pkg.get('operationPending')) {
-				actions.action = $.w.button(actions.labels.action)
-					.addClass('action-button')
-					.click(function() {
-						if (!pkg.get('operationPending')) {
-							if (pkg.get('runnable')) {
-								var method = 'run';
-							} else {
-								var method = (pkg.get('installed')) ? 'remove' : 'install';
-							}
-
-							pkg[method]([function() {}, function(res) {
-								that._triggerError(res.getError());
-							}]);
-						} else {
-							that._triggerError(new W.Error(t.get('An operation on this package is already underway')));
-						}
-					});
+				if (pkg.get('installed')) {
+					if (permissions.managePackages) {
+						$.w.button(t.get('Remove'))
+							.addClass('action-button')
+							.click(function() {
+								if (!pkg.get('operationPending')) {
+									pkg.remove([function() {}, function(res) {
+										that._triggerError(res.getError());
+									}]);
+								} else {
+									that._triggerError(new W.Error(t.get('An operation on this package is already underway')));
+								}
+							})
+							.appendTo(actions.action);
+					}
+				} else {
+					if (pkg.get('runnable')) {
+						$.w.button(t.get('Run'))
+							.addClass('action-button')
+							.click(function() {
+								if (!pkg.get('operationPending')) {
+									pkg.run([function() {}, function(res) {
+										that._triggerError(res.getError());
+									}]);
+								} else {
+									that._triggerError(new W.Error(t.get('An operation on this package is already underway')));
+								}
+							})
+							.appendTo(actions.action);
+					}
+					if (pkg.get('installable') && permissions.managePackages) {
+						$.w.button(t.get('Install'))
+							.addClass('action-button')
+							.click(function() {
+								if (!pkg.get('operationPending')) {
+									pkg.install([function() {}, function(res) {
+										that._triggerError(res.getError());
+									}]);
+								} else {
+									that._triggerError(new W.Error(t.get('An operation on this package is already underway')));
+								}
+							})
+							.appendTo(actions.action);
+					}
+				}
 			} else {
-				actions.action = $('<div></div>').addClass('loading');
+				$('<div></div>').addClass('loading').appendTo(actions.action);
 			}
 			
 			return actions;
@@ -729,7 +767,7 @@ Webos.require([
 					viewData.shortDescription = $('<span></span>').addClass('detail').appendTo(header);
 					viewData.actionBox = $('<div></div>').addClass('action-box').appendTo(that._views.detail);
 					viewData.state = $('<span></span>', { 'class': 'state' }).appendTo(viewData.actionBox);
-					viewData.button = $.w.button().appendTo(viewData.actionBox);
+					viewData.buttons = $('<div></div>').appendTo(viewData.actionBox);
 					viewData.description = $('<p></p>').addClass('description').appendTo(that._views.detail);
 					$('<div></div>', { 'class': 'separator' }).appendTo(that._views.detail);
 					var infobox = $('<ul></ul>', { 'class': 'info-box' }).appendTo(that._views.detail);
@@ -767,13 +805,13 @@ Webos.require([
 				} else {
 					viewData.releaseDateContainer.hide();
 				}
-				viewData.button.remove();
+				viewData.buttons.remove();
 
 				var updatePkgStatus = function() {
-					viewData.button.remove();
+					viewData.buttons.remove();
 
 					actions = that._getActions(pkg);
-					viewData.button = actions.action.appendTo(viewData.actionBox);
+					viewData.buttons = actions.action.prependTo(viewData.actionBox);
 					viewData.state.html(actions.labels.status);
 				};
 

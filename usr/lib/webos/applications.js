@@ -385,3 +385,9 @@ Webos.Application.getByType = function(type, callback) {
 		}
 	}, callback.error]);
 };
+
+Webos.Application.clearCache = function() {
+	Webos.Application._loaded = false;
+	Webos.Application._applications = {};
+	Webos.Application._categories = {};
+};
