@@ -71,16 +71,16 @@ Webos.require([
 	};
 	FirefoxMarketplace.api.App.prototype = {
 		hydrate: function(data) {
+			if (!data.title) {
+				data.title = data.name;
+				data.name = data.codename;
+			}
 			if (!data.codename) {
 				if (data.slug) {
 					data.codename = data.slug;
 				} else if (data.name) {
 					data.codename = data.name;
 				}
-			}
-			if (!data.title) {
-				data.title = data.name;
-				data.name = data.codename;
 			}
 			if (!data.version) {
 				data.version = data.current_version;
@@ -163,7 +163,7 @@ Webos.require([
 			}).load([function(res) {
 				that._hydrate({
 					'installed': true,
-					'installed_time': Math.round(+new Date() / 1000)
+					'installDate': Math.round(+new Date() / 1000)
 				});
 
 				that.trigger('install installcomplete installsuccess');
@@ -200,7 +200,7 @@ Webos.require([
 			}).load([function(res) {
 				that._hydrate({
 					'installed': false,
-					'installed_time': null
+					'installDate': null
 				});
 
 				that.trigger('remove removecomplete removesuccess');
@@ -358,11 +358,12 @@ Webos.require([
 		var manifestLink = document.createElement("a");
 		manifestLink.href = appData.manifestURL;
 
-		var launchUrl = manifestLink.protocol+'//'+manifestLink.host;
+		var launchUrl = manifestLink.host;
 		if (appData.manifest.launch_path) {
 			launchUrl += '/' + appData.manifest.launch_path;
 		}
 		launchUrl = launchUrl.replace(/\/{2,}/, '/');
+		launchUrl = manifestLink.protocol+'//'+launchUrl;
 
 		var windowSize = { width: 320, height: 480 };
 		var isMaximized = false, appIcon = null;
@@ -383,7 +384,7 @@ Webos.require([
 		}
 
 		var appWindow = $.w.window({
-			title: appData.app.name,
+			title: appData.app.title,
 			icon: appIcon,
 			width: windowSize.width,
 			height: windowSize.height,
