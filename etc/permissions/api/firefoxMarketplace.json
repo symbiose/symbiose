@@ -1,4 +1,14 @@
 {
 	"executeGetManifest":[],
-	"executeCheckLaunchPage":[]
+	"executeCheckLaunchPage":[],
+	"executeInstall":[
+		{
+			"permission":"package.manage"
+		}
+	],
+	"executeRemove":[
+		{
+			"permission":"package.manage"
+		}
+	]
 }

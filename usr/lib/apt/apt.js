@@ -11,6 +11,13 @@
 	 */
 	Webos.Package = function WPackage(data) {
 		Webos.Model.call(this, data);
+
+		this.on('installstart removestart', function() {
+			this._operationPending = true;
+		});
+		this.on('installcomplete removecomplete', function() {
+			this._operationPending = false;
+		});
 	};
 
 	Webos.Package.prototype = {
@@ -46,6 +53,20 @@
 		operationPending: function() {
 			return this._operationPending;
 		},
+		installed_time: function() {
+			return this.get('installDate');
+		},
+		author: function() {
+			return this.get('maintainer');
+		},
+		category: function() {
+			if (typeof this._get('category') != 'undefined') {
+				return this._get('category');
+			}
+			if (typeof this._get('categories') != 'undefined') {
+				return this._get('categories')[0];
+			}
+		},
 		//Cannot edit a package's data
 		set: function() {
 			return false;
@@ -54,22 +75,48 @@
 	Webos.inherit(Webos.Package, Webos.Model);
 
 	Webos.Observable.build(Webos.Package);
+	Webos.Package._types = {};
 	Webos.Package._sources = [];
 	Webos.Package._cache = {
-		categories: null
+		categories: null,
+		installed: null
+	};
+
+	Webos.Package.typeApi = function(typeName) {
+		return Webos.Package._types[typeName];
+	};
+	Webos.Package.types = function() {
+		return Webos.Package._types;
+	};
+	Webos.Package.typeExists = function(typeName) {
+		return (typeof Webos.Package._types[typeName] != 'undefined');
+	};
+	Webos.Package.addType = function(typeName, typeApi) {
+		Webos.Package._types[typeName] = typeApi;
+	};
+	Webos.Package.removeType = function(typeName) {
+		delete Webos.Package._types[typeName];
 	};
 
 	Webos.Package.sources = function() {
 		return Webos.Package._sources;
 	};
-	Webos.Package.addSource = function(source) {
-		Webos.Package._sources.push(source);
+	Webos.Package.addSource = function(sourceName, sourceType, sourceData) {
+		if (!Webos.Package.typeExists(sourceType)) {
+			return false;
+		}
+
+		Webos.Package._sources.push({
+			name: sourceName,
+			type: sourceType,
+			data: sourceData || {}
+		});
 	};
-	Webos.Package.removeSource = function(source) {
+	Webos.Package.removeSource = function(sourceName) {
 		var sources = [];
 
 		for(var i = 0; i < Webos.Package._sources.length; i++) {
-			if (Webos.Package._sources[i] !== source) {
+			if (Webos.Package._sources[i].name !== sourceName) {
 				sources.push(Webos.Package._sources[i]);
 			}
 		}
@@ -77,6 +124,15 @@
 		Webos.Package._sources = sources;
 	};
 
+	Webos.Package._pkgsListToObject = function(list) {
+		var pkgs = {};
+
+		for (var i = 0; i < list.length; i++) {
+			pkgs[list[i].get('codename')] = list[i];
+		}
+
+		return pkgs;
+	};
 	Webos.Package._getPackagesList = function(method, customArgs, callback) {
 		callback = Webos.Callback.toCallback(callback);
 
@@ -88,18 +144,31 @@
 		if (!(args instanceof Array)) {
 			args = [args];
 		}
+
 		args.push([function(sourcePkgs) {
 			pkgs = pkgs.concat(sourcePkgs);
 		}, callback.error]);
 
 		for (var i = 0; i < sources.length; i++) {
-			operationsList.push(sources[i][method].apply(sources[i], args));
+			var typeApi = Webos.Package.typeApi(sources[i].type);
+			operationsList.push(typeApi[method].apply(typeApi, args));
 		}
 
 		var operations = Webos.Operation.group(operationsList);
 		if (operations.observables().length > 0) {
 			operations.one('success', function() {
-				callback.success(pkgs);
+				Webos.Package.getInstalled([function(installedList) {
+					var installed = Webos.Package._pkgsListToObject(installedList);
+
+					for (var i = 0; i < pkgs.length; i++) {
+						var pkgName = pkgs[i].get('codename');
+						if (typeof installed[pkgName] != 'undefined') {
+							pkgs[i].hydrate(installed[pkgName].data());
+						}
+					}
+
+					callback.success(pkgs);
+				}, callback.error]);
 			});
 		} else {
 			callback.success(pkgs);
@@ -124,7 +193,8 @@
 		} else {
 			var sources = Webos.Package.sources(), result, found = false, notFound = 0;
 			for(var i = 0; i < sources.length; i++) {
-				sources[i].get(name, [function(pkg) {
+				var typeApi = Webos.Package.typeApi(sources[i].type);
+				typeApi.get(name, [function(pkg) {
 					if (found) {
 						return;
 					}
@@ -196,14 +266,46 @@
 	 */
 	Webos.Package.getInstalled = function(callback) {
 		callback = Webos.Callback.toCallback(callback);
-		
-		
+
+		if (Webos.Package._cache.installed !== null) {
+			callback.success(Webos.Package._cache.installed);
+			return;
+		}
+
+		return new W.ServerCall({
+			'class': 'LocalRepositoryController',
+			'method': 'getInstalled'
+		}).load([function(response) {
+			var packagesData = response.getData(), list = [];
+
+			for (var i in packagesData) {
+				var pkgData = packagesData[i];
+				var typeApi = Webos.Package.typeApi(pkgData.type);
+				list.push(typeApi.buildPkg(pkgData));
+			}
+
+			Webos.Package._cache.installed = list;
+
+			callback.success(list);
+		}, callback.error]);
 	};
 
 	Webos.Package.getLastInstalled = function(limit, callback) {
 		callback = Webos.Callback.toCallback(callback);
-		
-		
+
+		return Webos.Package.getInstalled([function(list) {
+			list.sort(function (a, b) {
+				if (a.get('installDate') > b.get('installDate')) {
+					return 1;
+				}
+				if (a.get('installDate') < b.get('installDate')) {
+					return -1;
+				}
+				return 0;
+			});
+
+			callback.success(list.slice(0, limit));
+		}, callback.error]);
 	};
 
 	Webos.Package.searchPackages = function(query, callback) {
@@ -240,12 +342,12 @@
 			return;
 		}
 
-		var sources = Webos.Package.sources(),
+		var types = Webos.Package.types(),
 			operationsList = [],
 			categories = {};
 
-		for (var i = 0; i < sources.length; i++) {
-			operationsList.push(sources[i].categories([function(sourceCats) {
+		for (var typeName in types) {
+			operationsList.push(types[typeName].categories([function(sourceCats) {
 				$.extend(categories, sourceCats);
 			}, callback.error]));
 		}
@@ -263,6 +365,12 @@
 
 		return operations;
 	};
+
+	Webos.Package.on('install.application.webos remove.application.webos', function() {
+		if (Webos.Application) {
+			Webos.Application.clearCache();
+		}
+	});
 
 
 	// CONFITURE

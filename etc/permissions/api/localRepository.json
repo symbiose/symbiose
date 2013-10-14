@@ -1,0 +1,5 @@
+{
+	"executeGetInstalled":[{
+		"permission":"package.read"
+	}]
+}
