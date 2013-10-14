@@ -70,7 +70,7 @@ abstract class Entity implements \ArrayAccess {
 	}
 
 	public function offsetGet($var) {
-		if (isset($this->$var) && is_callable(array($this, $var))) {
+		if (is_callable(array($this, $var))) {
 			return $this->$var();
 		}
 	}
@@ -78,13 +78,13 @@ abstract class Entity implements \ArrayAccess {
 	public function offsetSet($var, $value) {
 		$method = 'set'.ucfirst($var);
 
-		if (isset($this->$var) && is_callable(array($this, $method))) {
+		if (is_callable(array($this, $method))) {
 			$this->$method($value);
 		}
 	}
 
 	public function offsetExists($var) {
-		return isset($this->$var) && is_callable(array($this, $var));
+		return is_callable(array($this, $var));
 	}
 
 	public function offsetUnset($var) {
