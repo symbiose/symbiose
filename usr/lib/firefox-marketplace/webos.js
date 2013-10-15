@@ -35,6 +35,7 @@ Webos.require([
 		}
 
 		var operation = new Webos.Operation();
+		operation.addCallbacks(callback);
 
 		$.ajax({
 			type: options.type,
@@ -42,8 +43,7 @@ Webos.require([
 			data: options.parameters,
 			dataType: 'json'
 		}).done(function(data) {
-			callback.success(data);
-			operation.setCompleted();
+			operation.setCompleted(data);
 		}).fail(function(jqXHR, textStatus, httpCode) {
 			var msg = 'Firefox Marketplace request failed ['+httpCode+']';
 
@@ -59,8 +59,7 @@ Webos.require([
 				}
 			}
 
-			callback.error(Webos.Callback.Result.error(msg));
-			operation.setCompleted(false);
+			operation.setCompleted(Webos.Callback.Result.error(msg));
 		});
 
 		return operation;
@@ -318,9 +317,10 @@ Webos.require([
 		}, callback.error]);
 	};
 
-	Webos.Package.addType('firefoxMarketplace', FirefoxMarketplace.api);
-	Webos.Package.addSource('firefoxMarketplace', 'firefoxMarketplace');
-
+	if (!Webos.Package.typeExists('firefoxMarketplace')) {
+		Webos.Package.addType('firefoxMarketplace', FirefoxMarketplace.api);
+		Webos.Package.addSource('firefoxMarketplace', 'firefoxMarketplace');
+	}
 
 	FirefoxMarketplace._getManifest = function(manifestUrl, callback) {
 		callback = W.Callback.toCallback(callback);

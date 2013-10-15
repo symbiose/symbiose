@@ -136,6 +136,21 @@
 	Webos.Package._getPackagesList = function(method, customArgs, callback) {
 		callback = Webos.Callback.toCallback(callback);
 
+		var mergeWithInstalledPkgs = function(pkgs, callback) {
+			Webos.Package.getInstalled([function(installedList) {
+				var installed = Webos.Package._pkgsListToObject(installedList);
+
+				for (var i = 0; i < pkgs.length; i++) {
+					var pkgName = pkgs[i].get('codename');
+					if (typeof installed[pkgName] != 'undefined') {
+						pkgs[i].hydrate(installed[pkgName].data());
+					}
+				}
+
+				callback.success(pkgs);
+			}, callback.error]);
+		};
+
 		var sources = Webos.Package.sources(),
 			operationsList = [],
 			pkgs = [];
@@ -157,21 +172,10 @@
 		var operations = Webos.Operation.group(operationsList);
 		if (operations.observables().length > 0) {
 			operations.one('success', function() {
-				Webos.Package.getInstalled([function(installedList) {
-					var installed = Webos.Package._pkgsListToObject(installedList);
-
-					for (var i = 0; i < pkgs.length; i++) {
-						var pkgName = pkgs[i].get('codename');
-						if (typeof installed[pkgName] != 'undefined') {
-							pkgs[i].hydrate(installed[pkgName].data());
-						}
-					}
-
-					callback.success(pkgs);
-				}, callback.error]);
+				mergeWithInstalledPkgs(pkgs, callback);
 			});
 		} else {
-			callback.success(pkgs);
+			mergeWithInstalledPkgs(pkgs, callback);
 		}
 
 		return operations;
