@@ -365,11 +365,11 @@ $.webos.widget('window', 'container', {
 			height: finalCSS.height
 		};
 		
-		this.element.animate(finalCSS, duration);
+		this.element.addClass('animating').animate(finalCSS, duration);
 		
 		var that = this;
-		
-		this.options._content.addClass('animating').animate({
+
+		this.options._content.animate({
 			width: finalCSS.width,
 			height: (finalCSS.height - that.options._components.header.outerHeight(true))
 		}, duration, function() {
@@ -408,7 +408,7 @@ $.webos.widget('window', 'container', {
 				width: dimentions.width,
 				height: (that.options._dimentions.height - that.options._components.header.height())
 			}, duration);
-			
+
 			this.element.addClass('animating').animate({
 				width: dimentions.width,
 				height: dimentions.height,
@@ -734,6 +734,29 @@ $.webos.widget('window', 'container', {
 			this.options.states.loading = false;
 		}
 	},
+	_protectIframes: function(value) {
+		if (value || typeof value == 'undefined') {
+			//Add an overlay over iframes
+			var iframesOverlays = $();
+			this.element.find('iframe').each(function() {
+				var pos = $(this).position();
+
+				iframesOverlays = iframesOverlays.add($('<div></div>').css({
+					position: 'absolute',
+					top: pos.top,
+					left: pos.left,
+					width: $(this).outerWidth(),
+					height: $(this).outerHeight()
+				}).insertAfter(this));
+			});
+
+			this.options._components.iframesOverlays = iframesOverlays;
+		} else if (this.options._components.iframesOverlays) {
+			this.options._components.iframesOverlays.remove();
+
+			this.options._components.iframesOverlays = null;
+		}
+	},
 	resizable: function(value) {
 		this.options.resizable = (value) ? true : false;
 		if (!this.options.resizable && this.options.maximizable) {
@@ -750,10 +773,16 @@ $.webos.widget('window', 'container', {
 				handles: 'all',
 				start: function() {
 					that.element.addClass('resizing');
+					that._protectIframes();
 				},
 				stop: function() {
 					that._saveDimentions();
 					that.element.removeClass('resizing');
+					that._protectIframes(false);
+
+					var contentDim = that.contentCachedDimentions();
+					that.options._content.css(contentDim);
+
 					that._trigger('resize', { type: 'resize' }, { window: that.element });
 				}
 			});
@@ -770,18 +799,7 @@ $.webos.widget('window', 'container', {
 			}
 
 			//Add an overlay over iframes
-			var iframesOverlays = $();
-			that.element.find('iframe').each(function() {
-				var pos = $(this).position();
-
-				iframesOverlays = iframesOverlays.add($('<div></div>').css({
-					position: 'absolute',
-					top: pos.top,
-					left: pos.left,
-					width: $(this).outerWidth(),
-					height: $(this).outerHeight()
-				}).insertAfter(this));
-			});
+			that._protectIframes();
 			
 			var el = that.element[0];
 			var posX = that.element.position().left,
@@ -931,7 +949,7 @@ $.webos.widget('window', 'container', {
 				
 				that.element.removeClass('dragging cursor-move');
 
-				iframesOverlays.remove();
+				that._protectIframes(false);
 				
 				that._saveDimentions();
 
