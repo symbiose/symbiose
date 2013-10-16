@@ -202,3 +202,8 @@
 .notifications-area li ul li:hover {
 	background-color: #4c4c4c;
 }
+.notifications-area li ul li a,
+.notifications-area li ul li a:hover {
+	text-decoration: none;
+	color: inherit;
+}

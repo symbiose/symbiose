@@ -88,6 +88,10 @@ abstract class TranslationManager extends \lib\Manager {
 	 * @return string The detected language.
 	 */
 	public function detectLanguage() {
+		if (!isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+			return $this->defaultLocale();
+		}
+
 		$languages = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
 
 		if (count($languages) == 0) {

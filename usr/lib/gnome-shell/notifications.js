@@ -195,6 +195,7 @@ $.webos.notification = function(options) {
 
 
 $.webos.widget('appIndicator', 'container', {
+	_name: 'app-indicator',
 	options: {
 		title: 'Application',
 		icon: undefined
@@ -296,7 +297,7 @@ $.webos.widget('appIndicator', 'container', {
 	},
 	show: function() {
 		this.element.appendTo(SNotification.indicators);
-		
+		console.log('show', this.element, SNotification.indicators);
 		if (!SNotification.isContainerVisible()) {
 			SNotification.autoShowContainer();
 		}
