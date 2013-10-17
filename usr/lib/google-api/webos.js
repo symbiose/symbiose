@@ -104,6 +104,7 @@ Webos.GoogleDriveFile.prototype = {
 		data.readable = true;
 		data.writable = (data.editable) ? true : false;
 		data.mime_type = data.mimeType || data.mime_type;
+		data.download_url = data.webContentLink;
 
 		return Webos.File.prototype.hydrate.call(this, data);
 	},

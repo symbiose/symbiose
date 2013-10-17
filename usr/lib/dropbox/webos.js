@@ -50,6 +50,11 @@ Webos.DropboxFile.prototype = {
 	realpath: function() {
 		return dropbox.getFileURL(this.get('dropboxpath'));
 	},
+	download_url: function() {
+		if (!this.get('is_dir')) {
+			return this.get('realpath');
+		}
+	},
 	rename: function(newName, callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);

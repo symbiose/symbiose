@@ -59,7 +59,7 @@ class FileController extends \lib\ApiBackController {
 			'basename' => $manager->basename($path),
 			'path' => $path,
 			'realpath' => $manager->toInternalPath($path),
-			'downloadUrl' => $manager->toInternalPath($path) . '?dl=1',
+			'download_url' => $manager->toInternalPath($path) . '?dl=1',
 			'dirname' => $manager->dirname($path),
 			'atime' => $manager->atime($path),
 			'mtime' => $manager->mtime($path),
@@ -302,58 +302,6 @@ class FileController extends \lib\ApiBackController {
 
 		//Return uploaded file's metadata
 		return array('success' => true, 'file' => $this->executeGetData($path));
-	}
-
-	/**
-	 * Download a file.
-	 * @param string $path The file to download.
-	 * @todo Move that method to RawDataCall.
-	 */
-	public function executeDownload($path) {
-		$manager = $this->managers()->getManagerOf('file');
-
-		if (!$manager->exists($path)) {
-			throw new \RuntimeException('');
-		}
-
-		if ($manager->isDir($path)) {
-			$filesInDir = $manager->readDir($path, true); //Read recursively the directory
-			$tmpFilePath = $manager->tmpfile();
-			$zip = new ZipArchive();
-			$zip->open($manager->toInternalPath($tmpFilePath), ZipArchive::CREATE);
-
-			foreach($filesInDir as $filename => $filepath) {
-				if ($manager->isDir($filepath)) {
-					$added = $zip->addEmptyDir($filename);
-				} else {
-					$added = $zip->addFile($manager->toInternalPath($filepath), $filename);
-				}
-
-				if ($added === false) {
-					throw new \RuntimeException('Unable to add "'.$filepath.'" to zip file');
-				}
-			}
-
-			$zip->close();
-
-			$source = $tmpFilePath;
-			$filename = $manager->basename($path) . '.zip';
-		} else {
-			$source = $path;
-			$filename = $manager->basename($path);
-		}
-
-		$httpResponse = $this->app->httpResponse();
-		$httpResponse->addHeader('Content-Description: File Transfer');
-		$httpResponse->addHeader('Content-Type: application/octet-stream');
-		$httpResponse->addHeader('Content-Disposition: attachment; filename="' . $filename . '"');
-		$httpResponse->addHeader('Content-Transfer-Encoding: binary');
-		$httpResponse->addHeader('Expires: 0');
-		$httpResponse->addHeader('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-		$httpResponse->addHeader('Pragma: public');
-		$httpResponse->addHeader('Content-Length: ' . $manager->size($source));
-		readfile($manager->toInternalPath($source));
-		exit;
 	}
 
 	public function executeShare($path) {

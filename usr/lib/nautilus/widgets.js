@@ -971,23 +971,25 @@ Webos.require([
 			propertiesWindow.window('open');
 		},
 		_download: function(file) {
-			var serverCall = new W.ServerCall({
-				'class': 'FileController',
-				'method': 'download',
-				'arguments': {
-					file: file.get('path')
+			var that = this;
+
+			var openDownloadWindow = function(file) {
+				if (file.get('download_url')) {
+					window.open(file.get('download_url'));
+				} else {
+					that._handleError(W.Error.build('Cannot download this file : unsupported operation'));
 				}
-			});
-			var form = $('<form></form>')
-				.attr('action', serverCall._url)
-				.attr('method', serverCall._type)
-				.attr('target', '_blank')
-				.appendTo('body');
-			for (var key in serverCall._data) {
-				form.append($('<input />', { type: 'hidden', name: key, value: serverCall._data[key] }));
+			};
+
+			if (file.get('download_url')) {
+				openDownloadWindow(file);
+			} else {
+				file.load([function(file) {
+					openDownloadWindow(file);
+				}, function(res) {
+					that._handleError(res.getError());
+				}]);
 			}
-			
-			form.submit().remove();
 		},
 		openUploadWindow: function() {
 			var that = this, t = this.translations();

@@ -85,12 +85,6 @@
 			"permission":"file.write"
 		}
 	],
-	"executeDownload":[
-		{
-			"argument":0,
-			"permission":"file.read"
-		}
-	],
 	"executeShare":[
 		{
 			"argument":0,
