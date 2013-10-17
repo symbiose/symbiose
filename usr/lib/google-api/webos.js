@@ -308,6 +308,27 @@ Webos.GoogleDriveFile.prototype = {
 				file.writeAsText(contents, callback);
 			}, callback.error]);
 		}]);
+	},
+	share: function (callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+
+		Webos.GoogleDriveFile._getFileId(this.get('path'), this.get('mountPoint'), [function(fileId) {
+			var request = gapi.client.drive.permissions.insert({
+				'fileId': fileId,
+				'resource': {
+					'value': '',
+					'type': 'anyone',
+					'role': 'reader',
+					'withLink': true
+				}
+			});
+			request.execute(function(resp) {
+				callback.success({
+					url: that.get('alternateLink')
+				});
+			});
+		}, callback.error]);
 	}
 };
 Webos.inherit(Webos.GoogleDriveFile, Webos.File); //Héritage de Webos.File

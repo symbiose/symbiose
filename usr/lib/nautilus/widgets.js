@@ -574,6 +574,9 @@ Webos.require([
 				},
 				openProperties: function() {
 					that._openProperties(item.data('file')());
+				},
+				share: function () {
+					that._openProperties(item.data('file')(), 'share');
 				}
 			});
 			
@@ -653,7 +656,13 @@ Webos.require([
 					});
 				}
 			}
-			$.webos.menuItem(t.get('Properties'), true).click(function() {
+			$.webos.menuItem(t.get('Share'), true).click(function() {
+				var files = (that.getSelection().length == 0) ? item : that.getSelection();
+				files.each(function() {
+					$(this).data('nautilus').share();
+				});
+			}).appendTo(contextmenu);
+			$.webos.menuItem(t.get('Properties')).click(function() {
 				var files = (that.getSelection().length == 0) ? item : that.getSelection();
 				files.each(function() {
 					$(this).data('nautilus').openProperties();
@@ -770,7 +779,7 @@ Webos.require([
 
 			errorWindow.window('open');
 		},
-		_openProperties: function(file) {
+		_openProperties: function(file, openedTab) {
 			var t = this.translations(), that = this;
 			
 			var propertiesWindow = $.w.window({
@@ -784,7 +793,17 @@ Webos.require([
 			var tabs = $.webos.tabs().appendTo(propertiesWindow.window('content'));
 			var dataTab = tabs.tabs('tab', t.get('General'));
 
-			var displayPropertiesFn = function displayPropertiesFn(file) {
+			var showRequestedTab = function () {
+				var tabsNames = ['info','openWith','share'];
+				if (typeof openedTab == 'string') {
+					var tabNo = $.inArray(openedTab, tabsNames);
+					if (tabNo >= 0) {
+						tabs.tabs('option', 'selectedTab', tabNo);
+					}
+				}
+			};
+
+			var displayPropertiesFn = function (file) {
 				if (!file.get('is_dir')) {
 					var openTab = tabs.tabs('tab', t.get('Open with...'));
 
@@ -904,10 +923,37 @@ Webos.require([
 				$.w.button(t.get('Close')).appendTo(buttons).click(function() {
 					propertiesWindow.window('close');
 				});
+
+				//Share tab
+				var shareTab = tabs.tabs('tab', t.get('Share'));
+
+				$.w.label(t.get('You can share this file to make it publicly accessible for users who have the link :')).appendTo(shareTab);
+
+				var shareBtn = $.w.button(t.get('Share this file'))
+					.click(function() {
+						propertiesWindow.window('loading', true);
+
+						//Share file
+						file.share([function(shareData) {
+							propertiesWindow.window('loading', false);
+
+							var shareLink = document.createElement("a");
+							shareLink.href = shareData.url;
+							var shareUrl = shareLink.href;
+
+							var shareResult = $.w.label(t.get('Public URL:') + ' <a href="'+shareUrl+'" target="_blank">'+shareUrl+'</a>');
+							shareBtn.replaceWith(shareResult);
+						}, function(res) {
+							propertiesWindow.window('loading', false);
+							that._handleError(res.getError());
+						}]);
+					})
+					.appendTo(shareTab);
 			};
 
 			if (file.exists('is_dir') && file.exists('size')) {
 				displayPropertiesFn(file);
+				showRequestedTab();
 			} else {
 				propertiesWindow.window('loading', true);
 
@@ -915,6 +961,7 @@ Webos.require([
 					propertiesWindow.window('loading', false);
 
 					displayPropertiesFn(file);
+					showRequestedTab();
 				}, function(response) {
 					propertiesWindow.window('close');
 					that._handleError(response.getError());

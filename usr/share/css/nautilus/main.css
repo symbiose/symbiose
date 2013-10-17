@@ -82,6 +82,7 @@
 	float: left;
 	height: 100%;
 	padding-right: 2px;
+	overflow: auto;
 }
 .webos-nautilusshortcuts strong.title {
 	font-size: 1.05em;

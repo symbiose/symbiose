@@ -142,6 +142,10 @@ class FileManager_localfs extends FileManager {
 		return $this->dao()->toInternalPath($path);
 	}
 
+	public function toExternalPath($path) {
+		return $this->dao()->toExternalPath($path);
+	}
+
 	public function exists($path) {
 		return $this->dao()->exists($path);
 	}

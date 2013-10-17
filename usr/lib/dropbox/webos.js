@@ -158,8 +158,13 @@ Webos.DropboxFile.prototype = {
 			callback.success();
 		}, callback.error]);
 	},
-	setContents: function(contents, callback) {
-		return this.writeAsText(contents, callback);
+	share: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		return dropbox.shareItem(this.get('dropboxpath'), [function(data) {
+			callback.success(data);
+		}, callback.error]);
 	}
 };
 Webos.inherit(Webos.DropboxFile, Webos.File); //Héritage de Webos.File

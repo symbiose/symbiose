@@ -59,6 +59,7 @@ class FileController extends \lib\ApiBackController {
 			'basename' => $manager->basename($path),
 			'path' => $path,
 			'realpath' => $manager->toInternalPath($path),
+			'downloadUrl' => $manager->toInternalPath($path) . '?dl=1',
 			'dirname' => $manager->dirname($path),
 			'atime' => $manager->atime($path),
 			'mtime' => $manager->mtime($path),
@@ -353,5 +354,42 @@ class FileController extends \lib\ApiBackController {
 		$httpResponse->addHeader('Content-Length: ' . $manager->size($source));
 		readfile($manager->toInternalPath($source));
 		exit;
+	}
+
+	public function executeShare($path) {
+		$manager = $this->managers()->getManagerOf('file');
+		$shareManager = $this->managers()->getManagerOf('sharedFile');
+		$user = $this->app()->user();
+
+		if (!$user->isLogged()) {
+			throw new \RuntimeException('You must be logged in to share a file');
+		}
+
+		$path = $manager->beautifyPath($path);
+
+		if ($path != '~' && substr($path, 0, 2) != '~/') {
+			throw new \RuntimeException('Cannot share files outside home directory (attempted to share file "'.$path.'")');
+		}
+
+		$share = $shareManager->getByPath($user->id(), $manager->toInternalPath($path));
+		if (empty($share)) {
+			$shareKey = substr(sha1(microtime() + mt_rand() * (mt_rand() + 42)), 4, 20); //Let's generate a funny key !
+
+			$share = new \lib\entities\SharedFile(array(
+				'userId' => $user->id(),
+				'path' => $manager->toInternalPath($path),
+				'key' => $shareKey
+			));
+
+			$shareManager->insert($share);
+		}
+
+		$shareUrl = $manager->toInternalPath($path) . '?key=' . $share['key'];
+
+		if ($manager->isDir($path)) {
+			$shareUrl .= '&dl=1';
+		}
+
+		return array('url' => $shareUrl);
 	}
 }

@@ -396,6 +396,13 @@ Webos.File.prototype = {
 		return this.writeAsText(contents, callback);
 	},
 	/**
+	 * Share this file and get the public URL.
+	 * @param  {Webos.Callback} callback The callback.
+	 */
+	share: function(callback) {
+		this._unsupportedMethod(callback);
+	},
+	/**
 	 * Check if the user can execute a given action on this file.
 	 * @param {String} auth The name of the authorization. Can be "read" or "write".
 	 * @returns {Boolean} True if the user can execute the specified action, false otherwise.
@@ -1428,6 +1435,26 @@ Webos.WebosFile.prototype = {
 			that._updateData(response.getData());
 
 			callback.success();
+		}, callback.error]);
+	},
+	share: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+
+		if (!this.checkAuthorization('write', callback)) {
+			return false;
+		}
+
+		return new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'share',
+			arguments: {
+				file: that.get('path')
+			}
+		}).load([function(response) {
+			var shareData = response.getData();
+
+			callback.success(shareData);
 		}, callback.error]);
 	}
 };

@@ -829,3 +829,18 @@ dropbox.getDelta = function(callback) {
 		callback.success(data);
 	}, callback.error]);
 };
+
+/**
+ * Function to share a file.
+ * @param {String} path The path to file to share.
+ * @param {Function} callback The callback function, which will be called after loading.
+ */
+dropbox.shareItem = function(path,callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	dropbox.oauthRequest({
+		url: "https://api.dropbox.com/1/shares/" + dropbox.accessType + "/" + escape(path)
+	}, [], [function(data) {
+		callback.success(data);
+	}, callback.error]);
+};
