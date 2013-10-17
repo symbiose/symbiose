@@ -128,12 +128,26 @@ Webos.Terminal.prototype = {
 	 * Recuperer un chemin absolu depuis un chemin relatif par rapport au dossier courant.
 	 * @param {String} path Le chemin relatif par rapport au dossier courant.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que le chemin sera converti.
+	 * @deprecated Use absolutePath().
 	 */
 	relativePath: function(path, callback) {
 		callback.success(this.get('location')+'/'+path);
 	},
 	/**
-	 * 
+	 * Recuperer un chemin absolu depuis un chemin relatif par rapport au dossier courant.
+	 * @param {String} path Le chemin relatif par rapport au dossier courant.
+	 */
+	absolutePath: function(path) {
+		var absPath = path;
+		if (path.substr(0, 1) != '/' && path.substr(0, 2) != '~/') { //Relative path
+			absPath = this.get('location')+'/'+path;
+		}
+
+		return absPath;
+	},
+	/**
+	 * Output some content.
+	 * @param  {string} contents The content.
 	 */
 	echo: function(contents) {
 		contents = String(contents).replace(/\n/g, '<br />');

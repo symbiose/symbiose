@@ -9,9 +9,6 @@ Webos.Process = function WProcess(options) {
 	this.pid = options.pid;
 	//var key = options.key;
 	this.authorizations = options.authorizations;
-	if (typeof options.args != 'undefined') { //Si les arguments ne sont pas vides
-		this.args = options.args;
-	}
 
 	this._state = 0; // 0 -> ready; 1 -> running; 2 -> idle; 3 -> killed.
 	this.main = new Function('args', options.fn);
@@ -26,34 +23,42 @@ Webos.Process.prototype = {
 	/**
 	 * The code of the process.
 	 */
-	main: function $_WProcess_main() {},
+	main: function () {},
 	/**
 	 * Get this process' ID.
 	 * @returns {Number} The PID.
 	 */
-	getPid: function $_WProcess_getPid() {
+	getPid: function () {
 		return this.pid;
 	},
 	/**
 	 * Get this process' authorizations.
 	 * @returns {Webos.Authorizations} The authorizations.
 	 */
-	getAuthorizations: function $_WProcess_getAuthorizations() {
+	getAuthorizations: function () {
 		return this.authorizations;
+	},
+	/**
+	 * Get this process' arguments.
+	 * @return {Webos.Arguments} This process' arguments.
+	 */
+	getArguments: function () {
+		return this.args;
 	},
 	/**
 	 * Start this process.
 	 */
-	run: function $_WProcess_run() {
+	run: function () {
 		if (this.state() != 'ready') {
 			return;
 		}
-		
+
 		var args = this.args;
 		if (typeof args == 'undefined') {
 			args = new Webos.Arguments();
 		}
-		
+		this.args = args;
+
 		this._state = 1;
 		Webos.Process.stack.push(this);
 
@@ -61,15 +66,16 @@ Webos.Process.prototype = {
 		Webos.Process.notify('start', {
 			process: this
 		});
-		
+
 		try {
 			this.main(args);
 		} catch(error) {
 			Webos.Error.catchError(error);
 		}
-		
+
 		Webos.Process.stack.pop();
-		
+		this.args = undefined;
+
 		if (this.state() != 'killed') {
 			this._state = 2;
 
@@ -82,7 +88,7 @@ Webos.Process.prototype = {
 	/**
 	 * Stop this process.
 	 */
-	stop: function $_WProcess_stop() {
+	stop: function () {
 		if (this.state() != 'running' && this.state() != 'idle') {
 			return;
 		}
@@ -101,7 +107,7 @@ Webos.Process.prototype = {
 	 * Get this process' state.
 	 * @returns {String} This process' state (e.g. "ready", "running", "idle", "killed").
 	 */
-	state: function $_WProcess_state() {
+	state: function () {
 		var states = ['ready', 'running', 'idle', 'killed'];
 
 		return states[this._state];
@@ -110,10 +116,10 @@ Webos.Process.prototype = {
 	 * Check if this process is currently running.
 	 * @returns {Boolean} True if this process is running, false otherwise.
 	 */
-	isRunning: function $_WProcess_isRunning() {
+	isRunning: function () {
 		return (this._state == 1 || this._state == 2);
 	},
-	toString: function $_WProcess_toString() {
+	toString: function () {
 		return '[WProcess #'+this.pid+']';
 	}
 };
