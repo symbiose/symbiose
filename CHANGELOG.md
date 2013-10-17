@@ -6,6 +6,7 @@
 * Added a preview of Stunning UI, a user interface designed for mobile phones & tablets.
 * Added an experimental web app support : the webos can now be installed in Firefox.
 * Added a new app : Brackets text editor.
+* Added file sharing support.
 * Added Mozilla's X-Tags support for easier app's UIs development.
 * Improved LibreOffice Writer and Firefox.
 * Changed default background image.
