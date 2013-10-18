@@ -84,6 +84,8 @@ class FileController extends \lib\ApiBackController {
 	 */
 	public function executeRename($path, $newName) {
 		$manager = $this->managers()->getManagerOf('file');
+		$shareManager = $this->managers()->getManagerOf('sharedFile');
+		$user = $this->app()->user();
 
 		if (strstr($newName, '/') !== false) { //Invalid file name
 			throw new \InvalidArgumentException('Cannot rename file "'.$path.'" to "'.$newName.'" (invalid new file name)');
@@ -98,6 +100,16 @@ class FileController extends \lib\ApiBackController {
 
 		//Let's move the file
 		$manager->move($path, $newFilePath);
+
+		if ($user->isLogged()) {
+			$internalPath = $manager->toInternalPath($path);
+			$share = $shareManager->getByPath($user->id(), $internalPath);
+
+			if (!empty($share) && $internalPath == $share['path']) {
+				$share->setPath($manager->toInternalPath($newFilePath));
+				$shareManager->update($share);
+			}
+		}
 
 		//Return new data
 		return $this->executeGetData($newFilePath);
@@ -123,10 +135,22 @@ class FileController extends \lib\ApiBackController {
 	 */
 	public function executeMove($source, $dest) {
 		$manager = $this->managers()->getManagerOf('file');
+		$shareManager = $this->managers()->getManagerOf('sharedFile');
+		$user = $this->app()->user();
 
-		$copiedPath = $manager->move($source, $dest);
+		$movedPath = $manager->move($source, $dest);
 
-		return $this->executeGetData($copiedPath);
+		if ($user->isLogged()) {
+			$sourceInternalPath = $manager->toInternalPath($source);
+			$share = $shareManager->getByPath($user->id(), $sourceInternalPath);
+
+			if (!empty($share) && $sourceInternalPath == $share['path']) {
+				$share->setPath($manager->toInternalPath($movedPath));
+				$shareManager->update($share);
+			}
+		}
+
+		return $this->executeGetData($movedPath);
 	}
 
 	/**
@@ -135,6 +159,17 @@ class FileController extends \lib\ApiBackController {
 	 */
 	public function executeDelete($path) {
 		$manager = $this->managers()->getManagerOf('file');
+		$shareManager = $this->managers()->getManagerOf('sharedFile');
+		$user = $this->app()->user();
+
+		if ($user->isLogged()) {
+			$internalPath = $manager->toInternalPath($path);
+			$share = $shareManager->getByPath($user->id(), $internalPath);
+
+			if (!empty($share) && $internalPath == $share['path']) {
+				$shareManager->delete($share['id']);
+			}
+		}
 
 		$manager->delete($path, true);
 	}
