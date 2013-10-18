@@ -508,6 +508,8 @@ class LocalFs {
 		if (!rename($sourceInternalPath, $destInternalPath)) {
 			throw new \RuntimeException('Cannot move file from "'.$source.'" to "'.$dest.'"');
 		}
+
+		return $dest;
 	}
 
 	/**
