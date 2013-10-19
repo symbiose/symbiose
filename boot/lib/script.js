@@ -347,20 +347,9 @@ Webos.eval = function Weval(scripts, callback, options) {
  * @todo Simplify argument's management.
  */
 Webos.Arguments = function WArguments(args) {
-	if (typeof args == 'undefined') {
-		args = {};
-	}
-	
-	this.args = args;
+	this.args = $.extend({}, args);
 	if (typeof this.args.options == 'undefined') { this.args.options = {}; }
 	if (typeof this.args.params == 'undefined') { this.args.params = []; }
-	
-	var paramsArray = [];
-	for (var nbr in this.args.params) {
-		paramsArray.push(this.args.params[nbr]);
-	}
-	
-	this.args.params = paramsArray;
 	
 	this.isOption = function(name) { //Une option est-elle definie ?
 		return (typeof this.args.options[name] != 'undefined');
@@ -478,15 +467,15 @@ Webos.Arguments.parse = function(cmd) {
 		}
 		cache.previous = char; //On definit le caractere precedant
 	}
-	
+
 	//On vide le cache du dernier caractere
-	if (cache.strIndex != '') {
+	if (cache.strIndex) {
 		if (cache.strType == 'options') {
 			args.options[cache.strIndex] = cache.strContent;
 		} else {
 			args.params.push(cache.strIndex);
 		}
 	}
-	
+
 	return new Webos.Arguments(args);
 };
