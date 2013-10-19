@@ -29,3 +29,10 @@
 	color: white;
 	border: none;
 }
+
+.webos-terminal table td, .webos-terminal table th {
+	padding: 1px 4px;
+}
+.webos-terminal table th {
+	text-align: left;
+}
