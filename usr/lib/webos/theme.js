@@ -68,6 +68,12 @@ Webos.Theme.prototype = {
 		}
 	},
 	_loadBackground: function() {
+		if (Webos.Theme._current) {
+			if (Webos.Theme._current.get('background') == this.get('background')) {
+				return;
+			}
+		}
+
 		this.applyBackgroundOn(Webos.UserInterface.Booter.current().element());
 	},
 	_setAnimations: function() {
@@ -158,7 +164,7 @@ Webos.Theme._current = null;
 Webos.Theme.current = function() {
 	return Webos.Theme._current || new Webos.Theme(Webos.ConfigFile.get('~/.theme/'+Webos.UserInterface.Booter.current().name()+'/config.xml'));
 };
-Webos.Theme._defaultBackground = 'usr/share/images/backgrounds/default.jpg';
+Webos.Theme._defaultBackground = '/usr/share/images/backgrounds/default.jpg';
 Webos.Theme.defaultBackground = function() {
 	return Webos.Theme._defaultBackground;
 };
