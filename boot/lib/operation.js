@@ -100,6 +100,8 @@
 				value = 100;
 			}
 
+			value = Math.round(value);
+
 			if (this.progress() == value) {
 				return;
 			}
