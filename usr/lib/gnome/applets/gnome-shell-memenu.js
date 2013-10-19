@@ -32,10 +32,6 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 						userBox.text(data.value);
 					}
 				});
-				
-				$('<li>'+t.get('System settings')+'</li>').click(function() {
-					W.Cmd.execute('gconf');
-				}).appendTo(userMenu);
 			} else {
 				$('<li>'+t.get('Login...')+'</li>').click(function() {
 					W.Cmd.execute('gnome-login');
@@ -43,6 +39,7 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 				var registerMenuItem = $('<li>'+t.get('Register')+'</li>').click(function() {
 					W.Cmd.execute('gnome-register');
 				}).hide().appendTo(userMenu);
+				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
 				
 				Webos.User.canRegister(function(canRegister) {
 					var notificationsButtons = [
@@ -65,8 +62,6 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 			}
 
 			if (Webos.fullscreen.support) {
-				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
-				
 				var toggleFullScreenItem = $('<li></li>');
 				
 				var updateFullScreenItemFn = function() {
@@ -85,6 +80,7 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 					}
 					updateFullScreenItemFn();
 				}).appendTo(userMenu);
+				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
 				
 				$(document).bind(Webos.fullscreen.eventName, function() {
 					updateFullScreenItemFn();
@@ -94,18 +90,32 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 			}
 
 			if (typeof user != 'undefined') {
-				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
-				$('<li>'+t.get('Lock')+'</li>').click(function() {
-					W.Cmd.execute('gnome-screensaver -l');
-				}).appendTo(userMenu);
-				$('<li>'+t.get('Logout...')+'</li>').click(function() {
-					W.Cmd.execute('gnome-logout');
-				}).appendTo(userMenu);
-				$('<li>'+t.get('Restart')+'</li>').click(function() {
-					W.Cmd.execute('gnome-reboot');
-				}).appendTo(userMenu);
+				var powerBtns = $('<li></li>').addClass('rounded-btns').appendTo(userMenu);
+				$('<span></span>')
+					.append($.w.icon('actions/preferences-system-symbolic'))
+					.addClass('btn')
+					.attr('title', t.get('System settings'))
+					.click(function() {
+						W.Cmd.execute('gconf');
+					})
+					.appendTo(powerBtns);
+				$('<span></span>')
+					.append($.w.icon('actions/lock-symbolic'))
+					.addClass('btn')
+					.attr('title', t.get('Lock'))
+					.click(function() {
+						W.Cmd.execute('gnome-screensaver -l');
+					})
+					.appendTo(powerBtns);
+				$('<span></span>')
+					.append($.w.icon('actions/system-shutdown-symbolic'))
+					.addClass('btn')
+					.attr('title', t.get('Logout...'))
+					.click(function() {
+						W.Cmd.execute('gnome-logout');
+					})
+					.appendTo(powerBtns);
 			} else {
-				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
 				$('<li>'+t.get('Lock')+'</li>').click(function() {
 					W.Cmd.execute('gnome-screensaver -l');
 				}).appendTo(userMenu);

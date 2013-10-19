@@ -956,6 +956,8 @@ $.webos.widget('icon', 'image', {
 		size: undefined
 	},
 	_create: function() {
+		this._super('_create');
+
 		this.option('size', this.options.size);
 	},
 	_update: function(key, value) {
