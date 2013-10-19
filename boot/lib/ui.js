@@ -182,8 +182,25 @@ Webos.UserInterface.current = function() {
  * @param  {Webos.Callback} callback The callback.
  */
 Webos.UserInterface.load = function(name, callback) {
-	callback = Webos.Callback.toCallback(callback);
-	
+	var operation = new Webos.Operation();
+	operation.addCallbacks(callback);
+
+	var lastLoadingMsg = '';
+	var updateLoadingMsg = function(msg) {
+		if (msg) {
+			lastLoadingMsg = msg;
+		}
+		if (operation.progress() == 100) {
+			return;
+		}
+
+		Webos.UserInterface.setLoadingScreenText(lastLoadingMsg + ' ('+operation.progress()+'%)...');
+	};
+
+	operation.on('progress', function(eventData) {
+		updateLoadingMsg();
+	});
+
 	var actualCallNbr = Webos.ServerCall.getList().length - 1;
 	Webos.Error.setErrorHandler(function(error) {
 		var msg = '';
@@ -202,52 +219,66 @@ Webos.UserInterface.load = function(name, callback) {
 	});
 	
 	Webos.UserInterface.showLoadingScreen();
-	Webos.UserInterface.setLoadingScreenText('Retrieving interface...');
+	updateLoadingMsg('Retrieving interface');
 
 	Webos.UserInterface.clearConsole();
 	if (name) {
-		Webos.UserInterface.writeConsole('Loading interface "'+name+'"...');
+		Webos.UserInterface.writeConsole('Loading interface "'+name+'"');
 	} else {
-		Webos.UserInterface.writeConsole('Loading default interface...');
+		Webos.UserInterface.writeConsole('Loading default interface');
 	}
 
-	Webos.UserInterface.writeConsole('Retrieving booter...');
+	Webos.UserInterface.writeConsole('Retrieving booter');
 
 	var ui = Webos.UserInterface.get(name);
 	ui.loadBooter([function(booter) {
+		operation.setProgress(30);
+
 		booter.on('loadstateupdate', function(data) {
-			var msg = 'Loading interface...';
+			var msg = 'Loading interface';
 			switch (data.state) {
 				case 'structure':
-					msg = 'Inserting structure...';
+					msg = 'Inserting structure';
 					break;
 				case 'stylesheets':
-					msg = 'Applying stylesheets...';
+					msg = 'Applying stylesheets';
 					if (data.item) {
-						msg = 'Applying stylesheet '+data.item+'...';
+						msg = 'Applying stylesheet '+data.item;
 					}
 					break;
 				case 'scripts':
-					msg = 'Initialising interface...';
+					msg = 'Initialising interface';
 					if (data.item) {
-						msg = 'Running '+data.item+'...';
+						msg = 'Running '+data.item;
 					}
 					break;
 				case 'cleaning':
-					msg = 'Cleaning terrain...';
+					msg = 'Cleaning terrain';
 					break;
 			}
 
-			Webos.UserInterface.setLoadingScreenText(msg);
+			updateLoadingMsg(msg);
 			Webos.UserInterface.writeConsole(msg);
 		});
-		booter.load([function() {
+		var booterOp = booter.load([function() {
 			Webos.UserInterface.setLoadingScreenText('Interface loaded.');
 			Webos.UserInterface.hideLoadingScreen();
 
 			Webos.UserInterface.writeConsole('Interface loaded.');
-		}, callback.error]);
-	}, callback.error]);
+
+			operation.setCompleted();
+		}, function(res) {
+			operation.setCompleted(res);
+		}]);
+
+		booterOp.on('progress', function(eventData) {
+			operation.setProgress(30 + eventData.value / 100 * 50);
+		});
+	}, function(res) {
+		operation.setCompleted(res);
+	}]);
+
+	return operation;
 };
 
 /**
@@ -421,16 +452,17 @@ Webos.UserInterface.Booter.prototype = {
 	 * @param  {Webos.Callback} callback The callback.
 	 */
 	load: function (callback) {
-		callback = Webos.Callback.toCallback(callback);
-		var that = this;
+		var that = this, operation = new Webos.Operation();
+		operation.addCallbacks(callback);
 		this._autoLoad = true;
 
 		this.one('loadcomplete', function() {
-			callback.success();
+			operation.setCompleted();
 		});
 
 		Webos.UserInterface.Booter._current = this.id();
 		this.notify('loadstart');
+		operation.setStarted();
 
 		var data = this._data;
 
@@ -446,16 +478,26 @@ Webos.UserInterface.Booter.prototype = {
 			})
 			.html(data.html)
 			.prependTo('#userinterfaces');
+		operation.setProgress(10);
 
 		//Chargement du CSS
 		this.notify('loadstateupdate', { state: 'stylesheets' });
+		var cssNbr = 0;
+		for (var index in data.css) { cssNbr++; }
+		var i = 0;
 		for (var index in data.css) {
 			this.notify('loadstateupdate', { state: 'stylesheets', item: index });
 			Webos.Stylesheet.insertCss(data.css[index], '#userinterface-'+this.id());
+			i++;
+			operation.setProgress(10 + (i / cssNbr) * 10);
 		}
 
 		//Chargement du Javascript
 		this.notify('loadstateupdate', { state: 'scripts' });
+		operation.setProgress(20);
+		var scriptsNbr = 0;
+		for (var index in data.js) { scriptsNbr++; }
+		var i = 0;
 		for (var index in data.js) {
 			(function loadUIScript(js) {
 				if (!js) {
@@ -466,13 +508,19 @@ Webos.UserInterface.Booter.prototype = {
 
 				js = 'try {'+js+"\n"+'} catch(error) { Webos.Error.catchError(error); }';
 				Webos.Script.run(js); //On execute le code
+
+				i++;
+				operation.setProgress(20 + (i / scriptsNbr) * 70);
 			})(data.js[index]);
 		}
 		this.notify('loadstateupdate', { state: 'scripts' });
+		operation.setProgress(90);
 
 		if (this._autoLoad) {
 			this.finishLoading();
 		}
+
+		return operation;
 	},
 	/**
 	 * Disable autoload.
