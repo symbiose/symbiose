@@ -339,6 +339,10 @@ Webos.require([
 
 		this._translationsName = 'nautilus';
 
+		this.nautilus = $.w.nautilus({
+			directory: dir
+		});
+
 		this.bind('translationsloaded', function(data) {
 			var t = data.translations;
 
@@ -355,10 +359,6 @@ Webos.require([
 			if (typeof dir == 'undefined') {
 				dir = '~';
 			}
-
-			this.nautilus = $.w.nautilus({
-				directory: dir
-			});
 
 			this.nautilus.bind('nautilusreadstart', function(e, data) {
 				that._refreshHeader(data.location);
