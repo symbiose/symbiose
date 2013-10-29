@@ -203,12 +203,12 @@ Webos.Observable.Group.prototype = {
 
 		return returnValues;
 	},
-	bind: function $_WObservableGroup_bind(event, fn) {
+	on: function (event, fn) {
 		var that = this;
 		var nbrNotifications = 0;
 		var notifsData = [];
 
-		this._eachObservable('bind', [event, function(data) {
+		this._eachObservable('on', [event, function(data) {
 			nbrNotifications++;
 			notifsData.push(data);
 
@@ -220,12 +220,15 @@ Webos.Observable.Group.prototype = {
 			}
 		}]);
 	},
-	one: function $_WObservableGroup_one(event, fn) {
+	bind: function (event, fn) {
+		return this.on(event, fn);
+	},
+	once: function (event, fn) {
 		var that = this;
 		var nbrNotifications = 0;
 		var notifsData = [];
 
-		this._eachObservable('one', [event, function(data) {
+		this._eachObservable('once', [event, function(data) {
 			nbrNotifications++;
 			notifsData.push(data);
 
@@ -234,11 +237,14 @@ Webos.Observable.Group.prototype = {
 			}
 		}]);
 	},
+	one: function (event, fn) {
+		return this.once(event, fn);
+	},
 	/**
 	 * Add an observable to the group.
 	 * @param {Webos.Observable} observable The observable.
 	 */
-	addObservable: function $_WObservableGroup_addObservable(observable) {
+	addObservable: function (observable) {
 		if (!Webos.isInstanceOf(observable, Webos.Observable)) {
 			return false;
 		}
@@ -249,7 +255,7 @@ Webos.Observable.Group.prototype = {
 	 * Remove an observable from the group.
 	 * @param {Webos.Observable} observable The observable.
 	 */
-	removeObservable: function $_WObservableGroup_removeObservable(observable) {
+	removeObservable: function (observable) {
 		if (!Webos.isInstanceOf(observable, Webos.Observable)) {
 			return false;
 		}
@@ -268,7 +274,7 @@ Webos.Observable.Group.prototype = {
 	 * Get a list of obseravbles in the group.
 	 * @returns {Array} The list of observables.
 	 */
-	observables: function $_WObservableGroup_observables() {
+	observables: function () {
 		return this._observables;
 	}
 };
