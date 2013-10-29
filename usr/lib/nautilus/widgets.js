@@ -398,6 +398,53 @@ Webos.require([
 				userCallback.error(response);
 			}]);
 		},
+		search: function(query, userCallback) {
+			var that = this, t = this.translations();
+
+			userCallback = W.Callback.toCallback(userCallback, new W.Callback(function() {}, function(res) {
+				that._handleError(res.getError(t.get('Can\'t search for « ${query} ».', { query: query })));
+			}));
+
+			if (!query) {
+				userCallback.error(Webos.Callback.Result.error('Empty search query'));
+				return;
+			}
+
+			if (typeof this.options._components.contextmenu != 'undefined') {
+				this.options._components.contextmenu.contextMenu('destroy');
+				delete this.options._components.contextmenu;
+			}
+
+			this._trigger('searchstart', { type: 'searchstart' }, { location: that.location(), query: query });
+
+			W.File.search({
+				q: query,
+				inDir: this.location()
+			}, [function(results) {
+				console.log(results);
+				var files = [];
+				for (var i = 0; i < results.length; i++) {
+					files.push(results[i].get('file'));
+				}
+
+				that._render(files);
+
+				that._trigger('searchcomplete', { type: 'searchcomplete' }, { location: that.location(), query: query });
+				that._trigger('searchsuccess', { type: 'searchsuccess' }, { location: that.location(), query: query });
+
+				userCallback.success();
+			}, function(response) {
+				that._render([]);
+				
+				that._trigger('searchcomplete', { type: 'searchcomplete' }, { location: that.location(), query: query });
+
+				if (!that._trigger('searcherror', { type: 'searcherror' }, { location: that.location(), query: query, response: response })) {
+					return;
+				}
+				
+				userCallback.error(response);
+			}]);
+		},
 		_update: function(name, value) {
 			switch(name) {
 				case 'display':

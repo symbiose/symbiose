@@ -375,4 +375,40 @@ class FileController extends \lib\ApiBackController {
 
 		return array('url' => $shareUrl);
 	}
+
+	public function executeSearch($query, $inDir) { //WARNING: doesn't support deep permissions check
+		$manager = $this->managers()->getManagerOf('file');
+
+		if ($inDir != '~' && substr($inDir, 0, 2) != '~/') {
+			throw new \RuntimeException('Cannot search files outside home directory (attempted to search in directory "'.$inDir.'")');
+		}
+
+		//Escape the query string
+		$escapedQuery = preg_quote(trim($query));
+		$escapedQuery = str_replace(' ', '|', $escapedQuery); //" " = OR
+
+		if (empty($escapedQuery)) { //Empty query
+			throw new \RuntimeException('Empty search query');
+		}
+
+		$filesInDir = $manager->readDir($inDir, true);
+
+		$matchingItems = array();
+
+		foreach($filesInDir as $filepath) {
+			$matchesNbr = preg_match_all('#('.$escapedQuery.')#i', $manager->basename($filepath));
+
+			if ($matchesNbr > 0) {
+				$matchingItem = $this->executeGetData($filepath);
+				$matchingItem['matchesNbr'] = $matchesNbr;
+				$matchingItems[] = $matchingItem;
+			}
+		}
+
+		usort($matchingItems, function($a, $b) {
+			return $b['matchesNbr'] - $a['matchesNbr'];
+		});
+
+		return $matchingItems;
+	}
 }

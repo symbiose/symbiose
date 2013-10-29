@@ -389,11 +389,9 @@ Webos.require([
 				var that = this;
 				
 				var createButtonFn = function createButtonFn(userDir, path) {
-					var button = $.w.toolbarWindowHeaderItem(userDir);
-					button.click(function() {
+					return $.w.toolbarWindowHeaderItem(userDir).click(function() {
 						that.readDir(path);
 					});
-					return button;
 				};
 				
 				if (dir == '/') {
@@ -415,6 +413,50 @@ Webos.require([
 				}
 				
 				this._toolbar.find('li').last().addClass('active');
+
+				$.w.toolbarWindowHeaderItem(t.get('Search')).css('float', 'right').click(function() {
+					that.search();
+				}).appendTo(this._toolbar);
+			};
+
+			this.search = function(query) {
+				var headers = this.window.window('header');
+				if (typeof this._toolbar != 'undefined') {
+					this._toolbar.remove();
+				}
+				this._toolbar = $.w.toolbarWindowHeader().appendTo(headers);
+
+				var searchInFiles = function() {
+					var query = searchEntry.textEntry('value');
+
+					if (query.trim()) {
+						that.window.window('loading', true, {
+							lock: false
+						});
+						that.nautilus.nautilus('search', query, function() {
+							that.window.window('loading', false);
+						});
+					}
+				};
+
+				var keypressTimer = -1;
+				var searchEntry = $.w.textEntry().keyup(function() {
+					if (keypressTimer !== -1) {
+						clearTimeout(keypressTimer);
+					}
+					keypressTimer = setTimeout(function() {
+						keypressTimer = -1;
+						searchInFiles();
+					}, 500);
+				});
+
+				$.w.windowHeaderItem(searchEntry).appendTo(this._toolbar);
+
+				$.w.toolbarWindowHeaderItem(t.get('Search')).css('float', 'right').click(function() {
+					that.readDir(that.nautilus.nautilus('location'));
+				}).addClass('active').appendTo(this._toolbar);
+
+				searchEntry.textEntry('input').focus();
 			};
 			
 			this.readDir = function(dir, userCallback) {
@@ -547,6 +589,12 @@ Webos.require([
 			$.w.menuItem(t.get('Invert'))
 				.click(function() {
 					that.nautilus.nautilus('items').toggleClass('active');
+				})
+				.appendTo(editItemContent);
+
+			$.w.menuItem(t.get('Search'), true)
+				.click(function() {
+					that.search();
 				})
 				.appendTo(editItemContent);
 			

@@ -90,5 +90,11 @@
 			"argument":0,
 			"permission":"file.write"
 		}
+	],
+	"executeSearch":[
+		{
+			"argument":1,
+			"permission":"file.read"
+		}
 	]
 }

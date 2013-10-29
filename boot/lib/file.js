@@ -902,6 +902,121 @@ Webos.File.move = function(source, dest, callback) {
 };
 
 /**
+ * A search result item.
+ * @param {object} data The result data.
+ * @param {Webos.File} file The file.
+ */
+Webos.File.SearchResultItem = function(data, file) {
+	Webos.Model.call(this, data);
+
+	this._file = file;
+};
+Webos.File.SearchResultItem.prototype = {
+	hydrate: function(data) {
+		return Webos.Model.prototype.hydrate.call(this, $.extend({
+			matchesNbr: 1
+		}, data));
+	},
+	/**
+	 * Get the result's file.
+	 * @return {Webos.File} The file.
+	 */
+	file: function() {
+		return this._file;
+	}
+};
+Webos.inherit(Webos.File.SearchResultItem, Webos.Model);
+
+/**
+ * Search files.
+ * @param  {object}          options  Search's options.
+ * @param  {Webos.Callback}  callback The callback.
+ * @return {Webos.Operation}          The operation.
+ */
+Webos.File.search = function(options, callback) {
+	options = $.extend({
+		q: '',
+		inDir: '~'
+	}, options);
+	searchDir = Webos.File.get(options.inDir);
+
+	var operation = new Webos.Operation();
+	operation.addCallbacks(callback);
+
+	if (!options.q.trim()) {
+		operation.setCompleted(Webos.Callback.Result.error('Empty search query'));
+		return operation;
+	}
+
+	var searchesOpsList = [], searchesResults = [];
+
+	var addResults = function(results) {
+		searchesResults = searchesResults.concat(results);
+	};
+
+	if (Webos.isInstanceOf(searchDir, Webos.WebosFile)) {
+		//Search in the webos's files
+		searchesOpsList.push(new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'search',
+			arguments: {
+				query: options.q,
+				inDir: options.inDir
+			}
+		}).load([function(res) {
+			var data = res.getData();
+			var list = [];
+			for (var key in data) {
+				var webosFile = new Webos.WebosFile(data[key]);
+				var file = Webos.File.get(webosFile.get('path'));
+				if (Webos.isInstanceOf(file, Webos.WebosFile)) {
+					file._updateData(webosFile.data());
+				} else {
+					file._updateData({
+						is_dir: webosFile.get('is_dir')
+					});
+				}
+
+				var searchResult = new Webos.File.SearchResultItem({
+					matchesNbr: data[key].matchesNbr
+				}, file);
+				list.push(searchResult);
+			}
+
+			addResults(list);
+		}, function(res) {
+			operation.trigger('error', {
+				result: res
+			});
+		}]));
+	}
+
+	var mountedList = Webos.File.mountedDevices();
+	for (var localPath in mountedList) {
+		var mountedDev = mountedList[localPath];
+
+		if (searchDir.get('path') == localPath || localPath.indexOf(searchDir.get('path')+'/') == 0) {
+			//Search in this device
+			//TODO
+		}
+	}
+
+	var searchesOps = Webos.Observable.group(searchesOpsList);
+	searchesOps.on('success', function() {
+		if (searchesOps.observables().length > 1) {
+			searchesResults.sort(function(a, b) {
+				return b.get('matchesNbr') - a.get('matchesNbr');
+			});
+		}
+
+		operation.setCompleted(searchesResults);
+	});
+
+	return operation;
+};
+Webos.File.searchInCache = function() {};
+
+/**
  * Check if a file is in the cache.
  * @param {String} path The path to the file.
  * @returns {Boolean} True if the file is in the cache, false otherwise.
