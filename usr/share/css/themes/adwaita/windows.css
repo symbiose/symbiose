@@ -138,14 +138,14 @@
 	padding-top: 3px;
 	font-size: 15px;
 	font-weight: bold;
-	font-family: Ubuntu, Verdana, serif;
-	color: #414648;
+	font-family: Cantarell, 'Droid Sans', Ubuntu, 'DejaVu Sans', Arial, sans-serif;
+	color: #4d6067;
 	white-space: nowrap;
 	overflow: hidden;
 	text-align: center;
 }
 .webos-window.bg-window .header .top .title {
-	color: #dadcdc;
+	color: #a7aba7;
 }
 
 /* CONTENU DE LA FENETRE */
