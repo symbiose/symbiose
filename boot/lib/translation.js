@@ -420,6 +420,11 @@ Webos.Locale.set = function (locale, callback) {
 	var conf = Webos.ConfigFile.get('~/.config/locale.xml');
 	conf.set('locale', locale);
 	conf.sync([function() {
+		if (Webos.Locale._locale == locale) {
+			callback.success();
+			return;
+		}
+
 		Webos.Locale._locale = locale;
 		Webos.Locale.notify('change', { name: locale, locale: Webos.Locale.get(locale) });
 		callback.success();
