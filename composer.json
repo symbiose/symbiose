@@ -1,0 +1,19 @@
+{
+	"name": "symbiose/symbiose",
+	"description":"Symbiose, the free and flexible webos.",
+	"keywords":["webos","web desktop"],
+	"homepage":"http://symbiose.fr.cr",
+	"version":"1.0-beta3",
+	"license":"GPLv3",
+	"type":"application",
+	"authors":[
+		{
+			"name":"emersion",
+			"homepage":"http://emersion.fr"
+		}
+	],
+	"config":{
+		"vendor-dir":"lib/vendor"
+	},
+	"require": {}
+}
