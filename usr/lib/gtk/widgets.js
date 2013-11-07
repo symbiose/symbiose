@@ -89,8 +89,26 @@ $.webos.widget.is = function(element, widgetName) {
 	return $(element).is($.webos.widget._widgetSelector(widgetName));
 };
 
-$.webos.widget.list = function() {
+$.webos.widget.get = function(element) {
+	var widgetsList = $.webos.widget.listAll();
+	var elWidgets = [];
+
+	for (var widgetName in widgetsList) {
+		if ($.webos.widget.is(element, widgetName)) {
+			return widgetName;
+		}
+	}
+};
+
+$.webos.widget.listAll = function() {
 	return $[$.webos.widget.namespace()];
+};
+
+/**
+ * @deprecated
+ */
+$.webos.widget.list = function() {
+	return $.webos.widget.listAll();
 };
 
 $.webos.widgets = [];
@@ -970,16 +988,21 @@ $.webos.widget('icon', 'image', {
 				this.load();
 				break;
 			case 'size':
-				this.options.src.size = parseInt(value);
+				value = parseInt(value);
+				this.options.src.size = value;
+				this.element.css({
+					width: value,
+					height: value
+				});
 				this.load();
 				break;
 		}
 	}
 });
-$.webos.icon = function(src, title) {
+$.webos.icon = function(src, size) {
 	return $('<img />').icon({
 		src: src,
-		title: title
+		size: size
 	});
 };
 
@@ -2075,7 +2098,7 @@ $.webos.widget('switchButton', 'entry', {
 			if (!that.options.disabled) {
 				that._toggle();
 			}
-		}).appendTo(this.element);
+		}).prependTo(this.element);
 		this.options._components.labels = $('<div></div>', { 'class': 'labels' }).appendTo(this.options._content);
 		this.options._components.on = $('<div></div>', { 'class': 'label-on' }).html('I').appendTo(this.options._components.labels);
 		this.options._components.off = $('<div></div>', { 'class': 'label-off' }).html('O').appendTo(this.options._components.labels);
