@@ -15,7 +15,7 @@ class ServerController extends \lib\ApiBackController {
 	 */
 	public function executeGetHost() {
 		return array(
-			'host' => $_SERVER['SERVER_NAME']
+			'host' => (isset($_SERVER['SERVER_NAME'])) ? $_SERVER['SERVER_NAME'] : null
 		);
 	}
 

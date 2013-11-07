@@ -40,11 +40,6 @@ class ApiGuardian extends Guardian {
 			throw new RuntimeException('Cannot find required authorizations for action "'.$action.'" in module "'.$module.'", application "'.$appName.'"');
 		}
 
-		$providedAuthsNames = array();
-		foreach($providedAuths as $auth) {
-			$providedAuthsNames[] = $auth['name'];
-		}
-
 		$argumentsValues = array_values($arguments);
 
 		$requiredAuths = $config[$action];

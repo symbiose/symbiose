@@ -8,10 +8,18 @@ namespace lib;
  */
 class ApiGroupResponse implements ResponseContent {
 	/**
+	 * The response's id.
+	 * @var int
+	 */
+	protected $id;
+
+	/**
 	 * The responses.
 	 * @var array
 	 */
 	protected $responses = array();
+
+	//GETTERS
 
 	/**
 	 * Generate the response content.
@@ -22,6 +30,7 @@ class ApiGroupResponse implements ResponseContent {
 
 		foreach($this->responses as $i => $resp) {
 			$groupResp[$i] = array(
+				'id' => $resp->id(),
 				'success' => $resp->success(),
 				'channels' => $resp->channels(),
 				'out' => $resp->value(),
@@ -29,7 +38,19 @@ class ApiGroupResponse implements ResponseContent {
 			);
 		}
 
-		return json_encode($groupResp, JSON_FORCE_OBJECT);
+		return json_encode(array(
+			'id' => $this->id(),
+			'groupped' => true,
+			'data' => $groupResp
+		), JSON_FORCE_OBJECT);
+	}
+
+	/**
+	 * Get this response's id.
+	 * @return int The id.
+	 */
+	public function id() {
+		return $this->id;
 	}
 
 	/**
@@ -38,6 +59,20 @@ class ApiGroupResponse implements ResponseContent {
 	 */
 	public function responses() {
 		return $this->responses;
+	}
+
+	//SETTERS
+
+	/**
+	 * Set this response content's id.
+	 * @param int $id The id.
+	 */
+	public function setId($id) {
+		if (!is_int($id)) {
+			throw new \InvalidArgumentException('Invalid response id "'.$id.'"');
+		}
+
+		$this->id = $id;
 	}
 
 	/**

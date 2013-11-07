@@ -25,7 +25,7 @@ class TerminalController extends \lib\ApiBackController {
 
 		return array(
 			'username' => $username,
-			'host' => $_SERVER['SERVER_NAME'],
+			'host' => (isset($_SERVER['SERVER_NAME'])) ? $_SERVER['SERVER_NAME'] : null,
 			'location' => $terminal['dir']
 		);
 	}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category>
+	<define name="name" value="me"/>
+	<define name="title" value="Mon compte"/>
+	<define name="icon" value="stock/person"/>
+	<define name="description" value="Modifier mes informations personnelles"/>
+	<define name="category" value="personal"/>
+	<define name="authorizations" value="user.self.edit"/>
+</category>

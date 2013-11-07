@@ -14,6 +14,7 @@ Webos.Process = function WProcess(options) {
 	}
 
 	this._state = 0; // 0 -> ready; 1 -> running; 2 -> idle; 3 -> killed.
+
 	this.main = new Function('args', options.fn);
 
 	if (typeof this.pid != 'undefined') {

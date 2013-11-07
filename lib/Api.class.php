@@ -69,6 +69,7 @@ class Api extends \lib\Application {
 	}
 
 	public function run() {
+		$reqId = (int) $this->_getData('id');
 		$moduleArgs = $this->_getData('arguments');
 
 		if (is_string($moduleArgs)) {
@@ -81,6 +82,9 @@ class Api extends \lib\Application {
 		if (!$this->emulated()) { //Do not set headers if the APi si emulated
 			$this->httpResponse->addHeader('Content-Type: application/json');
 		}
-		$this->httpResponse->setContent($controller->responseContent());
+
+		$resp = $controller->responseContent();
+		$resp->setId($reqId);
+		$this->httpResponse->setContent($resp);
 	}
 }

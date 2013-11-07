@@ -74,7 +74,10 @@
 				user: '',
 				password: '',
 				pid: '',
-				key: ''
+				key: '',
+				transports: {
+					skip: []
+				}
 			};
 
 			var options = $.extend({}, defaults, opts);
@@ -83,7 +86,10 @@
 			var module = options['class'].replace(/Controller$/, '');
 			module = module.charAt(0).toLowerCase() + module.substr(1);
 
+			this._id = Webos.ServerCall.addCallToList(this);
+
 			this._data = {
+				id: this.id(),
 				module: module,
 				action: options.method,
 				arguments: JSON.stringify(options.arguments, function(key, value) { //Convert all arguments to strings/numbers
@@ -100,69 +106,69 @@
 
 			this._status = 0;
 			this._nbrAttempts = 0;
+		},
+		acceptedTransports: function () {
+			var transports = Webos.ServerCall.transportsForCall(this);
 
-			this._id = Webos.ServerCall.addCallToList(this);
+			var skipped = this._options.transports.skip;
+			if (skipped && skipped instanceof Array) {
+				for (var i = 0; i < skipped.length; i++) {
+					var transName = skipped[i];
+
+					if (transports[transName]) {
+						delete transports[transName];
+					}
+				}
+			}
+
+			return transports;
+		},
+		_transport: function () {
+			var transports = this.acceptedTransports();
+
+			for (var transName in transports) {
+				usedTransportName = transName;
+				break;
+			}
+
+			return usedTransportName;
 		},
 		/**
 		 * Load this server call.
 		 * @private
 		 */
-		_load: function $_WServerCall__load() {
-			//Lien vers l'objet courant
+		_load: function () {
 			var that = this;
-			
-			$.ajax({
-				url: that._url,
-				data: that._data,
-				type: that._type,
-				async: (that._options.async === false) ? false : true,
-				context: that,
-				dataType: 'text',
-				success: function(json, textStatus, jqXHR) { //En cas de succes
-					try {
-						if (!json) {
-							throw new Webos.Error('Empty response');
-						}
 
-						var data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
-					} catch (jsonError) { //Si une erreur survient
-						var error = 'Malformed JSON data ('+jsonError.name+'): '+jsonError.message+'. Data :'+"\n"+json;
-						error += "\n"+that.stack();
-						
-						var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
-							'success': false,
-							'channels': {
-								1: null,
-								2: error //On ajoute le message d'erreur
-							},
-							'js': null,
-							'out': error
-						});
-						
-						that.setCompleted(response);
-						return; //On stoppe l'execution de la fonction
+			var transports = this.acceptedTransports(),
+				usedTransportName = this._transport(),
+				usedTransport = transports[usedTransportName];
+
+			if (!usedTransport) {
+				var error = 'No transport available to send request';
+
+				var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
+					'success': false,
+					'channels': {
+						1: null,
+						2: error //On ajoute le message d'erreur
+					},
+					'out': error
+				});
+
+				that.setCompleted(response);
+				return;
+			}
+
+			usedTransport.doRequest(this, [function(json) {
+				try {
+					if (!json) {
+						throw new Webos.Error('Empty response');
 					}
-					
-					var response = new W.ServerCall.Response(data); //On cree la reponse
-					
-					that.setCompleted(response);
-				},
-				error: function(jqXHR, textStatus, errorThrown) { //Une erreur est survenue
-					if (that._nbrAttempts < Webos.ServerCall.options.maxAttempts) {
-						setTimeout(function() {
-							that.load();
-						}, Webos.ServerCall.options.errorDelay);
-						return;
-					}
-					
-					var error = 'An error occurred while loading a server call';
-					if (textStatus) {
-						error += ' (status : '+textStatus;
-						if (errorThrown) {
-							error += ', '+errorThrown;
-						}
-						error += ')';
-					}
+
+					var data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
+				} catch (jsonError) { //Si une erreur survient
+					var error = 'Malformed JSON data ('+jsonError.name+'): '+jsonError.message+'. Data :'+"\n"+json;
 					error += "\n"+that.stack();
 					
 					var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
@@ -176,14 +182,65 @@
 					});
 					
 					that.setCompleted(response);
+					return; //On stoppe l'execution de la fonction
 				}
-			});
+				
+				var response = new W.ServerCall.Response(data); //On cree la reponse
+				
+				that.setCompleted(response);
+			}, function(res) {
+				//First try again
+				usedTransport = Webos.ServerCall.transport(usedTransportName);
+				if (that._nbrAttempts < Webos.ServerCall.options.maxAttempts && !usedTransport.disabled()) {
+					setTimeout(function() {
+						that.load();
+					}, Webos.ServerCall.options.errorDelay);
+					return;
+				}
+
+				//Then try with a different transport
+				var nextTransportName = '', lastTransportName = '';
+				for (var transName in transports) {
+					if (lastTransportName == usedTransportName) {
+						nextTransportName = transName;
+						break;
+					}
+
+					lastTransportName = transName;
+				}
+
+				if (nextTransportName) {
+					Webos.ServerCall.disableTransport(usedTransportName);
+
+					that._nbrAttempts = 0;
+					that.load();
+					return;
+				}
+
+				//No more transport, trigger an error
+
+				var errMsg = 'An error occurred while loading a request (no working transport found)';
+				/*if (textStatus) {
+					error += ' (status : '+textStatus;
+					if (errorThrown) {
+						error += ', '+errorThrown;
+					}
+					error += ')';
+				}*/
+				errMsg += "\n"+that.stack();
+
+				var resp = Webos.ServerCall.Response.error(errMsg);
+				that.setCompleted(resp);
+			}]);
 		},
 		id: function () {
 			return this._id;
 		},
 		failed: function () {
 			return (this._result && !this._result.isSuccess());
+		},
+		result: function() {
+			return this._result;
 		},
 		setStarted: function () {
 			this._super('setStarted');
@@ -230,18 +287,20 @@
 							break;
 						}
 					}
-					
+
 					if (isEqual) {
 						call.on('complete', function() {
-							that.setCompleted(call._result);
+							that.setCompleted(call.result());
 						});
-						return;
+						return this;
 					}
 				}
 			}
 
-			if (this._options.async === false) {
-				Webos.ServerCall._removeFromLoadStack(this);
+			var transport = Webos.ServerCall.transport(this._transport());
+
+			if (this._options.async === false || !transport.requestsOptions.groupRequests) {
+				//Webos.ServerCall._removeFromLoadStack(this);
 				that._load();
 			} else {
 				Webos.ServerCall._addToLoadStack(this);
@@ -278,9 +337,576 @@
 	 * @private
 	 */
 	Webos.ServerCall.options = {
+		groupRequests: true,
 		maxAttempts: 3,
 		errorDelay: 1000
 	};
+
+	//Messages IDs
+	Webos.ServerCall._lastMsgId = -1;
+	Webos.ServerCall.requestMsgId = function() {
+		return ++Webos.ServerCall._lastMsgId;
+	};
+	Webos.ServerCall.lastMsgId = function() {
+		return Webos.ServerCall._lastMsgId;
+	};
+
+	//Transports
+	Webos.ServerCall._transports = {};
+	Webos.ServerCall.registerTransport = function(name, api) {
+		Webos.ServerCall._transports[name] = $.extend({
+			priority: 0,
+			requestsOptions: $.extend({}, Webos.ServerCall.options),
+			name: function() {
+				return name;
+			},
+			supports: function () {
+				return false;
+			},
+			disabled: function() {
+				return Webos.ServerCall.transport(name)._disabled;
+			},
+			canTransport: function(req) {
+				return false;
+			},
+			canTransportRequestGroups: function() {
+				return (typeof api.doRequestGroup == 'function');
+			},
+			doRequest: function(req, callback) {
+				var operation = new Webos.Operation();
+				operation.addCallbacks(callback);
+
+				operation.setCompleted(false);
+
+				return operation;
+			},
+			doRequestGroup: function(requests, callback) {
+				var operation = new Webos.Operation();
+				operation.addCallbacks(callback);
+
+				operation.setCompleted(false);
+
+				return operation;
+			}
+		}, api, {
+			_disabled: false
+		});
+	};
+	Webos.ServerCall.unregisterTransport = function(name) {
+		delete Webos.ServerCall._transports[name];
+	};
+	Webos.ServerCall.enableTransport = function(name) {
+		if (typeof Webos.ServerCall._transports[name] != 'undefined') {
+			Webos.ServerCall._transports[name]._disabled = false;
+		}
+	};
+	Webos.ServerCall.disableTransport = function(name) {
+		if (typeof Webos.ServerCall._transports[name] != 'undefined') {
+			Webos.ServerCall._transports[name]._disabled = true;
+		}
+	};
+	Webos.ServerCall.transports = function() {
+		return Webos.ServerCall._transports;
+	};
+	Webos.ServerCall.transport = function(name) {
+		return Webos.ServerCall.transports()[name];
+	};
+	Webos.ServerCall.supportedTransports = function() {
+		var transports = Webos.ServerCall.transports(),
+			supportedList = [];
+
+		for (var transName in transports) {
+			var transApi = transports[transName];
+
+			if (transApi._disabled) {
+				continue;
+			}
+
+			if (!transApi.supports()) {
+				continue;
+			}
+
+			supportedList.push(transApi);
+		}
+
+		supportedList.sort(function(a, b) {
+			return b.priority - a.priority;
+		});
+
+		var supported = {};
+
+		for (var i = 0; i < supportedList.length; i++) {
+			var trans = supportedList[i];
+
+			supported[trans.name()] = trans;
+		}
+
+		return supported;
+	};
+	Webos.ServerCall.transportsForCall = function (serverCall) {
+		var transports = Webos.ServerCall.supportedTransports(), supported = {};
+
+		for (var transName in transports) {
+			var transApi = transports[transName];
+
+			if (!transApi.canTransport(serverCall)) {
+				continue;
+			}
+
+			supported[transName] = transApi;
+		}
+
+		return supported;
+	};
+
+	Webos.ServerCall.ajax = {
+		priority: 1,
+		options: {
+			url: 'sbin/apicall.php',
+			group: {
+				url: 'sbin/apicallgroup.php',
+				type: 'post'
+			}
+		},
+		supports: function() {
+			return jQuery.support.ajax;
+		},
+		canTransport: function(req) {
+			return true;
+		},
+		doRequest: function(req, callback) {
+			var operation = new Webos.Operation();
+			operation.addCallbacks(callback);
+
+			var reqData = $.extend({}, req._data, {
+				id: Webos.ServerCall.requestMsgId()
+			});
+
+			$.ajax({
+				url: Webos.ServerCall.ajax.options.url,
+				data: reqData,
+				type: req._type,
+				async: (req._options.async === false) ? false : true,
+				dataType: 'text',
+				success: function(json, textStatus, jqXHR) { //En cas de succes
+					operation.setCompleted(json);
+				},
+				error: function(jqXHR, textStatus, errorThrown) { //Une erreur est survenue
+					operation.setCompleted(false);
+				}
+			});
+
+			return operation;
+		},
+		doRequestGroup: function(requests, callback) {
+			var operation = new Webos.Operation();
+			operation.addCallbacks(callback);
+
+			var data = [], async = true;
+
+			for (var i = 0; i < requests.length; i++) {
+				var req = requests[i];
+
+				if (!req.started()) {
+					req.setStarted();
+				}
+				data[i] = req._data;
+
+				if (typeof data[i].arguments == 'string') {
+					data[i].arguments = JSON.parse(data[i].arguments);
+				}
+
+				if (async && req._options.async === false) {
+					async = false;
+				}
+			}
+
+			var msgId = Webos.ServerCall.requestMsgId();
+
+			$.ajax({
+				url: Webos.ServerCall.ajax.options.group.url,
+				data: {
+					id: msgId,
+					groupped: true,
+					data: JSON.stringify(data)
+				},
+				type: Webos.ServerCall.ajax.options.group.type,
+				async: async,
+				dataType: 'text',
+				success: function(json, textStatus, jqXHR) { //En cas de succes
+					operation.setCompleted(json);
+				},
+				error: function(jqXHR, textStatus, errorThrown) { //Une erreur est survenue
+					var errorMsg = 'An error occurred while loading an ajax request';
+					if (textStatus) {
+						errorMsg += ' (status : '+textStatus;
+						if (errorThrown) {
+							errorMsg += ', '+errorThrown;
+						}
+						errorMsg += ')';
+					}
+
+					operation.setCompleted(Webos.Error.build(errorMsg));
+				}
+			});
+
+			return operation;
+		}
+	};
+	Webos.ServerCall.registerTransport('ajax', Webos.ServerCall.ajax);
+
+	Webos.ServerCall.websocket = {
+		priority: 2,
+		options: {
+			server: null
+		},
+		_socket: null,
+		_lastRespId: null,
+		_pendingOperations: {},
+		supports: function () {
+			return (typeof window.WebSocket != 'undefined');
+		},
+		canTransport: function(serverCall) {
+			return (serverCall._options.async !== false);
+		},
+		socket: function() {
+			return Webos.ServerCall.websocket._socket;
+		},
+		_pendingOperation: function(id) {
+			return Webos.ServerCall.websocket._pendingOperations[id];
+		},
+		_lastPendingOperationId: function() {
+			for (var opId in Webos.ServerCall.websocket._pendingOperations) {}
+			return opId;
+		},
+		_pendingOperationsNbr: function() {
+			var i = 0;
+			for (var opId in Webos.ServerCall.websocket._pendingOperations) {
+				i++;
+			}
+			return i;
+		},
+		getServerStatus: function(callback) {
+			var operation = new Webos.Operation();
+			operation.addCallbacks(callback);
+
+			new Webos.ServerCall({
+				'class': 'WebSocketController',
+				'method': 'getServerStatus',
+				transports: {
+					skip: ['websocket']
+				}
+			}).load([function(res) {
+				var serverStatus = res.getData();
+				Webos.ServerCall.websocket.options.server = serverStatus;
+
+				operation.setCompleted(serverStatus);
+			}, function(res) {
+				operation.setCompleted(res);
+			}]);
+
+			return operation;
+		},
+		startServer: function(callback) {
+			console.log('Starting server...');
+
+			var call = new Webos.ServerCall({
+				'class': 'WebSocketController',
+				'method': 'startServer',
+				transports: {
+					skip: ['websocket']
+				}
+			}).load();
+			call.addCallbacks(callback);
+
+			return call;
+		},
+		stopServer: function(callback) {
+			console.log('Stopping server...');
+
+			var call = new Webos.ServerCall({
+				'class': 'WebSocketController',
+				'method': 'stopServer',
+				transports: {
+					skip: ['websocket']
+				}
+			}).load();
+			call.addCallbacks(callback);
+			call.on('success', function() {
+				Webos.ServerCall.websocket.options.server.started = false;
+			});
+
+			return call;
+		},
+		restartServer: function(callback) {
+			console.log('Restarting server...');
+
+			var call = new Webos.ServerCall({
+				'class': 'WebSocketController',
+				'method': 'restartServer',
+				transports: {
+					skip: ['websocket']
+				}
+			}).load();
+			call.addCallbacks(callback);
+
+			return call;
+		},
+		connect: function(callback) {
+			if (Webos.ServerCall.websocket._connecting) {
+				var operation = Webos.ServerCall.websocket._connectOperation;
+				operation.addCallbacks(callback);
+
+				return operation;
+			}
+
+			var operation = new Webos.Operation();
+			operation.addCallbacks(callback);
+
+			var gotServerStatus = function(serverStatus) {
+				//Check server status
+				if (!serverStatus.enabled) {
+					Webos.ServerCall.disableTransport('websocket');
+					operation.setCompleted(Webos.Error.build('WebSocket server not enabled'));
+					return;
+				}
+
+				if (!serverStatus.started) {
+					if (!serverStatus.autoStart) {
+						Webos.ServerCall.disableTransport('websocket');
+						operation.setCompleted(Webos.Error.build('WebSocket server not started'));
+					} else {
+						Webos.ServerCall.websocket.startServer([function() {
+							Webos.ServerCall.websocket.options.server.started = true;
+							connectSocket(serverStatus);
+						}, function(res) {
+							operation.setCompleted(res);
+						}]);
+					}
+				} else { //Server started
+					connectSocket(serverStatus);
+				}
+			};
+
+			var connectSocket = function(serverStatus) {
+				var websocketUrl = serverStatus.protocol+'://'+document.location.host+':'+serverStatus.port;
+
+				console.log('Connecting WebSocket '+websocketUrl+'...');
+
+				var socket = new WebSocket(websocketUrl);
+				Webos.ServerCall.websocket._socket = socket;
+
+				var errorHandler = function(e) {
+					socket.removeEventListener('error', errorHandler);
+
+					operation.setCompleted(Webos.Error.build('Error while connecting to WebSocket server'));
+				};
+
+				socket.addEventListener('open', function (e) {
+					socket.removeEventListener('error', errorHandler);
+
+					if (this.readyState == 1) {
+						console.log('WebSocket connected !');
+						operation.setCompleted(socket);
+					} else {
+						operation.setCompleted(Webos.Error.build('Error while connecting to WebSocket server'));
+					}
+				});
+
+				socket.addEventListener('error', errorHandler);
+
+				socket.addEventListener('message', function(e) {
+					console.log('socket receive ('+e.data.length+')');
+
+					var msg = e.data, resp = null;
+
+					try {
+						resp = $.parseJSON(msg);
+
+						if (!resp) {
+							resp = {};
+							throw new Webos.Error('Empty response');
+						}
+					} catch(err) {
+						msg = err;
+					}
+
+					if (resp.id === null && Webos.ServerCall.websocket._lastRespId !== null) {
+						resp.id = Webos.ServerCall.websocket._lastRespId + 1;
+					}
+
+					if (Webos.ServerCall.websocket._lastRespId === null && Webos.ServerCall.websocket._pendingOperationsNbr() == 1) {
+						resp.id = Webos.ServerCall.websocket._lastPendingOperationId();
+					}
+
+					var operation = Webos.ServerCall.websocket._pendingOperation(resp.id);
+
+					if (operation) {
+						Webos.ServerCall.websocket._lastRespId = resp.id;
+						operation.setCompleted(msg);
+					}
+				});
+
+				socket.addEventListener('close', function(e) {
+					console.log('WebSocket closed.');
+				});
+			};
+
+			if (Webos.ServerCall.websocket.options.server) {
+				gotServerStatus(Webos.ServerCall.websocket.options.server);
+				return operation;
+			}
+
+			Webos.ServerCall.websocket._connecting = true;
+			Webos.ServerCall.websocket._connectOperation = operation;
+
+			operation.on('complete', function(data) {
+				Webos.ServerCall.websocket._connecting = false;
+				Webos.ServerCall.websocket._connectOperation = null;
+			});
+
+			Webos.ServerCall.websocket.getServerStatus([function(serverStatus) {
+				gotServerStatus(serverStatus);
+			}, function(res) {
+				operation.setCompleted(res);
+			}]);
+
+			return operation;
+		},
+		disconnect: function() {
+			var socket = Webos.ServerCall.websocket.socket();
+
+			if (socket) {
+				socket.close();
+			}
+
+			Webos.ServerCall.websocket._socket = null;
+		},
+		reconnect: function(callback) {
+			Webos.ServerCall.websocket.disconnect();
+			return Webos.ServerCall.websocket.connect(callback);
+		},
+		_sendMsg: function(msg, callback) {
+			var operation = new Webos.Operation();
+			operation.addCallbacks(callback);
+
+			var sendMsg = function(socket) {
+				var errorHandler = function(e) {
+					removeHandlers();
+					operation.setCompleted(Webos.Error.build('Error while sending message to WebSocket server: '+e.toString()));
+				};
+				var msgHandler = function(e) {
+					removeHandlers();
+				};
+				var removeHandlers = function() {
+					socket.removeEventListener('error', errorHandler);
+					socket.removeEventListener('message', msgHandler);
+				};
+
+				socket.addEventListener('error', errorHandler);
+				socket.addEventListener('message', msgHandler);
+
+				var doSendMsg = function() {
+					console.log('socket send ('+msg.length+')');
+
+					operation.trigger('send');
+					Webos.ServerCall.websocket._lastReqTime = (new Date()).getTime();
+
+					try {
+						socket.send(msg);
+					} catch (err) {
+						removeHandlers();
+						operation.setCompleted(Webos.Error.build('Error while sending message to WebSocket server: '+err.message));
+						return;
+					}
+				};
+
+				doSendMsg();
+			};
+
+			var socket = Webos.ServerCall.websocket.socket();
+
+			if (!socket || socket.readyState != 1) {
+				Webos.ServerCall.websocket.connect([function(socket) {
+					sendMsg(socket);
+				}, function(res) {
+					operation.setCompleted(res);
+				}]);
+				return operation;
+			}
+
+			sendMsg(socket);
+
+			return operation;
+		},
+		doRequest: function(req, callback) {
+			var operation = new Webos.Operation();
+			operation.addCallbacks(callback);
+
+			var msg = '';
+
+			var msgId = Webos.ServerCall.requestMsgId();
+			Webos.ServerCall.websocket._pendingOperations[msgId] = operation;
+
+			try {
+				msg = JSON.stringify({
+					id: msgId,
+					type: req._type,
+					data: req._data
+				});
+			} catch (err) {
+				operation.setCompleted(err);
+				return operation;
+			}
+
+			Webos.ServerCall.websocket._sendMsg(msg, [function() {}, function(res) {
+				operation.setCompleted(res);
+			}]);
+
+			return operation;
+		},
+		doRequestGroup: function(requests, callback) {
+			var operation = new Webos.Operation();
+			operation.addCallbacks(callback);
+
+			var data = [];
+
+			for (var i = 0; i < requests.length; i++) {
+				var req = requests[i];
+
+				if (!req.started()) {
+					req.setStarted();
+				}
+				data[i] = req._data;
+
+				if (typeof data[i].arguments == 'string') {
+					data[i].arguments = JSON.parse(data[i].arguments);
+				}
+			}
+
+			var msgId = Webos.ServerCall.requestMsgId();
+			Webos.ServerCall.websocket._pendingOperations[msgId] = operation;
+
+			try {
+				msg = JSON.stringify({
+					id: msgId,
+					groupped: true,
+					type: 'post',
+					data: data
+				});
+			} catch (err) {
+				operation.setCompleted(err);
+				return operation;
+			}
+
+			Webos.ServerCall.websocket._sendMsg(msg, [function() {}, function(res) {
+				operation.setCompleted(res);
+			}]);
+
+			return operation;
+		}
+	};
+	Webos.ServerCall.registerTransport('websocket', Webos.ServerCall.websocket);
 
 	/**
 	 * A list of all server calls.
@@ -348,20 +974,16 @@
 
 		if (Webos.ServerCall._loadStack.length == 1) {
 			setTimeout(function() {
-				if (Webos.ServerCall._loadStack.length == 1) {
-					var call = Webos.ServerCall._loadStack[0];
-					call._load();
-				} else {
-					var calls = [];
-					for (var i = 0; i < Webos.ServerCall._loadStack.length; i++) {
-						var call = Webos.ServerCall._loadStack[i];
-						calls.push(call);
-					}
-					var group = Webos.ServerCall.join(calls);
-					group.load();
+				var calls = [];
+				for (var i = 0; i < Webos.ServerCall._loadStack.length; i++) {
+					var call = Webos.ServerCall._loadStack[i];
+					calls.push(call);
 				}
 
 				Webos.ServerCall._loadStack = [];
+
+				var group = Webos.ServerCall.join(calls);
+				group._load();
 			}, 0);
 		}
 	};
@@ -526,34 +1148,103 @@
 
 			return id;
 		},
+		acceptedTransports: function () {
+			var transports = Webos.ServerCall.transportsForCall(this),
+				usedTransport = null;
+
+			var transports = {};
+
+			for (var i = 0; i < this._requests.length; i++) {
+				var req = this._requests[i];
+
+				var reqTransports = req.acceptedTransports();
+
+				for (var transName in reqTransports) {
+					var transApi = reqTransports[transName];
+
+					if (!transApi.canTransportRequestGroups()) { //Supports request groups ?
+						continue;
+					}
+
+					if (!transports[transName]) {
+						transports[transName] = [i];
+					} else {
+						transports[transName].push(i);
+					}
+				}
+			}
+
+			var reqsNbr = this._requests.length,
+				usedTransportsList = [];
+
+			for (var transName in transports) {
+				var reqsIndexes = transports[transName],
+					transApi = Webos.ServerCall.transport(transName);
+
+				if (reqsNbr == reqsIndexes.length) {
+					usedTransportsList.push(transApi);
+				}
+			}
+
+			usedTransportsList.sort(function(a, b) {
+				return b.priority - a.priority;
+			});
+
+			var usedTransports = {};
+
+			for (var i = 0; i < usedTransportsList.length; i++) {
+				var trans = usedTransportsList[i];
+
+				usedTransports[trans.name()] = trans;
+			}
+
+			return usedTransports;
+		},
+		_transport: function () {
+			var transports = this.acceptedTransports(),
+				usedTransport = null;
+
+			for (var transName in transports) {
+				usedTransportName = transName;
+				break;
+			}
+
+			return usedTransportName;
+		},
 		/**
 		 * Load all server calls in the group.
 		 * @private
 		 */
 		_load: function() {
-			var that = this;
+			var that = this, reqs = this._requests;
 
-			this._data = [];
-			for (var i = 0; i < this._requests.length; i++) {
-				if (!this._requests[i].started()) {
-					this._requests[i].setStarted();
+			if (reqs.length == 1) {
+				var req = reqs[0];
+
+				req.on('success', function(data) {
+					that.setCompleted([data.result]);
+				});
+				req.on('error', function(data) {
+					that.setCompleted(data.result);
+				});
+				req._load();
+			} else {
+				var transports = this.acceptedTransports(),
+					usedTransportName = this._transport(),
+					usedTransport = transports[usedTransportName];
+
+				if (!usedTransport) {
+					var errMsg = 'No transport available to send request';
+					var resp = Webos.ServerCall.Response.error(errMsg);
+
+					for (var i in reqs) {
+						reqs[i].setCompleted(resp);
+					}
+					that.setCompleted(resp);
+					return;
 				}
-				this._data[i] = this._requests[i]._data;
 
-				if (typeof this._data[i].arguments == 'string') {
-					this._data[i].arguments = JSON.parse(this._data[i].arguments);
-				}
-			}
-
-			$.ajax({
-				url: that._url,
-				data: {
-					requests: JSON.stringify(that._data)
-				},
-				type: that._type,
-				async: (that._options.async == false) ? false : true,
-				dataType: 'text',
-				success: function(json, textStatus, jqXHR) { //En cas de succes
+				usedTransport.doRequestGroup(reqs, [function(json) {
 					try {
 						if (!json) {
 							throw new Webos.Error('Empty response');
@@ -561,69 +1252,69 @@
 
 						var data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
 					} catch (jsonError) { //Si une erreur survient
-						var error = 'Malformed JSON data ('+jsonError.name+'): '+jsonError.message+'. Data :'+"\n"+json;
+						var errMsg = 'Malformed JSON data ('+jsonError.name+'): '+jsonError.message+'. Data :'+"\n"+json,
+							resp;
 
-						for (var i = 0; i < that._requests.length; i++) {
-							var errorAndStack = error + "\n" + that._requests[i].stack();
-							var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
-								'success': false,
-								'channels': {
-									1: null,
-									2: errorAndStack //On ajoute le message d'erreur
-								},
-								'js': null,
-								'out': errorAndStack
-							});
-
-							that._requests[i].setCompleted(response);
+						for (var i in reqs) {
+							resp = Webos.ServerCall.Response.error(errMsg + "\n" + reqs[i].stack());
+							reqs[i].setCompleted(resp);
 						}
-						that.setCompleted(false);
+						resp = Webos.ServerCall.Response.error(errMsg);
+						that.setCompleted(resp);
+
 						return; //On stoppe l'execution de la fonction
 					}
 					
-					var i = 0;
-					for (var index in data) {
-						var response = new W.ServerCall.Response(data[index]); //On cree la reponse
-						that._requests[i].setCompleted(response);
+					var resp, i = 0;
+					for (var index in data.data) {
+						resp = new W.ServerCall.Response(data.data[index]); //On cree la reponse
+						reqs[i].setCompleted(resp);
 
 						i++;
 					}
 					that.setCompleted(data);
-				},
-				error: function(jqXHR, textStatus, errorThrown) { //Une erreur est survenue
-					if (that._nbrAttempts < Webos.ServerCall.options.maxAttempts) {
+				}, function(res) {
+					//First try again
+					usedTransport = Webos.ServerCall.transport(usedTransportName);
+					if (that._nbrAttempts < Webos.ServerCall.options.maxAttempts && !usedTransport.disabled()) {
 						setTimeout(function() {
 							that.load();
 						}, Webos.ServerCall.options.errorDelay);
 						return;
 					}
-					
-					var error = 'An error occurred while loading a server call';
-					if (textStatus) {
-						error += ' (status : '+textStatus;
-						if (errorThrown) {
-							error += ', '+errorThrown;
+
+					//Then try with a different transport
+					var nextTransportName = '', lastTransportName = '';
+					for (var transName in transports) {
+						if (lastTransportName == usedTransportName) {
+							nextTransportName = transName;
+							break;
 						}
-						error += ')';
+
+						lastTransportName = transName;
 					}
 
-					for (var index in that._requests) {
-						var errorAndStack = error + "\n" + that._requests[i].stack();
-						var response = new W.ServerCall.Response({ //On cree une reponse d'erreur, et on execute le callback d'erreur
-							'success': false,
-							'channels': {
-								1: null,
-								2: errorAndStack //On ajoute le message d'erreur
-							},
-							'js': null,
-							'out': errorAndStack
-						});
+					if (nextTransportName) {
+						Webos.ServerCall.disableTransport(usedTransportName);
 
-						that._requests[index].setCompleted(response);
+						that._nbrAttempts = 0;
+						that.load();
+						return;
 					}
-					that.setCompleted(false);
-				}
-			});
+
+					//No more transport, trigger an error
+
+					var errMsg = 'An error occurred while loading a request group (no working transport found)',
+						resp;
+
+					for (var i in reqs) {
+						resp = Webos.ServerCall.Response.error(errMsg + "\n" + reqs[i].stack());
+						reqs[i].setCompleted(resp);
+					}
+					resp = Webos.ServerCall.Response.error(errMsg);
+					that.setCompleted(resp);
+				}]);
+			}
 		},
 		/**
 		 * Load all server calls in the group.
@@ -747,4 +1438,15 @@
 	};
 
 	Webos.inherit(Webos.ServerCall.Response, Webos.Callback.Result);
+
+	Webos.ServerCall.Response.error = function(msg) {
+		return new Webos.Callback.Result({
+			success: false,
+			channels: {
+				2: msg
+			},
+			out: msg,
+			data: {}
+		});
+	};
 })();

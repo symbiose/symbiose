@@ -26,9 +26,13 @@ if(!ini_get('safe_mode')) { //Detect safe_mode, but sometimes it doesn't work we
  * @return boolean       True if the class was loaded, false otherwise.
  */
 function autoload($class) {
-	$file = './'.str_replace('\\', '/', $class).'.class.php';
-	if (file_exists($file)) {
-		return require $file;
+	$classPath = str_replace('\\', '/', $class).'.class.php';
+	$webosFile = dirname(__FILE__).'/../'.$classPath;
+	$vendorFile = dirname(__FILE__).'/../lib/vendor/'.$classPath;
+	if (file_exists($webosFile)) {
+		return require $webosFile;
+	} else if (file_exists($vendorFile)) {
+		return require $vendorFile;
 	}
 }
 spl_autoload_register('autoload');
@@ -90,7 +94,8 @@ function errorLogger($errno, $errstr, $errfile, $errline) {
 				$errnoName = 'Unknown error';
 		}
 
-		$logLine = date('M d G:i:s').' '.$_SERVER['SERVER_NAME'].' [#'.$errno.' '.$errnoName.'] '.$errstr.' '.$errfile.':'.$errline."\n";
+		$serverName = (isset($_SERVER['SERVER_NAME'])) ? $_SERVER['SERVER_NAME'] : 'unknown';
+		$logLine = date('M d G:i:s').' '.$serverName.' [#'.$errno.' '.$errnoName.'] '.$errstr.' '.$errfile.':'.$errline."\n";
 
 		file_put_contents($errorLogPath, $logLine, FILE_APPEND);
 	}
@@ -115,3 +120,6 @@ function fatalErrorHandler() {
 }
 
 register_shutdown_function('fatalErrorHandler');
+
+//Composer
+require(dirname(__DIR__) . '/lib/vendor/autoload.php');

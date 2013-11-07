@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category>
+	<define name="name" value="websocket"/>
+	<define name="title" value="WebSocket server"/>
+	<define name="icon" value="places/server"/>
+	<define name="description" value="Manage WebSocket server"/>
+	<define name="category" value="system"/>
+	<define name="authorizations" value="file.system.write"/>
+</category>

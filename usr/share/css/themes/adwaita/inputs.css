@@ -236,6 +236,9 @@ input[type="submit"][disabled]:active,
 	padding: 7px 16px;
 }
 
+.webos-switchbutton label {
+	margin-left: 3px;
+}
 .webos-switchbutton .entry {
 	display: inline-block;
 	height: 22px;

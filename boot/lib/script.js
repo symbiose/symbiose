@@ -12,20 +12,14 @@ Webos.Script = function WScript(js, args) {
 		args = new Webos.Arguments({});
 	}
 	
-	var options = args.getOptions(), params = args.getParams(), paramsString;
-	
-	if (params.length > 0) { //On transfore les parametres envoyes au script en chaine de caracteres
-		paramsString = '"'+params.join('", "')+'"';
-	} else {
-		paramsString = '';
-	}
-	
+	var options = args.getOptions(), params = args.getParams();
+
 	if (js != '' && js != null) {
 		js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
 	}
 	
 	//On ajoute la sandbox
-	js = '(function(args) { '+js+' })(new W.Arguments({ options: '+JSON.stringify(options)+', params: ['+paramsString+'] }));';
+	js = '(function(args) { '+js+"\n"+' })(new W.Arguments({ options: '+JSON.stringify(options)+', params: '+JSON.stringify(params)+' }));';
 	Webos.Script.run(js); //On execute le tout
 };
 
@@ -118,7 +112,8 @@ Webos.ScriptFile.load = function $_WScriptFile_load() {
 			'method': 'getContents',
 			'arguments': {
 				file: arguments[i]
-			}
+			},
+			async: false
 		}), function(response) {
 			var js = response.getStandardChannel();
 			

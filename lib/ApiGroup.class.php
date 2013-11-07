@@ -17,9 +17,10 @@ class ApiGroup extends \lib\Application {
 	}
 
 	public function run() {
-		$requests = json_decode($this->httpRequest->postData('requests'), true);
+		$reqId = (int) $this->httpRequest->postData('id');
+		$reqsData = json_decode($this->httpRequest->postData('data'), true);
 
-		foreach($requests as $requestData) {
+		foreach($reqsData as $requestData) {
 			$apiCall = new Api();
 			$apiCall->emulate($requestData);
 			$apiCall->run();
@@ -29,6 +30,7 @@ class ApiGroup extends \lib\Application {
 
 		$resp = new ApiGroupResponse;
 		$resp->setResponses($responses);
+		$resp->setId($reqId);
 
 		$this->httpResponse->addHeader('Content-Type: application/json');
 		$this->httpResponse->setContent($resp);

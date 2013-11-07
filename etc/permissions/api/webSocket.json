@@ -1,0 +1,14 @@
+{
+	"executeStartServer":[],
+	"executeStopServer":[
+		{
+			"permission":"file.system.write"
+		}
+	],
+	"executeRestartServer":[
+		{
+			"permission":"file.system.write"
+		}
+	],
+	"executeGetServerStatus":[]
+}

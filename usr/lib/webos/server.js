@@ -19,6 +19,11 @@
 			'method': 'getSystemData'
 		}).load([function(response) {
 			var data = response.getData();
+
+			if (!data.host) {
+				data.host = window.location.host;
+			}
+
 			Server._data = data;
 
 			callback.success(data);

@@ -1,0 +1,144 @@
+<?php
+namespace lib\ctrl\api;
+
+use \RuntimeException;
+
+/**
+ * Control the WebSocket server.
+ * @author $imon
+ */
+class WebSocketController extends \lib\ApiBackController {
+	const SERVER_PID_FILE = '/etc/websocket-server-pid';
+	const SERVER_CONFIG_FILE = '/etc/websocket-server.json';
+	const SERVER_LOG_FILE = '/var/log/websocket-server.log';
+
+	protected $serverScript = '/sbin/wsserver.php';
+
+	protected function _getServerConfig() {
+		$configManager = $this->managers()->getManagerOf('config');
+		$configFile = $configManager->open(self::SERVER_CONFIG_FILE);
+
+		return $configFile;
+	}
+
+	protected function _isSupported() {
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') { //Windows
+			return false;
+		} else { //*nix
+			return true;
+		}
+	}
+
+	protected function _isServerStarted() {
+		$fileManager = $this->managers()->getManagerOf('file');
+
+		if (!$this->_isSupported()) {
+			return false;
+		}
+
+		$pidFile = self::SERVER_PID_FILE;
+
+		if (!$fileManager->exists($pidFile)) {
+			return false;
+		}
+
+		$pid = (int) trim($fileManager->read($pidFile));
+		$result = shell_exec('ps --no-headers -p '.$pid);
+
+		if (empty($result)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function executeStartServer() { //TODO: check authorizations
+		$fileManager = $this->managers()->getManagerOf('file');
+
+		if (!$this->_isSupported()) {
+			throw new RuntimeException('WebSocket server not supported on this machine');
+		}
+
+		if ($this->_isServerStarted()) {
+			throw new RuntimeException('Server already started');
+		}
+
+		$configFile = $this->_getServerConfig();
+		$config = $configFile->read();
+
+		if ($config['enabled'] !== true) {
+			throw new RuntimeException('WebSocket server is not enabled in '.self::SERVER_CONFIG_FILE);
+		}
+
+		if ($config['autoStart'] !== true) {
+			throw new RuntimeException('WebSocket server autostart is not enabled in '.self::SERVER_CONFIG_FILE);
+		}
+
+		$webosRoot = dirname(__FILE__).'/../../..';
+
+		$cmd = 'php "'.$webosRoot.'/'.$this->serverScript.'"';
+		$pidFile = self::SERVER_PID_FILE;
+
+		$pid = shell_exec('nohup '.$cmd.' > "'.$webosRoot.'/'.self::SERVER_LOG_FILE.'" 2>&1 & echo $!');
+		chmod($webosRoot.'/'.self::SERVER_LOG_FILE, 0777);
+
+		if (empty($pid)) {
+			throw new RuntimeException('Cannot start WebSocket server');
+		}
+
+		$fileManager->write($pidFile, $pid);
+	}
+
+	public function executeStopServer() {
+		$fileManager = $this->managers()->getManagerOf('file');
+
+		if (!$this->_isSupported()) {
+			throw new RuntimeException('WebSocket server not supported on this machine');
+		}
+
+		if (!$this->_isServerStarted()) {
+			throw new RuntimeException('Server not started');
+		}
+
+		$pidFile = self::SERVER_PID_FILE;
+		$pid = (int) trim($fileManager->read($pidFile));
+
+		$result = shell_exec('kill '.$pid);
+
+		if (!empty($result)) { //Error
+			throw new RuntimeException('Cannot stop server: '.$result);
+		}
+
+		$fileManager->delete($pidFile);
+	}
+
+	public function executeRestartServer() {
+		if ($this->_isServerStarted()) {
+			$this->executeStopServer();
+		}
+
+		$this->executeStartServer();
+	}
+
+	public function executeGetServerStatus() {
+		$fileManager = $this->managers()->getManagerOf('file');
+
+		$configFile = $this->_getServerConfig();
+		$config = $configFile->read();
+
+		$serverStatus = array(
+			'started' => $this->_isServerStarted(),
+			'supported' => $this->_isSupported(),
+			'port' => $config['port'],
+			'enabled' => (isset($config['enabled'])) ? $config['enabled'] : false,
+			'autoStart' => (isset($config['autoStart'])) ? $config['autoStart'] : false,
+			'protocol' => (isset($config['protocol'])) ? $config['protocol'] : 'ws',
+		);
+
+		if (!$this->_isSupported()) {
+			$serverStatus['enabled'] = false;
+		}
+
+		return $serverStatus;
+	}
+}

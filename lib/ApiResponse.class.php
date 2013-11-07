@@ -8,6 +8,12 @@ namespace lib;
  */
 class ApiResponse implements ResponseContent {
 	/**
+	 * The response's id.
+	 * @var int
+	 */
+	protected $id;
+
+	/**
 	 * The response's data.
 	 * @var array
 	 */
@@ -31,19 +37,30 @@ class ApiResponse implements ResponseContent {
 	 */
 	protected $channels = array();
 
+	//GETTERS
+
 	/**
 	 * Generate the response content.
 	 * @return string The response content.
 	 */
 	public function generate() {
 		$resp = array(
-			'success' => $this->success,
-			'channels' => $this->channels,
-			'out' => $this->value,
-			'data' => $this->data
+			'id' => $this->id(),
+			'success' => $this->success(),
+			'channels' => $this->channels(),
+			'out' => $this->value(),
+			'data' => $this->data()
 		);
 
 		return json_encode($resp, JSON_FORCE_OBJECT);
+	}
+
+	/**
+	 * Get this response's id.
+	 * @return int The id.
+	 */
+	public function id() {
+		return $this->id;
 	}
 
 	/**
@@ -78,6 +95,20 @@ class ApiResponse implements ResponseContent {
 		return $this->channels;
 	}
 
+	//SETTERS
+
+	/**
+	 * Set this response content's id.
+	 * @param int $id The id.
+	 */
+	public function setId($id) {
+		if (!is_int($id)) {
+			throw new \InvalidArgumentException('Invalid response id "'.$id.'"');
+		}
+
+		$this->id = $id;
+	}
+
 	/**
 	 * Set this response content's data.
 	 * @param array $data The data.
@@ -91,6 +122,10 @@ class ApiResponse implements ResponseContent {
 	 * @param string $value The value.
 	 */
 	public function setValue($value) {
+		if (!is_string($value)) {
+			throw new \InvalidArgumentException('Invalid response value "'.$value.'"');
+		}
+
 		$this->value = $value;
 	}
 
@@ -99,6 +134,10 @@ class ApiResponse implements ResponseContent {
 	 * @param boolean $value The success value.
 	 */
 	public function setSuccess($value) {
+		if (!is_bool($value)) {
+			throw new \InvalidArgumentException('Invalid response success "'.$value.'"');
+		}
+
 		$this->success = ($value) ? true : false;
 	}
 

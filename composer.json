@@ -15,5 +15,7 @@
 	"config":{
 		"vendor-dir":"lib/vendor"
 	},
-	"require": {}
+	"require": {
+		"cboden/Ratchet": "0.3.*"
+	}
 }

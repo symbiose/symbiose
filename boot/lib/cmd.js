@@ -34,7 +34,7 @@ Webos.Cmd.prototype = {
 			'class': 'CmdController',
 			'method': 'execute',
 			'arguments': { 'cmd': this.cmdText, 'terminal': this.terminal.getId() }
-		}).load(new Webos.Callback(function(response) {
+		}).load([function(response) {
 			var out = response.getAllChannels();
 			if (out) {
 				that.getTerminal().echo(out);
@@ -68,7 +68,7 @@ Webos.Cmd.prototype = {
 			}
 
 			callback.error(response);
-		}));
+		}]);
 	}
 };
 Webos.inherit(Webos.Cmd, Webos.Process); //Heritage de Webos.Process
@@ -217,16 +217,20 @@ Webos.Terminal.prototype = {
 				'class': 'TerminalController',
 				method: 'getPromptData',
 				arguments: { 'terminal': this.getId() }
-			}).load(new Webos.Callback(function(response) {
-				that._data = response.getData();
-				
+			}).load([function(response) {
+				var data = response.getData();
+				if (!data.host) {
+					data.host = window.location.host;
+				}
+				that._data = data;
+
 				that._refreshUserData(that._data.username, [function(data) {
 					that._data = $.extend({}, that._data, data);
 					callback.success(that);
 				}, function() {
 					callback.success(that);
 				}]);
-			}, callback.error));
+			}, callback.error]);
 		}
 	},
 	/**
@@ -242,8 +246,13 @@ Webos.Terminal.prototype = {
 			'class': 'TerminalController',
 			method: 'register',
 			arguments: { terminal: this.getId() }
-		}).load(new Webos.Callback(function(response) {
-			that._data = response.getData();
+		}).load([function(response) {
+			var data = response.getData();
+			if (!data.host) {
+				data.host = window.location.host;
+			}
+			that._data = data;
+
 			that._initialized = true;
 			
 			that._refreshUserData(that._data.username, [function(data) {
@@ -252,7 +261,7 @@ Webos.Terminal.prototype = {
 			}, function() {
 				callback.success(that);
 			}]);
-		}, callback.error));
+		}, callback.error]);
 	}
 };
 Webos.inherit(Webos.Terminal, Webos.Observable);
