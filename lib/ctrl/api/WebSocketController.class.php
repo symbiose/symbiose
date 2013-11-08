@@ -52,8 +52,15 @@ class WebSocketController extends \lib\ApiBackController {
 		return true;
 	}
 
-	public function executeStartServer() { //TODO: check authorizations
+	public function executeStartServer() {
 		$fileManager = $this->managers()->getManagerOf('file');
+		$authManager = $this->managers()->getManagerOf('authorization');
+		$user = $this->app()->user();
+
+		$auths = array();
+		if ($user->isLogged()) {
+			$auths = $authManager->getByUserId($user->id());
+		}
 
 		if (!$this->_isSupported()) {
 			throw new RuntimeException('WebSocket server not supported on this machine');
@@ -71,7 +78,7 @@ class WebSocketController extends \lib\ApiBackController {
 		}
 
 		if ($config['autoStart'] !== true) {
-			throw new RuntimeException('WebSocket server autostart is not enabled in '.self::SERVER_CONFIG_FILE);
+			$this->guardian->controlAuth('file.system.write', $auths);
 		}
 
 		$webosRoot = dirname(__FILE__).'/../../..';
