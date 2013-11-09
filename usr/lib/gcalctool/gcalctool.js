@@ -27,9 +27,18 @@ function GCalcTool() {
 			if (!isNaN(parseInt(contentToAdd)) && contentToAdd.length == 1 && newCalcul) {
 				this.textarea.textAreaEntry('content').val(contentToAdd);
 			} else { //Sinon on ajoute l'operateur au calcul precedant
-				this.textarea.textAreaEntry('content').val(this.textarea.textAreaEntry('content').val() + contentToAdd);
+				var oldContent = this.textarea.textAreaEntry('content').val(),
+					newContent = oldContent + contentToAdd;
+
+				if (/^\u221A$/.test(contentToAdd)) { // racine carrée
+					newContent = contentToAdd + oldContent;
+				}
+
+				this.textarea.textAreaEntry('content').val(newContent);
 			}
 		}
+
+		this.textarea.textAreaEntry('content').focus();
 	};
 	
 	this.execute = function() {
@@ -299,5 +308,7 @@ function GCalcTool() {
 		gcalctool.window.window('content').append(gcalctool.container);
 		
 		gcalctool.window.window('open');
+
+		gcalctool.textarea.textAreaEntry('content').focus();
 	}, 'gcalctool');
 }
