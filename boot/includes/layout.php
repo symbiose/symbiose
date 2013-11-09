@@ -41,6 +41,11 @@
 </head>
 <body>
 	<div id="userinterfaces"></div>
+	<div id="webos-loading">
+		<div class="center">
+			<p><?php echo $t->get('Loading...'); ?></p>
+		</div>
+	</div>
 	<noscript id="webos-unsupported">
 		<div class="center">
 			<p class="error">
@@ -48,11 +53,6 @@
 			</p>
 		</div>
 	</noscript>
-	<div id="webos-loading" style="display: none;">
-		<div class="center">
-			<p><?php echo $t->get('Loading...'); ?></p>
-		</div>
-	</div>
 	<div id="webos-loading-console" style="display: none;"></div>
 </body>
 </html>
