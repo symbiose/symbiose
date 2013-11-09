@@ -1,6 +1,5 @@
 /.git-ftp-ignore
 /home/
-/var/cache/
-/var/log/
+/var/
 /etc/websocket-server-pid
 /etc/websocket-server.json
