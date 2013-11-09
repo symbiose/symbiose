@@ -463,6 +463,10 @@ class LocalFs {
 	 * @param  boolean $recursive If set to true and the file is a directory, the directory's contents will also be copied.
 	 */
 	public function copy($source, $dest, $recursive = false) {
+		if ($this->isDir($dest) && !$this->isDir($source)) {
+			$dest .= '/'.$this->basename($source);
+		}
+
 		$destDirname = $this->dirname($dest);
 		if (!$this->exists($destDirname)) { //If the destination parent directory doesn't exist
 			throw new \RuntimeException('Cannot copy file from "'.$source.'" to "'.$dest.'" : destination directory "'.$destDirname.'" doesn\'t exist');
@@ -497,6 +501,10 @@ class LocalFs {
 	 * @param  string $dest   The destination path.
 	 */
 	public function move($source, $dest) {
+		if ($this->isDir($dest) && !$this->isDir($source)) {
+			$dest .= '/'.$this->basename($source);
+		}
+
 		$destDirname = $this->dirname($dest);
 		if (!$this->exists($destDirname)) { //If the destination parent directory doesn't exist
 			throw new \RuntimeException('Cannot move file from "'.$source.'" to "'.$dest.'" : destination directory "'.$destDirname.'" doesn\'t exist');
