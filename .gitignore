@@ -2,3 +2,5 @@
 /home/
 /var/cache/
 /var/log/
+/etc/websocket-server-pid
+/etc/websocket-server.json
