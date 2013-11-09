@@ -101,6 +101,7 @@ class UserController extends \lib\ApiBackController {
 		$configManager = $this->managers()->getManagerOf('config');
 
 		$canRegister = true;
+		$autoEnable = false;
 
 		$config = $configManager->open('/etc/register.json');
 		$configData = $config->read();
@@ -116,7 +117,9 @@ class UserController extends \lib\ApiBackController {
 			}
 		}
 
-		return array('register' => $canRegister);
+		$autoEnable = $configData['autoEnable'];
+
+		return array('register' => $canRegister, 'autoEnable' => $autoEnable);
 	}
 
 	/**
@@ -469,7 +472,7 @@ class UserController extends \lib\ApiBackController {
 		}
 
 		//Copy default home directory files
-		$this->_checkHomeDir('/home/'.$user['username']);
+		$this->_checkHomeDir('/home/'.$data['username'].'/');
 
 		return $this->_userPublicAttributes($user);
 	}
