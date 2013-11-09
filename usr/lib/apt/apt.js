@@ -148,7 +148,9 @@
 				}
 
 				callback.success(pkgs);
-			}, callback.error]);
+			}, function() { //Error -> no problem, that's not so important
+				callback.success(pkgs);
+			}]);
 		};
 
 		var sources = Webos.Package.sources(),
