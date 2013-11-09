@@ -18,7 +18,7 @@ confWindow.bind('dragstart', function(event, ui) {
 });
 
 var backgroundContainer = $.w.container().appendTo(form);
-$('<strong></strong>').html('Arri&egrave;re-plan').appendTo(backgroundContainer);
+$('<strong></strong>').html('Wallpaper').appendTo(backgroundContainer);
 
 backgroundContainer.append('<br />');
 
@@ -73,7 +73,7 @@ var background = $('<img />', { src: actualBgFile.get('realpath') }).appendTo(sc
 
 var changeBgFn = function(bg, name) {
 	if (!W.Theme.current().set('background', bg)) {
-		W.Error.trigger('Impossible de modifier le fond d\'&eacute;cran');
+		W.Error.trigger('Cannot change wallpaper');
 		return;
 	}
 	
@@ -91,28 +91,28 @@ var changeBgFn = function(bg, name) {
 					//actualBgItem.iconsListItem('option', 'icon', path);
 				} else {
 					userCallback.error(data);
-					W.Error.trigger('Impossible de charger le fond d\'&eacute;cran');
+					W.Error.trigger('Cannot load wallpaper');
 				}
 			}
 		});
 	}, function(response) {
 		confWindow.window('loading', false);
-		response.triggerError('Impossible de modifier le fond d\'&eacute;cran');
+		response.triggerError('Cannot change wallpaper');
 	}));
 	
 };
 
 var themeContainer = $.w.container().appendTo(form);
-$('<strong></strong>').html('Th&egrave;me').appendTo(themeContainer);
+$('<strong></strong>').html('Theme').appendTo(themeContainer);
 
 var themesList = {};
 themesList[W.Theme.current().get('desktop')] = W.Theme.current().get('desktop');
-var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'interface utilisateur : ', themesList)
+var themeSelector = $.w.selectButton('User interface theme: ', themesList)
 	.change(function() {
 		var theme = themeSelector.selectButton('value');
 		
 		if (!W.Theme.current().set('desktop', theme)) {
-			W.Error.trigger('Impossible de modifier le th&egrave;me');
+			W.Error.trigger('Cannot change theme');
 			return;
 		}
 		
@@ -120,19 +120,19 @@ var themeSelector = $.w.selectButton('Th&egrave;me &agrave; utiliser pour l\'int
 		W.Theme.current().sync(new W.Callback(function() {
 			confWindow.window('loading', false);
 			$.webos.window.confirm({
-				title: 'Changement de th&egrave;me',
-				label: 'Le th&egrave;me a &eacute;t&eacute; chang&eacute;. Voulez-vous red&eacute;marrer l\'interface utilisateur maintenant pour prendre en compte cette modification ?',
+				title: 'Changing theme',
+				label: 'The theme has been changed. Do you want to restart the user interface now to reflect this change ?',
 				confirm: function() {
 					W.UserInterface.load(W.UserInterface.Booter.current().name());
 				},
-				cancelLabel: 'Non',
-				confirmLabel: 'Red&eacute;marrer maintenant',
+				cancelLabel: 'No',
+				confirmLabel: 'Restart now',
 				parentWindow: confWindow
 			}).window('open');
 		}, function(response) {
 			confWindow.window('loading', false);
 			themeSelector.selectButton('value', W.Theme.current().get('desktop'));
-			response.triggerError('Impossible de modifier le th&egrave;me');
+			response.triggerError('Cannot change theme');
 		}));
 	})
 	.appendTo(themeContainer);
@@ -150,12 +150,12 @@ W.Theme.getAvailable('desktop', function(themes) {
 
 var iconsList = {};
 iconsList[W.Theme.current().get('icons')] = W.Theme.current().get('icons');
-var iconsSelector = $.w.selectButton('Th&egrave;me des ic&ocirc;nes : ', iconsList)
+var iconsSelector = $.w.selectButton('Icon theme: ', iconsList)
 	.change(function() {
 		var icons = iconsSelector.selectButton('value');
 		
 		if (!W.Theme.current().set('icons', icons)) {
-			W.Error.trigger('Impossible de modifier le th&egrave;me');
+			W.Error.trigger('Cannot change icon theme');
 			return;
 		}
 		
@@ -165,7 +165,7 @@ var iconsSelector = $.w.selectButton('Th&egrave;me des ic&ocirc;nes : ', iconsLi
 		}, function(response) {
 			confWindow.window('loading', false);
 			iconsSelector.selectButton('value', W.Theme.current().icons());
-			response.triggerError('Impossible de modifier le th&egrave;me');
+			response.triggerError('Cannot change icon theme');
 		}));
 	})
 	.appendTo(themeContainer);
@@ -182,21 +182,21 @@ W.File.listDir(W.Theme.iconsDir, function(list) {
 		.selectButton('value', W.Theme.current().get('icons'));
 });
 
-var animationsSelector = $.w.switchButton('Animations : ', W.Theme.current().get('animations'))
+var animationsSelector = $.w.switchButton('Animations', W.Theme.current().get('animations'))
 	.bind('switchbuttonchange', function() {
 		var animations = animationsSelector.switchButton('value');
-		
+
 		if (!W.Theme.current().set('animations', animations)) {
-			W.Error.trigger('Impossible de modifier le th&egrave;me');
+			W.Error.trigger('Cannot change animations settings');
 			return;
 		}
-		
+
 		confWindow.window('loading', true);
 		W.Theme.current().sync(new W.Callback(function() {
 			confWindow.window('loading', false);
 		}, function(response) {
 			confWindow.window('loading', false);
-			response.triggerError('Impossible de modifier les options des animations');
+			response.triggerError('Cannot change animations settings');
 		}));
 	})
 	.appendTo(themeContainer);

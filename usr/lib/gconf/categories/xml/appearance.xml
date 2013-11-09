@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <category>
 	<define name="name" value="appearance"/>
-	<define name="title" value="Apparence"/>
+	<define name="title" value="Appearance"/>
 	<define name="icon" value="actions/background"/>
-	<define name="description" value="Ajuster l'apparence de l'interface (fond d'écran, thème...)"/>
+	<define name="description" value="Adjust the appearance of the interface (wallpaper, theme ...)"/>
 	<define name="category" value="personal"/>
 </category>

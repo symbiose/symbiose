@@ -41,12 +41,12 @@ Webos.Dashboard.Applet.GnomeShellMeMenu = function WGnomeShellMeMenuApplet(data)
 				}).hide().appendTo(userMenu);
 				$('<li></li>', { 'class': 'separator' }).appendTo(userMenu);
 				
-				Webos.User.canRegister(function(canRegister) {
+				Webos.User.canRegister(function(registerSettings) {
 					var notificationsButtons = [
 						$.w.button(t.get('Register')).click(function() { W.Cmd.execute('gnome-register'); }),
 						$.w.button(t.get('Login...')).click(function() { W.Cmd.execute('gnome-login'); })
 					];
-					if (canRegister) {
+					if (registerSettings.register) {
 						registerMenuItem.show();
 					} else {
 						notificationsButtons = [notificationsButtons[1]];

@@ -6,18 +6,19 @@ var tabs = $.w.tabs().appendTo(confWindow.window('content'));
 
 //Global restrictions
 var globalContent = $.w.entryContainer();
-tabs.tabs('tab', 'Restrictions globales', globalContent);
+tabs.tabs('tab', 'Global quotas', globalContent);
 
 var inputs = {};
-inputs.accounts = $.w.numberEntry('Nombre maximal de comptes (<em>-1</em> pour illimit&eacute;) : ', 0, -1).appendTo(globalContent);
-inputs.home = $.w.numberEntry('Taille maximale de chaque dossier personnel (<em>-1</em> pour illimit&eacute;) : ', 0, -1).appendTo(globalContent);
-var unitSelector = $.w.selectButton('', {
-	0: 'octets',
-	1: 'Kio',
-	2: 'Mio',
-	3: 'Gio',
-	4: 'Tio'
-});
+inputs.accounts = $.w.numberEntry('Maximal number of accounts (<em>-1</em> for no limit) : ', 0, -1).appendTo(globalContent);
+inputs.home = $.w.numberEntry('Maximal size of each home directory (<em>-1</em> for no limit) : ', 0, -1).appendTo(globalContent);
+var sizesUnits = {
+	0: 'bytes',
+	1: 'KiB',
+	2: 'MiB',
+	3: 'GiB',
+	4: 'TiB'
+};
+var unitSelector = $.w.selectButton('', sizesUnits);
 unitSelector.selectButton('input').change(function() {
 	var sizeInUnit = parseInt(inputs.home.numberEntry('value'));
 	if (sizeInUnit > 0) {
@@ -27,21 +28,22 @@ unitSelector.selectButton('input').change(function() {
 	unitSelector.selectButton('value', 0);
 }).appendTo(inputs.home);
 
-inputs.register = $.w.switchButton('Inscription des visiteurs (sans validation) : ').appendTo(globalContent);
+inputs.register = $.w.switchButton('Allow users to register').appendTo(globalContent);
+inputs.autoEnable = $.w.switchButton('Allow users to register without an administrator confirmation').appendTo(globalContent);
 
 //Specific restrictions
 var specificContent = $.w.entryContainer();
-tabs.tabs('tab', 'Restrictions sp&eacute;cifiques', specificContent);
+tabs.tabs('tab', 'Specific quotas', specificContent);
 
-inputs.specificList = $.w.list(['Utilisateur', 'Taille maximale du dossier personnel']).appendTo(specificContent);
+inputs.specificList = $.w.list(['User', 'Maximal size of home directory']).appendTo(specificContent);
 
-inputs.specificAdd = $.w.button('Ajouter');
+inputs.specificAdd = $.w.button('Add');
 inputs.specificList.list('addButton', inputs.specificAdd);
 
-inputs.specificEdit = $.w.button('Modifier');
+inputs.specificEdit = $.w.button('Edit');
 inputs.specificList.list('addButton', inputs.specificEdit);
 
-inputs.specificRemove = $.w.button('Enlever');
+inputs.specificRemove = $.w.button('Remove');
 inputs.specificList.list('addButton', inputs.specificRemove);
 
 confWindow.window('loading', true);
@@ -61,6 +63,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 		var displayConfig = function() {
 			inputs.register.switchButton('value', configFile.get('register'));
 			inputs.accounts.numberEntry('value', parseInt(configFile.get('maxUsers')));
+			inputs.autoEnable.switchButton('value', configFile.get('autoEnable'));
 		};
 		
 		var saveConfig = function() {
@@ -70,13 +73,21 @@ Webos.require('/usr/lib/webos/data.js', function() {
 			}, function(response) {
 				confWindow.window('loading', false);
 				displayConfig();
-				response.triggerError('Impossible de modifier la configuration des inscriptions');
+				response.triggerError();
 			}]);
 		};
 		
 		inputs.register.bind('switchbuttonchange', function(e, data) {
 			if (!configFile.set('register', (data.value) ? 1 : 0)) {
-				W.Error.trigger('Impossible de modifier la configuration des inscriptions');
+				W.Error.trigger('Cannot change registration configuration');
+			} else {
+				saveConfig();
+			}
+		});
+
+		inputs.autoEnable.bind('switchbuttonchange', function(e, data) {
+			if (!configFile.set('autoEnable', data.value)) {
+				W.Error.trigger('Cannot change registration configuration');
 			} else {
 				saveConfig();
 			}
@@ -90,7 +101,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 		displayConfig();
 	}, function(response) {
 		notifyLoadedFn();
-		response.triggerError('Impossible d\'acc&eacute;der au fichier de configuration des inscriptions');
+		response.triggerError();
 	}]);
 
 	Webos.DataFile.loadSystemData('quotas', [function(dataFile) {
@@ -114,7 +125,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 			}, function(response) {
 				confWindow.window('loading', false);
 				displayGlobalData();
-				response.triggerError('Impossible de modifier la configuration des quotas');
+				response.triggerError();
 			}]);
 		};
 		
@@ -134,7 +145,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 					if (userQuotas.home >= 0) {
 						maxHomeSize = W.File.bytesToSize(userQuotas.home);
 					} else {
-						maxHomeSize = 'Illimit&eacute;';
+						maxHomeSize = 'Unlimited';
 					}
 					var $item = $.w.listItem([username, maxHomeSize]);
 
@@ -153,7 +164,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 
 		inputs.specificAdd.click(function() {
 			var $userChooser = $.w.window({
-				title: 'Nouvelle r&egrave;gle',
+				title: 'New rule',
 				parentWindow: confWindow,
 				resizable: false,
 				dialog: true
@@ -178,7 +189,7 @@ Webos.require('/usr/lib/webos/data.js', function() {
 				var userSpecificData = dataFile.get('specific') || {};
 
 				$userChooser.window('loading', true, {
-					message: 'V&eacute;rification de l\'utilisateur...'
+					message: 'Checking user...'
 				});
 
 				Webos.User.getByUsername(username, [function(user) {
@@ -189,28 +200,22 @@ Webos.require('/usr/lib/webos/data.js', function() {
 					saveData();
 				}, function(response) {
 					$userChooser.window('loading', false);
-					response.triggerError('Utilisateur inexistant');
+					response.triggerError('User doesn\'t exist');
 				}]);
 			}).appendTo($userChooser.window('content'));
 
-			var $usernameEntry = $.w.textEntry('Nom d\'utilisateur : ').textEntry('option', 'check', function(value) {
+			var $usernameEntry = $.w.textEntry('Username : ').textEntry('option', 'check', function(value) {
 				return (value) ? true : false;
 			}).appendTo($chooserForm);
-			var $maxHomeSizeEntry = $.w.numberEntry('Taille maximale du dossier personnel : ').appendTo($chooserForm);
-			var $maxHomeSizeUnitEntry = $.w.selectButton('', {
-				0: 'octets',
-				1: 'Kio',
-				2: 'Mio',
-				3: 'Gio',
-				4: 'Tio'
-			});
+			var $maxHomeSizeEntry = $.w.numberEntry('Maximal size of home directory : ').appendTo($chooserForm);
+			var $maxHomeSizeUnitEntry = $.w.selectButton('', sizesUnits);
 			$maxHomeSizeUnitEntry.selectButton('input').appendTo($maxHomeSizeEntry);
 
 			var $btnContainer = $.w.buttonContainer().appendTo($chooserForm);
-			var $cancelBtn = $.w.button('Annuler').click(function() {
+			var $cancelBtn = $.w.button('Cancel').click(function() {
 				$userChooser.window('close');
 			}).appendTo($btnContainer);
-			var $submitBtn = $.w.button('Valider', true).appendTo($btnContainer);
+			var $submitBtn = $.w.button('Add rule', true).appendTo($btnContainer);
 
 			$userChooser.window('open');
 		});
@@ -218,18 +223,12 @@ Webos.require('/usr/lib/webos/data.js', function() {
 		inputs.specificEdit.click(function() {
 			if ($selectedItem.length) {
 				var $maxHomeSizeEntry = $.w.numberEntry('', userSpecificData[selectedRuleUser]['~']);
-				var $maxHomeSizeUnitEntry = $.w.selectButton('', {
-					0: 'octets',
-					1: 'Kio',
-					2: 'Mio',
-					3: 'Gio',
-					4: 'Tio'
-				});
+				var $maxHomeSizeUnitEntry = $.w.selectButton('', sizesUnits);
 				$maxHomeSizeUnitEntry.selectButton('input').appendTo($maxHomeSizeEntry);
 
 				$selectedItem.listItem('column', 1).html($maxHomeSizeEntry);
 
-				var $submitColumn = $selectedItem.listItem('column').html($.w.button('Valider').click(function() {
+				var $submitColumn = $selectedItem.listItem('column').html($.w.button('Submit').click(function() {
 					$submitColumn.remove();
 
 					var maxHomeSize = $maxHomeSizeEntry.numberEntry('value');
@@ -257,6 +256,6 @@ Webos.require('/usr/lib/webos/data.js', function() {
 		displayUserSpecificData();
 	}, function(response) {
 		notifyLoadedFn();
-		response.triggerError('Impossible d\'acc&eacute;der &agrave; la configuration des utilisateurs bloqu&eacute;s');
+		response.triggerError();
 	}]);
 });

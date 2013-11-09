@@ -550,7 +550,7 @@ Webos.User.register = function(data, captchaData, callback) {
  * @var {Boolean}
  * @private
  */
-Webos.User._canRegister = null;
+Webos.User._registerSettings = null;
 
 /**
  * Check if registration is enabled.
@@ -559,8 +559,8 @@ Webos.User._canRegister = null;
 Webos.User.canRegister = function(callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	if (Webos.User._canRegister === true || Webos.User._canRegister === false) {
-		callback.success(Webos.User._canRegister);
+	if (Webos.User._registerSettings !== null) {
+		callback.success(Webos.User._registerSettings);
 		return;
 	}
 	
@@ -568,8 +568,8 @@ Webos.User.canRegister = function(callback) {
 		'class': 'UserController',
 		'method': 'canRegister'
 	}).load(new Webos.Callback(function(response) {
-		Webos.User._canRegister = response.getData().register;
-		callback.success(Webos.User._canRegister);
+		Webos.User._registerSettings = response.getData();
+		callback.success(Webos.User._registerSettings);
 	}, callback.error));
 };
 

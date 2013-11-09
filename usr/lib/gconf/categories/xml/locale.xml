@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <category>
 	<define name="name" value="locale"/>
-	<define name="title" value="Prise en charge des langues"/>
+	<define name="title" value="Languages and locales"/>
 	<define name="icon" value="apps/translate"/>
-	<define name="description" value="Modifier les préférences de localisation"/>
+	<define name="description" value="Change language and locale"/>
 	<define name="category" value="personal"/>
 </category>

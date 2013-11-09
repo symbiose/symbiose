@@ -60,12 +60,23 @@ Webos.Translation.load(function(t) {
 				id: inputs.captcha.captchaEntry('captchaId'),
 				value: inputs.captcha.captchaEntry('value')
 			}, new W.Callback(function() {
-				registerWindow.window('close');
-				$.webos.window.messageDialog({
-					title: t.get('Register'),
-					label: t.get('Your account has been created !'),
-					details: t.get('You can login from now.')
-				}).window('open');
+				Webos.User.canRegister(function(registerSettings) {
+					registerWindow.window('close');
+					
+					if (registerSettings.autoEnable) {
+						$.webos.window.messageDialog({
+							title: t.get('Register'),
+							label: t.get('Your account has been created !'),
+							details: t.get('You can login from now.')
+						}).window('open');
+					} else {
+						$.webos.window.messageDialog({
+							title: t.get('Register'),
+							label: t.get('Your account has been created !'),
+							details: t.get('However, you have to wait until an administrator enables your account before logging in.')
+						}).window('open');
+					}
+				});
 			}, function(response) {
 				registerWindow.window('loading', false);
 				response.triggerError(t.get('Registration failed'));
@@ -114,10 +125,10 @@ Webos.Translation.load(function(t) {
 		});
 	var registerButton = $.w.button(t.get('Register'), true).button('disabled', true).appendTo(buttonContainer);
 	
-	Webos.User.canRegister(function(canRegister) {
+	Webos.User.canRegister(function(registerSettings) {
 		registerWindow.window('loading', false).window('center');
 		
-		if (!canRegister) {
+		if (!registerSettings.register) {
 			registerWindow.window('close');
 			$.webos.window.messageDialog({
 				title: t.get('Register'),
