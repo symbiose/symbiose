@@ -56,6 +56,11 @@ class ApiWebSocketServer implements MessageComponentInterface {
 			if (!isset($req['data']) || !is_array($req['data'])) {
 				throw new \RuntimeException('Bad request: invalid request data');
 			}
+			if (isset($req['http_headers']) && is_array($req['http_headers'])) {
+				if (isset($req['http_headers']['Accept-Language'])) {
+					$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $req['http_headers']['Accept-Language'];
+				}
+			}
 
 			$reqId = $req['id'];
 

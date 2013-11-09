@@ -852,7 +852,10 @@
 				msg = JSON.stringify({
 					id: msgId,
 					type: req._type,
-					data: req._data
+					data: req._data,
+					http_headers: {
+						'Accept-Language': window.navigator.language || window.navigator.userLanguage
+					}
 				});
 			} catch (err) {
 				operation.setCompleted(err);
@@ -892,7 +895,10 @@
 					id: msgId,
 					groupped: true,
 					type: 'post',
-					data: data
+					data: data,
+					http_headers: {
+						'Accept-Language': window.navigator.language || window.navigator.userLanguage
+					}
 				});
 			} catch (err) {
 				operation.setCompleted(err);
