@@ -348,6 +348,7 @@ class UserController extends \lib\ApiBackController {
 	 */
 	public function executeSetPassword($currentPassword, $newPassword) {
 		$manager = $this->managers()->getManagerOf('user');
+		$authManager = $this->managers()->getManagerOf('authorization');
 		$user = $this->app()->user();
 
 		if (!$user->isLogged()) { //User not logged in
