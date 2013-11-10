@@ -25,7 +25,17 @@ abstract class ApiBackController extends BackController {
 			$userAuths = $authManager->getByUserId($user->id());
 		}
 
-		$this->guardian->controlAccess($this->module(), 'execute'.ucfirst($this->action()), $args, $userAuths);
+		try {
+			$this->guardian->controlAccess($this->module(), 'execute'.ucfirst($this->action()), $args, $userAuths);
+		} catch (\Exception $e) { //Throw a more descriptive error message
+			$errMsg = $e->getMessage();
+
+			if (!$user->isLogged()) {
+				$errMsg .= ': you\'re not logged in';
+			}
+
+			throw new \RuntimeException($errMsg);
+		}
 	}
 
 	public function execute(array $args = array()) {
