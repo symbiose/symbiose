@@ -326,8 +326,8 @@
 	 */
 	Webos.Package.getUpdates = function(callback) {
 		callback = Webos.Callback.toCallback(callback);
-		
-		
+
+		callback.error(Webos.Callback.Result.error('Updates are not available for the moment'));
 	};
 
 	/**
@@ -336,8 +336,17 @@
 	 */
 	Webos.Package.upgrade = function(callback) {
 		callback = Webos.Callback.toCallback(callback);
-		
 
+		callback.error(Webos.Callback.Result.error('Updates are not available for the moment'));
+	};
+
+	/**
+	 * @deprecated
+	 */
+	Webos.Package.updateCache = function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		callback.error(Webos.Callback.Result.error('Updates are not available for the moment'));
 	};
 
 	Webos.Package.categories = function(callback) {
