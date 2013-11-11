@@ -295,6 +295,25 @@
 			callback.success(list);
 		}, callback.error]);
 	};
+	Webos.Package.on('install', function(data) {
+		Webos.Package._cache.installed.push(data.package);
+	});
+	Webos.Package.on('remove', function(data) {
+		var pkgToRemove = data.package;
+		Webos.Package._cache.installed.push(pkgToRemove);
+
+		var list = [];
+
+		for (var i = 0; i < Webos.Package._cache.installed.length; i++) {
+			var pkg = Webos.Package._cache.installed[i];
+
+			if (pkg.get('codename') != pkgToRemove.get('codename') || pkg.get('type') != pkgToRemove.get('type')) {
+				list.push(pkg);
+			}
+		}
+
+		Webos.Package._cache.installed = list;
+	});
 
 	Webos.Package.getLastInstalled = function(limit, callback) {
 		callback = Webos.Callback.toCallback(callback);

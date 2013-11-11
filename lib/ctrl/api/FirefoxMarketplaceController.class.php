@@ -160,7 +160,7 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 			'title' => $appData['title'],
 			'version' => $appData['current_version'],
 			'description' => $appData['description'],
-			'url' => $appData['support_url'],
+			'url' => (!empty($appData['support_url'])) ? $appData['support_url'] : '',
 			'maintainer' => $appData['author'],
 			'updateDate' => strtotime($appData['created']),
 			'categories' => $appData['categories'],

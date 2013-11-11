@@ -47,7 +47,7 @@ abstract class PackageMetadata extends \lib\Entity {
 	}
 
 	public function setUrl($url) {
-		if (!is_string($url) || (!empty($url) && !preg_match('#https?://[a-z0-9._/-?&=%]+#i', $url))) {
+		if (!is_string($url) || (!empty($url) && !filter_var($url, FILTER_VALIDATE_URL))) {
 			throw new \InvalidArgumentException('Invalid package url "'.$url.'"');
 		}
 
