@@ -337,6 +337,10 @@ Webos.require([
 
 			var loadedParts = 0, partsToLoad = 3;
 			var partLoaded = function() {
+				if (!$.w.widget.is(that._window, 'window')) {
+					return;
+				}
+
 				loadedParts++;
 
 				if (loadedParts >= partsToLoad) {
