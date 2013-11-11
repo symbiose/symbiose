@@ -509,18 +509,21 @@ Webos.require([
 			var that = this, t = this.translations(), filepath = file.get('path'), item, icon, iconPath = this._getFileIcon(file);
 			
 			if (that.options.display == 'icons') {
-				item = $('<li></li>');
+				item = $('<li></li>').attr('title', file.get('basename'));
 				
 				icon = $('<img />', { src: iconPath, alt: '' }).addClass('icon');
 				icon.appendTo(item);
 				
 				item.append('<br />');
 				
-				$('<span></span>').addClass('filename').text(file.get('basename')).appendTo(item);
+				$('<span></span>')
+					.addClass('filename')
+					.text(file.get('basename'))
+					.appendTo(item);
 			} else if (that.options.display == 'list') {
 				item = $.w.listItem();
 				
-				var content = $('<span></span>');
+				var content = $('<span></span>').attr('title', file.get('basename'));
 				item.listItem('addColumn', content);
 				
 				icon = $('<img />', { src: iconPath, alt: '' }).addClass('icon').appendTo(content);
