@@ -1,11 +1,7 @@
-new W.ScriptFile('usr/lib/eos/eos.js');
-
-if (args.isParam(0)) {
-	W.File.load(args.getParam(0), new W.Callback(function(image) {
-		new EyeOfSymbiose(image);
-	}, function() {
+Webos.require('/usr/lib/eos/eos.js', function() {
+	if (args.isParam(0)) {
+		new EyeOfSymbiose(Webos.File.get(args.getParam(0)));
+	} else {
 		new EyeOfSymbiose();
-	}));
-} else {
-	new EyeOfSymbiose();
-}
+	}
+});
