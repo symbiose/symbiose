@@ -29,12 +29,14 @@ abstract class ApiBackController extends BackController {
 			$this->guardian->controlAccess($this->module(), 'execute'.ucfirst($this->action()), $args, $userAuths);
 		} catch (\Exception $e) { //Throw a more descriptive error message
 			$errMsg = $e->getMessage();
+			$errCode = $e->getCode();
 
 			if (!$user->isLogged()) {
 				$errMsg .= ': you\'re not logged in';
+				$errCode = 401;
 			}
 
-			throw new \RuntimeException($errMsg);
+			throw new \RuntimeException($errMsg, $errCode, $e);
 		}
 	}
 
@@ -55,7 +57,12 @@ abstract class ApiBackController extends BackController {
 		} catch(\Exception $e) {
 			$errMsg = htmlspecialchars($e->getMessage());
 
-			$this->responseContent()->setSuccess(false);
+			if ($e->getCode() != 0) {
+				$this->responseContent()->setStatusCode($e->getCode());
+			} else {
+				$this->responseContent()->setSuccess(false);
+			}
+
 			$this->responseContent()->setChannel(2, $errMsg);
 			$this->responseContent()->setValue($errMsg);
 		}

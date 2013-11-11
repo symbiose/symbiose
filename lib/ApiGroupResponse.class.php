@@ -32,6 +32,7 @@ class ApiGroupResponse implements ResponseContent {
 			$groupResp[$i] = array(
 				'id' => $resp->id(),
 				'success' => $resp->success(),
+				'statusCode' => $resp->statusCode(),
 				'channels' => $resp->channels(),
 				'out' => $resp->value(),
 				'data' => $resp->data()

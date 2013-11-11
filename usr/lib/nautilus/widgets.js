@@ -212,7 +212,7 @@ Webos.require([
 			dir = W.File.cleanPath(dir);
 			
 			userCallback = W.Callback.toCallback(userCallback, new W.Callback(function() {}, function(res) {
-				that._handleError(res.getError(t.get('Can\'t find « ${dir} ».', { dir: dir })));
+				that._handleResponseError(res, t.get('Can\'t find « ${dir} ».', { dir: dir }));
 			}));
 
 			this._trigger('readstart', { type: 'readstart' }, { location: dir });
@@ -402,7 +402,7 @@ Webos.require([
 			var that = this, t = this.translations();
 
 			userCallback = W.Callback.toCallback(userCallback, new W.Callback(function() {}, function(res) {
-				that._handleError(res.getError(t.get('Can\'t search for « ${query} ».', { query: query })));
+				that._handleResponseError(res, t.get('Can\'t search for « ${query} ».', { query: query }));
 			}));
 
 			if (!query) {
@@ -421,7 +421,6 @@ Webos.require([
 				q: query,
 				inDir: this.location()
 			}, [function(results) {
-				console.log(results);
 				var files = [];
 				for (var i = 0; i < results.length; i++) {
 					files.push(results[i].get('file'));
@@ -826,6 +825,13 @@ Webos.require([
 
 			errorWindow.window('open');
 		},
+		_handleResponseError: function(resp, msg) {
+			if (resp.getStatusClass() == 5) { //5xx error
+				resp.triggerError(msg);
+			} else {
+				this._handleError(resp.getError(msg));
+			}
+		},
 		_openProperties: function(file, openedTab) {
 			var t = this.translations(), that = this;
 			
@@ -992,7 +998,7 @@ Webos.require([
 							shareBtn.replaceWith(shareResult);
 						}, function(res) {
 							propertiesWindow.window('loading', false);
-							that._handleError(res.getError());
+							that._handleResponseError(res);
 						}]);
 					})
 					.appendTo(shareTab);
@@ -1011,7 +1017,7 @@ Webos.require([
 					showRequestedTab();
 				}, function(response) {
 					propertiesWindow.window('close');
-					that._handleError(response.getError());
+					that._handleResponseError(response);
 				}]);
 			}
 
@@ -1034,7 +1040,7 @@ Webos.require([
 				file.load([function(file) {
 					openDownloadWindow(file);
 				}, function(res) {
-					that._handleError(res.getError());
+					that._handleResponseError(res);
 				}]);
 			}
 		},
@@ -1366,6 +1372,8 @@ Webos.require([
 			});
 		},
 		createFile: function(name, is_dir) {
+			var that = this;
+
 			var originalName = name, exists = false, i = 2, ext = null, filename = name;
 			
 			if (!is_dir) {
@@ -1395,9 +1403,13 @@ Webos.require([
 			path = this.options.directory+'/'+name;
 			
 			if (is_dir) {
-				W.File.createFolder(path);
+				W.File.createFolder(path, [function() {}, function(resp) {
+					that._handleResponseError(resp);
+				}]);
 			} else {
-				W.File.createFile(path);
+				W.File.createFile(path, [function() {}, function(resp) {
+					that._handleResponseError(resp);
+				}]);
 			}
 		},
 		getSelection: function() {

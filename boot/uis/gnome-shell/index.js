@@ -14,11 +14,12 @@ new $.w.window.workspace();
 
 //On definit la fonction de gestion des erreurs
 Webos.Error.setErrorHandler(function(error) {
-	var shortMessage, message, details;
+	var shortMessage, message, details, isReportable = true;
 	if (error instanceof Webos.Error) {
 		shortMessage = error.html.message;
 		message = error.html.text.replace('<br />', ' - ');
 		details = error.toString();
+		isReportable = (error.code == 0 || String(error.code).substr(0, 1) == 5);
 	} else {
 		shortMessage = error.message;
 		message = error.name + ' : ' + error.message;
@@ -59,9 +60,11 @@ Webos.Error.setErrorHandler(function(error) {
 			.appendTo(spoiler.spoiler('content'));
 
 		var buttonContainer = $.webos.buttonContainer();
-		$.webos.button('Report this bug...').click(function() {
-			reportErrorFn();
-		}).appendTo(buttonContainer.buttonContainer('content'));
+		if (isReportable) {
+			$.webos.button('Report this bug...').click(function() {
+				reportErrorFn();
+			}).appendTo(buttonContainer.buttonContainer('content'));
+		}
 		$.webos.button('Close').click(function() {
 			errorWindow.window('close');
 		}).appendTo(buttonContainer.buttonContainer('content'));
@@ -69,16 +72,20 @@ Webos.Error.setErrorHandler(function(error) {
 
 		errorWindow.window('open');
 	};
+
+	var notifBtns = [
+		$.w.button('Details').click(function() { openWindowFn(); })
+	];
+	if (isReportable) {
+		notifBtns.push($.w.button('Report this bug...').click(function() { reportErrorFn(); }));
+	}
 	
 	$.w.notification({
 		title: 'An error occured',
 		icon: new W.Icon('status/error'),
 		shortMessage: shortMessage,
 		message: message,
-		widgets: [
-			$.w.button('Details').click(function() { openWindowFn(); }),
-			$.w.button('Report this bug...').click(function() { reportErrorFn(); })
-		]
+		widgets: notifBtns
 	});
 });
 

@@ -17,8 +17,12 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 			context: null //The context
 		},
 		error: {
-			callback: function(error) {
-				Webos.Error.trigger(error);
+			callback: function(resp) {
+				if (Webos.isInstanceOf(resp, Webos.Callback.Result)) {
+					resp = resp.getError();
+				}
+
+				Webos.Error.trigger(resp);
 			}, //The function
 			arguments: [],
 			context: null //The context
@@ -236,12 +240,12 @@ Webos.Callback.Result.prototype = {
 	/**
 	 * Trigger the error if the result is not a success.
 	 */
-	triggerError: function () {
+	triggerError: function (msg) {
 		if (this.isSuccess()) {
 			return;
 		}
-		
-		Webos.Error.trigger(this._data.out);
+
+		Webos.Error.trigger(this.getError(msg));
 	},
 	/**
 	 * Log the error, if there is one.

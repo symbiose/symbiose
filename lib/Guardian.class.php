@@ -131,7 +131,7 @@ class Guardian extends ApplicationComponent {
 		$authorized = ($requiredAuth === true || in_array($requiredAuth, $providedAuthsNames));
 
 		if (!$authorized) {
-			throw new \RuntimeException('Permission denied (permission "'.$requiredAuth.'" is required)');
+			throw new \RuntimeException('Permission denied (permission "'.$requiredAuth.'" is required)', 403);
 		}
 	}
 

@@ -20,10 +20,10 @@ class ApiResponse implements ResponseContent {
 	protected $data = array();
 
 	/**
-	 * The response's status. True if there is no error, false otherwise.
-	 * @var boolean
+	 * The response's status code (similar to HTTP status codes).
+	 * @var int
 	 */
-	protected $success = true;
+	protected $statusCode = 200;
 
 	/**
 	 * The response's value.
@@ -47,6 +47,7 @@ class ApiResponse implements ResponseContent {
 		$resp = array(
 			'id' => $this->id(),
 			'success' => $this->success(),
+			'statusCode' => $this->statusCode(),
 			'channels' => $this->channels(),
 			'out' => $this->value(),
 			'data' => $this->data()
@@ -72,11 +73,19 @@ class ApiResponse implements ResponseContent {
 	}
 
 	/**
+	 * Get this status code.
+	 * @return int The status code.
+	 */
+	public function statusCode() {
+		return $this->statusCode;
+	}
+
+	/**
 	 * Check if this response is a success.
 	 * @return boolean True if there was no error, false otherwise.
 	 */
 	public function success() {
-		return $this->success;
+		return ((int) substr($this->statusCode(), 0, 1) == 2);
 	}
 
 	/**
@@ -130,6 +139,18 @@ class ApiResponse implements ResponseContent {
 	}
 
 	/**
+	 * Set this status' code.
+	 * @param int $code The status code.
+	 */
+	public function setStatusCode($code) {
+		if (!is_int($code) || strlen($code) != 3) {
+			throw new \InvalidArgumentException('Invalid response status code "'.$code.'"');
+		}
+
+		$this->statusCode = $code;
+	}
+
+	/**
 	 * Set this response content's success.
 	 * @param boolean $value The success value.
 	 */
@@ -138,7 +159,7 @@ class ApiResponse implements ResponseContent {
 			throw new \InvalidArgumentException('Invalid response success "'.$value.'"');
 		}
 
-		$this->success = ($value) ? true : false;
+		$this->setStatusCode(($value) ? 200 : 500);
 	}
 
 	/**

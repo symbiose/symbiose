@@ -1380,12 +1380,26 @@
 		if (!response || typeof response != 'object') {
 			response = {
 				success: false,
+				statusCode: 500,
 				channels: {
 					1: (response || null)
 				},
 				out: (response || null),
 				data: {}
 			};
+		}
+
+		response = $.extend({
+			channels: {},
+			out: '',
+			data: {}
+		}, response);
+
+		if (typeof response.success != 'boolean' && typeof response.statusCode == 'number') { //2xx status ?
+			response.success = (String(response.statusCode).substr(0, 1) == 2) ? true : false;
+		}
+		if (typeof response.statusCode != 'number' && typeof response.success == 'boolean') {
+			response.statusCode = (response.success) ? 200 : 500;
 		}
 
 		Webos.Callback.Result.call(this, response);
@@ -1397,7 +1411,7 @@
 		 * @returns {String}         The channel's content.
 		 */
 		getChannel: function(channel) {
-			return this._data.channels[channel];
+			return this._data.channels[channel] || '';
 		},
 		/**
 		 * Get the standard channel's content.
@@ -1418,7 +1432,21 @@
 		 * @returns {String} The channels' content.
 		 */
 		getAllChannels: function() {
-			return this._data.out;
+			return this._data.out || '';
+		},
+		/**
+		 * Get this status code.
+		 * @return {Number} The status code.
+		 */
+		getStatusCode: function() {
+			return this._data.statusCode;
+		},
+		/**
+		 * Get this status class.
+		 * @return {Number} The status class.
+		 */
+		getStatusClass: function() {
+			return parseInt(String(this._data.statusCode).substr(0, 1));
 		},
 		/**
 		 * Get the response's error, if there is one.
@@ -1436,7 +1464,7 @@
 				details = this.getAllChannels();
 			}
 
-			return Webos.Error.build(msg, details);
+			return Webos.Error.build(msg, details, this.getStatusCode());
 		},
 		toString: function() {
 			return (this.getAllChannels() !== null) ? this.getAllChannels() : '';
@@ -1451,8 +1479,7 @@
 			channels: {
 				2: msg
 			},
-			out: msg,
-			data: {}
+			out: msg
 		});
 	};
 })();

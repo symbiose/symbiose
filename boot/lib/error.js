@@ -5,7 +5,7 @@
  * @since 1.0 alpha 1
  * @constructor
  */
-Webos.Error = function WError(message, details) {
+Webos.Error = function WError(message, details, code) {
 	this.name = 'Webos.Error';
 	this.stack = Webos.Error.getStackTrace();
 	this.process = Webos.Process.current();
@@ -19,6 +19,7 @@ Webos.Error = function WError(message, details) {
 		this.message = 'An error occured while running program.';
 	}
 	this.details = (typeof details != 'undefined' && details !== null && typeof details.toString == 'function') ? trim(details.toString()) : '';
+	this.code = code || 0;
 
 	this.html = {
 		message: this.message.replace("\n",'<br />'),
@@ -65,9 +66,9 @@ Webos.Error.logError = function(error) {
 	if (typeof console != 'undefined') {
 		var consoleMsg;
 		if (error instanceof W.Error) {
-			consoleMsg = error.name+': '+error.text+"\n"+error.stack.join("\n");
+			consoleMsg = error.name+' [#'+error.code+']: '+error.text+"\n"+error.stack.join("\n");
 		} else {
-			consoleMsg = error.name + ' : ' + error.message + "\nStack trace :\n" + error.stack;
+			consoleMsg = error.name + ': ' + error.message + "\nStack trace :\n" + error.stack;
 		}
 		
 		if (typeof console != 'undefined') {
@@ -105,7 +106,7 @@ Webos.Error.catchError = function(error) {
  * @param {String} [details] The error details.
  * @returns {Webos.Error} The error.
  */
-Webos.Error.build = function(message, details) {
+Webos.Error.build = function(message, details, code) {
 	if (!message) {
 		return;
 	}
@@ -114,7 +115,7 @@ Webos.Error.build = function(message, details) {
 		return message;
 	}
 
-	return new Webos.Error(message, details);
+	return new Webos.Error(message, details, code);
 };
 
 /**
@@ -122,8 +123,8 @@ Webos.Error.build = function(message, details) {
  * @param {String} message The error message.
  * @param {String} [details] The error details.
  */
-Webos.Error.trigger = function(message, details) {
-	Webos.Error.catchError(Webos.Error.build(message, details));
+Webos.Error.trigger = function(message, details, code) {
+	Webos.Error.catchError(Webos.Error.build(message, details, code));
 };
 
 /**
@@ -131,8 +132,8 @@ Webos.Error.trigger = function(message, details) {
  * @param {String} message The error message.
  * @param {String} [details] The error details.
  */
-Webos.Error.log = function(message, details) {
-	Webos.Error.logError(Webos.Error.build(message, details));
+Webos.Error.log = function(message, details, code) {
+	Webos.Error.logError(Webos.Error.build(message, details, code));
 };
 
 /**
