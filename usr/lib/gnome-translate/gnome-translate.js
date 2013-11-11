@@ -30,7 +30,8 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 	this.openFile = function() {
 		new NautilusFileSelectorWindow({
 			parentWindow: that._window
-		}, function(file) {
+		}, function(files) {
+			var file = files[0];
 			if (typeof file != 'undefined') {
 				if (file.get('extension') == 'ini') {
 					that.parse(file);
@@ -413,7 +414,8 @@ var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 			new NautilusFileSelectorWindow({
 				parentWindow: this._window,
 				exists: false
-			}, function(path) {
+			}, function(paths) {
+				var path = paths[0];
 				if (typeof path != 'undefined') {
 					W.File.load(path, new W.Callback(function(file) {
 						saveFn(file);
