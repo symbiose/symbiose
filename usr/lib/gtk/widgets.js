@@ -1142,7 +1142,8 @@ $.webos.button = function(label, submit) {
 $.webos.widget('list', 'container', {
 	options: {
 		columns: [],
-		buttons: []
+		buttons: [],
+		multipleSelection: true
 	},
 	_name: 'list',
 	_create: function() {
@@ -1375,7 +1376,7 @@ $.webos.widget('listItem', 'container', {
 			return (this.options.active) ? true : false;
 		} else {
 			if (value) {
-				if (unactiveOthers) {
+				if (unactiveOthers || !this.parentList().list('option', 'multipleSelection')) {
 					this.parentList().list('items').filter('.active').listItem('active', false);
 				}
 				this.options._content.addClass('active').trigger('select');

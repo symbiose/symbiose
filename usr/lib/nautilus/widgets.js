@@ -1736,20 +1736,20 @@ Webos.require([
 			this._super('_create');
 
 			var that = this, t = this.translations();
-			
+
 			var thisProcess = W.Process.current(), canReadUserFiles = true, canReadSystemFiles = true;
 			if (thisProcess) {
 				canReadUserFiles = thisProcess.getAuthorizations().can('file.user.read');
 				canReadSystemFiles = thisProcess.getAuthorizations().can('file.system.read');
 			}
-			
+
 			this.options._shortcuts = $('<div></div>').appendTo(this.element);
 			this.options._shortcuts.append('<strong class="title">'+t.get('Shortcuts')+'</strong>');
 
-			var shortcutsList = $.w.list().appendTo(this.options._shortcuts),
+			var shortcutsList = $.w.list().list('option', 'multipleSelection', false).appendTo(this.options._shortcuts),
 				listContent = shortcutsList.list('content');
 			this.options._components.shortcuts = shortcutsList;
-			
+
 			if (canReadUserFiles) {
 				$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> '+t.get('Private folder')]).bind('listitemselect', function() {
 					that.options.open('~');
@@ -1779,7 +1779,7 @@ Webos.require([
 					that.options.open('~/'+t.get('Downloads'));
 				}).appendTo(listContent);
 			}
-			
+
 			if (canReadSystemFiles) {
 				$.w.listItem(['<img src="'+new W.Icon('devices/harddisk', 22)+'" alt=""/> '+t.get('File system')]).bind('listitemselect', function() {
 					that.options.open('/');
@@ -1793,9 +1793,9 @@ Webos.require([
 			}
 
 			this.options._devices = $('<div></div>').appendTo(this.element);
-			
+
 			this._refreshDevices();
-			
+
 			this.options._mountCallback = Webos.File.on('mount', function() {
 				that._refreshDevices();
 			});
