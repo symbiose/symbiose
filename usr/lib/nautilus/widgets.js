@@ -354,31 +354,22 @@ Webos.require([
 					}
 				});
 				
-				//BUG : appel du droppable meme si des elements (comme des fenetres) sont au-dessus
-				/*that.element.droppable({
-					accept: '*',
-					scope: 'webos',
+				that.element.droppable({
 					drop: function(event, ui) {
-						if (typeof ui.draggable.data('file') == 'undefined') {
+						if (!$.w.widget.is(ui.draggable, 'draggable')) { //Required. Bug because it contains draggable elements.
 							return;
 						}
-						if (ui.draggable.parent().is(that.element)) {
+
+						if (!ui.draggable.draggable('option', 'sourceFile')) {
 							return;
 						}
-						
-						W.File.load(dir, new W.Callback(function(file) {
-							if (file.get('path') == ui.draggable.data('file')().getAttribute('dirname')) {
-								return;
-							}
-							
-							ui.draggable.data('file')().move(file, new W.Callback(function() {
-								ui.draggable.remove();
-								that.reload();
-							}));
-						}));
-						return false;
+
+						var sourceFile = ui.draggable.draggable('option', 'sourceFile'),
+							destFile = Webos.File.get(dir);
+
+						ui.draggable.trigger('nautilusdrop', [{ source: sourceFile, dest: destFile, droppable: that.element }]);
 					}
-				});*/
+				});
 				
 				that._render(files);
 				
@@ -734,23 +725,10 @@ Webos.require([
 							return;
 						}
 
-						var source = ui.draggable.draggable('option', 'sourceFile'), dest = item.data('file')();
+						var sourceFile = ui.draggable.draggable('option', 'sourceFile'),
+							destFile = item.data('file')();
 
-						if (source.get('path') == dest.get('path')) {
-							return false;
-						}
-
-						var operation = 'move';
-						if (source.get('mountPoint') || dest.get('mountPoint')) {
-							if (source.get('mountPoint') != dest.get('mountPoint')) {
-								operation = 'copy';
-							}
-						}
-
-						that['_'+operation](source, dest, function() {
-							ui.draggable.remove();
-						});
-						return false;
+						ui.draggable.trigger('nautilusdrop', [{ source: sourceFile, dest: destFile, droppable: item }]);
 					},
 					over: function() {
 						if (overIcon != iconPath) {
@@ -765,9 +743,87 @@ Webos.require([
 				});
 			}
 			
+			var droppableAreas = [];
 			item.draggable({
 				sourceFile: file,
-				dragImage: icon.clone().css({ 'max-width': '48px', 'max-height': '48px' })
+				dragImage: icon.clone().css({ 'max-width': '48px', 'max-height': '48px' }),
+				stop: function(event) {
+					setTimeout(function() {
+						if (droppableAreas.length == 0) {
+							return;
+						}
+
+						var doDrop = function(data) {
+							var sourceFile = data.source, destFile = data.dest;
+
+							if (destFile.get('path') == sourceFile.get('dirname')) {
+								return;
+							}
+							if (destFile.get('path') == sourceFile.get('path')) {
+								return;
+							}
+
+							destFile.load([function() {
+								if (destFile.get('path') == sourceFile.get('dirname')) {
+									return;
+								}
+								if (destFile.get('path') == sourceFile.get('path')) {
+									return;
+								}
+
+								var operation = 'move';
+								if (sourceFile.get('mountPoint') || destFile.get('mountPoint')) {
+									if (sourceFile.get('mountPoint') != destFile.get('mountPoint')) {
+										operation = 'copy';
+									}
+								}
+
+								that['_'+operation](sourceFile, destFile, [function() {}, function(resp) {
+									that._handleResponseError(resp);
+								}]);
+							}, function(resp) {
+								that._handleResponseError(resp);
+							}]);
+						};
+
+						if (droppableAreas.length == 1) {
+							doDrop(droppableAreas[0]);
+						} else {
+							var maxZIndex = -1, maxZIndexArea = null;
+							for (var i = 0; i < droppableAreas.length; i++) {
+								var dropArea = droppableAreas[i],
+									$droppable = dropArea.droppable;
+
+								var handleZIndex = function(zIndex) {
+									if (/[0-9]/.test(zIndex)) {
+										zIndex = parseInt(zIndex);
+										if (maxZIndex <= zIndex) {
+											maxZIndex = zIndex;
+											maxZIndexArea = dropArea;
+										}
+									}
+								};
+
+								handleZIndex($droppable.css('z-index'));
+
+								$droppable.parents().each(function() {
+									handleZIndex($(this).css('z-index'));
+								});
+							}
+
+							if (!maxZIndexArea) {
+								maxZIndexArea = droppableAreas.pop(); //No z-index, the one which is over others is the last one
+							}
+
+							doDrop(maxZIndexArea);
+						}
+
+						droppableAreas = [];
+					}, 0);
+				}
+			});
+			item.on('nautilusdrop', function(event, data) { //Triggered when a file is drop on a nautilus AREA only (not on a folder icon)
+				droppableAreas.push(data);
 			});
 			
 			if (/^\./.test(file.get('basename'))) { //C'est un fichier cache, on ne l'affiche pas
@@ -1750,40 +1806,23 @@ Webos.require([
 				listContent = shortcutsList.list('content');
 			this.options._components.shortcuts = shortcutsList;
 
+			var insertItem = function(path, title, iconName) {
+				var $item = that._createItem(path, title, iconName);
+				$item.appendTo(listContent);
+			};
+
 			if (canReadUserFiles) {
-				$.w.listItem(['<img src="'+new W.Icon('places/folder-home', 22)+'" alt=""/> '+t.get('Private folder')]).bind('listitemselect', function() {
-					that.options.open('~');
-				}).appendTo(listContent);
-				
-				$.w.listItem(['<img src="'+new W.Icon('places/folder-desktop', 22)+'" alt=""/> '+t.get('Desktop')]).bind('listitemselect', function() {
-					that.options.open('~/'+t.get('Desktop'));
-				}).appendTo(listContent);
-				
-				$.w.listItem(['<img src="'+new W.Icon('places/folder-documents', 22)+'" alt=""/> '+t.get('Documents')]).bind('listitemselect', function() {
-					that.options.open('~/'+t.get('Documents'));
-				}).appendTo(listContent);
-				
-				$.w.listItem(['<img src="'+new W.Icon('places/folder-pictures', 22)+'" alt=""/> '+t.get('Pictures')]).bind('listitemselect', function() {
-					that.options.open('~/'+t.get('Pictures'));
-				}).appendTo(listContent);
-				
-				$.w.listItem(['<img src="'+new W.Icon('places/folder-music', 22)+'" alt=""/> '+t.get('Music')]).bind('listitemselect', function() {
-					that.options.open('~/'+t.get('Music'));
-				}).appendTo(listContent);
-				
-				$.w.listItem(['<img src="'+new W.Icon('places/folder-videos', 22)+'" alt=""/> '+t.get('Videos')]).bind('listitemselect', function() {
-					that.options.open('~/'+t.get('Videos'));
-				}).appendTo(listContent);
-				
-				$.w.listItem(['<img src="'+new W.Icon('places/folder-downloads', 22)+'" alt=""/> '+t.get('Downloads')]).bind('listitemselect', function() {
-					that.options.open('~/'+t.get('Downloads'));
-				}).appendTo(listContent);
+				insertItem('~', t.get('Private folder'), 'places/folder-home');
+				insertItem('~/'+t.get('Desktop'), t.get('Desktop'), 'places/folder-desktop');
+				insertItem('~/'+t.get('Documents'), t.get('Documents'), 'places/folder-documents');
+				insertItem('~/'+t.get('Pictures'), t.get('Pictures'), 'places/folder-pictures');
+				insertItem('~/'+t.get('Music'), t.get('Music'), 'places/folder-music');
+				insertItem('~/'+t.get('Videos'), t.get('Videos'), 'places/folder-videos');
+				insertItem('~/'+t.get('Downloads'), t.get('Downloads'), 'places/folder-downloads');
 			}
 
 			if (canReadSystemFiles) {
-				$.w.listItem(['<img src="'+new W.Icon('devices/harddisk', 22)+'" alt=""/> '+t.get('File system')]).bind('listitemselect', function() {
-					that.options.open('/');
-				}).appendTo(listContent);
+				insertItem('/', t.get('File system'), 'devices/harddisk');
 			}
 
 			if (listContent.children().length > 0) {
@@ -1803,6 +1842,28 @@ Webos.require([
 				that._refreshDevices();
 			});
 		},
+		_createItem: function(path, title, iconName) {
+			var that = this;
+
+			var $item = $.w.listItem(['<img src="'+new W.Icon(iconName, 22)+'" alt=""/> '+title]).bind('listitemselect.open.shortcuts.nautilus', function() {
+				that.options.open(path);
+			});
+
+			$item.droppable({
+				drop: function(event, ui) {
+					if (!ui.draggable.draggable('option', 'sourceFile')) {
+						return;
+					}
+
+					var sourceFile = ui.draggable.draggable('option', 'sourceFile'),
+						destFile = Webos.File.get(path);
+
+					ui.draggable.trigger('nautilusdrop', [{ source: sourceFile, dest: destFile, droppable: $item }]);
+				}
+			});
+
+			return $item;
+		},
 		_refreshDevices: function() {
 			var that = this, t = this.translations();
 
@@ -1817,21 +1878,27 @@ Webos.require([
 			for (var local in mountedDevices) {
 				(function(local, point) {
 					var driverData = Webos.File.getDriverData(point.get('driver'));
-					var item = $.w.listItem(['<img src="'+new W.Icon(driverData.icon, 22)+'" alt=""/> ' + t.get('${driver} on ${local}', { driver: driverData.title, local: local })]).bind('listitemselect', function() {
-						$(this).listItem('option', 'active', false);
-					}).click(function(e) {
-						if ($(e.target).is('.umount')) {
-							if (Webos.File.umount(local) === false) {
-								Webos.Error.trigger(t.get('Can\'t unmount "${driver}" on "${local}"', { driver: driverData.title, local: local }));
+					
+					var $item = that._createItem(local, t.get('${driver} on ${local}', { driver: driverData.title, local: local }), driverData.icon);
+
+					$item
+						.off('listitemselect.open.shortcuts.nautilus')
+						.bind('listitemselect', function() {
+							$(this).listItem('option', 'active', false);
+						})
+						.click(function(e) {
+							if ($(e.target).is('.umount')) {
+								if (Webos.File.umount(local) === false) {
+									Webos.Error.trigger(t.get('Can\'t unmount "${driver}" on "${local}"', { driver: driverData.title, local: local }));
+								}
+								return;
 							}
-							return;
-						}
-						
-						that.options.open(local);
-					});
+							
+							that.options.open(local);
+						});
 					$('<img />', { src: new W.Icon('actions/umount', 16), alt: '', title: t.get('Unmount volume') }).addClass('umount').prependTo(item.listItem('column', 0));
 					
-					item.appendTo(devicesShortcuts.list('content'));
+					$item.appendTo(devicesShortcuts.list('content'));
 				})(local, mountedDevices[local]);
 				i++;
 			}

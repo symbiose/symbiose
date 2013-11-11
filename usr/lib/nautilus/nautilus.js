@@ -389,9 +389,22 @@ Webos.require([
 				var that = this;
 				
 				var createButtonFn = function createButtonFn(userDir, path) {
-					return $.w.toolbarWindowHeaderItem(userDir).click(function() {
+					var $btn = $.w.toolbarWindowHeaderItem(userDir).click(function() {
 						that.readDir(path);
+					}).droppable({
+						drop: function(event, ui) {
+							if (!ui.draggable.draggable('option', 'sourceFile')) {
+								return;
+							}
+
+							var sourceFile = ui.draggable.draggable('option', 'sourceFile'),
+								destFile = Webos.File.get(path);
+
+							ui.draggable.trigger('nautilusdrop', [{ source: sourceFile, dest: destFile, droppable: $btn }]);
+						}
 					});
+
+					return $btn;
 				};
 				
 				if (dir == '/') {

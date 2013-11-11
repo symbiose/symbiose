@@ -2472,6 +2472,7 @@ $.webos.widget('draggable', 'widget', {
 				}
 
 				$(this).off('mousemove.dragstart.draggable.widget.webos');
+				traveledDistance = 0;
 
 				if(that._trigger('start', e) === false) {
 					$(this).trigger('mouseup');
@@ -2493,10 +2494,11 @@ $.webos.widget('draggable', 'widget', {
 						top: actualY
 					});
 				}
-				
+
 				$.webos.ddmanager.dragStop(that, e);
+				that._trigger('stop', e);
 				$.webos.ddmanager.drop(that, e);
-				
+
 				e.preventDefault();
 			});
 			
@@ -2638,6 +2640,7 @@ $.webos.ddmanager = {
 		//draggable.element.parentsUntil( "body" ).bind( "scroll.droppable", function() {
 		//	if( !draggable.options.refreshPositions ) $.webos.ddmanager.prepareOffsets( draggable, event );
 		//});
+		draggable.element.trigger('dragstart', event);
 	},
 	drag: function(draggable, event) {
 		//If you have a highly dynamic page, you might try this option. It renders positions every time you move the mouse.
@@ -2663,6 +2666,7 @@ $.webos.ddmanager = {
 		//draggable.element.parentsUntil( "body" ).unbind( "scroll.droppable" );
 		//Call prepareOffsets one final time since IE does not fire return scroll events when overflow was caused by drag (see #5003)
 		if( !draggable.options.refreshPositions ) $.webos.ddmanager.prepareOffsets( draggable, event );
+		draggable.element.trigger('dragstop', event);
 	}
 };
 
