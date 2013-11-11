@@ -1479,12 +1479,17 @@ Webos.require([
 			});
 			return selectedFiles;
 		},
-		_copy: function(source, dest, callback) {
+		_copy: function(sourcePath, destPath, callback) {
 			var t = this.translations();
 
-			source = W.File.get(source);
-			dest = W.File.get(dest);
+			source = W.File.get(sourcePath);
+			dest = W.File.get(destPath);
 			callback = W.Callback.toCallback(callback);
+
+			if (source.get('path') == dest.get('path') || (source.get('dirname') == dest.get('path') && dest.get('is_dir'))) { //Copy a file in the same dir
+				destPath = source.get('dirname')+'/'+t.get('Copy of ')+source.get('basename');
+				dest = W.File.get(destPath);
+			}
 
 			var progressId = $.w.nautilus.progresses.add(0, t.get('Copying ${source} to ${dest}', { source: source.get('basename'), dest: dest.get('basename') }));
 
