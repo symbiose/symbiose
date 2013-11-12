@@ -2,7 +2,9 @@
 <category>
 	<define name="name" value="locale"/>
 	<define name="title" value="Languages and locales"/>
+	<define name="title" lang="fr_FR" value="Langues et paramètres régionnaux"/>
 	<define name="icon" value="apps/translate"/>
 	<define name="description" value="Change language and locale"/>
+	<define name="description" lang="fr_FR" value="Modifier la langue et les paramètres régionnaux"/>
 	<define name="category" value="personal"/>
 </category>

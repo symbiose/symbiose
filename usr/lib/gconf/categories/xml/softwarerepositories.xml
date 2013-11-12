@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <category>
 	<define name="name" value="softwarerepositories"/>
-	<define name="title" value="Sources de logiciels"/>
+	<define name="title" value="Software sources"/>
+	<define name="title" lang="fr_FR" value="Sources de logiciels"/>
 	<define name="icon" value="actions/update"/>
-	<define name="description" value="Gérer les dépôts utilisés pour installer des logiciels"/>
+	<define name="description" value="Manage repositories used to install software"/>
+	<define name="description" lang="fr_FR" value="Gérer les dépôts utilisés pour installer des logiciels"/>
 	<define name="category" value="system"/>
 	<define name="authorizations" value="package.read"/>
 </category>

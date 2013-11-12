@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <category>
 	<define name="name" value="me"/>
-	<define name="title" value="Mon compte"/>
+	<define name="title" value="My account"/>
+	<define name="title" lang="fr_FR" value="Mon compte"/>
 	<define name="icon" value="stock/person"/>
-	<define name="description" value="Modifier mes informations personnelles"/>
+	<define name="description" value="Edit my account's settings"/>
+	<define name="description" lang="fr_FR" value="Modifier les paramètres de mon compte"/>
 	<define name="category" value="personal"/>
 	<define name="authorizations" value="user.self.edit"/>
 </category>

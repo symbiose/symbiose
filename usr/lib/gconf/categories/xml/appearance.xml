@@ -2,7 +2,9 @@
 <category>
 	<define name="name" value="appearance"/>
 	<define name="title" value="Appearance"/>
+	<define name="title" lang="fr_FR" value="Apparence"/>
 	<define name="icon" value="actions/background"/>
 	<define name="description" value="Adjust the appearance of the interface (wallpaper, theme ...)"/>
+	<define name="description" lang="fr_FR" value="Ajuster l'apparence de l'interface (fond d'écran, thème...)"/>
 	<define name="category" value="personal"/>
 </category>

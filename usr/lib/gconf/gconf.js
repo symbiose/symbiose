@@ -97,13 +97,26 @@ function GConf(category) {
 									}
 								}
 							}
-							
+
 							if (shown) {
+								var currentLang = Webos.Translation.language(),
+									langSelector = '[lang="'+currentLang+'"]';
+
+								var titleTag = xml.find('define[name="title"]'+langSelector);
+								if (!titleTag.length) {
+									titleTag = xml.find('define[name="title"]');
+								}
+
+								var descTag = xml.find('define[name="description"]'+langSelector);
+								if (!descTag.length) {
+									descTag = xml.find('define[name="description"]');
+								}
+
 								that._categories.push({
 									name: xml.find('define[name="name"]').attr('value'),
-									title: xml.find('define[name="title"]').attr('value'),
+									title: titleTag.attr('value'),
 									icon: xml.find('define[name="icon"]').attr('value'),
-									description: xml.find('define[name="description"]').attr('value'),
+									description: descTag.attr('value'),
 									category: xml.find('define[name="category"]').attr('value')
 								});
 							}

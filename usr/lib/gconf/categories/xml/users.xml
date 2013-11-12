@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <category>
 	<define name="name" value="users"/>
-	<define name="title" value="Comptes d'utilisateurs"/>
+	<define name="title" value="User accounts"/>
+	<define name="title" lang="fr_FR" value="Comptes d'utilisateurs"/>
 	<define name="icon" value="stock/people"/>
-	<define name="description" value="Gérer les comptes d'utilisateurs"/>
+	<define name="description" value="Manage user accounts"/>
+	<define name="description" lang="fr_FR" value="Gérer les comptes d'utilisateurs"/>
 	<define name="category" value="system"/>
 	<define name="authorizations" value="user.read"/>
 </category>

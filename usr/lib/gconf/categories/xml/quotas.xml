@@ -2,8 +2,10 @@
 <category>
 	<define name="name" value="quotas"/>
 	<define name="title" value="Quotas"/>
+	<define name="title" lang="fr_FR" value="Quotas"/>
 	<define name="icon" value="actions/go-top"/>
-	<define name="description" value="Gérer les quotas et restrictions du système"/>
+	<define name="description" value="Manage quotas and system's restrictions"/>
+	<define name="description" lang="fr_FR" value="Gérer les quotas et restrictions du système"/>
 	<define name="category" value="system"/>
 	<define name="authorizations" value="file.system.read"/>
 </category>

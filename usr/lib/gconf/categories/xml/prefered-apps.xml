@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <category>
 	<define name="name" value="prefered-apps"/>
-	<define name="title" value="Applications préférées"/>
+	<define name="title" value="Preferred applications"/>
+	<define name="title" lang="fr_FR" value="Applications favorites"/>
 	<define name="icon" value="status/starred"/>
-	<define name="description" value="Définir les applications par défaut"/>
+	<define name="description" value="Define preferred applications"/>
+	<define name="description" lang="fr_FR" value="Définir les applications préférées"/>
 	<define name="category" value="personal"/>
 </category>

@@ -2,8 +2,10 @@
 <category>
 	<define name="name" value="websocket"/>
 	<define name="title" value="WebSocket server"/>
+	<define name="title" lang="fr_FR" value="Serveur WebSocket"/>
 	<define name="icon" value="places/server"/>
 	<define name="description" value="Manage WebSocket server"/>
+	<define name="description" lang="fr_FR" value="Gérer le serveur WebSocket"/>
 	<define name="category" value="system"/>
 	<define name="authorizations" value="file.system.write"/>
 </category>
