@@ -20,17 +20,29 @@ Webos.Observable.prototype = {
 	 * @returns {Number}         The callback's ID.
 	 */
 	on: function (event, fn) {
+		var that = this;
+
 		var namespace = event;
 		var events = event.split(' '), eventsNames = [];
 		for (var i = 0; i < events.length; i++) {
 			eventsNames.push(events[i].split('.')[0]);
 		}
 
-		return this._observers.push({
+		var listenerId = this._observers.push({
 			fn: fn,
 			eventsNames: eventsNames,
 			events: events
 		}) - 1;
+
+		//Garbage collector
+		var garbageCollectorStopEvent = 'stop.garbagecollector.observable.webos';
+		if (Webos.Process && Webos.Process.current() && event != garbageCollectorStopEvent) {
+			Webos.Process.current().once(garbageCollectorStopEvent, function() {
+				that.off(event, fn);
+			});
+		}
+
+		return listenerId;
 	},
 	/**
 	 * @deprecated Use Observable#on() instead.
