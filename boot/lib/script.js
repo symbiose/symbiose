@@ -43,6 +43,7 @@ Webos.Script.load = function $_WScript_load(path) {
 	$.ajax({
 		url: path,
 		dataType: "script",
+		cache: true,
 		async: false
 	});
 };
