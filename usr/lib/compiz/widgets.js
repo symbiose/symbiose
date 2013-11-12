@@ -716,7 +716,7 @@ $.webos.widget('window', 'container', {
 			}
 			
 			if (this.options.loading.lock) {
-				this.options._loadingContent.remove();
+				$(this.options._loadingContent).remove();
 				delete this.options._loadingContent;
 				this.options._content
 					.show()
