@@ -50,11 +50,11 @@ class UserController extends \lib\ApiBackController {
 			if ($user->isLogged()) {
 				$userId = $user->id();
 			} else {
-				throw new \RuntimeException('No user specified');
+				throw new \RuntimeException('No user specified', 404);
 			}
 		} else {
 			if (!$manager->exists($userId)) {
-				throw new \RuntimeException('Cannot find the user with id "'.$userId.'"');
+				throw new \RuntimeException('Cannot find the user with id "'.$userId.'"', 404);
 			}
 		}
 
@@ -150,7 +150,7 @@ class UserController extends \lib\ApiBackController {
 		$user = $manager->getById($userId); //Get user data
 
 		if (empty($userData)) {
-			throw new \RuntimeException('Cannot find user with id "'.$userId.'"');
+			throw new \RuntimeException('Cannot find user with id "'.$userId.'"', 404);
 		}
 
 		return $this->_userPublicAttributes($user);
@@ -166,7 +166,7 @@ class UserController extends \lib\ApiBackController {
 		$userData = $manager->getByUsername($username); //Get user data
 
 		if (empty($userData)) {
-			throw new \RuntimeException('Cannot find user with username "'.$username.'"');
+			throw new \RuntimeException('Cannot find user with username "'.$username.'"', 404);
 		}
 
 		return $this->_userPublicAttributes($userData);
@@ -255,12 +255,12 @@ class UserController extends \lib\ApiBackController {
 
 		if (empty($userData)) { //Invalid username
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
-			throw new \RuntimeException('Bad username or password');
+			throw new \RuntimeException('Bad username or password', 401);
 		}
 
 		//Check that the user is not disabled
 		if ($userData['disabled']) {
-			throw new \RuntimeException('User "'.$username.'" is disabled');
+			throw new \RuntimeException('User "'.$username.'" is disabled', 403);
 		}
 
 		//Password check
@@ -271,7 +271,7 @@ class UserController extends \lib\ApiBackController {
 		}
 		if ($hashedPasswd != $userData['password']) { //Invalid password ?
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
-			throw new \RuntimeException('Bad username or password');
+			throw new \RuntimeException('Bad username or password', 401);
 		}
 
 		//Set the user as logged in
@@ -332,7 +332,7 @@ class UserController extends \lib\ApiBackController {
 			}
 
 			if ($attrName == 'password') {
-				throw new \RuntimeException('Cannot change password without providing the old one');
+				throw new \RuntimeException('Cannot change password without providing the old one', 400);
 			}
 
 			$userData[$attrName] = $attrValue;
@@ -352,7 +352,7 @@ class UserController extends \lib\ApiBackController {
 		$user = $this->app()->user();
 
 		if (!$user->isLogged()) { //User not logged in
-			throw new \RuntimeException('Cannot change password of another user than you');
+			throw new \RuntimeException('Cannot change password of another user than you', 403);
 		}
 
 		//Control authorizations
@@ -370,7 +370,7 @@ class UserController extends \lib\ApiBackController {
 		}
 		if ($hashedPasswd != $userData['password']) { //Invalid password ?
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
-			throw new \RuntimeException('Bad password');
+			throw new \RuntimeException('Bad password', 403);
 		}
 
 		//Change password
@@ -491,13 +491,13 @@ class UserController extends \lib\ApiBackController {
 		//Check captcha
 		$captcha = $captchaManager->get($captchaData['id']);
 		if ($captcha['result'] != $captchaData['value']) {
-			throw new \RuntimeException('Invalid captcha');
+			throw new \RuntimeException('Invalid captcha', 400);
 		}
 
 		//Check if registering is enabled
 		$registerStatus = $this->executeCanRegister();
 		if (!$registerStatus['register']) {
-			throw new \RuntimeException('Registration is currently disabled');
+			throw new \RuntimeException('Registration is currently disabled', 403);
 		}
 
 		//Retrieve default authorizations for new users

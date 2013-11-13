@@ -20,8 +20,16 @@
 	overflow: visible;
 	padding: 3px;
 }
+.edituser.edituser-nouserlist {
+	margin-left: 0;
+}
 
 .edituser .userpicture {
 	margin: 7px;
 	float: left;
+}
+
+.edituser strong {
+	margin-top: 5px;
+	display: inline-block;
 }
