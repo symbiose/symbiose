@@ -190,8 +190,12 @@ Webos.User.prototype = {
 		}).load(new Webos.Callback(function(response) {
 			that.notify('remove');
 			delete Webos.User.cache[that.id()];
+
+			if (that.isLogged()) {
+				Webos.User.logout(callback);
+			}
+
 			delete that;
-			callback.success(response);
 		}, function(response) {
 			callback.error(response);
 		}));

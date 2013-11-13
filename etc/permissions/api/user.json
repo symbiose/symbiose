@@ -38,18 +38,8 @@
 
 	"executeConnect":[],
 	"executeDisconnect":[],
-	"executeSetAttribute":[
-		{
-			"argument":0,
-			"permission":"user.edit"
-		}
-	],
-	"executeSetMultipleAttributes":[
-		{
-			"argument":0,
-			"permission":"user.edit"
-		}
-	],
+	"executeSetAttribute":[],
+	"executeSetMultipleAttributes":[],
 	"executeSetPassword":[
 		{
 			"argument":0,
