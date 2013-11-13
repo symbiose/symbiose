@@ -135,7 +135,7 @@ class ApplicationShortcutController extends \lib\ApiBackController {
 	 */
 	protected function executeSetFavorite($name, $position) {
 		if (!$this->app->user()->isLogged())
-			throw new \RuntimeException('Cannot add an application to favorites : you\'re not logged in');
+			throw new \RuntimeException('Cannot add an application to favorites : you\'re not logged in', 403);
 
 		$favoritesConfig = $this->_getFavoritesConfig();
 
@@ -172,7 +172,7 @@ class ApplicationShortcutController extends \lib\ApiBackController {
 	 */
 	protected function executeRemoveFavorite($name) {
 		if (!$this->app->user()->isLogged())
-			throw new \RuntimeException('Cannot remove an application from favorites : you\'re not logged in');
+			throw new \RuntimeException('Cannot remove an application from favorites : you\'re not logged in', 403);
 
 		$favoritesConfig = $this->_getFavoritesConfig();
 

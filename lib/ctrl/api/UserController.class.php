@@ -182,7 +182,7 @@ class UserController extends \lib\ApiBackController {
 		$userData = $this->executeGetAttributes($userId);
 
 		if (!isset($userData[$attribute])) {
-			throw new \RuntimeException('Cannot find user attribute "'.$attribute.'"');
+			throw new \RuntimeException('Cannot find user attribute "'.$attribute.'"', 404);
 		}
 
 		return array($attribute => $userData[$attribute]);

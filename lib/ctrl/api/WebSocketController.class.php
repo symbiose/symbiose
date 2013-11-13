@@ -63,18 +63,18 @@ class WebSocketController extends \lib\ApiBackController {
 		}
 
 		if (!$this->_isSupported()) {
-			throw new RuntimeException('WebSocket server not supported on this machine');
+			throw new RuntimeException('WebSocket server not supported on this machine', 501);
 		}
 
 		if ($this->_isServerStarted()) {
-			throw new RuntimeException('Server already started');
+			throw new RuntimeException('Server already started', 405);
 		}
 
 		$configFile = $this->_getServerConfig();
 		$config = $configFile->read();
 
 		if ($config['enabled'] !== true) {
-			throw new RuntimeException('WebSocket server is not enabled in '.self::SERVER_CONFIG_FILE);
+			throw new RuntimeException('WebSocket server is not enabled in '.self::SERVER_CONFIG_FILE, 403);
 		}
 
 		if ($config['autoStart'] !== true) {
@@ -100,11 +100,11 @@ class WebSocketController extends \lib\ApiBackController {
 		$fileManager = $this->managers()->getManagerOf('file');
 
 		if (!$this->_isSupported()) {
-			throw new RuntimeException('WebSocket server not supported on this machine');
+			throw new RuntimeException('WebSocket server not supported on this machine', 501);
 		}
 
 		if (!$this->_isServerStarted()) {
-			throw new RuntimeException('Server not started');
+			throw new RuntimeException('Server not started', 405);
 		}
 
 		$pidFile = self::SERVER_PID_FILE;

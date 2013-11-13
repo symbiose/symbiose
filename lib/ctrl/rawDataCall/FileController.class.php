@@ -75,10 +75,12 @@ class FileController extends \lib\RawBackController {
 		//If the file is a directory, zip it
 		if ($fileManager->isDir($filePath) && $options['download']) {
 			if (strpos($filePath, '/home/') !== 0) {
+				$this->app->httpResponse()->addHeader('HTTP/1.0 403 Forbidden');
 				throw new RuntimeException('Downloading files which are not in your home directory is not allowed');
 			}
 
 			if (!class_exists('\ZipArchive')) {
+				$this->app->httpResponse()->addHeader('HTTP/1.0 501 Not Implemented');
 				throw new RuntimeException('Downloading directories is not available on this system');
 			}
 
@@ -95,6 +97,7 @@ class FileController extends \lib\RawBackController {
 				}
 
 				if ($added === false) {
+					$this->app->httpResponse()->addHeader('HTTP/1.0 500 Internal Server Error');
 					throw new RuntimeException('Unable to add "'.$filepath.'" to zip file');
 				}
 			}

@@ -25,7 +25,7 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 		}
 
 		if ($output === false) {
-			throw new \RuntimeException('Cannot load app\'s manifest from "'.$manifestUrl.'"');
+			throw new \RuntimeException('Cannot load app\'s manifest from "'.$manifestUrl.'"', 502);
 		}
 
 		return array('manifest' => $output);
@@ -78,7 +78,7 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 		$launcherManager = $this->managers()->getManagerOf('launcher');
 
 		if ($appData['app_type'] != 'hosted') {
-			throw new \RuntimeException('Packaged apps installation is not currently supported');
+			throw new \RuntimeException('Packaged apps installation is not currently supported', 405);
 		}
 
 		$webappDir = '/usr/lib/firefox-marketplace/webapps/'.$appData['slug'];
@@ -178,7 +178,7 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 		$configManager = $this->managers()->getManagerOf('config');
 
 		if (!$localRepoManager->exists($appName)) {
-			throw new \RuntimeException('This app "'.$appName.'" is not installed');
+			throw new \RuntimeException('This app "'.$appName.'" is not installed', 404);
 		}
 
 		$webappDir = '/usr/lib/firefox-marketplace/webapps/'.$appName;

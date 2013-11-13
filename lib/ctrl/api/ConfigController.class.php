@@ -23,7 +23,7 @@ class ConfigController extends \lib\ApiBackController {
 		$configData = $config->read();
 
 		if (!array_key_exists($index, $configData)) {
-			throw new \RuntimeException('Cannot find index "'.$index.'" in configuration file "'.$path.'"');
+			throw new \RuntimeException('Cannot find index "'.$index.'" in configuration file "'.$path.'"', 404);
 		}
 
 		return array('value' => $configData[$index]);

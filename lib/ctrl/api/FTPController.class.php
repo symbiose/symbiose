@@ -16,29 +16,29 @@ class FTPController extends \lib\ApiBackController {
 		}
 
 		if (!array_key_exists('host', $data) || empty($data['host'])) {
-			throw new InvalidArgumentException('Empty FTP server adress');
+			throw new InvalidArgumentException('Empty FTP server adress', 400);
 		}
 		if (!array_key_exists('port', $data) || empty($data['port'])) {
-			throw new InvalidArgumentException('Empty FTP server port');
+			throw new InvalidArgumentException('Empty FTP server port', 400);
 		}
 		if (!array_key_exists('user', $data) || empty($data['host'])) {
-			throw new InvalidArgumentException('Empty FTP server user');
+			throw new InvalidArgumentException('Empty FTP server user', 400);
 		}
 		if (!array_key_exists('password', $data) || empty($data['password'])) {
-			throw new InvalidArgumentException('Empty FTP server password');
+			throw new InvalidArgumentException('Empty FTP server password', 400);
 		}
 
 		$conn = ftp_connect($data['host'], $data['port']);
 
 		if ($conn === false) {
-			throw new \RuntimeException('Cannot connect to FTP server "'.$loginData['host'].':'.$loginData['port'].'"');
+			throw new \RuntimeException('Cannot connect to FTP server "'.$loginData['host'].':'.$loginData['port'].'"', 502);
 		}
 
 		if (ftp_login($conn, $data['user'], $data['password'])) {
 			$this->conn = $conn;
 			return $conn;
 		} else {
-			throw new \RuntimeException('Cannot connect to FTP server "'.$loginData['host'].':'.$loginData['port'].'" with username "'.$loginData['user'].'" (authentification failed)');
+			throw new \RuntimeException('Cannot connect to FTP server "'.$loginData['host'].':'.$loginData['port'].'" with username "'.$loginData['user'].'" (authentification failed)', 401);
 		}
 	}
 
@@ -60,7 +60,7 @@ class FTPController extends \lib\ApiBackController {
 			}
 		}
 
-		throw new \RuntimeException('Cannot retrieve metadata about the file "'.$file.'"');
+		throw new \RuntimeException('Cannot retrieve metadata about the file "'.$file.'"', 404);
 	}
 	
 	public function executeGetFile($loginData, $file) {
@@ -131,7 +131,7 @@ class FTPController extends \lib\ApiBackController {
 		$raw = ftp_rawlist($conn, $dir);
 
 		if ($raw === false) {
-			throw new \RuntimeException('Cannot read directory "'.$dir.'"');
+			throw new \RuntimeException('Cannot read directory "'.$dir.'"', 404);
 		}
 		
 		$list = array();

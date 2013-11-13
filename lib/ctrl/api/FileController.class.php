@@ -18,6 +18,10 @@ class FileController extends \lib\ApiBackController {
 	public function executeGetContents($path) {
 		$manager = $this->managers()->getManagerOf('file');
 
+		if (!$manager->exists($path)) {
+			throw new \RuntimeException('"'.$path.'" : no such file or directory', 404);
+		}
+
 		if ($manager->isDir($path)) {
 			$files = $manager->readDir($path);
 
@@ -40,6 +44,10 @@ class FileController extends \lib\ApiBackController {
 	public function executeGetAsBinary($path) {
 		$manager = $this->managers()->getManagerOf('file');
 
+		if (!$manager->exists($path)) {
+			throw new \RuntimeException('"'.$path.'" : no such file or directory', 404);
+		}
+
 		$this->responseContent->setChannel(1, base64_encode($manager->read($path)));
 	}
 
@@ -52,7 +60,7 @@ class FileController extends \lib\ApiBackController {
 		$manager = $this->managers()->getManagerOf('file');
 
 		if (!$manager->exists($path)) {
-			throw new \RuntimeException('"'.$path.'" : no such file or directory');
+			throw new \RuntimeException('"'.$path.'" : no such file or directory', 404);
 		}
 
 		$data = array(
@@ -88,7 +96,7 @@ class FileController extends \lib\ApiBackController {
 		$user = $this->app()->user();
 
 		if (strstr($newName, '/') !== false) { //Invalid file name
-			throw new \InvalidArgumentException('Cannot rename file "'.$path.'" to "'.$newName.'" (invalid new file name)');
+			throw new \InvalidArgumentException('Cannot rename file "'.$path.'" to "'.$newName.'" (invalid new file name)', 400);
 		}
 
 		$parentDirPath = $manager->dirname($path);
@@ -345,13 +353,13 @@ class FileController extends \lib\ApiBackController {
 		$user = $this->app()->user();
 
 		if (!$user->isLogged()) {
-			throw new \RuntimeException('You must be logged in to share a file');
+			throw new \RuntimeException('You must be logged in to share a file', 403);
 		}
 
 		$path = $manager->beautifyPath($path);
 
 		if ($path != '~' && substr($path, 0, 2) != '~/') {
-			throw new \RuntimeException('Cannot share files outside home directory (attempted to share file "'.$path.'")');
+			throw new \RuntimeException('Cannot share files outside home directory (attempted to share file "'.$path.'")', 403);
 		}
 
 		$share = $shareManager->getByPath($user->id(), $manager->toInternalPath($path));
@@ -380,7 +388,7 @@ class FileController extends \lib\ApiBackController {
 		$manager = $this->managers()->getManagerOf('file');
 
 		if ($inDir != '~' && substr($inDir, 0, 2) != '~/') {
-			throw new \RuntimeException('Cannot search files outside home directory (attempted to search in directory "'.$inDir.'")');
+			throw new \RuntimeException('Cannot search files outside home directory (attempted to search in directory "'.$inDir.'")', 403);
 		}
 
 		//Escape the query string

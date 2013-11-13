@@ -20,7 +20,7 @@ class UserInterfaceController extends \lib\ApiBackController {
 		}
 
 		if (empty($ui)) {
-			throw new \RuntimeException('Cannot find ' . ((empty($uiName)) ? 'default user interface' : 'user interface "'.$uiName.'"'));
+			throw new \RuntimeException('Cannot find ' . ((empty($uiName)) ? 'default user interface' : 'user interface "'.$uiName.'"'), 404);
 		}
 
 		$booter = $manager->getBooter($ui['name']);
