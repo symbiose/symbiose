@@ -1211,6 +1211,7 @@ $.webos.window.confirm = function(opts) {
 	var defaults = {
 		title: 'Confirmation',
 		label: '&Ecirc;tes-vous s&ucirc;r de vouloir effectuer cette action ?',
+		details: '',
 		cancel: function() {},
 		confirm: function() {},
 		cancelLabel: 'Annuler',
@@ -1232,6 +1233,10 @@ $.webos.window.confirm = function(opts) {
 	
 	$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
 	$('<strong></strong>').html(options.label).appendTo(form);
+
+	if (options.details) {
+		$.w.label(options.details).appendTo(form);
+	}
 	
 	var buttonContainer = $.w.buttonContainer().css('clear', 'both').appendTo(form);
 	$.w.button(options.cancelLabel).click(function() {
