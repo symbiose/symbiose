@@ -78,6 +78,10 @@ class FileController extends \lib\RawBackController {
 				throw new RuntimeException('Downloading files which are not in your home directory is not allowed');
 			}
 
+			if (!class_exists('\ZipArchive')) {
+				throw new RuntimeException('Downloading directories is not available on this system');
+			}
+
 			$filesInDir = $fileManager->readDir($filePath, true); //Read recursively the directory
 			$tmpFilePath = $fileManager->tmpfile();
 			$zip = new ZipArchive();
