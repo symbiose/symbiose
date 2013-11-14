@@ -4,7 +4,7 @@
  * @author $imon
  */
 
-Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
+(function() {
 	var EyeOfSymbiose = function (image) {
 		Webos.Observable.call(this);
 		
@@ -32,23 +32,23 @@ Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
 				
 				this.file = image;
 				this.window.window('loading', true);
-				this.window.window('option', 'title', image.getAttribute('basename')+' - '+t.get('Image viewer'));
-				
-				this.loadingImage = new W.LoadImage({
-					images: image.getAttribute('realpath'),
-					callback: function(data) {
-						delete that.loadingImage;
-						if (data.IsEnd) {
-							that.image.attr('src', image.getAttribute('realpath'));
-							that.window.window('loading', false);
-							that.windowsSize();
-							userCallback.success(that);
-						} else {
-							that.window.window('loading', false);
-							userCallback.error(data);
-						}
-					}
+				this.window.window('option', 'title', image.get('basename')+' - '+t.get('Image viewer'));
+
+				var img = new Image();
+				$(img).load(function() {
+					that._imgDimensions = { width: img.width, height: img.height };
+					that.image.attr('src', image.get('realpath'));
+					that.window.window('loading', false);
+
+					that._justInserted = true;
+					that.windowsSize();
+
+					userCallback.success();
+				}).error(function() {
+					that.window.window('loading', false);
+					userCallback.error();
 				});
+				img.src = image.get('realpath'); //Load image
 			};
 			
 			this.imageTo = function(position) {
@@ -56,7 +56,7 @@ Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
 					return;
 				}
 				
-				this._getImagesInDir(new W.Callback(function(images) {
+				this._getImagesInDir(function(images) {
 					if (position == -1) {
 						position = images.length - 1;
 					}
@@ -66,14 +66,14 @@ Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
 					}
 					
 					that.open(images[position]);
-				}));
+				});
 			};
 			this.imageBy = function(position) {
 				if (typeof this.file == 'undefined') {
 					return;
 				}
 				
-				this._getImagesInDir(new W.Callback(function(images) {
+				this._getImagesInDir(function(images) {
 					for (var i = 0; i < images.length; i++) {
 						if (images[i].get('path') == that.file.get('path')) {
 							break;
@@ -87,7 +87,7 @@ Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
 						imageIndex += images.length;
 					}
 					that.open(images[imageIndex]);
-				}));
+				});
 			};
 			
 			this.previousImage = function() {
@@ -114,12 +114,14 @@ Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
 			};
 			
 			this._getImagesInDir = function(userCallback) {
+				userCallback = W.Callback.toCallback(userCallback);
+
 				if (typeof this.file == 'undefined') {
-					userCallback.error(response);
+					userCallback.error();
 					return;
 				}
 				
-				var dir = this.file.getAttribute('dirname');
+				var dir = this.file.get('dirname');
 				
 				if (!dir) {
 					userCallback.success([this.file]);
@@ -130,7 +132,7 @@ Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
 					var callback = new W.Callback(function(files) {
 						var images = [];
 						for (var i = 0; i < files.length; i++) {
-							if (jQuery.inArray(files[i].getAttribute('extension'), EyeOfSymbiose.supported) != -1) {
+							if (jQuery.inArray(files[i].get('extension'), EyeOfSymbiose.supported) != -1) {
 								images.push(files[i]);
 							}
 						}
@@ -146,29 +148,41 @@ Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
 				}
 			};
 			
-			this.zoomTo = function(value) {
+			this.zoomTo = function(factor) {
 				if (typeof this.file == 'undefined') {
 					return;
 				}
-				
-				var dimentions = {
-					width: that.image.width(),
-					height: that.image.height()
+
+				var that = this;
+				var originalDim = that._imgDimensions;
+
+				var resizeImg = function() {
+					var currentDim = {
+						width: originalDim.width * that.zoom,
+						height: originalDim.height * that.zoom
+					};
+					var newDim = {
+						width: originalDim.width * factor,
+						height: originalDim.height * factor
+					};
+					var containerScroll = {
+						scrollLeft: that.container.scrollLeft(),
+						scrollTop: that.container.scrollTop()
+					};
+
+					that.image.stop().animate(newDim);
+
+					that.container.stop().animate({
+						scrollLeft: containerScroll.scrollLeft + (newDim.width - currentDim.width)/2,
+						scrollTop: containerScroll.scrollTop + (newDim.height - currentDim.height)/2
+					});
 				};
-				this.zoom = value;
-				this.image
-					.width(dimentions.width)
-					.height(dimentions.height)
-					.css({
-						transformOrigin: 'top left'
-					})
-					.stop().transition({
-						scale: value
-					}, 300, 'linear');
-				this.container.stop().animate({
-					scrollLeft: dimentions.width * (value - 1) / 2,
-					scrollTop: dimentions.height * (value - 1) / 2
-				}, 300, 'linear');
+
+				resizeImg();
+
+				this.zoom = factor;
+
+				this.window.off('windowresize.imgsize.eos');
 			};
 			
 			this.zoomIn = function() {
@@ -183,30 +197,64 @@ Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
 				if (typeof this.file == 'undefined') {
 					return;
 				}
+
+				var originalDim = that._imgDimensions,
+					windowDim = that.window.window('contentDimentions');
+
+				this.image.stop().animate({
+					width: originalDim.width,
+					height: originalDim.height
+				});
+				this.container.stop().animate({
+					scrollLeft: originalDim.width / 2 - windowDim.width / 2,
+					scrollTop: originalDim.height / 2 - windowDim.height / 2
+				});
+
+				this.zoom = 1;
+				
+				this.window.off('windowresize.imgsize.eos');
 				
 				this._buttons.windowsSize.toolbarWindowHeaderItem('option', 'active', false);
-				this.image.css({
-					'width': 'auto',
-					'height': 'auto',
-					'max-width': 'none',
-					'max-height': 'none'
-				});
-				this.zoomTo(1);
 			};
 			
 			this.windowsSize = function() {
 				if (typeof this.file == 'undefined') {
 					return;
 				}
+
+				var that = this;
+				var originalDim = that._imgDimensions;
+
+				var resizeImg = function() {
+					var windowDim = that.window.window('contentDimentions');
+
+					var minWidth = Math.min(windowDim.width - 2, originalDim.width),
+						minHeight = Math.min(windowDim.height - 2, originalDim.height);
+
+					var widthFactor = minWidth / originalDim.width,
+						heightFactor = minHeight / originalDim.height;
+
+					var minFactor = Math.min(widthFactor, heightFactor);
+
+					var duration = (that._justInserted) ? 0 : 'normal';
+					that.image.stop().animate({
+						width: originalDim.width * minFactor,
+						height: originalDim.height * minFactor
+					}, duration);
+
+					that.zoom = minFactor;
+				};
+
+				resizeImg();
+				this._justInserted = false;
 				
+				this.window
+					.off('windowresize.imgsize.eos')
+					.on('windowresize.imgsize.eos', function() {
+						resizeImg();
+					});
+
 				this._buttons.windowsSize.toolbarWindowHeaderItem('option', 'active', true);
-				this.image.css({
-					'width': 'auto',
-					'height': 'auto',
-					'max-width': '100%',
-					'max-height': '99%'
-				});
-				this.zoomTo(1);
 			};
 			
 			this.openAboutWindow = function() {
@@ -411,4 +459,4 @@ Webos.require('/usr/lib/webos/jquery.transit.min.js', function() {
 	EyeOfSymbiose.supported = ['bmp', 'tiff', 'png', 'jpeg', 'jpg', 'gif', 'svg'];
 
 	window.EyeOfSymbiose = EyeOfSymbiose; //Export API
-});
+})();
