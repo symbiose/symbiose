@@ -52,6 +52,15 @@ $(function() { //When the window is ready
 		}
 
 		//Now we can load the UI
-		W.UserInterface.load(ui);
+		W.UserInterface.load(ui, function() {
+			var appToLaunchName = getQueryParam('app');
+			if (appToLaunchName) {
+				Webos.require('/usr/lib/webos/applications.js', function() {
+					Webos.Application.get(appToLaunchName, [function(appToLaunch) {
+						Webos.Cmd.execute(appToLaunch.get('command'));
+					}, function() {}]);
+				});
+			}
+		});
 	});
 });
