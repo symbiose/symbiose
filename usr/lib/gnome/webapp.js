@@ -3,6 +3,10 @@
 		return;
 	}
 
+	if (!navigator.mozApps.checkInstalled) {
+		return;
+	}
+
 	var getManifestPath = function() {
 		var manifestFile = W.File.get('/usr/share/manifests/webos.webapp');
 
