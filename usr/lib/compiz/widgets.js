@@ -621,12 +621,12 @@ $.webos.widget('window', 'container', {
 		}
 	},
 	contentDimentions: function() {
-		var dim = this.dimentions();
+		var dim = $.extend({}, this.dimentions());
 		dim.height -= this.options._components.header.outerHeight(true);
 		return dim;
 	},
 	contentCachedDimentions: function() {
-		var dim = this.cachedDimentions();
+		var dim = $.extend({}, this.cachedDimentions());
 		dim.height -= this.options._components.header.outerHeight(true);
 		return dim;
 	},
