@@ -6,7 +6,7 @@ Webos.require('/usr/lib/xtag/core.min.js', function() {
 	};
 
 	xtag.registerFromWidget = function(widgetName, widgetOptions) {
-		xtag.register(widgetName, {
+		xtag.register(widgetName.replace('.', '-'), {
 			lifecycle: {
 				created: function() {
 					var options = {};

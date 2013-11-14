@@ -68,6 +68,28 @@ $.webos.widget = function(widgetName) {
 		});
 	}
 };
+$.webos.subwidget = function(widgetName, subwidgetName, init) {
+	var subwidgetFullName = widgetName+'.'+subwidgetName;
+
+	var constructor = function(options) {
+		$(this)[widgetName](options);
+		init([], $(this));
+		return $(this);
+	};
+	constructor.prototype = $[$.webos.widget.namespace()][widgetName].prototype;
+
+	$[$.webos.widget.namespace()][subwidgetFullName] = constructor;
+	$.fn[subwidgetFullName] = constructor;
+
+	if ($.webos[widgetName]) { //Constructor
+		$.webos[widgetName][subwidgetName] = function() {
+			var args = Array.prototype.slice.call(arguments);
+			var $widget = $.webos[widgetName]();
+			init(args, $widget);
+			return $widget;
+		};
+	}
+};
 
 $.webos.widget._namespace = 'gtk';
 $.webos.widget.namespace = function() {
@@ -2205,9 +2227,12 @@ $.webos.widget('menuItem', 'container', {
 		this._super('_create');
 		
 		var that = this;
+
+		var submenu = this.element.children().detach();
+		this.element.empty();
 		
 		this.options._components.label = $('<a></a>', { href: '#' }).html(this.options.label).appendTo(this.element);
-		this.options._content = $('<ul></ul>').appendTo(this.element);
+		this.options._content = $('<ul></ul>').appendTo(this.element).append(submenu);
 		this.element.bind('click mouseenter', function(e) {
 			if (that.options.disabled && e.type == 'click') {
 				return false;

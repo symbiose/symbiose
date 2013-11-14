@@ -196,22 +196,23 @@
 }
 
 /* HEADERS SPECIFIQUES */
-.webos-window .header .header-specific ul.webos-menuwindowheader {
+.webos-window .header .header-specific .webos-menuwindowheader {
 	background-color: #ededed;
 	color: #303638;
 	height: 25px;
 	margin: 0;
 	padding-left: 0;
+	display: block;
 }
-.webos-window.bg-window .header .header-specific ul.webos-menuwindowheader {
+.webos-window.bg-window .header .header-specific .webos-menuwindowheader {
 	background-color: #ededed;
 }
 
-.webos-window .header .header-specific ul.webos-menuwindowheader li {
+.webos-window .header .header-specific .webos-menuwindowheader .webos-menuitem {
 	list-style-type: none;
 }
 
-.webos-window .header .header-specific ul.webos-buttonwindowheader {
+.webos-window .header .header-specific .webos-buttonwindowheader {
 	background: url('usr/share/images/themes/adwaita/windows/button-header.png') repeat-x;
 	height: 65px;
 	padding-left: 13px;
@@ -221,14 +222,14 @@
 	border-top: 1px solid #969a96;
 	border-bottom: 1px solid #b8bcb8;
 }
-.webos-window .header .header-specific ul.webos-buttonwindowheader li {
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-menuitem {
 	height: 56px;
 	float:left;
 	padding-top: 9px;
 	list-style-type:none;
 	display: inline;
 }
-.webos-window .header .header-specific ul.webos-buttonwindowheader .buttonwindowheaderseparator {
+.webos-window .header .header-specific .webos-buttonwindowheader .buttonwindowheaderseparator {
 	float: right;
 	height: 56px;
 	position: relative;
@@ -236,34 +237,34 @@
 	width: 1px;
 	background: url('usr/share/images/themes/adwaita/windows/button-header-border.png');
 }
-.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem {
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem {
 	width: 100px;
 	text-align: center;
 }
-.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem.active,
-.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem:active {
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem.active,
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem:active {
 	background: url('usr/share/images/themes/adwaita/windows/button-header-active.png');
 }
-.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem img {
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem img {
 	height: 30px;
 	width: 30px;
 }
 
-.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-buttonwindowheaderitem:last-child .buttonwindowheaderseparator {
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem:last-child .buttonwindowheaderseparator {
 	display: none;
 }
 
-.webos-window .header .header-specific ul.webos-buttonwindowheader input[type="text"],
-.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-windowheaderitem {
+.webos-window .header .header-specific .webos-buttonwindowheader input[type="text"],
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-windowheaderitem {
 	margin: 3px;
 	margin-top: 13px;
 	margin-bottom: 22px;
 }
-.webos-window .header .header-specific ul.webos-buttonwindowheader .webos-button {
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-button {
 	background-size: auto;
 }
 
-.webos-window .header .header-specific ul.webos-toolbarwindowheader {
+.webos-window .header .header-specific .webos-toolbarwindowheader {
 	background: url('usr/share/images/themes/adwaita/windows/toolbar-header.png') repeat-x;
 	height: 40px;
 	padding-left: 5px;
@@ -272,8 +273,9 @@
 	color: #303638;
 	border-top: 1px solid #969a96;
 	border-bottom: 1px solid #b8bcb8;
+	display: block;
 }
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li {
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem {
 	height: 19px;
 	float:left;
 	padding: 5px 4px;
@@ -292,19 +294,20 @@
 	overflow: hidden;
 	-o-text-overflow: ellipsis; /* pour Opera 9 */
 	text-overflow: ellipsis; /* pour le reste du monde */
+	display: inline-block;
 }
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem img {
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem img {
 	height: 22px;
 	width: 22px;
 	float: left;
 }
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem span {
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem span {
 	margin-left: 2px;
 }
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem.hover,
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem:hover,
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem.active,
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem:active {
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem.hover,
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem:hover,
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem.active,
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem:active {
 	background: url('usr/share/images/themes/adwaita/windows/toolbar-header-hover.png');
 	margin-top: 4px;
 	margin-left: 0px;
@@ -314,23 +317,23 @@
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
 }
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem.active,
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-toolbarwindowheaderitem:active {
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem.active,
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem:active {
 	background-color: #a2a296;
 	background-image: none;
 	border: 1px solid #898988;
 }
-.webos-window .header .header-specific ul.webos-toolbarwindowheader li.webos-search-entry,
-.webos-window .header .header-specific ul.webos-buttonwindowheader li.webos-search-entry {
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-search-entry,
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-search-entry {
 	float: right;
 }
-.webos-window .header .header-specific ul.webos-toolbarwindowheader input[type="text"],
-.webos-window .header .header-specific ul.webos-buttonwindowheader input[type="text"] {
+.webos-window .header .header-specific .webos-toolbarwindowheader input[type="text"],
+.webos-window .header .header-specific .webos-buttonwindowheader input[type="text"] {
 	border: 1px solid #abaea6;
 	height: 18px;
 }
-.webos-window .header .header-specific ul.webos-toolbarwindowheader input[type="text"]:focus,
-.webos-window .header .header-specific ul.webos-buttonwindowheader input[type="text"]:focus {
+.webos-window .header .header-specific .webos-toolbarwindowheader input[type="text"]:focus,
+.webos-window .header .header-specific .webos-buttonwindowheader input[type="text"]:focus {
 	border: 1px solid #62a2e8;
 }
 

@@ -54,6 +54,13 @@ $.webos.widget('window', 'container', {
 			windowTitleEl.remove();
 		}
 
+		var windowHeaderContents = $(),
+			windowHeaderEl = windowChildren.filter('header');
+		if (windowHeaderEl.length) {
+			windowHeaderContents = windowHeaderEl.children().detach();
+			windowTitleEl.remove();
+		}
+
 		var windowContents = this.element.contents().detach();
 
 		this.element
@@ -122,6 +129,10 @@ $.webos.widget('window', 'container', {
 			.appendTo(headerTop);
 		
 		this.options._components.specificHeader = $('<div></div>', { 'class': 'header-specific' }).appendTo(this.options._components.header);
+
+		if (windowHeaderContents.length) {
+			windowHeaderContents.appendTo(this.header());
+		}
 		
 		this.options._content = $('<div></div>', {
 			'class': 'content'
@@ -794,7 +805,7 @@ $.webos.widget('window', 'container', {
 		var that = this;
 		
 		this.options._components.header.bind('mousedown.window.widget.webos', function(e) {
-			if ($(e.target).add($(e.target).parents()).is('.controllers, .header-specific ul *')) {
+			if ($(e.target).add($(e.target).parents()).is('.controllers, .header-specific * *')) {
 				return;
 			}
 
@@ -1043,8 +1054,9 @@ $.webos.window.states = [
 	['loading', 'ready']
 ];
 
-$.webos.window.main = function(options) {
-	var $mainWindow = $.webos.window(options);
+$.webos.subwidget('window', 'main', function(args, $mainWindow) {
+	var options = args[0];
+	$mainWindow.window('option', options);
 
 	$mainWindow.one('windowafterclose', function() {
 		if (typeof $(this).window('pid') == 'number') {
@@ -1093,7 +1105,8 @@ $.webos.window.main = function(options) {
 	}
 
 	return $mainWindow;
-};
+});
+
 $.webos.window.main._list = [];
 $.webos.window.main._cache = {};
 
@@ -1550,10 +1563,16 @@ $.webos.widget('toolbarWindowHeaderItem', 'container', {
 		this.active(this.options.active);
 	},
 	_setIcon: function(src) {
+		if (/^(https?)?\:\/\//.test(src)) {
+			var icon = { realpath: function() { return src; } };
+		} else {
+			var icon = W.Icon.toIcon(src);
+		}
+
 		if (typeof this.options._components.icon == 'undefined') {
 			this.options._components.icon = $('<img />', { alt: '' }).prependTo(this.element);
 		}
-		this.options._components.icon.attr('src', src);
+		this.options._components.icon.attr('src', icon.realpath());
 	},
 	_setLabel: function(text) {
 		if (typeof this.options._components.label == 'undefined') {
