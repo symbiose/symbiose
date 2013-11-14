@@ -48,12 +48,11 @@ Webos.Translation.load(function(t) {
 	var password = $.w.passwordEntry(t.get('Password :')).appendTo(form);
 	var spoiler = $.w.spoiler(t.get('Options')).one('spoilershow', function() {
 		W.UserInterface.getList(new W.Callback(function(list) {
-			console.log(list);
 			var uis = {};
 			var defaultUI;
 			for (var i = 0; i < list.length; i++) {
 				(function(ui) {
-					if (jQuery.inArray('ui', ui.get('types')) != -1) { //Si c'est une interface de travail, pas une interface de connexion
+					if (jQuery.inArray('userInterface', ui.get('labels')) != -1) { //Si c'est une interface de travail, pas une interface de connexion
 						uis[ui.get('name')] = (ui.get('displayname')) ? ui.get('displayname') : ui.get('name');
 						if ((ui.get('default') && typeof defaultUI != 'undefined') || ui.get('name') == W.UserInterface.Booter.current().name()) {
 							defaultUI = ui.name;

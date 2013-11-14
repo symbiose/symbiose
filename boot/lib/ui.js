@@ -23,7 +23,6 @@ Webos.UserInterface.prototype = {
 		data = data || {};
 
 		data.default = (data.default) ? true : false;
-		data.types = String(data.types).split(',');
 
 		return Webos.Model.prototype.hydrate.call(this, data);
 	},
@@ -35,18 +34,30 @@ Webos.UserInterface.prototype = {
 		return this._name;
 	},
 	/**
-	 * Set this UI's types.
-	 * @param {String[]} types Types.
+	 * @deprecated Use labels instead.
+	 */
+	types: function() {
+		return this._get('labels');
+	},
+	/**
+	 * Set this UI's labels.
+	 * @param {String[]} types Labels.
 	 * @returns {Boolean} False if there was an error, true otherwise.
 	 */
-	setTypes: function (types) {
-		if (!types instanceof Array) {
+	setLabels: function (labels) {
+		if (!labels instanceof Array) {
 			return false;
 		}
 
-		this._set('types', types);
+		this._set('labels', labels);
 
 		return true;
+	},
+	/**
+	 * @deprecated Use labels instead.
+	 */
+	setTypes: function (types) {
+		return this.set('labels', types);
 	},
 	/**
 	 * Set/unset this UI as default.
@@ -297,9 +308,15 @@ Webos.UserInterface.getList = function(callback) {
 
 		for (var index in data) {
 			var uiData = data[index];
+
+			var uiLabels = [];
+			for (var j in (uiData.labels || {})) {
+				uiLabels.push(uiData.labels[j]);
+			}
+
 			list.push(Webos.UserInterface.get(uiData.name, {
-				'types': uiData.types,
-				'default': uiData['default'],
+				'labels': uiLabels,
+				'default': uiData['isDefault'],
 				'displayname': uiData.attributes.displayname,
 				'enabled': true
 			}));

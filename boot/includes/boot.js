@@ -35,16 +35,22 @@ $(function() { //When the window is ready
 		var actualLocation = window.location.href;
 		var locationArray = actualLocation.split('/');
 		var page = locationArray.pop();
-		
+
+		var getQueryParam = function (name) {
+			name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+			var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+			results = regex.exec(location.search);
+			return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+		};
+
 		//Is the UI to load specified ?
-		var ui = null;
-		if (/\?ui=[a-zA-Z0-9-_.]&?/.test(page)) {
-			ui = page.replace(/\?ui=([a-zA-Z0-9-_.])&?/, '$1');
-		}
+		var ui = '';
 		if (/^[a-zA-Z0-9-_.]+\.html$/.test(page)) {
 			ui = page.replace(/^([a-zA-Z0-9-_.]+)\.html$/, '$1');
+		} else {
+			ui = getQueryParam('ui');
 		}
-		
+
 		//Now we can load the UI
 		W.UserInterface.load(ui);
 	});
