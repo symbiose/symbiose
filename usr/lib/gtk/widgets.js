@@ -111,6 +111,10 @@ $.webos.widget.is = function(element, widgetName) {
 	return $(element).is($.webos.widget._widgetSelector(widgetName));
 };
 
+$.webos.widget.filter = function(element, widgetName) {
+	return $(element).filter($.webos.widget._widgetSelector(widgetName));
+};
+
 $.webos.widget.get = function(element) {
 	var widgetsList = $.webos.widget.listAll();
 	var elWidgets = [];
@@ -156,8 +160,9 @@ $.webos.widget('widget', {
 
 		this.options.id = $.webos.widgets.push(this.element) - 1;
 		if (typeof Webos.Process.current() != 'undefined') {
-			this.options.pid = Webos.Process.current().getPid();
-			Webos.Process.current().bind('stop', function() {
+			var proc = Webos.Process.current();
+			this.options.pid = proc.getPid();
+			proc.bind('stop', function() {
 				var $el = that.element;
 
 				if ($el.length > 0 && $el.closest('html').length > 0) {
@@ -1003,10 +1008,8 @@ $.webos.widget('icon', 'image', {
 	_update: function(key, value) {
 		switch(key) {
 			case 'src':
-				this.options.src = W.Icon.toIcon({
-					name: value,
-					size: this.options.size
-				});
+				this.options.src = W.Icon.toIcon(value);
+				this.options.src.setSize(this.options.size);
 				this.load();
 				break;
 			case 'size':

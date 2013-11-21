@@ -71,6 +71,10 @@ Webos.Icon = function WIcon(name, size, theme) {
 		
 		return false;
 	};
+
+	this.setSize = function(size) {
+		this.size = parseInt(size);
+	};
 	
 	if (!/^[\/(~\/)]/.test(this.name)) {
 		Webos.Icon._cache[this.id()] = this;

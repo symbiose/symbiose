@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="System monitor"/>
+	<attribute name="title" lang="fr_FR" value="Moniteur système"/>
+	<attribute name="description" value="List and manage processes"/>
+	<attribute name="description" lang="fr_FR" value="Afficher et gérer les processus"/>
+	<attribute name="command" value="gnome-system-monitor"/>
+	<attribute name="icon" value="apps/system-monitor"/>
+	<attribute name="menu" value="system"/>
+	<attribute name="category" value="administration"/>
+</shortcut>

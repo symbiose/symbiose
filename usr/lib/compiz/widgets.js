@@ -1128,7 +1128,7 @@ $.webos.window.main._getWindowDisplay = function($mainWindow) {
 	return display;
 };
 $.webos.window.main.list = function() {
-	return $($.webos.window.main._list);
+	return $.webos.widget.filter($($.webos.window.main._list), 'window');
 };
 $.webos.window.main.windowsDisplay = function(display) {
 	if (typeof display == 'undefined') {
