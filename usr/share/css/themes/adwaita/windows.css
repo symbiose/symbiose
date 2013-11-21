@@ -277,7 +277,8 @@
 	border-bottom: 1px solid #b8bcb8;
 	display: block;
 }
-.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem {
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem,
+.webos-window .header .header-specific .webos-toolbarwindowheader > * {
 	height: 19px;
 	float:left;
 	padding: 5px 4px;
