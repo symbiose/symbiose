@@ -1572,7 +1572,7 @@ $.webos.widget('toolbarWindowHeaderItem', 'container', {
 		if (typeof this.options._components.icon == 'undefined') {
 			this.options._components.icon = $('<img />', { alt: '' }).prependTo(this.element);
 		}
-		this.options._components.icon.attr('src', icon.realpath());
+		this.options._components.icon.attr('src', icon.realpath(22));
 	},
 	_setLabel: function(text) {
 		if (typeof this.options._components.label == 'undefined') {
