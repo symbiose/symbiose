@@ -27,10 +27,13 @@ For more information, please see the wiki : https://github.com/symbiose/symbiose
 Software requirements
 ---------------------
 
-* Server : 
+* Server: 
  * PHP >= 5.3
- * Database : optional (off by default)
-* Client : a fast and modern web browser (e.g. the latest *Mozilla Firefox*)
+ * Database: optional (off by default)
+* Client: a fast and modern web browser (e.g. the latest *Mozilla Firefox*). Tested on:
+ * Firefox (latest version)
+ * Chromium (latest version)
+ * Internet Explorer 9
 
 Authors
 -------
