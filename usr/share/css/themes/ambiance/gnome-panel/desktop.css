@@ -113,34 +113,34 @@
 
 /* UBUNTU CURSORS */
 * {
-	cursor: url("usr/share/images/themes/ambiance/cursors/default.cur"), default;
+	cursor: url("usr/share/images/themes/adwaita/cursors/default.png"), default;
 }
 p, textarea, input[type="text"], input[type="password"],
 *::selection, *::-moz-selection, *::-webkit-selection, *::-o-selection {
-	cursor: url("usr/share/images/themes/ambiance/cursors/text.cur"), text;
+	cursor: url("usr/share/images/themes/adwaita/cursors/text.png"), text;
 }
 a, a * {
-	cursor: url("usr/share/images/themes/ambiance/cursors/pointer.cur"), pointer, hand;
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.png"), pointer, hand;
 }
 
 .cursor-default,.cursor-default * {
-	cursor: url("usr/share/images/themes/ambiance/cursors/default.cur"), default;
+	cursor: url("usr/share/images/themes/adwaita/cursors/default.png"), default;
 }
 
 .cursor-text, .cursor-text * {
-	cursor: url("usr/share/images/themes/ambiance/cursors/text.cur"), text;
+	cursor: url("usr/share/images/themes/adwaita/cursors/text.png"), text;
 }
 
 .cursor-pointer, .cursor-pointer * {
-	cursor: url("usr/share/images/themes/ambiance/cursors/pointer.cur"), pointer, hand;
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.png"), pointer, hand;
 }
 
 .cursor-wait, .cursor-wait * {
-	cursor: url("usr/share/images/themes/ambiance/cursors/wait.ani"), wait;
+	cursor: url("usr/share/images/themes/adwaita/cursors/wait.ani"), wait;
 }
 
 .cursor-move, .cursor-move * {
-	cursor: url("usr/share/images/themes/ambiance/cursors/move.cur"), move;
+	cursor: url("usr/share/images/themes/adwaita/cursors/move.png"), move;
 }
 
 .cursor-none, .cursor-none * {
