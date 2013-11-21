@@ -14,6 +14,12 @@ Webos.Observable.prototype = {
 	 */
 	_observers: [],
 	/**
+	 * The last observer ID.
+	 * @type {Number}
+	 * @private
+	 */
+	_lastObserver: -1,
+	/**
 	 * Listen to an event.
 	 * @param   {String}   event The event's name. Multiple events can be listened if a space-separated list of events is provided. Namespaces are supported too.
 	 * @param   {Function} fn    The callback which will be called when the event will be triggered.
@@ -28,17 +34,21 @@ Webos.Observable.prototype = {
 			eventsNames.push(events[i].split('.')[0]);
 		}
 
-		var listenerId = this._observers.push({
+		var listenerId = ++this._lastObserver;
+		this._observers.push({
 			fn: fn,
 			eventsNames: eventsNames,
-			events: events
-		}) - 1;
+			events: events,
+			id: listenerId
+		});
 
 		//Garbage collector
 		var garbageCollectorStopEvent = 'stop.garbagecollector.observable.webos';
 		if (Webos.Process && Webos.Process.current() && event != garbageCollectorStopEvent) {
 			Webos.Process.current().once(garbageCollectorStopEvent, function() {
-				that.off(event, fn);
+				setTimeout(function() {
+					that.off(listenerId);
+				}, 0);
 			});
 		}
 
@@ -83,7 +93,7 @@ Webos.Observable.prototype = {
 		if (typeof key == 'number') {
 			for (var i = 0; i < this._observers.length; i++) {
 				var el = this._observers[i];
-				if (key != i) {
+				if (key != el.id) {
 					observers.push(el);
 				}
 			}
