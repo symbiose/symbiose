@@ -22,7 +22,7 @@ Webos.UserInterface.prototype = {
 	hydrate: function (data) {
 		data = data || {};
 
-		data.default = (data.default) ? true : false;
+		data['default'] = (data['default']) ? true : false;
 
 		return Webos.Model.prototype.hydrate.call(this, data);
 	},
