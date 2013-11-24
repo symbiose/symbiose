@@ -67,8 +67,8 @@ Webos.Theme.prototype = {
 				.css('-ms-filter', '"progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bgImg+'\', sizingMethod=\'scale\')"');
 		}
 	},
-	_loadBackground: function() {
-		if (Webos.Theme._current) {
+	_loadBackground: function(forceLoading) {
+		if (Webos.Theme._current && forceLoading !== true) {
 			if (Webos.Theme._current.get('background') == this.get('background')) {
 				return;
 			}
@@ -140,10 +140,10 @@ Webos.Theme.prototype = {
 				if (that._unsynced[key].state === 2) {
 					that._data[key] = that._unsynced[key].value;
 					delete that._unsynced[key];
-					
+
 					switch (key) {
 						case 'background':
-							that._loadBackground();
+							that._loadBackground(true);
 							break;
 						case 'animations':
 							that._setAnimations();

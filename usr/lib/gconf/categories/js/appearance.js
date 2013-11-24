@@ -81,20 +81,26 @@ var changeBgFn = function(bg, name) {
 	
 	W.Theme.current().sync(new W.Callback(function() {
 		var path = Webos.File.get(bg).get('realpath');
-		new W.LoadImage({
-			images: path,
-			callback: function(data) {
-				confWindow.window('loading', false);
-				if (data.IsEnd) {
-					bgTitle.html(name);
-					background.attr('src', path);
-					//actualBgItem.iconsListItem('option', 'icon', path);
-				} else {
-					userCallback.error(data);
-					W.Error.trigger('Cannot load wallpaper');
-				}
-			}
-		});
+
+		var successCallback = function() {
+			confWindow.window('loading', false);
+
+			bgTitle.html(name);
+			background.attr('src', path);
+			//actualBgItem.iconsListItem('option', 'icon', path);
+			//callback.success();
+		};
+		var errorCallback = function() {
+			confWindow.window('loading', false);
+
+			//callback.error(W.ServerCall.Response.error('Cannot load wallpaper'));
+		};
+
+		var img = new Image();
+		img.onload = successCallback;
+		img.onerror = errorCallback;
+		img.onabort = errorCallback;
+		img.src = path;
 	}, function(response) {
 		confWindow.window('loading', false);
 		response.triggerError('Cannot change wallpaper');
