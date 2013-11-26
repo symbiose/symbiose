@@ -1440,36 +1440,41 @@ Webos.require([
 				ext = (nameArray.length > 1) ? nameArray.pop() : null;
 				filename = nameArray.join('.');
 			}
-			
-			var path;
-			do {
-				for (path in this.options._files) {
-					var file = this.options._files[path];
-					if (file.get('basename') == name) {
-						exists = true;
-						if (is_dir && ext) {
-							name = filename+' ('+i+').'+ext;
+
+			W.File.listDir(this.location(), [function(files) {
+				var path;
+				do {
+					
+					for (var index in files) {
+						var file = files[index];
+						if (file.get('basename') == name) {
+							exists = true;
+							if (is_dir && ext) {
+								name = filename+' ('+i+').'+ext;
+							} else {
+								name = originalName+' ('+i+')';
+							}
+							i++;
 						} else {
-							name = originalName+' ('+i+')';
+							exists = false;
 						}
-						i++;
-					} else {
-						exists = false;
 					}
+				} while (exists);
+				
+				path = that.location()+'/'+name;
+				
+				if (is_dir) {
+					W.File.createFolder(path, [function() {}, function(resp) {
+						that._handleResponseError(resp);
+					}]);
+				} else {
+					W.File.createFile(path, [function() {}, function(resp) {
+						that._handleResponseError(resp);
+					}]);
 				}
-			} while (exists);
-			
-			path = this.options.directory+'/'+name;
-			
-			if (is_dir) {
-				W.File.createFolder(path, [function() {}, function(resp) {
-					that._handleResponseError(resp);
-				}]);
-			} else {
-				W.File.createFile(path, [function() {}, function(resp) {
-					that._handleResponseError(resp);
-				}]);
-			}
+			}, function(resp) {
+				that._handleResponseError(resp);
+			}]);
 		},
 		getSelection: function() {
 			return this.items().filter('.active');
