@@ -10,6 +10,7 @@
  **/
 Webos.base64 = {
 	/**
+	 * String containing base64 chars.
 	 * @private
 	 */
 	_keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
@@ -17,7 +18,7 @@ Webos.base64 = {
 	/**
 	 * Encode a string to base64.
 	 * @param {String} input The string to encode.
-	 * @returns {String} The base64-encoded string.
+	 * @return {String} The base64-encoded string.
 	 */
 	encode: function (input) {
 		if (window.btoa) {
@@ -57,7 +58,7 @@ Webos.base64 = {
 	/**
 	 * Decode a base64-string.
 	 * @param {String} input The base64-encoded string.
-	 * @returns {String} The decoded string.
+	 * @return {String} The decoded string.
 	 */
 	decode: function (input) {
 		if (window.atob) {
@@ -156,13 +157,10 @@ Webos.base64 = {
 };
 
 /**
- * A file.
- * @param {Object} data The file's data.
- * @constructor
- * @augments {Webos.Model}
- * @since 1.0alpha1
- * @example
- * //Listing files in the user's home folder
+ * `Webos.File` represents a file.
+ * 
+ * Listing files in the user's home folder :
+ * ```js
  * W.File.listDir('~', [function(files) { //We want to list files in the home folder (which is "~")
  *    var list = 'Files : ';
  *    for (var i = 0; i < files.length; i++) { //For each file
@@ -173,10 +171,20 @@ Webos.base64 = {
  * }, function(response) { //An error occured
  *    response.triggerError('Cannot list files in folder');
  * }]);
+ * ```
+ * 
+ * @param {Object} data The file's data.
+ * @constructor
+ * @augments {Webos.Model}
+ * @since 1.0alpha1
  */
 Webos.File = function WFile(data) {
 	Webos.Model.call(this, data); //Inherits from Webos.Model
 };
+/**
+ * Webos.File's prototype.
+ * @namespace Webos.File
+ */
 Webos.File.prototype = {
 	/**
 	 * Update file's data, and complete automatically missing data.
@@ -372,7 +380,7 @@ Webos.File.prototype = {
 	/**
 	 * Write this file's content as text.
 	 * @param {String} contents The new content for this file.
-	 * @returns {Webos.ServerCall} The associated server call.
+	 * @return {Webos.ServerCall} The associated server call.
 	 * @private
 	 */
 	_writeAsText: function(contents) {
@@ -405,7 +413,7 @@ Webos.File.prototype = {
 	/**
 	 * Check if the user can execute a given action on this file.
 	 * @param {String} auth The name of the authorization. Can be "read" or "write".
-	 * @returns {Boolean} True if the user can execute the specified action, false otherwise.
+	 * @return {Boolean} True if the user can execute the specified action, false otherwise.
 	 */
 	can: function(auth) {
 		var attr = (auth == 'read') ? 'readable' : 'writable';
@@ -415,7 +423,7 @@ Webos.File.prototype = {
 	/**
 	 * Check if this file has a given label.
 	 * @param {String} label The label.
-	 * @returns {Boolean} True if the file has the given label, false otherwise.
+	 * @return {Boolean} True if the file has the given label, false otherwise.
 	 */
 	is: function(label) {
 		return (this._get('labels') && this._get('labels')[label]) ? true : false;
@@ -424,7 +432,7 @@ Webos.File.prototype = {
 	 * Check if the user can execute a given action on this file. Trigger an error if not.
 	 * @param {String} auth The name of the authorization. Can be "read" or "write".
 	 * @param {Webos.Callback} callback The callback.
-	 * @returns {Boolean} True if the user can execute the specified action, false otherwise.
+	 * @return {Boolean} True if the user can execute the specified action, false otherwise.
 	 */
 	checkAuthorization: function(auth, callback) {
 		if (!this.can(auth)) {
@@ -481,10 +489,10 @@ Webos.File._mountedDevices = {};
 
 /**
  * Get a file.
- * @param file The path to the file.
+ * @param {String|Webos.File} file The path to the file.
  * @param {Object} [data] The file's data.
  * @param {Boolean} [disableCache] If set to true, the file will not be stored in the cache.
- * @returns {Webos.File} The file.
+ * @return {Webos.File} The file.
  * @static
  */
 Webos.File.get = function(file, data, disableCache) {
@@ -532,7 +540,7 @@ Webos.File.get = function(file, data, disableCache) {
 
 /**
  * Load a file's metadata.
- * @param {String} path The path to the file.
+ * @param {String|Webos.File} path The path to the file.
  * @param {Webos.Callback} callback The callback.
  * @static
  */
@@ -581,7 +589,7 @@ Webos.File.load = function(path, callback) {
 
 /**
  * List a directory's files.
- * @param path The path to the directory.
+ * @param {String|Webos.File} path The path to the directory.
  * @param {Webos.Callback} callback The callback.
  * @static
  */
@@ -598,7 +606,7 @@ Webos.File.listDir = function(path, callback) {
 
 /**
  * Create an empty file.
- * @param path The path to the new file.
+ * @param {String|Webos.File} path The path to the new file.
  * @param {Webos.Callback} callback The callback.
  * @static
  */
@@ -633,7 +641,7 @@ Webos.File.createFile = function(path, callback) {
 
 /**
  * Create a new folder.
- * @param path The path to the new folder.
+ * @param {String|Webos.File} path The path to the new folder.
  * @param {Webos.Callback} callback The callback.
  * @static
  */
@@ -904,13 +912,17 @@ Webos.File.move = function(source, dest, callback) {
 /**
  * A search result item.
  * @param {object} data The result data.
- * @param {Webos.File} file The file.
+ * @param {String|Webos.File} file The file.
  */
 Webos.File.SearchResultItem = function(data, file) {
 	Webos.Model.call(this, data);
 
 	this._file = file;
 };
+/**
+ * Webos.File.SearchResultItem's prototype.
+ * @namespace Webos.File.SearchResultItem
+ */
 Webos.File.SearchResultItem.prototype = {
 	hydrate: function(data) {
 		return Webos.Model.prototype.hydrate.call(this, $.extend({
@@ -1018,8 +1030,8 @@ Webos.File.searchInCache = function() {};
 
 /**
  * Check if a file is in the cache.
- * @param {String} path The path to the file.
- * @returns {Boolean} True if the file is in the cache, false otherwise.
+ * @param {String|Webos.File} path The path to the file.
+ * @return {Boolean} True if the file is in the cache, false otherwise.
  * @static
  */
 Webos.File.isCached = function(path) {
@@ -1028,7 +1040,7 @@ Webos.File.isCached = function(path) {
 
 /**
  * Clear the cache.
- * @param {String} [path] If specified, only the corresponding file's cache will be cleared.
+ * @param {String|Webos.File} [path] If specified, only the corresponding file's cache will be cleared.
  * @param {Boolean} [clearParentCache] If set to true, the parent's cache will also be cleared.
  * @static
  */
@@ -1057,7 +1069,7 @@ Webos.File.clearCache = function(path, clearParentCache) {
 /**
  * Clean a path.
  * @param {String} path The path to clean.
- * @returns {String} The cleaned path.
+ * @return {String} The cleaned path.
  * @static
  */
 Webos.File.cleanPath = function(path) {
@@ -1073,7 +1085,7 @@ Webos.File.cleanPath = function(path) {
 /**
  * Convert a size in bytes to a human-readable file size (e.g. 1024 -> 1 Kio).
  * @param {Number} bytes The size to convert.
- * @returns {String} The converted size, followed by its unit.
+ * @return {String} The converted size, followed by its unit.
  * @static
  */
 Webos.File.bytesToSize = function(bytes) {
@@ -1099,10 +1111,14 @@ Webos.File.MountPoint = function WMountPoint(data, local) {
 	
 	this._local = local;
 };
+/**
+ * Webos.File.MountPoint's prototype.
+ * @namespace Webos.File.MountPoint
+ */
 Webos.File.MountPoint.prototype = {
 	/**
 	 * Get the local path.
-	 * @returns {String}
+	 * @return {String}
 	 */
 	local: function() {
 		return this._local;
@@ -1116,7 +1132,7 @@ Webos.File.MountPoint.prototype = {
 	},
 	/**
 	 * Get this mount point's data.
-	 * @returns {Object}
+	 * @return {Object}
 	 */
 	data: function() {
 		return this._data.data;
@@ -1124,7 +1140,7 @@ Webos.File.MountPoint.prototype = {
 	/**
 	 * Build a path relative to this mount point's local path from an absolute path.
 	 * @param {String} path The absolute path.
-	 * @returns {String} The path, relative to this mount point's local path.
+	 * @return {String} The path, relative to this mount point's local path.
 	 */
 	getRelativePath: function(path) {
 		return Webos.File.cleanPath(String(path).replace(this.get('local'), this.get('remote') + '/'));
@@ -1132,7 +1148,7 @@ Webos.File.MountPoint.prototype = {
 	/**
 	 * Build an absolute path from a path relative to this mount point's local path.
 	 * @param {String} path The path, relative to this mount point's local path.
-	 * @returns {String} The absolute path.
+	 * @return {String} The absolute path.
 	 */
 	getWebosPath: function(path) {
 		if (!this.get('remote')) {
@@ -1202,7 +1218,7 @@ Webos.File.mount = function(point, callback) {
 
 /**
  * Get a list of mounted devices.
- * @returns {Object} An object containing local paths and associated mount points.
+ * @return {Object} An object containing local paths and associated mount points.
  */
 Webos.File.mountedDevices = function() {
 	return Webos.File._mountedDevices;
@@ -1211,7 +1227,7 @@ Webos.File.mountedDevices = function() {
 /**
  * Get a specific mount point, giving its local path.
  * @param {String} local The mount point's local path.
- * @returns {Webos.File.MountPoint} point The mount point.
+ * @return {Webos.File.MountPoint} point The mount point.
  */
 Webos.File.getMountData = function(local) {
 	return Webos.File._mountedDevices[local];
@@ -1258,7 +1274,7 @@ Webos.File.registerDriver = function(driverName, data) {
 /**
  * Get a driver's data, giving its name.
  * @param {String} driverName The driver's name.
- * @returns {Object} data The driver's data.
+ * @return {Object} data The driver's data.
  */
 Webos.File.getDriverData = function(driverName) {
 	return Webos.File._drivers[driverName];
@@ -1274,6 +1290,10 @@ Webos.File.getDriverData = function(driverName) {
 Webos.WebosFile = function WWebosFile(data) {
 	Webos.File.call(this, data); //On appelle la classe parente
 };
+/**
+ * Webos.WebosFile's prototype.
+ * @namespace Webos.WebosFile
+ */
 Webos.WebosFile.prototype = {
 	hydrate: function(data) {
 		if (data.path) {
@@ -1601,6 +1621,10 @@ Webos.LocalFile = function WLocalFile(file) {
 	
 	Webos.File.call(this, data); //On appelle la classe parente
 };
+/**
+ * Webos.LocalFile's prototype.
+ * @namespace Webos.LocalFile
+ */
 Webos.LocalFile.prototype = {
 	realpath: function() {
 		if (!this._get('realpath')) {
