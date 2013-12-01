@@ -18,7 +18,21 @@ class ApiGroup extends \lib\Application {
 
 	public function run() {
 		$reqId = (int) $this->httpRequest->postData('id');
+		
 		$reqsData = json_decode($this->httpRequest->postData('data'), true);
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			//Try with stripslashes()
+			$reqsData = json_decode(stripslashes($this->httpRequest->postData('data')), true);
+
+			if (json_last_error() !== JSON_ERROR_NONE) {
+				$errMsg = '#'.json_last_error();
+				if (function_exists('json_last_error_msg')) {
+					$errMsg .= ' '.json_last_error_msg();
+				}
+
+				throw new \RuntimeException('Malformed JSON-encoded request ('.$errMsg.')', 400);
+			}
+		}
 
 		foreach($reqsData as $requestData) {
 			$apiCall = new Api();

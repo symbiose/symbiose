@@ -74,6 +74,20 @@ class Api extends \lib\Application {
 
 		if (is_string($moduleArgs)) {
 			$moduleArgs = json_decode(urldecode($moduleArgs), true);
+
+			if (json_last_error() !== JSON_ERROR_NONE) {
+				//Try with stripslashes()
+				$moduleArgs = json_decode(stripslashes(urldecode($moduleArgs)), true);
+
+				if (json_last_error() !== JSON_ERROR_NONE) {
+					$errMsg = '#'.json_last_error();
+					if (function_exists('json_last_error_msg')) {
+						$errMsg .= ' '.json_last_error_msg();
+					}
+
+					throw new \RuntimeException('Malformed JSON-encoded arguments ('.$errMsg.')', 400);
+				}
+			}
 		}
 
 		$controller = $this->getController();
