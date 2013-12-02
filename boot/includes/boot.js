@@ -3,6 +3,13 @@ $(function() { //When the window is ready
 		alert('Your web browser doesn\'t support ajax, the webos cannot start, please update it.');
 		return;
 	}
+
+	Webos.getQueryParam = function (name) {
+		name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+		var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+			results = regex.exec(location.search);
+		return (results === null) ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+	};
 	
 	//Load basic libraries
 	Webos.Script.load('boot/lib/inherit.js');
@@ -36,24 +43,17 @@ $(function() { //When the window is ready
 		var locationArray = actualLocation.split('/');
 		var page = locationArray.pop();
 
-		var getQueryParam = function (name) {
-			name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-			var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-			results = regex.exec(location.search);
-			return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-		};
-
 		//Is the UI to load specified ?
 		var ui = '';
 		if (/^[a-zA-Z0-9-_.]+\.html$/.test(page)) {
 			ui = page.replace(/^([a-zA-Z0-9-_.]+)\.html$/, '$1');
 		} else {
-			ui = getQueryParam('ui');
+			ui = Webos.getQueryParam('ui');
 		}
 
 		//Now we can load the UI
 		W.UserInterface.load(ui, function() {
-			var appToLaunchName = getQueryParam('app');
+			var appToLaunchName = Webos.getQueryParam('app');
 			if (appToLaunchName) {
 				Webos.require('/usr/lib/webos/applications.js', function() {
 					Webos.Application.get(appToLaunchName, [function(appToLaunch) {
