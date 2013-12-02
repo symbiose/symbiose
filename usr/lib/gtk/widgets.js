@@ -1780,7 +1780,6 @@ $.webos.textEntry = function(label, value) {
 };
 
 
-
 //CaptchaEntry
 $.webos.widget('captchaEntry', 'container', {
 	_name: 'captcha-entry',
@@ -1942,6 +1941,26 @@ $.webos.numberEntry = function(label, value, min, max) {
 		value: value,
 		min: min,
 		max: max
+	});
+};
+
+//EmailEntry
+$.webos.widget('emailEntry', 'checkableEntry', {
+	_name: 'email-entry',
+	_create: function() {
+		this._super('_create');
+		
+		this.options._content = $('<input />', { type: 'email' });
+		this.element.append(this.options._content);
+
+		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
+	}
+});
+$.webos.emailEntry = function(label, value) {
+	return $('<div></div>').emailEntry({
+		label: label,
+		value: value
 	});
 };
 
