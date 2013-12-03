@@ -68,7 +68,7 @@ Webos.Translation.load(function(t) {
 
 	var inputsContainer = $.w.container().css('margin-left', '48px').appendTo(form);
 
-	inputsContainer.append(t.get('Please enter your new password :'));
+	inputsContainer.append(t.get('Please enter your new password:'));
 
 	var emailInput = $.w.emailEntry(t.get('E-mail :')).appendTo(inputsContainer);
 	var keyInput = $.w.textEntry(t.get('Key :')).appendTo(inputsContainer);
@@ -81,8 +81,8 @@ Webos.Translation.load(function(t) {
 
 	inputsContainer.append('<br />');
 
-	var newPasswordInput = $.w.passwordEntry(t.get('New password :')).appendTo(inputsContainer);
-	var newPasswordConfirmInput = $.w.passwordEntry(t.get('Retype new password :')).appendTo(inputsContainer);
+	var newPasswordInput = $.w.passwordEntry(t.get('New password:')).appendTo(inputsContainer);
+	var newPasswordConfirmInput = $.w.passwordEntry(t.get('Retype new password:')).appendTo(inputsContainer);
 
 	var buttonContainer = $.w.buttonContainer().appendTo(form);
 	$.w.button(t.get('Cancel'))
