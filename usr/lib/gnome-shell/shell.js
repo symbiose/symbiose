@@ -477,6 +477,10 @@
 			
 			for (var key in list) {
 				(function(key, app) {
+					if (typeof app.get('hidden') != 'undefined' && parseInt(app.get('hidden')) == 1) {
+						return;
+					}
+
 					if (typeof app.get('menu') != 'undefined' && app.get('menu') == 'places') {
 						return;
 					}
