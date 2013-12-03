@@ -2,7 +2,9 @@
 namespace lib\ctrl\api;
 
 use \lib\entities\User;
-use lib\entities\UserAuthorization;
+use \lib\entities\UserAuthorization;
+use \lib\entities\UserToken;
+use \lib\entities\Email;
 
 /**
  * Manage users.
@@ -120,6 +122,31 @@ class UserController extends \lib\ApiBackController {
 		$autoEnable = $configData['autoEnable'];
 
 		return array('register' => $canRegister, 'autoEnable' => $autoEnable);
+	}
+
+	/**
+	 * Check if resetting password by e-mail is enabled.
+	 * @return array
+	 */
+	public function executeCanResetPassword() {
+		$manager = $this->managers()->getManagerOf('user');
+		$configManager = $this->managers()->getManagerOf('config');
+
+		$config = $configManager->open('/etc/email.json');
+		$configData = $config->read();
+
+		$mailEnabled = (isset($configData['enabled']) && $configData['enabled'] == true);
+		$resetPasswordEnabled = $mailEnabled;
+
+		$mailDelay = (isset($configData['delay']) && is_int($configData['delay'])) ? (int) $configData['delay'] : 120;
+
+		$mailFrom = $configData['from'];
+
+		return array(
+			'enabled' => $resetPasswordEnabled,
+			'delay' => $mailDelay,
+			'emailFrom' => $mailFrom
+		);
 	}
 
 	/**
@@ -513,5 +540,139 @@ class UserController extends \lib\ApiBackController {
 			'email' => $data['email'],
 			'disabled' => (isset($configData['autoEnable']) && $configData['autoEnable']) ? false : true
 		), $authorizations);
+	}
+
+	public function executeSendResetPasswordRequest($email, $webosUrl) {
+		$manager = $this->managers()->getManagerOf('user');
+		$emailManager = $this->managers()->getManagerOf('email');
+		$translationManager = $this->managers()->getManagerOf('translation');
+
+		$resetPasswordSettings = $this->executeCanResetPassword();
+		if (!$resetPasswordSettings['enabled']) {
+			throw new \RuntimeException('Resetting password by e-mail is currently disabled', 403);
+		}
+
+		$user = $manager->getByEmail($email);
+
+		if (empty($user)) {
+			throw new \RuntimeException('Cannot find user with e-mail "'.$email.'"', 404);
+		}
+
+		$userToken = $manager->getTokenByUser($user['id']);
+
+		$newTokenData = array(
+			'userId' => $user['id'],
+			'key' => sha1(mt_rand() . '42' . microtime()), //Generate token key
+			'timestamp' => time(),
+			'ip' => $_SERVER['REMOTE_ADDR']
+		);
+
+		if (!empty($userToken)) { //The user has already a token
+			if ($userToken['timestamp'] + $resetPasswordSettings['delay'] > $newTokenData['timestamp']) {
+				throw new \RuntimeException('Too many reset password requests were sent. Please try again later', 429);
+			}
+
+			$manager->deleteToken($userToken['id']);
+		}
+
+		//Create a new token
+		$userToken = new UserToken($newTokenData);
+		$manager->insertToken($userToken);
+
+		//Send an e-mail with token key
+		$dict = $translationManager->load('webos');
+
+		$parsedUrl = parse_url($webosUrl);
+		$query = 'app=gnome-reset-password&token_id='.$userToken['id'].'&token_key='.$newTokenData['key'];
+		if (!empty($parseUrl['query'])) {
+			$parsedUrl['query'] .= '&'.$query;
+		} else {
+			$parsedUrl['query'] = $query;
+		}
+		$resetPasswordUrl = unparse_url($parsedUrl);
+
+		$to = $user['email'];
+		$subject = $dict->get('${webos} password reset confirmation', array('webos' => 'Symbiose'));
+		$message = '<html><head><title>'.$subject.'</title></head><body>'.
+			'<p>'.$dict->get('Hi ${realname},', array('realname' => $user['realname'])).'</p>'.
+			'<p>'.$dict->get('You have recently let us know that you need to reset your password.  Please follow this link: ${link}', array('link' => '<a href="'.$resetPasswordUrl.'">'.$resetPasswordUrl.'</a>')).'<br />'.
+			$dict->get('(If clicking the link did not work, try copying and pasting it into your browser.)').'</p>'.
+			'<p>'.$dict->get('Alternatively, you can enter the following key:').'<br />'.
+			$newTokenData['key'].'</p>'.
+			'<p>'.$dict->get('If you did not request to reset your password, please disregard this message.').'</p>'.
+			'<p>'.$dict->get('Thanks,').'<br />'.
+			$dict->get('The ${webos} team', array('webos' => 'Symbiose')).'</p></body></html>';
+
+		$headers = 'MIME-Version: 1.0' . "\r\n";
+		$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+		$headers .= 'To: '.$to . "\r\n";
+		$headers .= 'From: '.$resetPasswordSettings['emailFrom'] . "\r\n";
+
+		$email = new Email(array(
+			'to' => $user['email'],
+			'subject' => $subject,
+			'message' => $message,
+			'headers' => $headers
+		));
+
+		try {
+			$emailManager->send($email);
+		} catch (\Exception $e) { //Mail not sent
+			//$manager->deleteToken($userToken['id']);
+			throw $e;
+		}
+	}
+
+	public function executeGetTokenByEmail($email) {
+		$manager = $this->managers()->getManagerOf('user');
+
+		//Get user
+		$user = $manager->getByEmail($email);
+
+		if (empty($user)) {
+			throw new \RuntimeException('Cannot find user with e-mail "'.$email.'"', 404);
+		}
+
+		//Get token
+		$userToken = $manager->getTokenByUser($user['id']);
+
+		if (empty($userToken)) {
+			throw new \RuntimeException('Cannot find token with user id "'.$user['id'].'"', 404);
+		}
+
+		return array('id' => $userToken['id']);
+	}
+
+	public function executeResetPassword($tokenId, $key, $newPassword) {
+		$manager = $this->managers()->getManagerOf('user');
+
+		//Get token
+		$userToken = $manager->getToken($tokenId);
+
+		if (empty($userToken)) {
+			throw new \RuntimeException('This token may have expired : cannot find token with id "'.$tokenId.'"', 404);
+		}
+
+		//Check token key
+		if ($userToken['key'] != $key) {
+			sleep(3); //Pause script for 3s to prevent bruteforce attacks
+			throw new \RuntimeException('Invalid token key "'.$key.'"', 403);
+		}
+
+		//Get user
+		$user = $manager->getById($userToken['userId']);
+
+		if (empty($user)) {
+			throw new \RuntimeException('Cannot find user with id "'.$userToken['userId'].'"', 404);
+		}
+
+		//Change password
+		$user['password'] = $manager->hashPassword($newPassword);
+
+		//Update user data
+		$manager->update($user);
+
+		//Delete token
+		$manager->deleteToken($userToken['id']);
 	}
 }

@@ -49,6 +49,20 @@ abstract class UserManager extends \lib\Manager {
 	 */
 	abstract public function usernameExists($username);
 
+	/**
+	 * Get a user, giving his e-mail.
+	 * @param  string $email The e-mail.
+	 * @return User          The user.
+	 */
+	abstract public function getByEmail($email);
+
+	/**
+	 * Check if an e-mail is already registred.
+	 * @param  string  $email The e-mail.
+	 * @return boolean        True if the e-mail is already registered, false otherwise.
+	 */
+	abstract public function emailExists($email);
+
 	// SETTERS
 
 	/**

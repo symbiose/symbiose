@@ -69,5 +69,9 @@
 			"permission":"user.manage"
 		}
 	],
-	"executeRegister":[]
+	"executeRegister":[],
+	"executeCanResetPassword":[],
+	"executeSendResetPasswordRequest":[],
+	"executeGetTokenByEmail":[],
+	"executeResetPassword":[]
 }

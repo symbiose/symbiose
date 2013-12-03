@@ -551,7 +551,7 @@ Webos.User.register = function(data, captchaData, callback) {
 
 /**
  * Is the user able to register ?
- * @var {Boolean}
+ * @var {Object}
  * @private
  */
 Webos.User._registerSettings = null;
@@ -571,10 +571,102 @@ Webos.User.canRegister = function(callback) {
 	return new Webos.ServerCall({
 		'class': 'UserController',
 		'method': 'canRegister'
-	}).load(new Webos.Callback(function(response) {
+	}).load([function(response) {
 		Webos.User._registerSettings = response.getData();
 		callback.success(Webos.User._registerSettings);
-	}, callback.error));
+	}, callback.error]);
+};
+
+/**
+ * Is the user able to reset his password ?
+ * @var {Object}
+ * @private
+ */
+Webos.User._resetPasswordSettings = null;
+
+/**
+ * Check if resetting password by e-mail is enabled.
+ * @param {Webos.Callback} callback The callback.
+ */
+Webos.User.canResetPassword = function(callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	if (Webos.User._resetPasswordSettings !== null) {
+		callback.success(Webos.User._resetPasswordSettings);
+		return;
+	}
+
+	return new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'canResetPassword'
+	}).load([function(resp) {
+		Webos.User._resetPasswordSettings = resp.getData();
+		callback.success(Webos.User._resetPasswordSettings);
+	}, callback.error]);
+};
+
+/**
+ * Send a request to reset password by e-mail.
+ * @param  {string}   email           The user's e-mail.
+ * @param  {Webos.Callback}  callback The callback.
+ * @return {Webos.Operation}          The operation.
+ */
+Webos.User.sendResetPasswordRequest = function (email, callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	return new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'sendResetPasswordRequest',
+		'arguments': {
+			'email': email,
+			'webosUrl': window.location.href
+		}
+	}).load([function(resp) {
+		callback.success();
+	}, callback.error]);
+};
+
+/**
+ * Get a token by e-mail.
+ * @param  {string}          email    The e-mail.
+ * @param  {Webos.Callback}  callback The callback.
+ * @return {Webos.Operation}          The operation.
+ */
+Webos.User.getTokenByEmail = function (email, callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	return new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'getTokenByEmail',
+		'arguments': {
+			'email': email
+		}
+	}).load([function(resp) {
+		callback.success(resp.getData());
+	}, callback.error]);
+};
+
+/**
+ * Reset the user's password.
+ * @param  {number}          tokenId  The token id.
+ * @param  {string}          key      The key which was sent to the user by e-mail.
+ * @param  {Webos.Callback}  callback The callback.
+ * @return {Webos.Operation}          The operation.
+ */
+Webos.User.resetPassword = function (tokenId, key, newPassword, callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	return new Webos.ServerCall({
+		'class': 'UserController',
+		'method': 'resetPassword',
+		'arguments': {
+			'tokenId': tokenId,
+			'key': key,
+			'newPassword': newPassword
+		}
+	}).load([function(resp) {
+		callback.success();
+	}, callback.error]);
 };
 
 /**
