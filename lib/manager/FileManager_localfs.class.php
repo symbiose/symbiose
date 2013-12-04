@@ -170,6 +170,10 @@ class FileManager_localfs extends FileManager {
 		return $this->dao()->extension($path);
 	}
 
+	public function filename($path) {
+		return $this->dao()->filename($path);
+	}
+
 	public function size($path, $recursive = false) {
 		return $this->dao()->size($path, $recursive);
 	}

@@ -13,9 +13,11 @@ return array(
     'React\\Socket' => array($vendorDir . '/react/socket'),
     'React\\EventLoop' => array($vendorDir . '/react/event-loop'),
     'Ratchet' => array($vendorDir . '/cboden/ratchet/src'),
+    'JSMinPlus' => array($vendorDir . '/nitra/php-min', $vendorDir . '/nitra/php-min/JSMinPlus'),
     'Guzzle\\Stream' => array($vendorDir . '/guzzle/stream'),
     'Guzzle\\Parser' => array($vendorDir . '/guzzle/parser'),
     'Guzzle\\Http' => array($vendorDir . '/guzzle/http'),
     'Guzzle\\Common' => array($vendorDir . '/guzzle/common'),
     'Evenement' => array($vendorDir . '/evenement/evenement/src'),
+    'CssMin' => array($vendorDir . '/nitra/php-min/CssMin'),
 );

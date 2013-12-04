@@ -89,7 +89,7 @@ Webos.Error.setErrorHandler(function(error) {
 	});
 });
 
-W.ServerCall.one('complete', function() {
+Webos.Theme.once('load', function() {
 	resizeDesktopFn();
 	W.UserInterface.Booter.current().finishLoading();
 });

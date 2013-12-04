@@ -1484,6 +1484,34 @@ Webos.WebosFile.prototype = {
 			callback.success(contents);
 		}, callback.error]);
 	},
+	readMinified: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+
+		if (this.get('is_dir')) {
+			this._unsupportedMethod(callback);
+			return;
+		}
+		
+		if (!this.checkAuthorization('read', callback)) {
+			return false;
+		}
+
+		return new Webos.ServerCall({
+			'class': 'FileController',
+			method: 'getMinified',
+			arguments: {
+				file: that.get('path')
+			}
+		}).load([function(response) {
+			that.hydrate({
+				is_dir: false
+			});
+			
+			var contents = response.getStandardChannel();
+			callback.success(contents);
+		}, callback.error]);
+	},
 	_writeAsText: function(contents) {
 		var that = this;
 		

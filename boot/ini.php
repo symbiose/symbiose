@@ -141,4 +141,4 @@ function fatalErrorHandler() {
 register_shutdown_function('fatalErrorHandler');
 
 //Composer
-require(dirname(__DIR__) . '/lib/vendor/autoload.php');
+$loader = require(dirname(__DIR__) . '/lib/vendor/autoload.php');

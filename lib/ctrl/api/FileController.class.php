@@ -52,6 +52,38 @@ class FileController extends \lib\ApiBackController {
 	}
 
 	/**
+	 * Get a file's content, minified.
+	 * @param  string $path The file path.
+	 * @return string       The file's content, minified.
+	 */
+	public function executeGetMinified($path) {
+		$manager = $this->managers()->getManagerOf('file');
+
+		if (!$manager->exists($path)) {
+			throw new \RuntimeException('"'.$path.'" : no such file or directory', 404);
+		}
+
+		$out = $manager->read($path);
+
+		if ($manager->extension($manager->filename($path)) != 'min' && false) {
+			$ext = $manager->extension($path);
+			switch ($ext) {
+				case 'js':
+					$out = \JSMinPlus::minify($out);
+					break;
+				case 'css':
+					$minifier = new \CssMin();
+					$out = $minifier->minify($out);
+					break;
+				default:
+					throw new \RuntimeException('Cannot minify "'.$path.'" : unsupported file type', 406);
+			}
+		}
+
+		$this->responseContent->setChannel(1, $out);
+	}
+
+	/**
 	 * Get a file's metadata.
 	 * @param  string $path The file's path.
 	 * @return array        The file's metadata.

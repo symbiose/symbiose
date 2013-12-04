@@ -16,6 +16,10 @@
 		"vendor-dir":"lib/vendor"
 	},
 	"require": {
-		"cboden/Ratchet": "0.3.*"
+		"cboden/Ratchet": "0.3.*",
+		"nitra/php-min": "dev-master"
+	},
+	"autoload": {
+		"psr-0": {"JSMinPlus": "lib/vendor/nitra/php-min"}
 	}
 }

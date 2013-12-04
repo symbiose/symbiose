@@ -235,6 +235,15 @@ class LocalFs {
 	}
 
 	/**
+	 * Get a file's name (without extension).
+	 * @param  string $path The file path.
+	 * @return string       The file's name.
+	 */
+	public function filename($path) {
+		return $this->pathinfo($path, PATHINFO_FILENAME);
+	}
+
+	/**
 	 * Get a file's size.
 	 * @param  string  $path      The file path.
 	 * @param  boolean $recursive If set to true and the file is a directory, returns the directory's content size (sum of all contained files).

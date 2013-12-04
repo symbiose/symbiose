@@ -40,6 +40,8 @@ Webos.Theme.prototype = {
 			that._loadBackground();
 			Webos.Theme._current = that;
 			callback.success();
+			that.trigger('load');
+			Webos.Theme.trigger('load', { theme: that });
 		}, callback.error));
 	},
 	applyBackgroundOn: function(el) {
@@ -158,6 +160,8 @@ Webos.Theme.prototype = {
 	}
 };
 Webos.inherit(Webos.Theme, Webos.Model);
+
+Webos.Observable.build(Webos.Theme);
 
 
 Webos.Theme._current = null;

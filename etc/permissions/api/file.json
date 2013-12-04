@@ -11,6 +11,12 @@
 			"permission":"file.read"
 		}
 	],
+	"executeGetMinified":[
+		{
+			"argument":0,
+			"permission":"file.read"
+		}
+	],
 	"executeReadDir":[
 		{
 			"argument":0,
