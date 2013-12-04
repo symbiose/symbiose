@@ -7,10 +7,18 @@ Webos.require('/usr/lib/gnome-screensaver/webos.js', function() {
 	if (lockScreen) {
 		if (activate) {
 			GnomeScreenSaver.lock();
+			GnomeScreenSaver.once('unlock', function() {
+				that.stop();
+			});
 		}
 	} else {
 		GnomeScreenSaver.setStatus(activate);
+		if (activate) {
+			GnomeScreenSaver.once('deactivate', function() {
+				that.stop();
+			});
+		} else {
+			that.stop();
+		}
 	}
-
-	that.stop();
 });

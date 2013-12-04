@@ -154,8 +154,8 @@ Webos.Translation.load = function (callback, path, locale) {
 			callback.success(new Webos.Translation());
 			return;
 		}
-		
-		file.contents([function(contents) {
+
+		file.readAsText([function(contents) {
 			callback.success(new Webos.Translation(Webos.Translation.parse(contents)));
 		}, function(response) {
 			callback.success(new Webos.Translation());

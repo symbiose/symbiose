@@ -40,10 +40,12 @@ Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
 				})
 				.appendTo(booter.element())
 				.fadeIn();
+			GnomeScreenSaver.trigger('activate');
 		} else { //Desactivate the screensaver
 			GnomeScreenSaver._$screensaver.stop().fadeOut('fast', function() {
 				$(this).remove();
 			});
+			GnomeScreenSaver.trigger('deactivate');
 		}
 
 		GnomeScreenSaver._status = value;
@@ -193,6 +195,7 @@ Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
 		}, 'gnome-screensaver');
 
 		GnomeScreenSaver._locked = true;
+		GnomeScreenSaver.trigger('lock');
 	};
 	GnomeScreenSaver._unlock = function() {
 		if (!GnomeScreenSaver.locked()) {
@@ -206,6 +209,7 @@ Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
 		clearInterval(GnomeScreenSaver._screenlockerClockInterval);
 
 		GnomeScreenSaver._locked = false;
+		GnomeScreenSaver.trigger('unlock');
 	};
 
 	GnomeScreenSaver.autoActivate = function $_GnomeScreenSaver_autoActivate(time, lock, lockTime) {
@@ -270,6 +274,8 @@ Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
 			callback.success();
 		}, callback.error]);
 	};
+
+	Webos.Observable.build(GnomeScreenSaver);
 
 	window.GnomeScreenSaver = GnomeScreenSaver; //Export library
 });
