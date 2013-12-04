@@ -1,7 +1,7 @@
 {
   "name": "Symbiose",
   "description": "Symbiose, a free and flexible webos.",
-  "version":"1.0beta3",
+  "version":"1.0beta4",
   "launch_path": "/",
   "icons": {
     "128": "/usr/share/images/distributor/logo-128.png",
