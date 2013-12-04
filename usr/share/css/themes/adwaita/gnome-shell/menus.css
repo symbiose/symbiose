@@ -90,7 +90,7 @@ ul.menu li,
 }
 ul.menu li {
 	height: 20px;
-	padding: 3px 0 2px 4px;
+	padding: 3px 4px 2px 4px;
 }
 .webos-menuwindowheader .webos-menuitem {
 	padding: 3px 0 2px 0;
@@ -197,9 +197,27 @@ ul.menu .arrow,
 	float: right;
 }
 
+.menu-container {
+	display: inline-block;
+}
+.menu-container.menu-container-left {
+	float:left;
+}
+.menu-container.menu-container-left .menu li {
+	display:block;
+	float:left;
+}
+.menu-container.menu-container-right {
+	float:right;
+}
+.menu-container.menu-container-center {
+	display:block;
+	margin:auto;
+}
 ul.menu > li,
 .webos-menuwindowheader > .webos-menuitem {
-	float: left;
+	/*float: left;*/
+	display: inline-block;
 }
 ul.menu > li > a {
 	margin: 0;

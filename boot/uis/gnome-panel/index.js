@@ -57,6 +57,9 @@ Webos.Error.setErrorHandler(function(error) {
 	errorWindow.window('open');
 });
 
+//On initialise les tableaux de bord
+Webos.Dashboard.init();
+
 W.ServerCall.one('complete', function() {
 	resizeDesktopFn();
 	W.UserInterface.Booter.current().finishLoading();

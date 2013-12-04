@@ -180,7 +180,7 @@ body {
 	position: absolute;
 }
 
-#header {
+#header, .desktop-bar {
 	background-color: black;
 	width: 100%;
 	height: 26px;
@@ -190,7 +190,7 @@ body {
 	left: 0;
 	z-index: 2000;
 	top: 0px;
-	border-bottom: 1px solid #526070;
+	border-bottom: 1px solid black;
 }
 
 #desktop {
@@ -420,6 +420,7 @@ body {
 	-webkit-border-radius: 14px;
 	border-radius: 14px;
 	outline: none;
+	transition-duration: 0.5s;
 }
 #shell .search-entry.active {
 	border-color: #888a85;
@@ -429,6 +430,22 @@ body {
 }
 #shell .search-entry:focus {
 	font-weight: bold;
+}
+#shell .search-entry::-webkit-input-placeholder {
+	font-weight: normal;
+	color: #7f7f7f;
+}
+#shell .search-entry:-moz-placeholder {
+	font-weight: normal;
+	color: #7f7f7f;
+}
+#shell .search-entry:focus::-moz-placeholder {
+	font-weight: normal;
+	color: #7f7f7f;
+}
+#shell .search-entry:-ms-input-placeholder {
+	font-weight: normal;
+	color: #7f7f7f;
 }
 
 #shell .shortcuts {
@@ -501,7 +518,6 @@ body {
 
 #shell .workspaces {
 	height: 85%;
-	width: 165px;
 	padding: 6px;
 	border-right: none;
 	-moz-border-radius: 7px 0 0 7px;
@@ -526,7 +542,7 @@ body {
 }
 
 .webos-nautilus ul.icons li.active span.filename {
-	background-color: #4a90d9;
+	background-color: #4a90d9 !important;
 	color: white;
 	-moz-border-radius: 2px;
 	-webkit-border-radius: 2px;

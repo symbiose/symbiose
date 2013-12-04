@@ -16,8 +16,6 @@
 		<file path="/usr/lib/compiz/reviver.js"/>
 
 		<file path="/usr/lib/gnome/widgets.js"/>
-		<file path="/usr/lib/gnome/dashboard.js"/>
-		<file path="/usr/lib/gnome/messages.js"/>
 		<file path="/usr/lib/gnome/jquery.scrollto.js"/>
 
 		<file path="/usr/lib/gnome-shell/menus.js"/>
@@ -29,5 +27,7 @@
 		
 		<file path="/usr/lib/nautilus/nautilus.js"/>
 		<file path="/usr/lib/gnome-screensaver/webos.js"/>
+
+		<file path="/usr/lib/gnome-shell/shell.js"/>
 	</includes>
 </userinterface>

@@ -82,6 +82,3 @@ Webos.Translation.load(function(t) {
 
 	reviveSession();
 }, 'gnome-shell');
-
-//On initialise les tableaux de bord
-Webos.Dashboard.init();

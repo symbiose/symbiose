@@ -1,17 +1,14 @@
-(function() {
+Webos.require([
+	'/usr/lib/webos/applications.js',
+	'/usr/lib/html2canvas/html2canvas.min.js',
+	'/usr/lib/html2canvas/jquery.html2canvas.js'
+], function() {
 	if (window.Shell) {
 		if ($('#shell') != Shell._$shell) {
 			Shell.reload();
 		}
 		return;
 	}
-
-	//On charge les bibliotheques
-	W.ScriptFile.load(
-		'/usr/lib/webos/applications.js',
-		'/usr/lib/html2canvas/html2canvas.min.js',
-		'/usr/lib/html2canvas/jquery.html2canvas.js'
-	);
 
 	/**
 	 * Shell est la bibliotheque du Shell.
@@ -1002,6 +999,71 @@
 			}
 			
 			var that = this;
+
+			//Menu "activites"
+			$activitiesMenu = $('#shell-activitiesmenu');
+			$appMenu = $('#shell-appmenu');
+			this.on('show', function() {
+				$appMenu.hide();
+				$activitiesMenu.addClass('hover');
+			});
+			this.on('hide', function() {
+				$appMenu.show();
+				$activitiesMenu.removeClass('hover');
+			});
+
+			var mouseEntered = false, shellToggled = false;
+			$activitiesMenu.click(function(e) {
+				that.toggle();
+
+				e.stopPropagation();
+				e.preventDefault();
+			}).mouseenter(function(e) {
+				mouseEntered = !(e.pageX == 0 && e.pageY == 0);
+				
+				if (e.pageY != 0) {
+					shellToggled = false;
+				}
+			}).mousemove(function(e) {
+				if (mouseEntered && !shellToggled && e.pageX < 10 && e.pageY < 10) {
+					if (!$($.webos.window.getActive()).is('.dragging')) {
+						that.toggle();
+						shellToggled = true;
+					}
+				}
+			});
+
+			//Calendar
+			var $calendar = $('#shell-calendar');
+			var $dateBox = $calendar.find('a');
+			var showTime = function() {
+				var locale = Webos.Locale.current();
+				
+				var theDate = locale.dateAbbreviation(new Date()) + ', ' + locale.time(new Date());
+				
+				$dateBox.html(theDate);
+			};
+			
+			setTimeout(function() { //Quand la minute actuelle est passee
+				setInterval(function() { //On rafraichit l'heure toutes les minutes
+					showTime();
+				}, 60000);
+				
+				showTime();
+			}, (60 - new Date().getSeconds()) * 1000);
+			
+			Webos.Locale.bind('change', function() { //Lors du changement des preferences de localisation, on rafraichit l'heure
+				showTime();
+			});
+			
+			showTime(); //On affiche l'heure
+
+			//"Memenu"
+			var $memenu = $('#shell-memenu');
+			var $memenuUser = $memenu.find('.memenu-username');
+			$('<img src="'+new W.Icon('status/avatar-default-symbolic').realpath(16)+'" class="icon" style="margin-right: 3px;"/>').appendTo($memenuUser);
+			var $memenuUsername = $('<span></span>').html('User').appendTo($memenuUser);
+			var $memenuSubmenu = $memenu.find('.memenu-submenu');
 			
 			//On redimentionne le Shell lorsque la fenetre l'est
 			$(window).bind('resize', function(e) {
@@ -1094,10 +1156,197 @@
 			//On charge les traductions
 			Webos.Translation.load(function(t) {
 				that._translations = t;
-				
+
+				$activitiesMenu.find('a').html(t.get('Activities'));
 				that._$searchEntry.attr('placeholder', t.get('Search...'));
 				that._$shell.find('.mode li.windows').html(t.get('Windows'));
 				that._$shell.find('.mode li.applications').html(t.get('Applications'));
+
+				var appMenuWindow = $();
+				$(document).bind('windowopen windowtoforeground', function(event, ui) {
+					var thisWindow = $(ui.window);
+					if (typeof thisWindow.window('option', 'parentWindow') != 'undefined' && thisWindow.window('option', 'parentWindow').length > 0) {
+						thisWindow = thisWindow.window('option', 'parentWindow');
+					}
+					
+					if (typeof appMenuWindow != 'undefined' && thisWindow.window('id') == appMenuWindow.window('id')) {
+						return;
+					}
+					
+					$appMenu.empty();
+					var $appMenuTitle = $('<a></a>', { href: '#' }).appendTo($appMenu);
+					var $iconContainer = $('<span></span>', { 'class': 'icon-container' }).appendTo($appMenuTitle);
+					$('<img />', { src: thisWindow.window('option', 'icon').realpath(48), alt: '', 'class': 'icon' }).appendTo($iconContainer);
+					$('<span></span>', { 'class': 'icon-overlay' }).appendTo($iconContainer);
+					var loadingImg = $('<div></div>', { 'class': 'loading' }).appendTo($appMenuTitle);
+					var $title = $('<span></span>', { 'class': 'title' }).html(thisWindow.window('option', 'title')).appendTo($appMenuTitle);
+					$appMenuContent = $('<ul></ul>').appendTo($appMenu);
+					var $quitItem = $('<li>'+t.get('Quit ${app}', { app: thisWindow.window('option', 'title') })+'</li>').click(function() {
+						thisWindow.window('close');
+					}).appendTo($appMenuContent);
+					
+					if (!thisWindow.window('is', 'loading')) {
+						loadingImg.hide();
+					}
+					
+					var loadingStartHandler = function() {
+						loadingImg.show();
+					};
+					var loadingStopHandler = function() {
+						loadingImg.hide();
+					};
+					var changeTitleHandler = function() {
+						$title.html(thisWindow.window('option', 'title'));
+						$quitItem.html(t.get('Quit ${app}', { app: thisWindow.window('option', 'title') }));
+					};
+					thisWindow
+						.bind('windowloadingstart', loadingStartHandler)
+						.bind('windowloadingstop', loadingStopHandler)
+						.bind('windowchangetitle', changeTitleHandler)
+						.one('windowclose windowtobackground', function() {
+							thisWindow
+								.unbind('windowloadingstart', loadingStartHandler)
+								.unbind('windowloadingstop', loadingStopHandler)
+								.unbind('windowchangetitle', changeTitleHandler);
+						});
+					
+					appMenuWindow = thisWindow;
+				}).bind('windowclose windowtobackground', function(event, ui) {
+					if (ui.window.is(appMenuWindow)) {
+						$appMenu.empty();
+						appMenuWindow = undefined;
+					}
+				});
+
+				//"Memenu"
+				$memenuUsername.html(t.get('User'));
+
+				var firstRun = true;
+				var generateMenu = function(user) {
+					$memenuSubmenu.empty();
+					
+					var realname = t.get('Guest');
+					if (typeof user != 'undefined') {
+						realname = user.get('realname');
+						user.bind('update', function(data) {
+							if (data.key == 'realname') {
+								$memenuUsername.text(data.value);
+							}
+						});
+					} else {
+						$('<li>'+t.get('Login...')+'</li>').click(function() {
+							W.Cmd.execute('gnome-login');
+						}).appendTo($memenuSubmenu);
+						var registerMenuItem = $('<li>'+t.get('Register')+'</li>').click(function() {
+							W.Cmd.execute('gnome-register');
+						}).hide().appendTo($memenuSubmenu);
+						$('<li></li>', { 'class': 'separator' }).appendTo($memenuSubmenu);
+						
+						Webos.User.canRegister(function(registerSettings) {
+							var notificationsButtons = [
+								$.w.button(t.get('Register')).click(function() { W.Cmd.execute('gnome-register'); }),
+								$.w.button(t.get('Login...')).click(function() { W.Cmd.execute('gnome-login'); })
+							];
+							if (registerSettings.register) {
+								registerMenuItem.show();
+							} else {
+								notificationsButtons = [notificationsButtons[1]];
+							}
+							
+							$.w.notification({
+								title: t.get('Welcome to ${webos} !', { webos: Webos.name }),
+								message: t.get('To access your documents please login.'),
+								icon: '/usr/share/images/distributor/logo-48.png',
+								widgets: notificationsButtons
+							});
+						});
+					}
+
+					if (Webos.fullscreen.support) {
+						var toggleFullScreenItem = $('<li></li>');
+						
+						var updateFullScreenItemFn = function() {
+							if (Webos.fullscreen.isFullScreen()) {
+								toggleFullScreenItem.html(t.get('Exit fullscreen mode'));
+							} else {
+								toggleFullScreenItem.html(t.get('Enter fullscreen mode'));
+							}
+						};
+						
+						toggleFullScreenItem.click(function() {
+							if (Webos.fullscreen.isFullScreen()) {
+								Webos.fullscreen.cancel();
+							} else {
+								$('body').requestFullScreen();
+							}
+							updateFullScreenItemFn();
+						}).appendTo($memenuSubmenu);
+						$('<li></li>', { 'class': 'separator' }).appendTo($memenuSubmenu);
+						
+						$(document).bind(Webos.fullscreen.eventName, function() {
+							updateFullScreenItemFn();
+						});
+						
+						updateFullScreenItemFn();
+					}
+
+					if (typeof user != 'undefined') {
+						var powerBtns = $('<li></li>').addClass('rounded-btns').appendTo($memenuSubmenu);
+						$('<span></span>')
+							.append($.w.icon('actions/preferences-system-symbolic'))
+							.addClass('btn')
+							.attr('title', t.get('System settings'))
+							.click(function() {
+								W.Cmd.execute('gconf');
+							})
+							.appendTo(powerBtns);
+						$('<span></span>')
+							.append($.w.icon('actions/lock-symbolic'))
+							.addClass('btn')
+							.attr('title', t.get('Lock'))
+							.click(function() {
+								W.Cmd.execute('gnome-screensaver -l');
+							})
+							.appendTo(powerBtns);
+						$('<span></span>')
+							.append($.w.icon('actions/system-shutdown-symbolic'))
+							.addClass('btn')
+							.attr('title', t.get('Logout...'))
+							.click(function() {
+								W.Cmd.execute('gnome-logout');
+							})
+							.appendTo(powerBtns);
+					} else {
+						$('<li>'+t.get('Lock')+'</li>').click(function() {
+							W.Cmd.execute('gnome-screensaver -l');
+						}).appendTo($memenuSubmenu);
+						$('<li>'+t.get('Restart')+'</li>').click(function() {
+							W.Cmd.execute('gnome-reboot');
+						}).appendTo($memenuSubmenu);
+					}
+
+					if (!firstRun) {
+						$memenuUsername.animate({
+							opacity: 0
+						}, 'normal', function() {
+							$memenuUsername.text(realname);
+							$memenuUsername.animate({
+								opacity: 1
+							});
+						});
+					} else {
+						$memenuUsername.text(realname);
+						firstRun = false;
+					}
+				};
+
+				W.User.get(new W.Callback(function(user) {
+					generateMenu(user);
+				}, function() {}));
+
+				Webos.User.on('login.launcher.shell.gnome.webos logout.launcher.shell.gnome.webos', function(data) {
+					generateMenu(data.user);
+				});
 				
 				var insertEl = $('<li></li>', { 'class': 'insert' }), dragIndex = null;
 				that._$launcher.droppable({
@@ -1189,6 +1438,9 @@
 			
 			this._initialized = true; //On marque le Shell comme initialise
 		},
+		destroy: function() {
+			Webos.User.off('login.launcher.shell.gnome.webos logout.launcher.shell.gnome.webos');
+		},
 		reload: function() {
 			this._$shell = $('#shell');
 			this._$launcher = $('#shell .launcher');
@@ -1202,8 +1454,8 @@
 			this.init();
 		}
 	};
-	
+
 	Webos.Observable.build(Shell); //On rend le Shell observable
-	
+
 	Shell.init(); //On initialise le Shell
-})();
+});

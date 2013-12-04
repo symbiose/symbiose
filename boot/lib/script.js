@@ -165,7 +165,8 @@ function include(path, args, thisObj) {
 Webos.require = function Wrequire(files, callback, options) {
 	callback = Webos.Callback.toCallback(callback);
 	options = $.extend({
-		styleContainer: null
+		styleContainer: null,
+		exportApis: []
 	}, options);
 
 	if (!files) { //No file to load
@@ -206,6 +207,16 @@ Webos.require = function Wrequire(files, callback, options) {
 					var previousFile = Webos.require._currentFile;
 					Webos.require._stacks[file.get('path')] = [];
 					Webos.require._currentFile = file.get('path');
+
+					if (typeof options.exportApis != 'undefined') {
+						var exportApiCode = '';
+						for (var i = 0; i < options.exportApis.length; i++) {
+							var apiName = options.exportApis[i];
+							exportApiCode += 'if (typeof '+apiName+' != "undefined") { window.'+apiName+' = '+apiName+'; }\n';
+						}
+
+						contents += '\n'+exportApiCode;
+					}
 
 					try {
 						var fn = new Function(contents);

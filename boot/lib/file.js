@@ -1376,7 +1376,7 @@ Webos.WebosFile.prototype = {
 	readAsText: function(callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
-		
+
 		if (!this.checkAuthorization('read', callback)) {
 			return false;
 		}
@@ -1385,7 +1385,7 @@ Webos.WebosFile.prototype = {
 			callback.success(this._contents);
 			return;
 		}
-		
+
 		return new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'getContents',

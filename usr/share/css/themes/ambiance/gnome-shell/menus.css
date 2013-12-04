@@ -73,6 +73,23 @@ ul.menu li {
 	height: 20px;
 }
 
+.menu-container {
+	display: inline-block;
+}
+.menu-container.menu-container-left {
+	float:left;
+}
+.menu-container.menu-container-left .menu li {
+	display:block;
+	float:left;
+}
+.menu-container.menu-container-right {
+	float:right;
+}
+.menu-container.menu-container-center {
+	display:block;
+	margin:auto;
+}
 ul.menu li a {
 	text-decoration: none; /* on supprime le style par défaut des liens (la plupart du temps = souligné) */
 	overflow: hidden;
@@ -87,8 +104,18 @@ ul.menu ul li, ul.menu ul li a {
 	color: white;
 }
 
+ul.menu ul li.rounded-btns,
+ul.menu ul li.rounded-btns {
+	height: auto;
+}
+
 ul.menu ul li.hover {
 	background-color: #4c4c4c;
+}
+
+ul.menu ul li.hover.rounded-btns,
+ul.menu ul li.hover.rounded-btns {
+	background-color: transparent;
 }
 
 /* Item de sous-liste */
@@ -103,6 +130,23 @@ ul.menu li ul li {
 	height: 29px;
 	line-height: 29px;
 	padding: 0 25px;
+}
+
+ul.menu ul li.rounded-btns .btn,
+ul.menu ul li.rounded-btns .btn {
+	display: inline-block;
+	padding: 13px;
+	padding-top: 12px;
+	margin: 20px;
+	line-height: 16px;
+	height: 16px;
+
+	border: 1px solid #4c4c4c;
+	border-radius: 21px;
+}
+ul.menu ul li.rounded-btns .btn:hover,
+ul.menu ul li.rounded-btns .btn:hover {
+	background-color: #4c4c4c;
 }
 
 /* CONTENU DES ITEMS */
@@ -127,7 +171,8 @@ ul.menu .arrow {
 }
 
 ul.menu > li {
-	float: left;
+	/*float: left;*/
+	display: inline-block;
 }
 ul.menu > li > a {
 	margin: 0 10px;
