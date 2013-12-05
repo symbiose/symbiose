@@ -70,7 +70,7 @@ Webos.require([
 			
 			this._nautilus.appendTo(this._window.window('content'));
 			
-			this._window.bind('windowclose', function() {
+			this._window.on('windowclose', function() {
 				if (!that._callbackCalled) {
 					userCallback([]);
 				}
@@ -114,20 +114,22 @@ Webos.require([
 				this._toolbar.find('li').last().addClass('active');
 			};
 			
-			nautilus.bind('nautilusreadstart', function(e, data) {
+			nautilus.on('nautilusreadstart', function(e, data) {
 				that._refreshHeader(data.location);
 				that._window.window('loading', true);
-			}).bind('nautilusreadcomplete', function() {
+			}).on('nautilusreadcomplete', function() {
 				that._window.window('loading', false);
-			}).bind('nautilusreaderror', function(e, data) {
+			}).on('nautilusreaderror', function(e, data) {
 				that._refreshHeader(data.location);
 			});
 			
-			this._refreshHeader(nautilus.nautilus('location'));
+			if ($.webos.widget.is(nautilus, 'nautilus')) { //See issue #229
+				this._refreshHeader(nautilus.nautilus('location'));
+			}
 			
 			this._window.window('open');
 			
-			this.notify('ready');
+			this.trigger('ready');
 		});
 		
 		Webos.TranslatedLibrary.call(this);
