@@ -33,6 +33,10 @@ class FileController extends \lib\ApiBackController {
 			return $list;
 		} else {
 			$this->responseContent->setChannel(1, $manager->read($path));
+
+			if (strpos($path, '/home/') !== 0 && strpos($path, '/etc/') !== 0) { //File is not in /home or in /etc
+				$this->responseContent->setCacheable(true);
+			}
 		}
 	}
 

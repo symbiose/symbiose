@@ -6,20 +6,29 @@ class IconController extends \lib\RawBackController {
 
 	public function executeIndex(\lib\HTTPRequest $request) {
 		$fileManager = $this->managers()->getManagerOf('file');
+		$httpResponse = $this->app->httpResponse();
 
 		if (!$request->getExists('index')) {
-			$this->app->httpResponse()->addHeader('HTTP/1.0 404 Not Found');
+			$httpResponse->addHeader('HTTP/1.0 404 Not Found');
 			throw new \RuntimeException('No icon specified');
 		}
 
 		$filePath = $this->_getIconPath($request->getData('index'));
 
 		if ($filePath === false) { //Not found
-			$this->app->httpResponse()->addHeader('HTTP/1.0 404 Not Found');
+			$httpResponse->addHeader('HTTP/1.0 404 Not Found');
 			throw new \RuntimeException('Cannot find specified icon');
 		}
 
-		$this->app->httpResponse()->addHeader('Content-Type: '.$fileManager->mimetype($filePath));
+		$httpResponse->addHeader('Content-Type: '.$fileManager->mimetype($filePath));
+
+		$fileMtime = $fileManager->mtime($filePath);
+		if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $fileMtime) {
+			$httpResponse->addHeader('HTTP/1.0 304 Not Modified');
+			return;
+		}
+
+		$httpResponse->addHeader('Last-Modified: ' . gmdate('D, d M Y H:i:s T', $fileMtime));
 
 		$out = $fileManager->read($filePath);
 		$this->responseContent->setValue($out);

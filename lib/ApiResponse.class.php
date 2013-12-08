@@ -37,6 +37,12 @@ class ApiResponse implements ResponseContent {
 	 */
 	protected $channels = array();
 
+	/**
+	 * True if the response is can be cached, false otherwise.
+	 * @var boolean
+	 */
+	protected $cacheable = false;
+
 	//GETTERS
 
 	/**
@@ -104,6 +110,14 @@ class ApiResponse implements ResponseContent {
 		return $this->channels;
 	}
 
+	/**
+	 * Check if this response is cacheable.
+	 * @return boolean True if the response is can be cached, false otherwise.
+	 */
+	public function cacheable() {
+		return $this->cacheable;
+	}
+
 	//SETTERS
 
 	/**
@@ -169,5 +183,17 @@ class ApiResponse implements ResponseContent {
 	 */
 	public function setChannel($no, $value) {
 		$this->channels[$no] = $value;
+	}
+
+	/**
+	 * Set this response's cacheable value.
+	 * @param boolean $value The cacheable value.
+	 */
+	public function setCacheable($value) {
+		if (!is_bool($value)) {
+			throw new \InvalidArgumentException('Invalid response cacheable value "'.$value.'"');
+		}
+
+		$this->cacheable = $value;
 	}
 }

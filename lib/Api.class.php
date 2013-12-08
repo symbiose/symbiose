@@ -93,11 +93,16 @@ class Api extends \lib\Application {
 		$controller = $this->getController();
 		$controller->execute($moduleArgs);
 
-		if (!$this->emulated()) { //Do not set headers if the APi si emulated
+		$resp = $controller->responseContent();
+
+		if (!$this->emulated()) { //Do not set headers if the API si emulated
 			$this->httpResponse->addHeader('Content-Type: application/json');
+
+			if ($resp->cacheable()) {
+				$this->httpResponse->setCacheable();
+			}
 		}
 
-		$resp = $controller->responseContent();
 		$resp->setId($reqId);
 		$this->httpResponse->setContent($resp);
 	}

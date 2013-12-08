@@ -37,10 +37,7 @@ class RawDataCall extends \lib\Application {
 		$out = $controller->responseContent()->value();
 
 		//Enable cache
-		$cacheOffset = 7 * 24 * 3600;
-		$this->httpResponse->addHeader('Cache-Control: max-age=' . $cacheOffset . ', must-revalidate');
-		$this->httpResponse->removeHeader('Pragma');
-		$this->httpResponse->removeHeader('Expires');
+		$this->httpResponse->setCacheable();
 
 		$this->httpResponse->addHeader('Content-Length: ' . strlen($out));
 

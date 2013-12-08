@@ -118,6 +118,14 @@ class FileController extends \lib\RawBackController {
 			$httpResponse->addHeader('Content-Transfer-Encoding: binary');
 		}
 
+		$outputMtime = $fileManager->mtime($outputFile);
+		if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $outputMtime) {
+			$httpResponse->addHeader('HTTP/1.0 304 Not Modified');
+			return;
+		}
+
+		$httpResponse->addHeader('Last-Modified: ' . gmdate('D, d M Y H:i:s T', $outputMtime));
+
 		$out = $fileManager->read($outputFile);
 		$httpResponse->addHeader('Content-Length: ' . strlen($out));
 

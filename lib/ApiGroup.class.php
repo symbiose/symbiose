@@ -47,6 +47,10 @@ class ApiGroup extends \lib\Application {
 		$resp->setId($reqId);
 
 		$this->httpResponse->addHeader('Content-Type: application/json');
+		if ($resp->cacheable()) {
+			$this->httpResponse->setCacheable();
+		}
+
 		$this->httpResponse->setContent($resp);
 	}
 }

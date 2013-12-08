@@ -19,6 +19,12 @@ class ApiGroupResponse implements ResponseContent {
 	 */
 	protected $responses = array();
 
+	/**
+	 * True if the response is can be cached, false otherwise.
+	 * @var boolean
+	 */
+	protected $cacheable = false;
+
 	//GETTERS
 
 	/**
@@ -60,6 +66,22 @@ class ApiGroupResponse implements ResponseContent {
 	 */
 	public function responses() {
 		return $this->responses;
+	}
+
+	/**
+	 * Check if this response is cacheable.
+	 * @return boolean True if the response is can be cached, false otherwise.
+	 */
+	public function cacheable() {
+		$cacheable = true;
+
+		foreach($this->responses as $resp) {
+			if (!$resp->cacheable()) {
+				$cacheable = false;
+			}
+		}
+
+		return $cacheable;
 	}
 
 	//SETTERS

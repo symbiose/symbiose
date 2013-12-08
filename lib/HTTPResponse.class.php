@@ -117,4 +117,17 @@ class HTTPResponse {
 
 		$this->send();
 	}
+
+	/**
+	 * Make this response cacheable.
+	 */
+	public function setCacheable($cacheOffset = null) {
+		if ($cacheOffset === null) {
+			$cacheOffset = 7 * 24 * 3600; //7 days
+		}
+
+		$this->addHeader('Cache-Control: max-age='.$cacheOffset);
+		$this->addHeader('Expires: '.gmdate('D, d M Y H:i:s T', time()+$cacheOffset));
+		$this->removeHeader('Pragma'); //Non-standard
+	}
 }
