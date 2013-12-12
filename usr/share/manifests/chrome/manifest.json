@@ -1,0 +1,22 @@
+{
+  "name": "Symbiose",
+  "description": "Symbiose, a free and flexible webos.",
+  "version":"0.2.4",
+  "icons": {
+    "128": "icons/logo-128.png",
+    "60": "icons/logo-60.png",
+    "48": "icons/logo-48.png",
+    "32": "icons/logo-32.png",
+    "24": "icons/logo-24.png"
+  },
+  "app": {
+    "urls": [
+      "http://symbiose.fr.cr/",
+      "http://webos.symbiose.fr.cr/"
+    ],
+    "launch": {
+      "web_url": "http://webos.symbiose.fr.cr/"
+    }
+  },
+  "manifest_version":2
+}
