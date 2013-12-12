@@ -34,8 +34,13 @@
 		}
 	</script>
 	<?php
-	foreach($jsIncludes as $include) { //Include base JS files
-		echo '<script type="text/javascript" src="'.$include.'"></script>';
+	foreach($jsIncludes as $include => $includeConfig) { //Include base JS files
+		$attrs = 'type="text/javascript" src="'.$include.'"';
+		if (isset($includeConfig['async']) && $includeConfig['async'] == true) {
+			$attrs .= ' async="true"';
+		}
+
+		echo '<script '.$attrs.'></script>';
 	}
 	?>
 </head>
@@ -49,7 +54,7 @@
 	<noscript id="webos-unsupported">
 		<div class="center">
 			<p class="error">
-				<strong><?php echo $t->get('Your web browser doesn\'t support ${webos}', array('webos' => 'Symbiose')); ?></strong> : <?php echo $t->get('Javascript is required to launch it.'); ?><br /><?php echo $t->get('Please update your web browser (${download-link}) or turn on Javascript.', array('download-link' => '<a href="http://www.mozilla.org/fr/firefox/new/" target="_blank">'.$t->get('download ${browser}', array('browser' => 'Mozilla Firefox')).'</a>')); ?>
+				<strong><?php echo $t->get('Your web browser doesn\'t support ${webos}', array('webos' => 'Symbiose')); ?></strong> : <?php echo $t->get('Javascript is required to launch it.'); ?><br /><?php echo $t->get('Please update your web browser (${download-link}) or turn on Javascript.', array('download-link' => '<a href="http://www.mozilla.org/firefox/new/" target="_blank">'.$t->get('download ${browser}', array('browser' => 'Mozilla Firefox')).'</a>')); ?>
 			</p>
 		</div>
 	</noscript>

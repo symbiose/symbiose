@@ -23,8 +23,9 @@ class UserInterfaceBooter extends \lib\Application {
 
 		$files = $conf->read();
 
-		foreach ($files as $i => $path) {
-			$files[$i] = './' . $path;
+		foreach ($files as $path => $fileConfig) {
+			unset($files[$path]);
+			$files['./' . $path] = $fileConfig;
 		}
 
 		return $files;
