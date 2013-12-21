@@ -1,5 +1,6 @@
 Webos.require([
 	'/usr/lib/apt/apt.js',
+	'/usr/lib/confiture/webos.js',
 	'/usr/lib/firefox-marketplace/webos.js'
 ], function() {
 	var thisProcess = W.Process.current(), permissions = {

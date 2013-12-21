@@ -119,15 +119,6 @@ Webos.require([
 				}
 			}
 		},
-		shortdescription: function() {
-			var desc = this._get('description'), maxShortDescLength = 40, shortDescription = desc;
-
-			if (desc.length > maxShortDescLength) {
-				shortDescription = desc.slice(0, maxShortDescLength) + '...';
-			}
-
-			return shortDescription;
-		},
 		installable: function() {
 			return (this.get('app_type') == 'hosted');
 		},
@@ -334,11 +325,6 @@ Webos.require([
 		}, callback.error]);
 	};
 
-	if (!Webos.Package.typeExists('firefoxMarketplace')) {
-		Webos.Package.addType('firefoxMarketplace', FirefoxMarketplace.api);
-		Webos.Package.addSource('firefoxMarketplace', 'firefoxMarketplace');
-	}
-
 	FirefoxMarketplace._getManifest = function(manifestUrl, callback) {
 		callback = W.Callback.toCallback(callback);
 
@@ -441,6 +427,11 @@ Webos.require([
 			callback.error(res);
 		}]);
 	};
+
+	if (!Webos.Package.typeExists('firefoxMarketplace')) {
+		Webos.Package.addType('firefoxMarketplace', FirefoxMarketplace.api);
+		Webos.Package.addSource('firefoxMarketplace', 'firefoxMarketplace');
+	}
 
 	window.FirefoxMarketplace = FirefoxMarketplace; //Export API
 });
