@@ -108,7 +108,16 @@ class ConfitureRepositoryController extends \lib\ApiBackController {
 	public function executeInstall($pkgName) {
 		$manager = $this->managers()->getManagerOf('confitureRepository');
 
+		$pkg = $manager->getByName($pkgName);
+
+		if (empty($pkg)) {
+			throw new RuntimeException('Unable to find package "'.$pkgName.'"', 404);
+		}
+
+		
+
 		//TODO
+		//parseDepends()
 	}
 
 	public function executeRemove($pkgName) {
