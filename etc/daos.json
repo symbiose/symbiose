@@ -13,5 +13,15 @@
             "getLocalConnexion"
         ],
         "config": {}
+    },
+    "ldap": {
+        "callback": [
+            "\\lib\\dao\\LDAPFactory",
+            "getConnexion"
+        ],
+        "config": {
+            "host":"localhost",
+            "port":389
+        }
     }
 }
