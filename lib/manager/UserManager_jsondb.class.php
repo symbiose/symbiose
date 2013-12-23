@@ -82,37 +82,31 @@ class UserManager_jsondb extends UserManager {
 		return (count($usersData) > 0);
 	}
 
-	public function getToken($tokenId) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$tokensData = $tokensFile->read()->filter(array('id' => $tokenId));
+	public function checkPassword($userId, $password) {
+		$usersFile = $this->dao->open('core/users');
+		$usersData = $usersFile->read()->filter(array('id' => $userId));
 
-		if (count($tokensData) == 0) {
-			return null;
+		if (count($usersData) == 0) {
+			return false;
 		}
 
-		return new UserToken($tokensData[0]);
-	}
+		$userData = $usersData[0];
 
-	public function getTokenByUser($userId) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$tokensData = $tokensFile->read()->filter(array('userId' => $userId));
-
-		if (count($tokensData) == 0) {
-			return null;
+		if (!isset($userData['password']) || empty($userData['password'])) {
+			return false;
 		}
 
-		return new UserToken($tokensData[0]);
-	}
+		if (strlen($userData['password']) == 40) { //SHA1 support for old accounts (before 1.0 beta 3)
+			$hashedPassword = sha1($password);
+		} else {
+			$hashedPassword = $this->hashPassword($password);
+		}
 
-	public function userHasToken($userId) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$tokensData = $tokensFile->read()->filter(array('userId' => $userId));
-
-		return (count($tokensData) > 0);
+		return ($hashedPassword === $userData['password']);
 	}
 
 	// SETTERS
-	
+
 	public function insert(User $user) {
 		$usersFile = $this->dao->open('core/users');
 		$items = $usersFile->read();
@@ -181,58 +175,21 @@ class UserManager_jsondb extends UserManager {
 		throw new RuntimeException('Cannot find a user with id "'.$userId.'"');
 	}
 
-	public function insertToken(UserToken $token) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$items = $tokensFile->read();
+	public function updatePassword($userId, $newPassword) {
+		$hashedPassword = $this->hashPassword($newPassword);
 
-		if ($token['id'] !== null) {
-			throw new RuntimeException('The token "'.$token['id'].'" is already registered');
-		}
-		if ($this->userHasToken($token['userId'])) { //Duplicate token ?
-			throw new RuntimeException('The user "'.$token['userId'].'" has already a registered token');
-		}
-
-		if (count($items) > 0) {
-			$last = $items->last();
-			$tokenId = $last['id'] + 1;
-		} else {
-			$tokenId = 0;
-		}
-		$token->setId($tokenId);
-
-		$item = $this->dao->createItem($token->toArray());
-		$items[] = $item;
-
-		$tokensFile->write($items);
-	}
-
-	public function updateToken(UserToken $token) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$items = $tokensFile->read();
+		$usersFile = $this->dao->open('core/users');
+		$items = $usersFile->read();
 
 		foreach ($items as $i => $currentItem) {
-			if ($currentItem['id'] == $token['id']) {
-				$items[$i] = $this->dao->createItem($token->toArray());
-				$tokensFile->write($items);
+			if ($currentItem['id'] == $userId) {
+				$currentItem['password'] = $hashedPassword;
+				$items[$i] = $currentItem;
+				$usersFile->write($items);
 				return;
 			}
 		}
 
-		throw new RuntimeException('Cannot find a token with id "'.$tokenId.'"');
-	}
-
-	public function deleteToken($tokenId) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$items = $tokensFile->read();
-
-		foreach ($items as $i => $currentItem) {
-			if ($currentItem['id'] == $tokenId) {
-				unset($items[$i]);
-				$tokensFile->write($items);
-				return;
-			}
-		}
-
-		throw new RuntimeException('Cannot find a token with id "'.$tokenId.'"');
+		throw new RuntimeException('Cannot find a user with id "'.$userId.'"');
 	}
 }
