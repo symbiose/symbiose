@@ -113,8 +113,11 @@ class UserManager_ldap extends UserManager {
 		try {
 			$newConn->bind($userDn, $password);
 		} catch(\Exception $e) {
+			$newConn->close();
 			return false;
 		}
+
+		$newConn->close();
 
 		return true;
 	}
@@ -122,88 +125,18 @@ class UserManager_ldap extends UserManager {
 	// SETTERS
 
 	public function insert(User $user) {
-		$usersFile = $this->dao->open('core/users');
-		$items = $usersFile->read();
-
-		if ($this->usernameExists($user['username'])) { //Duplicate username ?
-			throw new RuntimeException('The username "'.$user['username'].'" is already registered');
-		}
-		if ($this->emailExists($user['email'])) { //Duplicate email ?
-			throw new RuntimeException('The email "'.$user['email'].'" is already registered');
-		}
-
-		if (count($items) > 0) {
-			$last = $items->last();
-			$userId = $last['id'] + 1;
-		} else {
-			$userId = 0;
-		}
-		$user->setId($userId);
-
-		$item = $this->dao->createItem($user->toArray());
-		$items[] = $item;
-
-		$usersFile->write($items);
+		throw new RuntimeException('Not implemented for the moment!');
 	}
 
 	public function update(User $user) {
-		$usersFile = $this->dao->open('core/users');
-		$items = $usersFile->read();
-
-		$currentUser = $this->getById($user['id']);
-		if (empty($currentUser)) {
-			throw new RuntimeException('Cannot find a user with id "'.$user['id'].'"');
-		}
-		if ($currentUser['username'] != $user['username'] && $this->usernameExists($user['username'])) { //Duplicate username ?
-			throw new RuntimeException('The username "'.$user['username'].'" is already registered');
-		}
-		if ($currentUser['email'] != $user['email'] && $this->emailExists($user['email'])) { //Duplicate email ?
-			throw new RuntimeException('The email "'.$user['email'].'" is already registered');
-		}
-
-		$userItem = $this->dao->createItem($user->toArray());
-
-		foreach ($items as $i => $currentItem) {
-			if ($currentItem['id'] == $user['id']) {
-				$items[$i] = $userItem;
-				$usersFile->write($items);
-				return;
-			}
-		}
-
-		throw new RuntimeException('Cannot find a user with id "'.$user['id'].'"');
+		throw new RuntimeException('Not implemented for the moment!');
 	}
 
 	public function delete($userId) {
-		$usersFile = $this->dao->open('core/users');
-		$items = $usersFile->read();
-
-		foreach ($items as $i => $currentItem) {
-			if ($currentItem['id'] == $userId) {
-				unset($items[$i]);
-				$usersFile->write($items);
-				return;
-			}
-		}
-
-		throw new RuntimeException('Cannot find a user with id "'.$userId.'"');
+		throw new RuntimeException('Not implemented for the moment!');
 	}
 
 	public function updatePassword($userId, $newPassword) {
-		$hashedPassword = $this->hashPassword($newPassword);
-
-		$usersFile = $this->dao->open('core/users');
-		$items = $usersFile->read();
-
-		foreach ($items as $i => $currentItem) {
-			if ($currentItem['id'] == $userId) {
-				$currentItem['password'] = $hashedPassword;
-				$items[$i] = $currentItem;
-				$usersFile->write($items);
-				return;
-			}
-		}
-
-		throw new RuntimeException('Cannot find a user with id "'.$userId.'"');
+		throw new RuntimeException('Not implemented for the moment!');
 	}
 }

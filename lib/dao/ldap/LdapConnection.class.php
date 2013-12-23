@@ -93,6 +93,10 @@ class LdapConnection {
 		return $data;
 	}
 
+	public function close() {
+		ldap_close($this->conn);
+	}
+
 	public static function init($host = null, $port = 389) {
 		return new self($host, $port);
 	}
