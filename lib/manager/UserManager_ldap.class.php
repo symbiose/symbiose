@@ -2,117 +2,125 @@
 namespace lib\manager;
 
 use \lib\entities\User;
-use \lib\entities\UserToken;
 use \RuntimeException;
 
 class UserManager_ldap extends UserManager {
 	// GETTERS
 
-	public function listAll() {
-		$usersFile = $this->dao->open('core/users');
+	protected function _buildUser($userData) {
+		return new User(array(
+			'id' => $userData['uidnumber'][0],
+			'username' => $userData['uid'][0],
+			'realname' => $userData['cn'][0],
+			'email' => $userData['mail'][0]
+		));
+	}
 
-		$usersData = $usersFile->read();
+	public function listAll() {
+		$result = $this->dao->search('(&(objectClass=posixAccount)(uid=*))');
+
 		$list = array();
 
-		foreach($usersData as $userData) {
-			$list[] = new User($userData);
+		for($i = 0; $i < $result['count']; $i++) {
+			$item = $result[$i];
+			$list[] = $this->_buildUser($item);
 		}
 
 		return $list;
 	}
 	
 	public function countAll() {
-		$usersFile = $this->dao->open('core/users');
+		$result = $this->dao->search('(&(objectClass=posixAccount)(uid=*))');
 
-		$users = $usersFile->read();
-		return count($users);
+		return $result['count'];
+	}
+
+	protected function _searchById($userId) {
+		return $this->dao->search('(&(objectClass=posixAccount)(uidnumber='.(int) $userId.'))', array('sizelimit' => 1));
 	}
 
 	public function exists($userId) {
-		$usersFile = $this->dao->open('core/users');
-		$usersData = $usersFile->read()->filter(array('id' => $userId));
+		$result = $this->_searchById($userId);
 
-		return (count($usersData) > 0);
+		return ($result['count'] > 0);
 	}
 
 	public function getById($userId) {
-		$usersFile = $this->dao->open('core/users');
-		$usersData = $usersFile->read()->filter(array('id' => $userId));
+		$result = $this->_searchById($userId);
 
-		if (count($usersData) == 0) {
+		if ($result['count'] == 0) {
 			return null;
 		}
 
-		return new User($usersData[0]);
+		return $this->_buildUser($result[0]);
+	}
+
+	protected function _searchByUsername($username) {
+		return $this->dao->search('(&(objectClass=posixAccount)(uid='.$this->dao->sanitizeFilter($username).'))', array('sizelimit' => 1));
 	}
 
 	public function getByUsername($username) {
-		$usersFile = $this->dao->open('core/users');
-		$usersData = $usersFile->read()->filter(array('username' => $username));
+		$result = $this->_searchByUsername($username);
 
-		if (count($usersData) == 0) {
+		if ($result['count'] == 0) {
 			return null;
 		}
 
-		return new User($usersData[0]);
+		return $this->_buildUser($result[0]);
 	}
 
 	public function usernameExists($username) {
-		$usersFile = $this->dao->open('core/users');
-		$usersData = $usersFile->read()->filter(array('username' => $username));
+		$result = $this->_searchByUsername($username);
 
-		return (count($usersData) > 0);
+		return ($result['count'] > 0);
+	}
+
+	protected function _searchByEmail($email) {
+		return $this->dao->search('(&(objectClass=posixAccount)(mail='.$this->dao->sanitizeFilter($email).'))', array('sizelimit' => 1));
 	}
 
 	public function getByEmail($email) {
-		$usersFile = $this->dao->open('core/users');
-		$usersData = $usersFile->read()->filter(array('email' => $email));
+		$result = $this->_searchByEmail($username);
 
-		if (count($usersData) == 0) {
+		if ($result['count'] == 0) {
 			return null;
 		}
 
-		return new User($usersData[0]);
+		return $this->_buildUser($result[0]);
 	}
 
 	public function emailExists($email) {
-		$usersFile = $this->dao->open('core/users');
-		$usersData = $usersFile->read()->filter(array('email' => $email));
+		$result = $this->_searchByEmail($username);
 
-		return (count($usersData) > 0);
+		return ($result['count'] > 0);
 	}
 
-	public function getToken($tokenId) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$tokensData = $tokensFile->read()->filter(array('id' => $tokenId));
+	public function checkPassword($userId, $password) {
+		//First, search for the user's DN
+		$result = $this->_searchById($userId);
 
-		if (count($tokensData) == 0) {
-			return null;
+		if ($result['count'] == 0) {
+			return false;
 		}
 
-		return new UserToken($tokensData[0]);
-	}
+		$userDn = $result[0]['dn'];
 
-	public function getTokenByUser($userId) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$tokensData = $tokensFile->read()->filter(array('userId' => $userId));
+		//Open a new connection to the LDAP server...
+		$connClass = get_class($this->dao);
+		$newConn = $connClass::init($this->dao->host(), $this->dao->port());
 
-		if (count($tokensData) == 0) {
-			return null;
+		//...And try to login
+		try {
+			$newConn->bind($userDn, $password);
+		} catch(\Exception $e) {
+			return false;
 		}
 
-		return new UserToken($tokensData[0]);
-	}
-
-	public function userHasToken($userId) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$tokensData = $tokensFile->read()->filter(array('userId' => $userId));
-
-		return (count($tokensData) > 0);
+		return true;
 	}
 
 	// SETTERS
-	
+
 	public function insert(User $user) {
 		$usersFile = $this->dao->open('core/users');
 		$items = $usersFile->read();
@@ -181,58 +189,21 @@ class UserManager_ldap extends UserManager {
 		throw new RuntimeException('Cannot find a user with id "'.$userId.'"');
 	}
 
-	public function insertToken(UserToken $token) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$items = $tokensFile->read();
+	public function updatePassword($userId, $newPassword) {
+		$hashedPassword = $this->hashPassword($newPassword);
 
-		if ($token['id'] !== null) {
-			throw new RuntimeException('The token "'.$token['id'].'" is already registered');
-		}
-		if ($this->userHasToken($token['userId'])) { //Duplicate token ?
-			throw new RuntimeException('The user "'.$token['userId'].'" has already a registered token');
-		}
-
-		if (count($items) > 0) {
-			$last = $items->last();
-			$tokenId = $last['id'] + 1;
-		} else {
-			$tokenId = 0;
-		}
-		$token->setId($tokenId);
-
-		$item = $this->dao->createItem($token->toArray());
-		$items[] = $item;
-
-		$tokensFile->write($items);
-	}
-
-	public function updateToken(UserToken $token) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$items = $tokensFile->read();
+		$usersFile = $this->dao->open('core/users');
+		$items = $usersFile->read();
 
 		foreach ($items as $i => $currentItem) {
-			if ($currentItem['id'] == $token['id']) {
-				$items[$i] = $this->dao->createItem($token->toArray());
-				$tokensFile->write($items);
+			if ($currentItem['id'] == $userId) {
+				$currentItem['password'] = $hashedPassword;
+				$items[$i] = $currentItem;
+				$usersFile->write($items);
 				return;
 			}
 		}
 
-		throw new RuntimeException('Cannot find a token with id "'.$tokenId.'"');
-	}
-
-	public function deleteToken($tokenId) {
-		$tokensFile = $this->dao->open('core/users_tokens');
-		$items = $tokensFile->read();
-
-		foreach ($items as $i => $currentItem) {
-			if ($currentItem['id'] == $tokenId) {
-				unset($items[$i]);
-				$tokensFile->write($items);
-				return;
-			}
-		}
-
-		throw new RuntimeException('Cannot find a token with id "'.$tokenId.'"');
+		throw new RuntimeException('Cannot find a user with id "'.$userId.'"');
 	}
 }

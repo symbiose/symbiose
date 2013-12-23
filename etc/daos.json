@@ -21,7 +21,10 @@
         ],
         "config": {
             "host":"localhost",
-            "port":389
+            "port":389,
+            "baseDn":"dc=example,dc=org",
+            "bindRdn":"cn=Manager,dc=example,dc=org",
+            "bindPassword":"secret"
         }
     }
 }

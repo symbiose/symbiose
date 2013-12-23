@@ -8,6 +8,8 @@ use \RuntimeException;
 class UserManager_jsondb extends UserManager {
 	// GETTERS
 
+	// Users
+
 	public function listAll() {
 		$usersFile = $this->dao->open('core/users');
 
@@ -82,6 +84,31 @@ class UserManager_jsondb extends UserManager {
 		return (count($usersData) > 0);
 	}
 
+	public function checkPassword($userId, $password) {
+		$usersFile = $this->dao->open('core/users');
+		$usersData = $usersFile->read()->filter(array('id' => $userId));
+
+		if (count($usersData) == 0) {
+			return false;
+		}
+
+		$userData = $usersData[0];
+
+		if (!isset($userData['password']) || empty($userData['password'])) {
+			return false;
+		}
+
+		if (strlen($userData['password']) == 40) { //SHA1 support for old accounts (before 1.0 beta 3)
+			$hashedPassword = sha1($password);
+		} else {
+			$hashedPassword = $this->hashPassword($password);
+		}
+
+		return ($hashedPassword === $userData['password']);
+	}
+	
+	// Tokens
+
 	public function getToken($tokenId) {
 		$tokensFile = $this->dao->open('core/users_tokens');
 		$tokensData = $tokensFile->read()->filter(array('id' => $tokenId));
@@ -113,6 +140,8 @@ class UserManager_jsondb extends UserManager {
 
 	// SETTERS
 	
+	// Users
+
 	public function insert(User $user) {
 		$usersFile = $this->dao->open('core/users');
 		$items = $usersFile->read();
@@ -180,6 +209,26 @@ class UserManager_jsondb extends UserManager {
 
 		throw new RuntimeException('Cannot find a user with id "'.$userId.'"');
 	}
+
+	public function updatePassword($userId, $newPassword) {
+		$hashedPassword = $this->hashPassword($newPassword);
+
+		$usersFile = $this->dao->open('core/users');
+		$items = $usersFile->read();
+
+		foreach ($items as $i => $currentItem) {
+			if ($currentItem['id'] == $userId) {
+				$currentItem['password'] = $hashedPassword;
+				$items[$i] = $currentItem;
+				$usersFile->write($items);
+				return;
+			}
+		}
+
+		throw new RuntimeException('Cannot find a user with id "'.$userId.'"');
+	}
+
+	// Tokens
 
 	public function insertToken(UserToken $token) {
 		$tokensFile = $this->dao->open('core/users_tokens');

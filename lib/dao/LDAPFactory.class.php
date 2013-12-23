@@ -1,6 +1,8 @@
 <?php
 namespace lib\dao;
 
+use \lib\dao\ldap\LdapConnection;
+
 class LDAPFactory {
 	public static function getConnexion(array $config, \lib\Application $app) {
 		if (!isset($config['host'])) {
@@ -10,13 +12,20 @@ class LDAPFactory {
 			$config['port'] = 389;
 		}
 
-		$conn = ldap_connect($config['host'], $config['port']);
+		$conn = LdapConnection::init($config['host'], $config['port']);
 
-		if ($conn === false) {
-			throw new \RuntimeException('Cannot connect to LDAP server "'.$config['host'].'" on port '.$config['port']);
+		if (isset($config['baseDn'])) {
+			$conn->setBaseDn($config['baseDn']);
 		}
 
-		ldap_set_option($conn, LDAP_OPT_PROTOCOL_VERSION, 3);
+		if (!isset($config['bindRdn'])) {
+			$config['bindRdn'] = null;
+		}
+		if (!isset($config['bindPassword'])) {
+			$config['bindPassword'] = null;
+		}
+
+		$conn->bind($config['bindRdn'], $config['bindPassword']);
 
 		return $conn;
 	}
