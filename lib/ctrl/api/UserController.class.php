@@ -540,6 +540,7 @@ class UserController extends \lib\ApiBackController {
 
 	public function executeSendResetPasswordRequest($email, $webosUrl) {
 		$manager = $this->managers()->getManagerOf('user');
+		$tokenManager = $this->managers()->getManagerOf('userToken');
 		$emailManager = $this->managers()->getManagerOf('email');
 		$translationManager = $this->managers()->getManagerOf('translation');
 
@@ -554,7 +555,7 @@ class UserController extends \lib\ApiBackController {
 			throw new \RuntimeException('Cannot find user with e-mail "'.$email.'"', 404);
 		}
 
-		$userToken = $manager->getTokenByUser($user['id']);
+		$userToken = $tokenManager->getByUser($user['id']);
 
 		$newTokenData = array(
 			'userId' => $user['id'],
@@ -568,12 +569,12 @@ class UserController extends \lib\ApiBackController {
 				throw new \RuntimeException('Too many reset password requests were sent. Please try again later', 429);
 			}
 
-			$manager->deleteToken($userToken['id']);
+			$tokenManager->delete($userToken['id']);
 		}
 
 		//Create a new token
 		$userToken = new UserToken($newTokenData);
-		$manager->insertToken($userToken);
+		$tokenManager->insert($userToken);
 
 		//Send an e-mail with token key
 		$dict = $translationManager->load('webos');
@@ -614,13 +615,14 @@ class UserController extends \lib\ApiBackController {
 		try {
 			$emailManager->send($email);
 		} catch (\Exception $e) { //Mail not sent
-			//$manager->deleteToken($userToken['id']);
+			$tokenManager->delete($userToken['id']);
 			throw $e;
 		}
 	}
 
 	public function executeGetTokenByEmail($email) {
 		$manager = $this->managers()->getManagerOf('user');
+		$tokenManager = $this->managers()->getManagerOf('userToken');
 
 		//Get user
 		$user = $manager->getByEmail($email);
@@ -630,7 +632,7 @@ class UserController extends \lib\ApiBackController {
 		}
 
 		//Get token
-		$userToken = $manager->getTokenByUser($user['id']);
+		$userToken = $tokenManager->getByUser($user['id']);
 
 		if (empty($userToken)) {
 			throw new \RuntimeException('Cannot find token with user id "'.$user['id'].'"', 404);
@@ -641,16 +643,17 @@ class UserController extends \lib\ApiBackController {
 
 	public function executeResetPassword($tokenId, $key, $newPassword) {
 		$manager = $this->managers()->getManagerOf('user');
+		$tokenManager = $this->managers()->getManagerOf('userToken');
 
 		//Get token
-		$userToken = $manager->getToken($tokenId);
+		$userToken = $tokenManager->getToken($tokenId);
 
 		if (empty($userToken)) {
 			throw new \RuntimeException('This token may have expired : cannot find token with id "'.$tokenId.'"', 404);
 		}
 
 		//Check token key
-		if ($userToken['key'] != $key) {
+		if ($userToken['key'] !== $key) {
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Invalid token key "'.$key.'"', 403);
 		}
