@@ -29,14 +29,13 @@ var generateUIItemFn = function(ui, enabled) {
 
 	var syncTypes = function() {};
 
-	var enabledSelector = $.w.switchButton('', enabled).on('switchbuttonchange', function() {
-		ui.set('enabled', $(this).switchButton('value'));
+	var enabledSelector = $.w.switchButton('', (enabled) ? true : false).on('switchbuttonchange', function() {
+		ui.set('enabled', ($(this).switchButton('value')) ? true : false);
 		syncUi();
 	});
 
 	var defaultSelector = $.w.switchButton('', (ui.get('default')) ? true : false).on('switchbuttonchange', function() {
-		console.log(ui.get('default'), $(this).switchButton('value'));
-		ui.set('default', $(this).switchButton('value'));
+		ui.set('default', ($(this).switchButton('value')) ? true : false);
 		syncUi();
 	});
 

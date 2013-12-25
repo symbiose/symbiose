@@ -1,3 +1,5 @@
+var that = this;
+
 //On initialise la fenetre de connexion
 var loginWindow = $.w.window.main({
 	icon: 'actions/keys',
@@ -138,22 +140,13 @@ Webos.Translation.load(function(t) {
 
 	form.appendTo(loginWindowContents);
 
-	loginWindow.window('loading', false);
-
-	Webos.User.canResetPassword([function(data) {
-		loginWindow.window('loading', false);
-
-		if (!data.enabled) {
-			forgotPasswordBtn.hide();
-		}
-	}, function() {
-		loginWindow.window('loading', false);
-		forgotPasswordBtn.hide();
-	}]);
-
-	loginWindow.window('center');
-	
+	loginWindow.window('loading', false).window('center');
 	username.textEntry('content').focus();
+
+	var args = that.getArguments();
+	if (args.isOption('forgot-password')) {
+		forgotPassword();
+	}
 }, 'gnome');
 
 Webos.User.canResetPassword([function(data) {
