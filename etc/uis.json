@@ -2,43 +2,43 @@
     {
         "name": "gnome-shell",
         "labels": [
-            "userInterface",
-            "guestInterface"
+            "userInterface"
         ],
         "isDefault": true
     },
     {
         "name": "gnome-panel",
         "labels": [
-            "userInterface",
-            "guestInterface"
-        ]
+            "userInterface"
+        ],
+        "isDefault": false
     },
     {
         "name": "windoze",
         "labels": [
-            "userInterface",
-            "guestInterface"
-        ]
+            "userInterface"
+        ],
+        "isDefault": false
     },
     {
         "name": "cli",
         "labels": [
-            "userInterface",
-            "guestInterface"
-        ]
+            "userInterface"
+        ],
+        "isDefault": false
     },
     {
         "name": "stunning",
         "labels": [
-            "userInterface",
-            "guestInterface"
-        ]
+            "userInterface"
+        ],
+        "isDefault": false
     },
     {
         "name": "slym",
         "labels": [
             "guestInterface"
-        ]
+        ],
+        "isDefault": true
     }
 ]

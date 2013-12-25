@@ -12,9 +12,15 @@ class UserInterfaceController extends \lib\ApiBackController {
 	 */
 	public function executeLoadBooter($uiName = null) {
 		$manager = $this->managers()->getManagerOf('userInterface');
+		$user = $this->app->user();
+
+		$uiLabel = ($user->isLogged()) ? 'userInterface' : 'guestInterface';
 
 		if (empty($uiName)) {
-			$ui = $manager->getDefault();
+			$ui = $manager->getByLabel($uiLabel);
+			if (empty($ui)) {
+				$ui = $manager->getDefault();
+			}
 		} else {
 			$ui = $manager->get($uiName);
 		}
