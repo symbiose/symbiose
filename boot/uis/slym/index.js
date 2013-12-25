@@ -94,5 +94,13 @@
 		}
 	}, function() {}]);
 
+	Webos.Translation.load(function(t) {
+		$('#slym-username').attr('placeholder', t.get('Username'));
+		$('#slym-password').attr('placeholder', t.get('Password'));
+		$('#slym-inner .slym-loading .slym-loading-inner').html(t.get('Loading...'));
+		$('#slym-forgot-password-btn').html(t.get('Forgot password ?'));
+		$('#slym-register-btn').html(t.get('Register'));
+	}, 'slym');
+
 	$('#slym-username').focus();
 })();
