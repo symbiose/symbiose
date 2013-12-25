@@ -49,16 +49,24 @@ Webos.Model.prototype = {
 	 * @returns The value associated with the key.
 	 */
 	get: function(key) {
+		var val;
 		if (typeof this[key] == 'function') {
-			return this[key]();
+			val = this[key]();
+		} else {
+			var methodName = 'get' + key.charAt(0).toUpperCase() + key.substr(1);
+			if (typeof this[methodName] == 'function') {
+				val = this[methodName]();
+			} else if (typeof this._data[key] != 'undefined') {
+				val = this._get(key);
+			}
 		}
-		var methodName = 'get' + key.charAt(0).toUpperCase() + key.substr(1);
-		if (typeof this[methodName] == 'function') {
-			return this[methodName]();
+
+		//Clone value
+		if (val instanceof Array) {
+			val = val.slice(0);
 		}
-		if (typeof this._data[key] != 'undefined') {
-			return this._get(key);
-		}
+
+		return val;
 	},
 	/**
 	 * Get a value associated with a key in the model's data.
