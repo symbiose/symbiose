@@ -111,11 +111,13 @@ class UserInterfaceController extends \lib\ApiBackController {
 
 		foreach ($data as $index => $value) {
 			switch ($index) {
+				case 'default':
 				case 'isDefault':
 					$ui->setIsDefault($value);
 					$manager->update($ui);
 					break;
 				case 'types':
+				case 'labels':
 					$ui->setLabels($value);
 					$manager->update($ui);
 					break;
@@ -123,7 +125,7 @@ class UserInterfaceController extends \lib\ApiBackController {
 					if ($value) {
 						$manager->insert($ui);
 					} else {
-						$manager->delete($ui);
+						$manager->delete($ui['name']);
 					}
 					break;
 			}
