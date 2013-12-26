@@ -9,6 +9,7 @@ Webos.require([
 
 	var GnomeMusic = function (options) {
 		var that = this;
+		options = options || {};
 
 		Webos.Observable.call(this);
 
@@ -129,6 +130,10 @@ Webos.require([
 			var rootMusicPath = '~/'+t.get('Music'),
 				rootMusicDir = Webos.File.get(rootMusicPath, { is_dir: true });
 
+			that._window.window('loading', true, {
+				lock: false
+			});
+
 			var scanDir = function(dir, callback) {
 				var dirOp = new Webos.Operation();
 				dirOp.addCallbacks(callback);
@@ -165,6 +170,9 @@ Webos.require([
 
 			return scanDir(rootMusicDir, [function () {
 				that._tree = tree;
+
+				that._window.window('loading', false);
+
 				callback.success();
 			}, callback.error]);
 		},

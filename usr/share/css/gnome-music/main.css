@@ -4,6 +4,9 @@
 .tabs-btn-ctn {
 	text-align: center;
 }
+.back-btn-ctn {
+	display: none; /* Hidden by default */
+}
 
 .player {
 	width: 100%;
