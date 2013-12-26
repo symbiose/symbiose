@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Music"/>
+	<attribute name="title" lang="fr_FR" value="Musique"/>
+	<attribute name="description" value="Listen to your music"/>
+	<attribute name="description" lang="fr_FR" value="Écouter votre musique"/>
+	<attribute name="command" value="gnome-music"/>
+	<attribute name="icon" value="apps/music-player"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="soundandvideo"/>
+	<attribute name="openMimeTypes" value="audio/*"/>
+	<attribute name="type" value="audio-player"/>
+</shortcut>
