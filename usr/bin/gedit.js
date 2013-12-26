@@ -1,12 +1,14 @@
-new W.ScriptFile('usr/lib/gedit/gedit.js');
+var that = this, args = that.getArguments();
 
-if (args.isParam(0)) {
-	W.File.load(args.getParam(0), new W.Callback(function(file) {
-		new GEditWindow(file);
-	}, function(response) {
+Webos.require('/usr/lib/gedit/gedit.js', function () {
+	if (args.isParam(0)) {
+		W.File.load(args.getParam(0), [function(file) {
+			new GEditWindow(file);
+		}, function(response) {
+			new GEditWindow();
+			response.triggerError('Unable to open the file "'+args.getParam(0)+'"');
+		}]);
+	} else {
 		new GEditWindow();
-		response.triggerError('Impossible d\'ouvrir le fichier');
-	}));
-} else {
-	new GEditWindow();
-}
+	}
+});
