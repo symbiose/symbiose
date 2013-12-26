@@ -55,7 +55,8 @@ input[type="button"], input[type="submit"], .webos-button {
 input[type="button"]:hover, input[type="submit"]:hover, .webos-button:hover {
 	background-position: left 50%;
 }
-input[type="button"]:active, input[type="submit"]:active, .webos-button:active {
+input[type="button"]:active, input[type="submit"]:active, .webos-button:active,
+input[type="button"].active, input[type="submit"].active, .webos-button.active {
 	background-position: left bottom;
 	border-color: #8c908c;
 }

@@ -1094,6 +1094,7 @@ $.webos.widget('button', 'container', {
 		icon: undefined,
 		submit: false,
 		disabled: false,
+		activated: false,
 		showIcon: true,
 		showLabel: true
 	},
@@ -1112,6 +1113,7 @@ $.webos.widget('button', 'container', {
 		this._update('submit', this.options.submit);
 		this._update('label', this.options.label);
 		this._update('disabled', this.options.disabled);
+		this._update('activated', this.options.activated);
 		this._update('icon', this.options.icon);
 		this._update('showLabel', this.options.showLabel);
 		this._update('showIcon', this.options.showIcon);
@@ -1133,6 +1135,10 @@ $.webos.widget('button', 'container', {
 				break;
 			case 'disabled':
 				this.disabled(value);
+				break;
+			case 'activated':
+				this.element.toggleClass('active', (value) ? true : false);
+				break;
 			case 'icon':
 				break;
 			case 'showLabel':
