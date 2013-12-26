@@ -174,7 +174,10 @@ Webos.require([
 				that._window.window('loading', false);
 
 				callback.success();
-			}, callback.error]);
+			}, function(resp) {
+				that._window.window('loading', false);
+				callback.error(resp);
+			}]);
 		},
 		_parseTree: function () {
 			var that = this, t = this._translations;
