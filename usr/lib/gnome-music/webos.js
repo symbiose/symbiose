@@ -8,10 +8,16 @@ Webos.require([
 	}
 
 	var GnomeMusic = function (options) {
+		var that = this;
+
 		Webos.Observable.call(this);
 
 		this.bind('translationsloaded', function () {
-			this._init();
+			this._init(function () {
+				if (options.file) {
+					that.playFile(options.file);
+				}
+			});
 		});
 
 		Webos.TranslatedLibrary.call(this);
@@ -24,8 +30,9 @@ Webos.require([
 		_nowPlayingTrack: '',
 		_nowPlayingData: null,
 		_translationsName: 'gnome-music',
-		_init: function () {
+		_init: function (callback) {
 			var that = this, t = this._translations;
+			callback = Webos.Callback.toCallback(callback);
 
 			W.xtag.loadUI('/usr/share/templates/gnome-music/main.html', function(mainWindow) {
 				that._window = $(mainWindow);
@@ -37,6 +44,8 @@ Webos.require([
 				that._buildTree(function() {
 					that._parseTree();
 					that.displayAlbums();
+
+					callback.success();
 				});
 
 				that._window
@@ -93,7 +102,7 @@ Webos.require([
 				that.showAlbum(that._nowPlayingTrack);
 			});
 			this._window.find('.now-playing .now-playing-info .track-artist').click(function () {
-				that.showArtist(that._parsePath(that._nowPlayingTrack).artist);
+				//that.showArtist(that._parsePath(that._nowPlayingTrack).artist);
 			});
 			this._window.find('.now-playing .now-playing-info .track-title').click(function () {
 				that.showAlbum(that._nowPlayingTrack);
@@ -513,7 +522,6 @@ Webos.require([
 				$nowPlaying.find('.album-cover').attr('src', coversUrls['small']).show();
 			}, function() {}]);
 
-
 			for (var i = 0; i < this._tracks.length; i++) {
 				var track = this._tracks[i];
 				
@@ -529,6 +537,31 @@ Webos.require([
 				this._nowPlayingTrack = trackPath;
 				this.play();
 			}
+		},
+		playFile: function(file) {
+			var that = this, t = this._translations;
+			file = Webos.File.get(file);
+
+			var $nowPlaying = this._window.find('.now-playing'),
+				$player = this.player();
+
+			$nowPlaying.find('.track-title').text(file.get('filename'));
+			$nowPlaying.find('.track-artist').text(t.get('Unknown'));
+			$nowPlaying.find('.album-cover').hide();
+
+			Webos.File.load(file.get('path'), [function(file) {
+				if (!/^audio\//.test(file.get('mime_type'))) {
+					Webos.Error.trigger('Unsupported file type "'+file.get('path')+'"');
+				}
+
+				$player.attr('src', file.get('realpath'));
+				that._nowPlayingTrack = that._buildPath({
+					title: file.get('filename')
+				});
+				that.play();
+			}, function(resp) {
+				Webos.Error.trigger('Cannot access to file "'+file.get('path')+'"');
+			}]);
 		},
 		isPlaying: function() {
 			return this._isPlaying;
