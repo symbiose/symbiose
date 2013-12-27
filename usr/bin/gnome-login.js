@@ -1,4 +1,4 @@
-var that = this;
+var that = this, args = that.getArguments();
 
 //On initialise la fenetre de connexion
 var loginWindow = $.w.window.main({
@@ -143,7 +143,6 @@ Webos.Translation.load(function(t) {
 	loginWindow.window('loading', false).window('center');
 	username.textEntry('content').focus();
 
-	var args = that.getArguments();
 	if (args.isOption('forgot-password')) {
 		forgotPassword();
 	}
