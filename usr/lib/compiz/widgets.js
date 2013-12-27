@@ -197,6 +197,9 @@ $.webos.widget('window', 'container', {
 			case 'top':
 				this.element.css('top', value);
 				break;
+			case 'dialog':
+				this.dialog(value);
+				break;
 		}
 	},
 	destroy: function() {
