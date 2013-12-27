@@ -88,7 +88,12 @@ Webos.require([
 				W.Cmd.execute('gconf --category=appearance');
 			});
 			$win.find('.slide-accessories .btn-accessories').click(function () {
-				W.Cmd.execute('software-center');
+				if (window.Shell) { //GNOME Shell ?
+					Shell.show();
+					Shell.showAllApps();
+				} else {
+					W.Cmd.execute('software-center');
+				}
 			});
 			$win.find('.slide-music .btn-music').click(function () {
 				W.Cmd.execute('gnome-music');
