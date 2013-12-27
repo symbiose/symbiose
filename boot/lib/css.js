@@ -5,7 +5,7 @@
  * @since 1.0 alpha 1
  * @constructor
  */
-Webos.Stylesheet = function WStylesheet(path, container) {
+Webos.Stylesheet = function (path, container) {
 	if (!/^(\/|~\/)/.test(path)) { //Old path notation support - deprecated
 		path = '/'+path;
 	}
@@ -44,7 +44,7 @@ Webos.Stylesheet._cache = {};
  * @param {String} [container] The element on which CSS rules will be applied. If ommited, CSS rules will be applied to the whole page.
  * @static
  */
-Webos.Stylesheet.insertCss = function insertCss(css, container) {
+Webos.Stylesheet.insertCss = function (css, container) {
 	if (container) {
 		if (typeof container != 'string') {
 			container = '#'+$(container).attr('id');
@@ -79,4 +79,10 @@ Webos.Stylesheet.insertCss = function insertCss(css, container) {
 	var cssText = document.createTextNode(css);
 	cssTag.appendChild(cssText);
 	$('head').append(cssTag);
+
+	return $(cssTag);
+};
+
+Webos.Stylesheet.removeCss = function (stylesheet) {
+	$(stylesheet).remove();
 };
