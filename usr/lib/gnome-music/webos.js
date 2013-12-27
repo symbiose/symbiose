@@ -38,6 +38,10 @@ Webos.require([
 			W.xtag.loadUI('/usr/share/templates/gnome-music/main.html', function(mainWindow) {
 				that._window = $(mainWindow);
 
+				that._window
+					.window('option', 'stylesheet', '/usr/share/css/gnome-music/main.css')
+					.window('open');
+
 				that._initEvents();
 				that._translateUi();
 				that._buildLastfm();
@@ -48,10 +52,6 @@ Webos.require([
 
 					callback.success();
 				});
-
-				that._window
-					.window('option', 'stylesheet', '/usr/share/css/gnome-music/main.css')
-					.window('open');
 			});
 		},
 		_translateUi: function() {

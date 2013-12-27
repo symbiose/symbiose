@@ -33,6 +33,30 @@
 		 * @private
 		 */
 		_result: null,
+		on: function(event, fn) {
+			var result = Webos.Operation._parent.prototype.on.call(this, event, fn);
+
+			if (this.completed()) {
+				var events = event.split(' '), eventsNames = [];
+				for (var i = 0; i < events.length; i++) {
+					eventsNames.push(events[i].split('.')[0]);
+				}
+
+				setTimeout(function () {
+					if (~$.inArray('complete', eventsNames)) {
+						fn.call(this, { result: this._result });
+					}
+					if (~$.inArray('error', eventsNames) && this.failed()) {
+						fn.call(this, { result: this._result });
+					}
+					if (~$.inArray('success', eventsNames) && !this.failed()) {
+						fn.call(this, { result: this._result });
+					}
+				}, 0);
+			}
+
+			return result;
+		},
 		/**
 		 * Check if this operation is started.
 		 * @returns {Boolean} True if this operation is started, false otherwise.
