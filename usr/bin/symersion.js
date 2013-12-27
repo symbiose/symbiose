@@ -99,6 +99,9 @@ Webos.require([
 			$win.find('.slide-cloud .btn-cloud').click(function () {
 				W.Cmd.execute('nautilus-mounter');
 			});
+			$win.find('.slide-thanks .btn-register').click(function () {
+				W.Cmd.execute('gnome-register');
+			});
 		}, 'symersion');
 	});
 });
