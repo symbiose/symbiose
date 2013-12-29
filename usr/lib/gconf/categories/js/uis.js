@@ -6,7 +6,8 @@ var uisList = $.w.list(['Name', 'Labels', 'Enabled', 'By default']).appendTo(con
 
 var uisLabels = {
 	'userInterface': 'User desktop interface',
-	'guestInterface': 'Guest desktop interface'
+	'guestInterface': 'Guest desktop interface',
+	'touchDevices': 'For touch devices'
 };
 var _generatedUIItems = [];
 var generateUIItemFn = function(ui, enabled) {

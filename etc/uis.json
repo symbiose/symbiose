@@ -35,14 +35,16 @@
         "name": "stunning",
         "labels": [
             "userInterface",
-            "guestInterface"
+            "guestInterface",
+            "touchDevices"
         ],
         "isDefault": false
     },
     {
         "name": "slym",
         "labels": [
-            "guestInterface"
+            "guestInterface",
+            "touchDevices"
         ],
         "isDefault": false
     }
