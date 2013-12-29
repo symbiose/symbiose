@@ -51,11 +51,19 @@ Webos.Icon = function WIcon(name, size, theme) {
 	
 	this.realpath = function(size, theme) {
 		var id = this.id(size, theme);
+
+		var url = '';
 		if (typeof id == 'undefined') {
-			return 'sbin/rawdatacall.php?type=file&path='+this.name;
+			url = 'sbin/rawdatacall.php?type=file&path='+this.name;
 		} else {
-			return 'sbin/rawdatacall.php?type=icon&index='+id;
+			url = 'sbin/rawdatacall.php?type=icon&index='+id;
+
+			if (Webos.Icon.supportsSvg()) {
+				url += '&svg=1';
+			}
 		}
+
+		return url;
 	};
 	
 	this.toString = function() {
@@ -108,4 +116,11 @@ Webos.Icon.toIcon = function(arg) {
 		default:
 			return new Webos.Icon();
 	}
+};
+Webos.Icon.supportsSvg = function () {
+	return (!! document.createElementNS &&
+			!! document.createElementNS (
+				'http://www.w3.org/2000/svg',
+				"svg"
+			).createSVGRect);
 };
