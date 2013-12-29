@@ -9,10 +9,11 @@ Key features
 * Apps:
  * Calculator (essential!)
  * Brackets code editor
- * Basic text editor (gedit)
+ * Basic text editor ([gedit](https://en.wikipedia.org/wiki/Gedit))
  * File manager with copy-paste, drag'n'drop, file sharing, searching...
  * Google Docs to display and edit your documents
  * Basic multimedia player
+ * Music player (based on [GNOME Music](https://wiki.gnome.org/Apps/Music))
  * Basic web browser
  * Terminal (with a basic interpreter)
  * Very basic word processor
