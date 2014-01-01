@@ -108,7 +108,7 @@ Webos.Error.catchError = function(error) {
  */
 Webos.Error.build = function(message, details, code) {
 	if (!message) {
-		return;
+		message = 'Unknown error';
 	}
 
 	if (message instanceof Webos.Error) {
