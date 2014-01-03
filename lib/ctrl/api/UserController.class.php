@@ -646,7 +646,7 @@ class UserController extends \lib\ApiBackController {
 		$tokenManager = $this->managers()->getManagerOf('userToken');
 
 		//Get token
-		$userToken = $tokenManager->getToken($tokenId);
+		$userToken = $tokenManager->getById($tokenId);
 
 		if (empty($userToken)) {
 			throw new \RuntimeException('This token may have expired : cannot find token with id "'.$tokenId.'"', 404);
@@ -669,6 +669,6 @@ class UserController extends \lib\ApiBackController {
 		$manager->updatePassword($userToken['userId'], $newPassword);
 
 		//Delete token
-		$manager->deleteToken($userToken['id']);
+		$tokenManager->delete($userToken['id']);
 	}
 }
