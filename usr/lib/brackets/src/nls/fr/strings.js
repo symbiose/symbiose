@@ -67,8 +67,8 @@ define({
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
 	"ERROR_IN_BROWSER": "{APP_NAME} est défini en HTML, mais il s’exécute actuellement en tant qu’application de bureau, vous pouvez donc l’utiliser afin de modifier des fichiers locaux. Utilisez l’interpréteur de commandes d’application situé dans le référentiel <b>github.com/adobe/brackets-shell</b> afin d’exécuter {APP_NAME}.",
-
-    // FileIndexManager error string
+    
+    // ProjectManager max files error string
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
 	"ERROR_MAX_FILES": "Vous avez atteint le nombre maximum de fichiers indexés. Il est possible que les actions impliquant une recherche des fichiers dans l’index ne fonctionnent pas correctement.",
 
@@ -81,7 +81,7 @@ define({
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
 	"LIVE_DEV_LOADING_ERROR_MESSAGE": "Impossible de charger la page Live Development",
-	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
+	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML ou vérifiez qu’il y a un fichier index.html dans votre projet pour pouvoir lancer l’aperçu en direct.",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
 	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
@@ -110,22 +110,28 @@ define({
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
+    // Generic dialog/button labels
+	"OK": "OK",
+	"CANCEL": "Annuler",
+	"DONT_SAVE": "Ne pas enregistrer",
+	"SAVE": "Enregistrer",
+	"DELETE": "Supprimer",
+	"BUTTON_YES": "Oui",
+	"BUTTON_NO": "Non",
+    
     // Find, Replace, Find in Files
-	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
 	"FIND_RESULT_COUNT": "{0} résultats",
 	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
 	"FIND_NO_RESULTS": "Aucun résultat",
-	"WITH": "Avec",
-	"BUTTON_YES": "Oui",
-	"BUTTON_NO": "Non",
+	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
 	"BUTTON_REPLACE_ALL": "Tout\u2026",
-	"BUTTON_STOP": "Arrêter",
 	"BUTTON_REPLACE": "Remplacer",
-            
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
 	"BUTTON_NEXT_HINT": "Résultat suivant",
 	"BUTTON_PREV_HINT": "Résultat précédent",
+	"BUTTON_CASESENSITIVE_HINT": "Respecter la casse",
+	"BUTTON_REGEXP_HINT": "Expression régulière",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -135,10 +141,12 @@ define({
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour !",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
 
+    // Replace All (in single file)
 	"FIND_REPLACE_TITLE_PART1": "Remplacer « ",
 	"FIND_REPLACE_TITLE_PART2": " » par « ",
 	"FIND_REPLACE_TITLE_PART3": " » &mdash; {2} {0} {1}",
 
+    // Find in Files
 	"FIND_IN_FILES_TITLE_PART1": "« ",
 	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
@@ -187,6 +195,8 @@ define({
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "Erreurs {0}",
+	"ERRORS_PANEL_TITLE_SINGLE": "Problèmes {0}",
+	"ERRORS_PANEL_TITLE_MULTI": "Problèmes Lint",
 	"SINGLE_ERROR": "1 erreur {0}",
 	"MULTIPLE_ERRORS": "{1} erreurs {0}",
 	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
@@ -206,9 +216,14 @@ define({
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
 	"CMD_ADD_TO_WORKING_SET": "Ajouter à l’ensemble de travail",
+	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
 	"CMD_FILE_CLOSE": "Fermer",
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
+	"CMD_FILE_CLOSE_LIST": "Fermer la liste",
+	"CMD_FILE_CLOSE_OTHERS": "Fermer tous les autres",
+	"CMD_FILE_CLOSE_ABOVE": "Fermer les autres au-dessus",
+	"CMD_FILE_CLOSE_BELOW": "Fermer les autres en dessous",
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
@@ -280,6 +295,7 @@ define({
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
+	"CMD_CSS_QUICK_EDIT_NEW_RULE": "Nouvelle règle",
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
@@ -299,11 +315,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"OK": "OK",
-	"DONT_SAVE": "Ne pas enregistrer",
-	"SAVE": "Enregistrer",
-	"CANCEL": "Annuler",
-	"DELETE": "Supprimer",
 	"RELOAD_FROM_DISK": "Recharger à partir du disque",
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
@@ -328,6 +339,9 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
+    
+    // CSS Quick Edit
+	"BUTTON_NEW_RULE": "Nouvelle règle",
     
     // Extension Management strings
 	"INSTALL": "Installer",
@@ -376,6 +390,8 @@ define({
 	"EXTENSION_DATE": "Date",
 	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
 	"EXTENSION_INCOMPATIBLE_OLDER": "Cette extension n’est actuellement compatible qu’avec les versions antérieures de l’application {APP_NAME}.",
+	"EXTENSION_LATEST_INCOMPATIBLE_NEWER": "La version {0} de cette extension nécessite une version plus récente de {APP_NAME}. Mais vous pouvez installer la version antérieure {1}.",
+	"EXTENSION_LATEST_INCOMPATIBLE_OLDER": "La version {0} de cette extension n’est compatible qu’avec les anciennes versions de {APP_NAME}. Mais vous pouvez installer la version antérieure {1}.",
 	"EXTENSION_NO_DESCRIPTION": "Aucune description",
 	"EXTENSION_MORE_INFO": "Plus d’infos...",
 	"EXTENSION_ERROR": "Erreur d’extension",
@@ -406,13 +422,16 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "Disponibles",
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
     
+	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
+	"CSS_QUICK_EDIT_NO_MATCHES": "Aucune règle CSS existante ne correspond à votre sélection.<br> Cliquez sur « Nouvelle règle » pour en créer une.",
+	"CSS_QUICK_EDIT_NO_STYLESHEETS": "Votre projet ne contient aucune feuille de style.<br>Créez-en une pour pouvoir ajouter des règles CSS.",
+    
     /**
      * Unit names
      */
 
 	"UNIT_PIXELS": "pixels",
-    
-    
+
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
@@ -441,15 +460,23 @@ define({
 	"LOCALE_IT": "Italien",
 	"LOCALE_JA": "Japonais",
 	"LOCALE_NB": "Norvégien",
+	"LOCALE_NL": "Hollandais",
+	"LOCALE_FA_IR": "Persan/Farsi",
 	"LOCALE_PL": "Polonais",
 	"LOCALE_PT_BR": "Portugais (Brésil)",
 	"LOCALE_PT_PT": "Portugais",
+	"LOCALE_RO": "Roumain",
 	"LOCALE_RU": "Russe",
 	"LOCALE_SK": "Slovaque",
+	"LOCALE_SR": "Serbe",
 	"LOCALE_SV": "Suédois",
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
 	"LOCALE_HU": "Hongrois",
+    
+    // extensions/default/InlineTimingFunctionEditor
+	"INLINE_TIMING_EDITOR_TIME": "Temps",
+	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
