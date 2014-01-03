@@ -173,11 +173,21 @@ Webos.require('/usr/share/css/gnome-screensaver/main.css', function() {
 				});
 
 				$form.submit(function() {
+					if ($submitButton.button('option', 'disabled')) {
+						return;
+					}
+
 					$submitButton.button('option', 'disabled', true);
 					Webos.User.login(user.get('username'), $password.passwordEntry('value'), [function() {
 						GnomeScreenSaver._unlock();
 					}, function(response) {
-						$error.html(response.getErrorsChannel());
+						var err = response.getErrorsChannel();
+						if (response.getStatusCode() == 401) {
+							err = t.get('Bad password');
+							$password.passwordEntry('value', '');
+						}
+
+						$error.html(err);
 						$password.passwordEntry('content').focus();
 						$submitButton.button('option', 'disabled', false);
 					}]);
