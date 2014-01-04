@@ -506,8 +506,13 @@ Webos.require([
 			});
 		},
 		_renderItem: function(file) {
-			var that = this, t = this.translations(), filepath = file.get('path'), item, icon, iconPath = this._getFileIcon(file);
-			
+			var that = this,
+				t = this.translations(),
+				filepath = file.get('path'),
+				item = $(),
+				icon = $(),
+				iconPath = this._getFileIcon(file);
+
 			if (that.options.display == 'icons') {
 				item = $('<li></li>').attr('title', file.get('basename'));
 				
