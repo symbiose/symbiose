@@ -80,6 +80,10 @@
 				}
 			};
 
+			if (Webos.Process && Webos.Process.current()) {
+				defaults.pid = Webos.Process.current().getPid();
+			}
+
 			var options = $.extend({}, defaults, opts);
 			this._options = options;
 

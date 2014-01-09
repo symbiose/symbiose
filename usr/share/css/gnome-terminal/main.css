@@ -28,6 +28,7 @@
 	background-color: transparent;
 	color: white;
 	border: none;
+	width: auto;
 }
 
 .webos-terminal table td, .webos-terminal table th {

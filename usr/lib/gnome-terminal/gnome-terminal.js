@@ -50,6 +50,9 @@ $.webos.widget('terminal', 'container', {
 	prompt: function () {
 		return this.options._components.prompt;
 	},
+	outputContainer: function() {
+		return $(this.options._components.out);
+	},
 	_displayPrompt: function () { //Affiche l'invite de commande
 		var that = this;
 
@@ -127,11 +130,18 @@ $.webos.widget('terminal', 'container', {
 		}));
 	},
 	_print: function (contents) {
+		var out = $();
 		if (!this.options._components.out.length) {
-			this.options._components.out = $('<p></p>').appendTo(this.element);
+			this.options._components.out = out = $('<p></p>').appendTo(this.element);
+		} else {
+			out = this.options._components.out;
 		}
 
-		this.options._components.out.append(contents);
+		out.append(contents);
+
+		if (out.find('input').length) {
+			out.find('input').last().focus();
+		}
 	},
 	enterCmd: function (cmd) { //Entrer une commande
 		var that = this;
@@ -225,6 +235,11 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 				that._terminal.terminal('prompt').textEntry('content')
 					.width(that._terminal.terminal('prompt').innerWidth() - that._terminal.terminal('prompt').textEntry('label').outerWidth() - 5)
 					.focus();
+			} else {
+				var lastInput = that._terminal.terminal('outputContainer').find('input').last();
+				if (lastInput.length) {
+					lastInput.focus();
+				}
 			}
 		}).bind('windowbeforeclose', function(e) { //Avant la fermeture d'une fenetre
 			if (that._terminal.terminal('getRunningCmd')) {
@@ -244,9 +259,16 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 		
 		//Lors du clic sur le terminal
 		scrollPane.scrollPane('content').click(function(e) {
-			var prompt = that._terminal.terminal('prompt');
-			if ($(e.target).is(this) && prompt.length) {
-				prompt.textEntry('content').focus();
+			if ($(e.target).is(this)) {
+				var prompt = that._terminal.terminal('prompt');
+				if (prompt.length) {
+					prompt.textEntry('content').focus();
+				} else {
+					var lastInput = that._terminal.terminal('outputContainer').find('input').last();
+					if (lastInput.length) {
+						lastInput.focus();
+					}
+				}
 			}
 		});
 		

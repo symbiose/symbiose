@@ -107,21 +107,29 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 	}
 
 	public function countAll() {
-		$pkgsFile = $this->dao->open(self::PKGS_DB);
+		$repos = $this->listRepositories();
+		$count = 0;
 
-		$pkgsData = $pkgsFile->read();
-		return count($pkgsData);
+		foreach($repos as $repo) {
+			$count += $this->countInRepository($repo['name']);
+		}
+
+		return $count;
 	}
 
 	public function getByName($pkgName) {
-		$pkgsFile = $this->dao->open(self::PKGS_DB);
-		$pkgsData = $pkgsFile->read()->filter(array('name' => $pkgName));
+		$repos = $this->listRepositories();
 
-		if (count($pkgsData) == 0) {
-			return null;
+		$foundPkg = null;
+
+		foreach($repos as $repo) {
+			$pkg = $this->getByRepository($repo['name'], $pkgName);
+			if (empty($foundPkg)) {
+				$foundPkg = $pkg;
+			}
 		}
 
-		return $this->_buildPackageMetadata($pkgsData[0]);
+		return $foundPkg;
 	}
 
 	public function listByRepository($repoName) {
@@ -178,6 +186,15 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 		}
 
 		return false;
+	}
+
+	public function countInRepository($repoName) {
+		$this->_autoUpdateCache($repoName);
+
+		$indexFile = $this->_indexCache($repoName);
+		$indexes = $indexFile->read();
+
+		return count($indexes);
 	}
 
 	// SETTERS

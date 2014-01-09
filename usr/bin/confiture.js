@@ -49,21 +49,87 @@ Webos.require([
 				return;
 			}
 
+			term.echo('Reading packages list...\n');
+
+			var pkgs = [];
+			var gotPkg = function (pkg) {
+				pkgs.push(pkg);
+
+				if (pkgs.length == targets.length) {
+					doInstall();
+				}
+			};
+
+			var doInstall = function () {
+				term.echo('\nPackages ('+pkgs.length+'):');
+
+				var totalSize = 0, totalExtractedSize = 0;
+				for (var i = 0; i < pkgs.length; i++) {
+					var pkg = pkgs[i];
+
+					term.echo(' '+pkg.get('name')+'-'+pkg.get('version'));
+
+					totalSize += pkg.get('size');
+					totalExtractedSize += pkg.get('extractedSize');
+				}
+
+				term.echo('\n\nTotal download size: '+Webos.File.bytesToSize(totalSize)+'\n');
+				term.echo('Total installed size: '+Webos.File.bytesToSize(totalExtractedSize)+'\n');
+
+				term.prompt(function(val) {
+					if (val == 'Y') {
+						term.echo('\nTODO !');
+						that.stop();
+					} else {
+						that.stop();
+					}
+				}, {
+					label: ':: Proceed with installation?',
+					type: 'yn'
+				});
+			};
+
+			var pkgNotFound = function (resp) {
+				term.echo(resp);
+				that.stop();
+			};
+
 			//TODO: install packages
+			for(var i = 0; i < targets.length; i++) {
+				Webos.Confiture.Package.get(targets[i], [function (pkg) {
+					gotPkg(pkg);
+				}, function (resp) {
+					pkgNotFound(resp);
+				}]);
+			}
 
 			return op;
 		}
 	};
 
 	if (args.isOption('S') || args.isOption('sync')) { // Synchronize
+		var addOptToTargets = function (optionName) {
+			if (args.getOption(optionName)) {
+				targets.push(args.getOption(optionName));
+			}
+		};
+		addOptToTargets('S');
+		addOptToTargets('sync');
+
 		var operationsToExecute = [];
 
 		if (args.isOption('y') || args.isOption('refresh')) { // Refresh cache
 			operationsToExecute.push('refresh');
+
+			addOptToTargets('y');
+			addOptToTargets('refresh');
 		}
 
 		if (args.isOption('u') || args.isOption('sysupgrade')) { // Upgrade system
 			operationsToExecute.push('sysupgrade');
+
+			addOptToTargets('u');
+			addOptToTargets('sysupgrade');
 		}
 
 		if (args.isOption('h') || args.isOption('help')) { // Help
