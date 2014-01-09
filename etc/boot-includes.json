@@ -18,10 +18,8 @@
 	"/boot/lib/file.js":{},
 
 	"/boot/lib/collection.js":{},
-	"/boot/lib/uniqueid.js":{},
 	"/boot/lib/ui.js":{},
 	"/boot/lib/css.js":{},
-	"/boot/lib/loadimage.js":{},
 	"/boot/lib/xml.js":{},
 	"/boot/lib/translation.js":{},
 
