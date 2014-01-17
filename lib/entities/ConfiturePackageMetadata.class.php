@@ -58,6 +58,10 @@ class ConfiturePackageMetadata extends PackageMetadata {
 
 	// GETTERS //
 
+	public function repository() {
+		return $this->repository;
+	}
+
 	public function subtitle() {
 		return $this->subtitle;
 	}

@@ -8,6 +8,57 @@ Webos.require([
 ], function() {
 	var options = args.getOptions(), targets = args.getParams();
 
+	var addOptToTargets = function (optionName) {
+		if (args.getOption(optionName)) {
+			targets.push(args.getOption(optionName));
+		}
+	};
+
+	var getTargets = function(options) {
+		var options = $.extend({
+			forceLocal: false
+		}, options);
+
+		var op = new Webos.Operation();
+
+		if (targets.length == 0) {
+			op.setCompleted();
+			return;
+		}
+
+		var pkgs = [];
+		var gotPkg = function (pkg) {
+			pkgs.push(pkg);
+
+			if (pkg.get('installed')) {
+				term.echo('Warning: '+pkg.get('name')+'-'+pkg.get('version')+' is already installed -- reinstalls\n');
+			}
+
+			if (pkgs.length == targets.length) {
+				op.setCompleted(pkgs);
+			}
+		};
+
+		var pkgNotFound = function (resp) {
+			op.setCompleted(resp);
+		};
+
+		for(var i = 0; i < targets.length; i++) {
+			var method = Webos.Confiture.Package.get;
+			if (options.forceLocal) {
+				method = Webos.Package.getInstalledPackage;
+			}
+
+			method(targets[i], [function (pkg) {
+				gotPkg(pkg);
+			}, function (resp) {
+				pkgNotFound(resp);
+			}]);
+		}
+
+		return op;
+	};
+
 	var operations = {
 		refresh: function() {
 			term.echo(':: Refreshing packages databases...\n');
@@ -43,24 +94,14 @@ Webos.require([
 			var op = new Webos.Operation();
 
 			if (targets.length == 0) {
-				setTimeout(function() {
-					op.setCompleted();
-				}, 0);
+				op.setCompleted();
 				return;
 			}
 
 			term.echo('Reading packages list...\n');
 
 			var pkgs = [];
-			var gotPkg = function (pkg) {
-				pkgs.push(pkg);
-
-				if (pkgs.length == targets.length) {
-					doInstall();
-				}
-			};
-
-			var doInstall = function () {
+			var askInstall = function () {
 				term.echo('\nPackages ('+pkgs.length+'):');
 
 				var totalSize = 0, totalExtractedSize = 0;
@@ -74,12 +115,11 @@ Webos.require([
 				}
 
 				term.echo('\n\nTotal download size: '+Webos.File.bytesToSize(totalSize)+'\n');
-				term.echo('Total installed size: '+Webos.File.bytesToSize(totalExtractedSize)+'\n');
+				term.echo('Total installed size: '+Webos.File.bytesToSize(totalExtractedSize)+'\n\n');
 
 				term.prompt(function(val) {
 					if (val == 'Y') {
-						term.echo('\nTODO !');
-						that.stop();
+						doInstall();
 					} else {
 						that.stop();
 					}
@@ -89,30 +129,83 @@ Webos.require([
 				});
 			};
 
-			var pkgNotFound = function (resp) {
-				term.echo(resp);
-				that.stop();
+			var doInstall = function () {
+				term.echo(':: Downloading and installing packages...\n');
+
+				Webos.Confiture.install(pkgs, [function(resp) {
+					term.echo(resp);
+					op.setCompleted();
+				}, function(resp) {
+					term.echo(resp);
+					op.setCompleted(resp);
+				}]);
 			};
 
-			//TODO: install packages
-			for(var i = 0; i < targets.length; i++) {
-				Webos.Confiture.Package.get(targets[i], [function (pkg) {
-					gotPkg(pkg);
-				}, function (resp) {
-					pkgNotFound(resp);
-				}]);
+			var targetsOp = getTargets();
+			targetsOp.on('success', function (data) {
+				pkgs = data.result;
+				askInstall();
+			});
+			targetsOp.on('error', function (data) {
+				term.echo(data.result);
+				op.setCompleted(data.result);
+			});
+
+			return op;
+		},
+		remove: function () {
+			var op = new Webos.Operation();
+
+			if (targets.length == 0) {
+				op.setCompleted();
+				return;
 			}
+
+			term.echo('Reading packages list...\n');
+
+			var pkgs = [];
+			var askRemove = function () {
+				term.echo('\nPackages ('+pkgs.length+'):');
+
+				var totalExtractedSize = 0;
+				for (var i = 0; i < pkgs.length; i++) {
+					var pkg = pkgs[i];
+
+					term.echo(' '+pkg.get('name')+'-'+pkg.get('version'));
+
+					totalExtractedSize += pkg.get('extractedSize');
+				}
+
+				term.echo('\n\nTotal download size: '+Webos.File.bytesToSize(totalSize)+'\n');
+				term.echo('Total installed size: '+Webos.File.bytesToSize(totalExtractedSize)+'\n\n');
+
+				term.prompt(function(val) {
+					if (val == 'Y') {
+						doInstall();
+					} else {
+						that.stop();
+					}
+				}, {
+					label: ':: Proceed with installation?',
+					type: 'yn'
+				});
+			};
+
+			var targetsOp = getTargets({ forceLocal: true });
+			targetsOp.on('success', function (data) {
+				pkgs = data.result;
+				askRemove();
+			});
+			targetsOp.on('error', function (data) {
+				term.echo(data.result);
+				op.setCompleted(data.result);
+			});
 
 			return op;
 		}
 	};
 
 	if (args.isOption('S') || args.isOption('sync')) { // Synchronize
-		var addOptToTargets = function (optionName) {
-			if (args.getOption(optionName)) {
-				targets.push(args.getOption(optionName));
-			}
-		};
 		addOptToTargets('S');
 		addOptToTargets('sync');
 
@@ -175,10 +268,19 @@ Webos.require([
 		};
 
 		executeOperation();
+	} else if (args.isOption('R') || args.isOption('remove')) { //Remove
+		addOptToTargets('R');
+		addOptToTargets('remove');
+
+		var op = operations.remove();
+		op.on('success error', function() {
+			that.stop();
+		});
 	} else if (args.isOption('h') || args.isOption('help')) { // Help
 		term.echo('usage: confiture <operation> [...]\n');
 		term.echo('confiture {-h --help}\n');
 		term.echo('confiture {-V --version}\n');
+		term.echo('confiture {-R --remove}   [options] <package(s)>');
 		term.echo('confiture {-S --sync}     [options] [package(s)]');
 		that.stop();
 	} else if (args.isOption('V') || args.isOption('version')) { // Version

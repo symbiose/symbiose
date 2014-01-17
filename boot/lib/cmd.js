@@ -192,6 +192,9 @@ Webos.Terminal.prototype = {
 
 					var val = $(el).val();
 					$(el).replaceWith(val);
+
+					that.echo('\n');
+
 					switch (options.type) {
 						case 'yn':
 							if (val == 'Y' || val == 'n') {

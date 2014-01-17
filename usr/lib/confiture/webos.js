@@ -36,7 +36,7 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 			var that = this;
 
 			if (!this.get('installable')) {
-				operation.setCompleted(Webos.Callback.Result.error('This app cannot be installed'));
+				callback.success(Webos.Callback.Result.error('This app cannot be installed'));
 				return;
 			}
 
@@ -49,7 +49,7 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 				'class': 'ConfitureRepositoryController',
 				'method': 'install',
 				arguments: {
-					'pkgName': this.get('name'),
+					'pkgNames': [this.get('name')],
 					//'repository': this.get('repository') //Do not specify the repository (prevent from installing from the local repository)
 				}
 			}).load([function(res) {
@@ -360,6 +360,75 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 
 			callback.success(result);
 		}, callback.error]);
+	};
+
+	Webos.Confiture.install = function(packages, callback) {
+		var op = new Webos.Operation();
+		op.addCallbacks(callback);
+
+		if (!packages instanceof Array) {
+			packages = [packages];
+		}
+
+		for (var i = 0; i < packages.length; i++) {
+			var pkg = packages[i];
+
+			if (!Webos.isInstanceOf(pkg, Webos.Confiture.Package)) {
+				op.setCompleted(Webos.Callback.Result.error('This package cannot be installed (not a confiture package)'));
+				return;
+			}
+
+			if (!pkg.get('installable')) {
+				op.setCompleted(Webos.Callback.Result.error('The package "'+pkg.get('name')+'" cannot be installed'));
+				return;
+			}
+
+			if (pkg.get('installed')) {
+				//Package already installed -- reinstall
+			}
+		}
+
+		var pkgNames = [];
+		for (var i = 0; i < packages.length; i++) {
+			var pkg = packages[i];
+			pkg._running = true;
+			pkg.trigger('installstart');
+			Webos.Package.trigger('installstart', { 'package': pkg });
+
+			pkgNames.push(pkg.get('name'));
+		}
+		
+		new W.ServerCall({
+			'class': 'ConfitureRepositoryController',
+			'method': 'install',
+			arguments: {
+				'pkgNames': pkgNames
+			}
+		}).load([function(res) {
+			for (var i = 0; i < packages.length; i++) {
+				var pkg = packages[i];
+				pkg._running = false;
+				pkg._hydrate({
+					'installed': true,
+					'installDate': Math.round(+new Date() / 1000)
+				});
+				pkg.trigger('install installcomplete installsuccess');
+				Webos.Package.trigger('install installcomplete installsuccess', { 'package': pkg });
+			}
+
+			op.setCompleted(res);
+		}, function(res) {
+			for (var i = 0; i < packages.length; i++) {
+				var pkg = packages[i];
+				pkg._running = false;
+				pkg.trigger('installcomplete installerror');
+				Webos.Package.trigger('installcomplete installerror', { 'package': pkg });
+			}
+
+			op.setCompleted(res);
+		}]);
+
+		return op;
 	};
 
 	/**

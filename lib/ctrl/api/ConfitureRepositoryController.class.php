@@ -105,23 +105,32 @@ class ConfitureRepositoryController extends \lib\ApiBackController {
 
 	// SETTERS
 
-	public function executeInstall($pkgName) {
+	public function executeInstall($pkgNames) {
 		$manager = $this->managers()->getManagerOf('confitureRepository');
+		$localManager = $this->managers()->getManagerOf('localRepository');
 
-		$pkg = $manager->getByName($pkgName);
-
-		if (empty($pkg)) {
-			throw new RuntimeException('Unable to find package "'.$pkgName.'"', 404);
+		if (!is_array($pkgNames)) {
+			$pkgNames = array($pkgNames);
 		}
 
-		
+		$pkgs = array();
+		foreach ($pkgNames as $name) {
+			$pkg = $manager->getByName($name);
 
-		//TODO
-		//parseDepends()
+			if (empty($pkg)) {
+				throw new RuntimeException('Unable to find package "'.$name.'"', 404);
+			}
+
+			$pkgs[] = $pkg;
+		}
+
+		$manager->install($pkgs, $localManager, $output);
+		$this->responseContent->setValue($output);
 	}
 
-	public function executeRemove($pkgName) {
+	public function executeRemove($pkgNames) {
 		$manager = $this->managers()->getManagerOf('confitureRepository');
+		$localManager = $this->managers()->getManagerOf('localRepository');
 
 		//TODO
 	}
