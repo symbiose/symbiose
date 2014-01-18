@@ -130,6 +130,21 @@
 				return;
 			}
 
+			var newStack = [], found = false;
+			for (var i = 0; i < Webos.Process.stack.length; i++) {
+				var proc = Webos.Process.stack[i];
+
+				if (proc.getPid() == this.getPid()) { //Process in stack
+					found = true;
+				} else if (!found) {
+					newStack.push(proc);
+				} else { //Subprocess
+					proc.stop();
+					break; //Stop here: the subprocess will kill its own subprocesses
+				}
+			}
+			Webos.Process.stack = newStack;
+
 			this._state = 3;
 
 			this.notify('stop');

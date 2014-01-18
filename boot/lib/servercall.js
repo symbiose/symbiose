@@ -80,8 +80,11 @@
 				}
 			};
 
-			if (Webos.Process && Webos.Process.current()) {
-				defaults.pid = Webos.Process.current().getPid();
+			if (Webos.Process) {
+				var currProcess = Webos.Process.current();
+				if (currProcess) {
+					defaults.pid = currProcess.getPid();
+				}
 			}
 
 			var options = $.extend({}, defaults, opts);

@@ -203,7 +203,7 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 			'class': 'ConfitureRepositoryController',
 			'method': 'listAll'
 		}).load([function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
+			callback.success(Webos.Confiture._parsePackagesList(response.getData()));
 		}, function(response) {
 			callback.error(response);
 		}]);
@@ -246,7 +246,7 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 				'category': name
 			}
 		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
+			callback.success(Webos.Confiture._parsePackagesList(response.getData()));
 		}, function(response) {
 			callback.error(response);
 		}));
@@ -267,7 +267,7 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 				'limit': limit
 			}
 		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
+			callback.success(Webos.Confiture._parsePackagesList(response.getData()));
 		}, function(response) {
 			callback.error(response);
 		}));
@@ -284,7 +284,7 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 			'class': 'ConfitureRepositoryController',
 			'method': 'getInstalled'
 		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
+			callback.success(Webos.Confiture._parsePackagesList(response.getData()));
 		}, function(response) {
 			callback.error(response);
 		}));
@@ -300,7 +300,7 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 				limit: limit
 			}
 		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
+			callback.success(Webos.Confiture._parsePackagesList(response.getData()));
 		}, function(response) {
 			callback.error(response);
 		}));
@@ -316,7 +316,7 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 				search: search
 			}
 		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
+			callback.success(Webos.Confiture._parsePackagesList(response.getData()));
 		}, function(response) {
 			callback.error(response);
 		}));
@@ -333,7 +333,7 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 			'class': 'ConfitureRepositoryController',
 			'method': 'getUpdates'
 		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
+			callback.success(Webos.Confiture._parsePackagesList(response.getData()));
 		}, function(response) {
 			callback.error(response);
 		}));
@@ -431,6 +431,82 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 		return op;
 	};
 
+	Webos.Confiture.remove = function(packages, callback) {
+		var op = new Webos.Operation();
+		op.addCallbacks(callback);
+
+		if (!packages instanceof Array) {
+			packages = [packages];
+		}
+
+		for (var i = 0; i < packages.length; i++) {
+			var pkg = packages[i];
+
+			if (!Webos.isInstanceOf(pkg, Webos.Confiture.Package)) {
+				op.setCompleted(Webos.Callback.Result.error('This package cannot be removeed (not a confiture package)'));
+				return;
+			}
+
+			if (!pkg.get('installed')) { //Not installed
+				op.setCompleted(Webos.Callback.Result.error('The package "'+pkg.get('name')+'" cannot be removed (package not removeed)'));
+				return;
+			}
+		}
+
+		var pkgNames = [];
+		for (var i = 0; i < packages.length; i++) {
+			var pkg = packages[i];
+			pkg._running = true;
+			pkg.trigger('removestart');
+			Webos.Package.trigger('removestart', { 'package': pkg });
+
+			pkgNames.push(pkg.get('name'));
+		}
+		
+		new W.ServerCall({
+			'class': 'ConfitureRepositoryController',
+			'method': 'remove',
+			arguments: {
+				'pkgNames': pkgNames
+			}
+		}).load([function(res) {
+			for (var i = 0; i < packages.length; i++) {
+				var pkg = packages[i];
+				pkg._running = false;
+				pkg._hydrate({
+					'installed': false,
+					'installDate': null
+				});
+				pkg.trigger('remove removecomplete removesuccess');
+				Webos.Package.trigger('remove removecomplete removesuccess', { 'package': pkg });
+			}
+
+			op.setCompleted(res);
+		}, function(res) {
+			for (var i = 0; i < packages.length; i++) {
+				var pkg = packages[i];
+				pkg._running = false;
+				pkg.trigger('removecomplete removeerror');
+				Webos.Package.trigger('removecomplete removeerror', { 'package': pkg });
+			}
+
+			op.setCompleted(res);
+		}]);
+
+		return op;
+	};
+
+	Webos.Confiture.Package.listUpgrades = function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+		
+		return new W.ServerCall({
+			'class': 'ConfitureRepositoryController',
+			'method': 'calculateUpgrades'
+		}).load([function(resp) {
+			callback.success(Webos.Confiture._parsePackagesList(resp.getData()));
+		}, callback.error]);
+	};
+
 	/**
 	 * Installer les mises a jour.
 	 * @param Webos.Callback callback Le callback.
@@ -455,19 +531,6 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 			Webos.Confiture.Package.notify('upgradeerror');
 			Webos.Confiture.Package.notify('upgradecomplete');
 		}));
-	};
-
-	/**
-	 * Convertir un objet en liste de paquets.
-	 * @param data L'objet a convertir.
-	 * @return object Un objet contenant les paquets.
-	 */
-	Webos.Confiture.Package._objectToPackageList = function(data) {
-		var list = [];
-		for (var key in data) {
-			list.push(new Webos.Confiture.Package(data[key], key));
-		}
-		return list;
 	};
 
 	//Objet contenant le nom de code des categories et leur titre associe

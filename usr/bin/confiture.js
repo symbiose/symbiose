@@ -30,7 +30,7 @@ Webos.require([
 		var gotPkg = function (pkg) {
 			pkgs.push(pkg);
 
-			if (pkg.get('installed')) {
+			if (pkg.get('installed') && !options.forceLocal) {
 				term.echo('Warning: '+pkg.get('name')+'-'+pkg.get('version')+' is already installed -- reinstalls\n');
 			}
 
@@ -82,11 +82,20 @@ Webos.require([
 
 			var op = new Webos.Operation();
 
-			//targets.concat(data)
-			//TODO
-			setTimeout(function() {
+			Webos.Confiture.Package.listUpgrades([function (list) {
+				for (var i = 0; i < list.length; i++) {
+					targets.push(list[i].get('name'));
+				}
+
+				if (!targets.length) {
+					term.echo('Nothing to do.');
+				}
+
 				op.setCompleted();
-			}, 0);
+			}, function (resp) {
+				term.echo(resp);
+				op.setCompleted(resp);
+			}]);
 
 			return op;
 		},
@@ -94,6 +103,7 @@ Webos.require([
 			var op = new Webos.Operation();
 
 			if (targets.length == 0) {
+				term.echo('Nothing to do.');
 				op.setCompleted();
 				return;
 			}
@@ -157,6 +167,7 @@ Webos.require([
 			var op = new Webos.Operation();
 
 			if (targets.length == 0) {
+				term.echo('Nothing to do.');
 				op.setCompleted();
 				return;
 			}
@@ -176,19 +187,28 @@ Webos.require([
 					totalExtractedSize += pkg.get('extractedSize');
 				}
 
-				term.echo('\n\nTotal download size: '+Webos.File.bytesToSize(totalSize)+'\n');
-				term.echo('Total installed size: '+Webos.File.bytesToSize(totalExtractedSize)+'\n\n');
+				term.echo('\n\nTotal deleted size: '+Webos.File.bytesToSize(totalExtractedSize)+'\n\n');
 
 				term.prompt(function(val) {
 					if (val == 'Y') {
-						doInstall();
+						doRemove();
 					} else {
 						that.stop();
 					}
 				}, {
-					label: ':: Proceed with installation?',
+					label: ':: Do you want to remove these packages?',
 					type: 'yn'
 				});
+			};
+
+			var doRemove = function () {
+				Webos.Confiture.remove(pkgs, [function(resp) {
+					term.echo(resp);
+					op.setCompleted();
+				}, function(resp) {
+					term.echo(resp);
+					op.setCompleted(resp);
+				}]);
 			};
 
 			var targetsOp = getTargets({ forceLocal: true });

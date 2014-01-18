@@ -75,6 +75,20 @@ class LocalRepositoryManager_jsondb extends LocalRepositoryManager {
 		}
 	}
 
+	public function listFilesByPackage($pkgName) {
+		$filesFile = $this->dao->open(self::FILES_DB);
+		$files = $filesFile->read();
+
+		$list = array();
+		foreach($files as $file) {
+			if ($file['pkg'] == $pkgName) {
+				$list[] = $file;
+			}
+		}
+
+		return $list;
+	}
+
 	// SETTERS
 
 	public function insert(PackageMetadata &$pkg) {

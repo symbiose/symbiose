@@ -95,6 +95,15 @@ class ConfitureRepositoryController extends \lib\ApiBackController {
 		return $this->_parsePackagesList($matches);
 	}
 
+	public function executeCalculateUpgrades() {
+		$manager = $this->managers()->getManagerOf('confitureRepository');
+		$localManager = $this->managers()->getManagerOf('localRepository');
+
+		$upgrades = $manager->calculateUpgrades($localManager);
+
+		return $this->_parsePackagesList($upgrades);
+	}
+
 	public function executeListRepositories() {
 		$manager = $this->managers()->getManagerOf('confitureRepository');
 
@@ -104,11 +113,8 @@ class ConfitureRepositoryController extends \lib\ApiBackController {
 	}
 
 	// SETTERS
-
-	public function executeInstall($pkgNames) {
-		$manager = $this->managers()->getManagerOf('confitureRepository');
-		$localManager = $this->managers()->getManagerOf('localRepository');
-
+	
+	protected function _listPackagesByNames($pkgNames, $manager) {
 		if (!is_array($pkgNames)) {
 			$pkgNames = array($pkgNames);
 		}
@@ -124,6 +130,15 @@ class ConfitureRepositoryController extends \lib\ApiBackController {
 			$pkgs[] = $pkg;
 		}
 
+		return $pkgs;
+	}
+
+	public function executeInstall($pkgNames) {
+		$manager = $this->managers()->getManagerOf('confitureRepository');
+		$localManager = $this->managers()->getManagerOf('localRepository');
+
+		$pkgs = $this->_listPackagesByNames($pkgNames, $manager);
+
 		$manager->install($pkgs, $localManager, $output);
 		$this->responseContent->setValue($output);
 	}
@@ -132,7 +147,10 @@ class ConfitureRepositoryController extends \lib\ApiBackController {
 		$manager = $this->managers()->getManagerOf('confitureRepository');
 		$localManager = $this->managers()->getManagerOf('localRepository');
 
-		//TODO
+		$pkgs = $this->_listPackagesByNames($pkgNames, $manager);
+
+		$manager->remove($pkgs, $localManager, $output);
+		$this->responseContent->setValue($output);
 	}
 
 	public function executeUpdateCache() {

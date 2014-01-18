@@ -4,7 +4,6 @@ namespace lib\manager;
 use \lib\entities\ConfiturePackageMetadata;
 use \lib\entities\ConfitureRepository;
 use \lib\manager\LocalRepositoryManager;
-use \lib\TemporaryDirectory;
 use \RuntimeException;
 
 class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
@@ -570,8 +569,6 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 			throw new RuntimeException('Cannot open package\'s contents from temporary file "'.$zipPath.'" : ZipArchive error #'.$result);
 		}
 
-		$root = ''; //Root folder
-
 		$filesToCopy = array();
 
 		//Check if everything goes the right way, and store files to copy in an array
@@ -599,7 +596,7 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 
 			if ($itemPkgData['noextract']) { continue; } //Skip this item
 
-			$itemDestPath = $root . '/' . $itemName; //Here is the final file's destination
+			$itemDestPath = '/' . $itemName; //Here is the final file's destination
 
 			//Add this file in the list
 			$filesToCopy[$itemName] = array(
@@ -672,10 +669,10 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 
 		//If it is an upgrade, remove newly deleted files
 		if ($isUpgrade) {
-			//TODO
-			foreach($localPkg->files() as $fileData) {
-				$oldInternalFilePath = preg_replace('#^\./#', '', $fileData['path']);
-				$oldFilePath = $root . '/' . $oldInternalFilePath;
+			$localPkgFiles = $localRepo->listFilesByPackage($package->name());
+			foreach($localPkgFiles as $fileData) {
+				$oldInternalFilePath = preg_replace('#^/#', '', $fileData['path']);
+				$oldFilePath = '/' . $oldInternalFilePath;
 
 				//Was this file already processed ?
 				if (!isset($filesToCopy[$oldInternalFilePath])) {
@@ -776,9 +773,8 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 		$zip->close(); //Close the package's ZIP file
 	}
 
-	//TODO
-	public function _getPkgZipPath(TemporaryDirectory $tmpDir, ConfiturePackageMetadata $pkg) {
-		return $this->dao->toExternalPath($tmpDir->root().'/'.$pkg['name'].'.zip');
+	public function _getPkgZipPath($tmpDirPath, ConfiturePackageMetadata $pkg) {
+		return $tmpDirPath.'/'.$pkg['name'].'.zip';
 	}
 
 	public function install($packages, LocalRepositoryManager $localRepository, &$output = '') {
@@ -859,7 +855,9 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 		}
 
 		//Second, download the packages' sources
-		$tmpDir = new TemporaryDirectory(); //Create a temporary folder
+		//Create a temporary folder
+		$tmpDirPath = $this->dao->tmpfile();
+		$this->dao->mkdir($tmpDirPath);
 		$packagesNbr = count($packagesToInstall);
 		$pkgsFiles = array(); //Packages files
 
@@ -868,7 +866,7 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 
 			$pkgsFiles[$pkg['name']] = $this->_getPkgFiles($pkg);
 
-			$zipPath = $this->_getPkgZipPath($tmpDir, $pkg);
+			$zipPath = $this->_getPkgZipPath($tmpDirPath, $pkg);
 			$this->_download($pkg, $zipPath);
 		}
 
@@ -876,7 +874,7 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 		foreach($packagesToInstall as $pkg) {
 			$output .= '('.($i + 1).'/'.$packagesNbr.') installing '.$pkg['name']."\n";
 
-			$zipPath = $this->_getPkgZipPath($tmpDir, $pkg);
+			$zipPath = $this->_getPkgZipPath($tmpDirPath, $pkg);
 			$this->_extract($pkg, $zipPath, $pkgsFiles[$pkg['name']], $localRepository);
 		}
 
@@ -884,7 +882,7 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 		foreach($packagesToInstall as $pkg) {
 			$output .= '('.($i + 1).'/'.$packagesNbr.') configuring '.$pkg['name']."\n";
 
-			$zipPath = $this->_getPkgZipPath($tmpDir, $pkg);
+			$zipPath = $this->_getPkgZipPath($tmpDirPath, $pkg);
 			$this->_runPostInstallScript($pkg, $zipPath);
 		}
 
@@ -896,7 +894,116 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 				$localRepository->delete($localPkg['name']);
 			}
 
-			//$this->_register($pkg, $pkgsFiles[$pkg['name']], $localRepository);
+			$this->_register($pkg, $pkgsFiles[$pkg['name']], $localRepository);
+		}
+	}
+
+	public function calculateUpgrades(LocalRepositoryManager $localRepository) {
+		$installedPkgs = $localRepository->listAll();
+
+		$upgrades = array();
+
+		foreach ($installedPkgs as $installedPkg) {
+			$remotePkg = $this->getByName($installedPkg['name']);
+
+			if ($remotePkg !== null && version_compare($remotePkg['version'], $installedPkg['version'], '>')) {
+				$upgrades[] = $remotePkg;
+			}
+		}
+
+		return $upgrades;
+	}
+
+	public function _runPreRemoveScript(ConfiturePackageMetadata $pkg) {
+		$removeScriptsDirPath = self::REMOVE_SCRIPTS_DIR;
+		$removeScriptPath = $removeScriptsDirPath . '/' . $pkg['name'] . '.php.txt';
+
+		if ($this->dao->exists($removeScriptPath)) {
+			$removeScript = $this->dao->read($removeScriptPath);
+
+			$removeScript = preg_replace('#^\<\?(php)?#i', '', $removeScript);
+			$removeScript = preg_replace('#\?\>$#i', '', $removeScript);
+
+			$removeFn = create_function('', $removeScript);
+
+			try {
+				call_user_func_array($removeFn, array());
+			} catch (\Exception $e) {}
+
+			$this->dao->delete($removeScriptPath);
+		}
+	}
+
+	protected function _deleteFiles(ConfiturePackageMetadata $pkg, $pkgFiles) {
+		foreach($pkgFiles as $fileData) {
+			$filePath = '/' . $fileData['path'];
+
+			if ($this->dao->exists($filePath)) {
+				//Pre-check
+				if (isset($fileData['md5sum']) && !empty($fileData['md5sum'])) { //If a md5 checksum is specified
+					$fileMd5 = md5_file($this->dao->toInternalPath($filePath)); //Calculate the MD5 sum of the existing file
+
+					if ($fileData['md5sum'] != $fileMd5) { //If checksums are different
+						continue; //Do not delete the file
+					}
+				}
+
+				$this->dao->delete($filePath);
+
+				//Delete parent folders while they are empty
+				do {
+					$parentDirPath = $this->dao->dirname((isset($parentDirPath)) ? $parentDirPath : $filePath);
+					
+					$childs = $this->dao->readDir($parentDirPath);
+					$isEmpty = (count($childs) == 0);
+
+					if ($isEmpty) {
+						$this->dao->delete($parentDirPath);
+					}
+				} while($isEmpty);
+			}
+		}
+	}
+
+	public function _unregister(ConfiturePackageMetadata $pkg, LocalRepositoryManager $localRepo) {
+		$localRepo->delete($pkg['name']);
+	}
+
+	public function remove($packages, LocalRepositoryManager $localRepo, &$output = '') {
+		$pkgList = array(); //Array in which valid packages will be stored
+		$output = '';
+
+		//Arguments processing
+		if (is_array($packages)) {
+			foreach($packages as $key => $pkg) {
+				if ($pkg instanceof ConfiturePackageMetadata) {
+					$pkgList[] = $pkg;
+				} else {
+					throw new \InvalidArgumentException('Invalid argument, packages must be an instance of "ConfiturePackageMetadata" or an array of "ConfiturePackageMetadata"');
+				}
+			}
+
+			if (count($packages) == 0) {
+				return;
+			}
+		} else if ($packages instanceof ConfiturePackageMetadata) {
+			$pkgList[] = $packages;
+		} else {
+			throw new \InvalidArgumentException('Invalid argument, packages must be an instance of "ConfiturePackageMetadata" or an array of "ConfiturePackageMetadata"');
+		}
+
+		//TODO: check dependencies
+
+		$packagesNbr = count($pkgList);
+
+		foreach($pkgList as $i => $pkg) { //Uninstall packages
+			$output .= '('.($i + 1).'/'.$packagesNbr.') removing '.$pkg['name']."\n";
+
+			$pkgFiles = $localRepo->listFilesByPackage($pkg['name']);
+
+			$this->_runPreRemoveScript($pkg);
+			$this->_deleteFiles($pkg, $pkgFiles); //Delete this package's files
+			$this->_unregister($pkg, $localRepo); //Unregister this package from the local DB
 		}
 	}
 }

@@ -58,10 +58,10 @@ $.webos.widget('terminal', 'container', {
 
 		this.options._components.out = $();
 		this.options._components.prompt = $();
-		
-		this.options._terminal.refreshData(new W.Callback(function() {
+
+		this.options._terminal.refreshData(function() {
 			var data = that.options._terminal.data();
-			
+
 			var historyPos = that.options._history.length, typpedCmd = '';
 			that.options._components.prompt = $.w.textEntry(that.promptStr()+' ')
 				.appendTo(that.element)
@@ -127,7 +127,7 @@ $.webos.widget('terminal', 'container', {
 				.focus();
 			
 			that._trigger('ready');
-		}));
+		});
 	},
 	_print: function (contents) {
 		var out = $();
