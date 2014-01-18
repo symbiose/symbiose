@@ -300,7 +300,7 @@ Webos.require([
 		term.echo('usage: confiture <operation> [...]\n');
 		term.echo('confiture {-h --help}\n');
 		term.echo('confiture {-V --version}\n');
-		term.echo('confiture {-R --remove}   [options] <package(s)>');
+		term.echo('confiture {-R --remove}   [options] <package(s)>\n');
 		term.echo('confiture {-S --sync}     [options] [package(s)]');
 		that.stop();
 	} else if (args.isOption('V') || args.isOption('version')) { // Version
