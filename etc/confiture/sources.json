@@ -1,5 +1,5 @@
 {
-    "dev": {
-        "url": "http:\/\/localhost\/projects\/symbiose.repo\/"
+    "symbiose": {
+        "url": "https:\/\/github.com\/symbiose\/symbiose.repo\/raw\/master\/"
     }
 }
