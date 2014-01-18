@@ -63,9 +63,9 @@ Software requirements
 Authors
 -------
 
-**$imon**
+**Emersion**
 + http://emersion.fr/
-+ http://github.com/simonser
++ http://github.com/emersion
 
 **Codel**
 + https://github.com/Codel
