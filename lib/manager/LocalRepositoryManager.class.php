@@ -1,4 +1,6 @@
 <?php
 namespace lib\manager;
 
-abstract class LocalRepositoryManager extends \lib\Manager {}
+use \lib\Repository;
+
+abstract class LocalRepositoryManager extends \lib\Manager implements Repository {}

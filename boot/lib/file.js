@@ -1092,9 +1092,9 @@ Webos.File.cleanPath = function(path) {
  * @static
  */
 Webos.File.bytesToSize = function(bytes) {
-	var sizes = ['octets', 'Kio', 'Mio', 'Gio', 'Tio', 'Pio', 'Eio', 'Zio', 'Yio'];
+	var sizes = ['bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
 	if (bytes <= 1)
-		return bytes+' octet';
+		return bytes+' '+sizes[0];
 	var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
 	return ((i == 0) ? (bytes / Math.pow(1024, i))
 			: (bytes / Math.pow(1024, i)).toFixed(1))

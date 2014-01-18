@@ -279,7 +279,7 @@
 	 * Recuperer les paquets installes.
 	 * @param Webos.Callback callback
 	 */
-	Webos.Package.getInstalled = function(callback) {
+	Webos.Package.listInstalled = function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 
 		if (Webos.Package._cache.installed !== null) {
@@ -289,7 +289,7 @@
 
 		return new W.ServerCall({
 			'class': 'LocalRepositoryController',
-			'method': 'getInstalled'
+			'method': 'listInstalled'
 		}).load([function(response) {
 			var packagesData = response.getData(), list = [];
 
@@ -305,11 +305,16 @@
 		}, callback.error]);
 	};
 	Webos.Package.on('install', function(data) {
-		Webos.Package._cache.installed.push(data.package);
+		if (Webos.Package._cache.installed !== null) {
+			Webos.Package._cache.installed.push(data.package);
+		}
 	});
 	Webos.Package.on('remove', function(data) {
 		var pkgToRemove = data.package;
-		Webos.Package._cache.installed.push(pkgToRemove);
+		
+		if (Webos.Package._cache.installed === null) {
+			return;
+		}
 
 		var list = [];
 
@@ -323,6 +328,39 @@
 
 		Webos.Package._cache.installed = list;
 	});
+
+	/**
+	 * @deprecated Use Webos.Package.listInstalled() instead.
+	 */
+	Webos.Package.getInstalled = function(callback) {
+		return Webos.Package.listInstalled(callback);
+	};
+
+	Webos.Package.getInstalledPackage = function(pkgName, callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		var findPackage = function(installed) {
+			for (var i = 0; i < installed.length; i++) {
+				var pkg = installed[i];
+
+				if (pkg.get('name') == pkgName) {
+					callback.success(pkg);
+					return;
+				}
+			}
+
+			callback.error(Webos.Callback.Result.error('Cannot find package "'+pkgName+'"'));
+		};
+
+		if (Webos.Package._cache.installed !== null) {
+			findPackage(Webos.Package._cache.installed);
+			return;
+		}
+
+		return Webos.Package.listInstalled([function (list) {
+			findPackage(list);
+		}, callback.error]);
+	};
 
 	Webos.Package.getLastInstalled = function(limit, callback) {
 		callback = Webos.Callback.toCallback(callback);

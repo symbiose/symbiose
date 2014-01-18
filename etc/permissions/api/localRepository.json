@@ -1,4 +1,7 @@
 {
+	"executeListInstalled":[{
+		"permission":"package.read"
+	}],
 	"executeGetInstalled":[{
 		"permission":"package.read"
 	}]

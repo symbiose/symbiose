@@ -64,7 +64,7 @@ abstract class PackageMetadata extends \lib\Entity {
 
 	public function setDepends($depends) {
 		if (!is_string($depends) && $depends !== null) {
-			throw new \InvalidArgumentException('Invalid package depends "'.$depends.'"');
+			throw new \InvalidArgumentException('Invalid package dependencies "'.$depends.'"');
 		}
 
 		$this->depends = $depends;
@@ -130,6 +130,32 @@ abstract class PackageMetadata extends \lib\Entity {
 
 	public function depends() {
 		return $this->depends;
+	}
+
+	public function parseDepends() {
+		$dependencies = array();
+
+		$dependsString = $this->depends();
+
+		if (!empty($dependsString)) {
+			$packages = explode(' ', $dependsString);
+
+			foreach($packages as $pkgName) {
+				$dep = array('name' => $pkgName);
+
+				if (preg_match('#^([a-z0-9.-_]+)(<|>|<=|>=|=)([0-9a-z.-_]+)$#i', $pkgName, $matches)) {
+					$dep = array(
+						'name' => $matches[1],
+						'versionOperator' => $matches[2],
+						'version' => $matches[3]
+					);
+				}
+
+				$dependencies[] = $dep;
+			}
+		}
+
+		return $dependencies;
 	}
 
 	public function updateDate() {

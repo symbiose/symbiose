@@ -429,11 +429,16 @@ Webos.Arguments.parse = function(cmd) {
 			}
 		} else if (char == ' ' && cache.strStarted != true) { //Si c'est un espace et qu'on n'est pas dans une chaine
 			if (cache.strType == 'options') { //Si c'est une option
-				args.options[cache.strIndex] = cache.strContent; //On sauvegarde
+				if (cache.strOptionType == 'short') { //Option courte
+					cache.strStage = 'content';
+				} else {
+					args.options[cache.strIndex] = cache.strContent; //On sauvegarde
+					cache = $.extend({}, cacheBase); //On remet le cache a zero
+				}
 			} else { //Sinon, c'est un argument
 				args.params.push(cache.strIndex); //On sauvegarde
+				cache = $.extend({}, cacheBase); //On remet le cache a zero
 			}
-			cache = $.extend({}, cacheBase);; //On remet le cache a zero
 		} else if (char == '-') { //Si c'est un tiret
 			if (cache.previous == '-') { //Si le caractere precedant etait aussi un tiret, c'est une option type --fruit=abricot
 				cache.strOptionType = 'long'; //Type de l'option
@@ -462,10 +467,11 @@ Webos.Arguments.parse = function(cmd) {
 					} else { //Sinon, c'est une option type -aBv
 						args.options[char] = ''; //On ajoute l'option
 						//On definit les parametres au cas ou il y a une autre option apres
-						cache = cacheBase; //On reinitialise le cache
+						cache = $.extend({}, cacheBase); //On reinitialise le cache
 						cache.strType = 'options'; //C'est une option
 						cache.strOptionType = 'short'; //C'est une option type -aBv
 						cache.strStage = 'index'; //On remplit l'index
+						cache.strIndex = char;
 					}
 				} else { //Sinon c'est un argument
 					cache.strIndex += char; //On ajoute le caractere

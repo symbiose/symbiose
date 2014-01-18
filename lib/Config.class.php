@@ -70,10 +70,19 @@ abstract class Config {
 	public function write(array $data) {
 		$output = $this->output($data);
 
+		$dirname = dirname($this->path);
+		if (!is_dir($dirname)) {
+			$result = mkdir($dirname, 0777, true);
+
+			if ($result === false) {
+				throw new \RuntimeException('Cannot write configuration file "'.$this->path.'" (error while creating parent directory "'.$dirname.'")');
+			}
+		}
+
 		$result = file_put_contents($this->path, $output);
 
 		if ($result === false) {
-			throw new \RuntimeException('Cannot open configuration file "'.$this->path.'" (error while writing)');
+			throw new \RuntimeException('Cannot write configuration file "'.$this->path.'" (error while writing)');
 		}
 
 		$this->data = $data;

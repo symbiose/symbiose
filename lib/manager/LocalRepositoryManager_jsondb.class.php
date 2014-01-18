@@ -6,6 +6,7 @@ use \RuntimeException;
 
 class LocalRepositoryManager_jsondb extends LocalRepositoryManager {
 	const PKGS_DB = 'core/packages';
+	const FILES_DB = 'core/packages_files';
 
 	protected function _buildPackageMetadata($pkgData) {
 		$pkgType = $pkgData['type'];
@@ -15,6 +16,8 @@ class LocalRepositoryManager_jsondb extends LocalRepositoryManager {
 	}
 
 	// GETTERS
+	
+	// Packages
 
 	public function listAll() {
 		$pkgsFile = $this->dao->open(self::PKGS_DB);
@@ -54,6 +57,38 @@ class LocalRepositoryManager_jsondb extends LocalRepositoryManager {
 		return (count($pkgsData) > 0);
 	}
 
+	// Files
+	
+	public function getFile($path) {
+		$filesFile = $this->dao->open(self::FILES_DB);
+		$files = $filesFile->read();
+
+		$path = (substr($path, 0, 1) == '/') ? substr($path, 1) : $path;
+
+		foreach($files as $file) {
+			$filePath = $file['path'];
+			$filePath = (substr($filePath, 0, 1) == '/') ? substr($filePath, 1) : $filePath;
+
+			if ($filePath == $path) {
+				return $file;
+			}
+		}
+	}
+
+	public function listFilesByPackage($pkgName) {
+		$filesFile = $this->dao->open(self::FILES_DB);
+		$files = $filesFile->read();
+
+		$list = array();
+		foreach($files as $file) {
+			if ($file['pkg'] == $pkgName) {
+				$list[] = $file;
+			}
+		}
+
+		return $list;
+	}
+
 	// SETTERS
 
 	public function insert(PackageMetadata &$pkg) {
@@ -72,6 +107,21 @@ class LocalRepositoryManager_jsondb extends LocalRepositoryManager {
 		$items[] = $item;
 
 		$pkgsFile->write($items);
+	}
+
+	public function insertFiles(array $newFiles) {
+		$filesFile = $this->dao->open(self::FILES_DB);
+		$items = $filesFile->read();
+
+		foreach($newFiles as $fileData) {
+			$items[] = $this->dao->createItem(array(
+				'path' => $fileData['path'],
+				'pkg' => $fileData['pkg'],
+				'md5sum' => (isset($fileData['md5sum'])) ? $fileData['md5sum'] : null
+			));
+		}
+
+		$filesFile->write($items);
 	}
 
 	public function update(PackageMetadata &$pkg) {
@@ -98,14 +148,30 @@ class LocalRepositoryManager_jsondb extends LocalRepositoryManager {
 		$pkgsFile = $this->dao->open(self::PKGS_DB);
 		$items = $pkgsFile->read();
 
+		$found = false;
 		foreach ($items as $i => $currentItem) {
 			if ($currentItem['name'] == $pkgName) { //TODO: type support
 				unset($items[$i]);
 				$pkgsFile->write($items);
-				return;
+				$found = true;
+				break;
 			}
 		}
 
-		throw new RuntimeException('Cannot find package "'.$pkgName.'"');
+		if (!$found) {
+			throw new RuntimeException('Cannot find package "'.$pkgName.'"');
+		}
+
+		//Remove files
+		$filesFile = $this->dao->open(self::FILES_DB);
+		$items = $filesFile->read();
+
+		foreach($items as $i => $currentItem) {
+			if ($currentItem['pkg'] == $pkgName) {
+				unset($items[$i]);
+			}
+		}
+
+		$filesFile->write($items);
 	}
 }

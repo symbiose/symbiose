@@ -16,11 +16,19 @@ class LocalRepositoryController extends \lib\ApiBackController {
 		return $list;
 	}
 
-	public function executeGetInstalled() {
+	public function executeListInstalled() {
 		$manager = $this->managers()->getManagerOf('localRepository');
 
 		$pkgs = $manager->listAll();
 
 		return $this->_parsePackagesList($pkgs);
+	}
+
+	public function executeGetInstalled($pkgName) {
+		$manager = $this->managers()->getManagerOf('localRepository');
+
+		$pkg = $manager->getByName();
+
+		return $pkg->toArray();
 	}
 }
