@@ -1,0 +1,86 @@
+<x-window-main width="600" height="400" icon="apps/music-player">
+	<h1>Music</h1>
+
+	<header>
+		<div class="back-btn-ctn">
+			<x-button class="btn-back">Back</x-button>
+		</div>
+		<div class="tabs-btn-ctn">
+			<x-button class="tab-btn-albums" activated>Albums</x-button>
+			<x-button class="tab-btn-artists">Artists</x-button>
+			<x-button class="tab-btn-tracks">Tracks</x-button>
+		</div>
+	</header>
+
+	<div class="player player-stopped">
+		<div class="tabs-content">
+			<div class="tab-albums">
+				<ul></ul>
+			</div>
+
+			<div class="tab-albums-details"></div>
+
+			<div class="tab-artists"></div>
+
+			<div class="tab-tracks">
+				<table>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="now-playing">
+			<div class="now-playing-btns">
+				<x-button class="btn-previous">←</x-button>
+				<x-button class="btn-play">▶</x-button>
+				<x-button class="btn-next">→</x-button>
+			</div>
+			<div class="now-playing-info">
+				<img src="usr/share/images/gnome-music/song-generic.png" alt="" class="album-cover"/>
+				<span class="track-artist"></span><br />
+				<span class="track-title"></span>
+			</div>
+			<div class="now-playing-time">
+				<x-progressbar class="time-progress"></x-progressbar>
+				<span class="time-count"></span>
+			</div>
+
+			<audio class="now-playing-audio"></audio>
+		</div>
+	</div>
+
+	<div class="templates">
+		<div class="album">
+			<div class="album-cover-ctn">
+				<span class="helper"></span>
+				<img src="usr/share/images/gnome-music/song-generic.png" alt="" class="album-cover"/>
+			</div>
+			<span class="album-title"></span><br />
+			<span class="album-artist"></span>
+		</div>
+		<div class="album-details">
+			<div class="album-info">
+				<div class="album-cover-ctn">
+					<span class="helper"></span>
+					<img src="usr/share/images/gnome-music/song-generic.png" alt="" class="album-cover"/>
+				</div>
+				<span class="album-title"></span><br />
+				<span class="album-artist"></span>
+			</div>
+			<div class="album-tracks">
+				<ul></ul>
+			</div>
+		</div>
+		<div class="artist">
+			<h2 class="artist-name"></h2>
+			<div class="artist-albums"></div>
+		</div>
+		<div class="artist-album">
+			<img src="usr/share/images/gnome-music/song-generic.png" alt="" class="album-cover"/>
+			<div class="album-content">
+				<span class="album-title"></span>
+				<ol class="album-tracks"></ol>
+			</div>
+		</div>
+	</div>
+</x-window-main>

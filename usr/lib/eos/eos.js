@@ -16,7 +16,7 @@
 				icon: new W.Icon('applications/eos'),
 				width: 500,
 				height: 300,
-				stylesheet: 'usr/share/css/eos/main.css'
+				stylesheet: '/usr/share/css/eos/main.css'
 			});
 			
 			this.zoom = 1;
@@ -34,8 +34,8 @@
 				this.window.window('loading', true);
 				this.window.window('option', 'title', image.get('basename')+' - '+t.get('Image viewer'));
 
-				var img = new Image();
-				$(img).load(function() {
+				var img = $('<img />');
+				img.load(function() {
 					that._imgDimensions = { width: img.width, height: img.height };
 					that.image.attr('src', image.get('realpath'));
 					that.window.window('loading', false);
@@ -46,9 +46,9 @@
 					userCallback.success();
 				}).error(function() {
 					that.window.window('loading', false);
-					userCallback.error();
+					userCallback.error(Webos.Callback.Result.error('Error while loading image "'+image.get('path')+'"'));
 				});
-				img.src = image.get('realpath'); //Load image
+				img.attr('src', image.get('realpath')); //Load image
 			};
 			
 			this.imageTo = function(position) {
@@ -117,7 +117,7 @@
 				userCallback = W.Callback.toCallback(userCallback);
 
 				if (typeof this.file == 'undefined') {
-					userCallback.error();
+					userCallback.error(Webos.Callback.Result.error('No file opened'));
 					return;
 				}
 				

@@ -208,6 +208,9 @@ Webos.File.prototype = {
 			if (data.is_dir === false && !data.extension) { //On définit automatiquement l'extension du fichier si non présent et que le fichier n'est pas un dossier
 				data.extension = (/\./.test(path)) ? /[^.]+$/.exec(path)[0] : '';
 			}
+			if (data.is_dir === false && !data.filename) { //On définit automatiquement le nom du fichier si non présent et que le fichier n'est pas un dossier
+				data.filename = (/\./.test(path)) ? data.basename.substr(0, data.basename.lastIndexOf('.')) : data.basename;
+			}
 			if (data.extension) { //On met l'extension en minuscules
 				data.extension = data.extension.toLowerCase();
 			}

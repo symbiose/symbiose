@@ -100,7 +100,13 @@ abstract class Entity implements \ArrayAccess {
 
 		foreach(get_object_vars($this) as $key => $value) {
 			if (isset($this[$key])) {
-				$data[$key] = $this[$key];
+				$value = $this[$key];
+
+				if ($key == 'id' && $value === null) {
+					continue;
+				}
+
+				$data[$key] = $value;
 			}
 		}
 

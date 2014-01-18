@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Discover Symbiose"/>
+	<attribute name="title" lang="fr_FR" value="Découvrir Symbiose"/>
+	<attribute name="description" value="Discover the webos"/>
+	<attribute name="description" lang="fr_FR" value="Découvrir le webos"/>
+	<attribute name="command" value="symersion"/>
+	<attribute name="icon" value="actions/go-home"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="accessories"/>
+</shortcut>

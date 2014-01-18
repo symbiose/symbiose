@@ -31,7 +31,7 @@ class UserInterfaceManager extends \lib\Manager {
 	/**
 	 * Get a UI.
 	 * @param  string $uiName The UI name.
-	 * @return array          The UI data.
+	 * @return UserInterface          The UI.
 	 */
 	public function get($uiName) {
 		$config = $this->_getConfig();
@@ -46,7 +46,7 @@ class UserInterfaceManager extends \lib\Manager {
 
 	/**
 	 * Get the default UI.
-	 * @return array The UI data.
+	 * @return UserInterface The UI.
 	 */
 	public function getDefault() {
 		$config = $this->_getConfig();
@@ -57,6 +57,60 @@ class UserInterfaceManager extends \lib\Manager {
 				return $this->_buildUi($ui);
 			}
 		}
+
+		return $this->_buildUi($uis[0]);
+	}
+
+	/**
+	 * Get a UI specifying one of its label.
+	 * @param  string $label The label.
+	 * @return UserInterface The UI.
+	 */
+	public function getByLabel($label) {
+		$config = $this->_getConfig();
+		$uis = $config->read();
+
+		$foundUi = null;
+
+		foreach($uis as $ui) {
+			if (in_array($label, $ui['labels'])) {
+				if (empty($foundUi) || (isset($ui['isDefault']) && $ui['isDefault'] == true && !$foundUi['isDefault'])) {
+					$foundUi = $this->_buildUi($ui);
+				}
+			}
+		}
+
+		return $foundUi;
+	}
+
+	/**
+	 * Get a UI specifying some of its labels.
+	 * @param  array $label The labels.
+	 * @return UserInterface The UI.
+	 */
+	public function getByLabelsList(array $labels) {
+		$config = $this->_getConfig();
+		$uis = $config->read();
+
+		$foundUi = null;
+
+		foreach($uis as $ui) {
+			$matches = true;
+			foreach ($labels as $lbl) {
+				if (!in_array($lbl, $ui['labels'])) {
+					$matches = false;
+					break;
+				}
+			}
+
+			if ($matches) {
+				if (empty($foundUi) || (isset($ui['isDefault']) && $ui['isDefault'] == true && !$foundUi['isDefault'])) {
+					$foundUi = $this->_buildUi($ui);
+				}
+			}
+		}
+
+		return $foundUi;
 	}
 
 	/**

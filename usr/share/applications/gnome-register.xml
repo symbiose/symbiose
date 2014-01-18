@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Register"/>
+	<attribute name="title" lang="fr_FR" value="Inscription"/>
+	<attribute name="description" value="Create a new account"/>
+	<attribute name="description" lang="fr_FR" value="Créer un nouveau compte"/>
+	<attribute name="command" value="gnome-register"/>
+	<attribute name="icon" value="stock/person"/>
+	<attribute name="menu" value="system"/>
+	<attribute name="category" value="administration"/>
+	<attribute name="hidden" value="1"/>
+</shortcut>

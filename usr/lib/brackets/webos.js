@@ -79,6 +79,11 @@ if (!appshell.app) {
 	appshell.fs.ERR_FILE_EXISTS             = 10;
 
 	/**
+	* @constant The required browser is not installed
+	*/
+	appshell.fs.ERR_BROWSER_NOT_INSTALLED   = 11;
+
+	/**
 	 * @constant No error.
 	 */
 	appshell.app.NO_ERROR                   = 0;
@@ -338,7 +343,7 @@ if (!appshell.app) {
 	 */
 	appshell.app.getNodeState = function (callback) {
 		setTimeout(function() {
-			callback(-2);
+			callback(appshell.app.ERR_NODE_NOT_YET_STARTED);
 		}, 10);
 	};
 
@@ -516,7 +521,7 @@ if (!appshell.app) {
 		// enableRemoteDebugging flag is ignored on mac
 		callback = callback || _dummyCallback;
 
-		callback(appshell.fs.ERR_UNKNOWN);
+		callback(appshell.fs.ERR_BROWSER_NOT_INSTALLED);
 	};
 	
 	/**
@@ -537,7 +542,7 @@ if (!appshell.app) {
 
 		//CloseLiveBrowser(callback || _dummyCallback);
 		
-		callback(appshell.fs.ERR_UNKNOWN);
+		callback(appshell.fs.ERR_BROWSER_NOT_INSTALLED);
 	};
 	 
 	/**

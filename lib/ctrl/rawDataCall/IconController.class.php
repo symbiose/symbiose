@@ -13,7 +13,8 @@ class IconController extends \lib\RawBackController {
 			throw new \RuntimeException('No icon specified');
 		}
 
-		$filePath = $this->_getIconPath($request->getData('index'));
+		$scalable = ($request->getExists('svg') && (int) $request->getData('svg'));
+		$filePath = $this->_getIconPath($request->getData('index'), $scalable);
 
 		if ($filePath === false) { //Not found
 			$httpResponse->addHeader('HTTP/1.0 404 Not Found');
@@ -34,7 +35,7 @@ class IconController extends \lib\RawBackController {
 		$this->responseContent->setValue($out);
 	}
 
-	protected function _getIconPath($index) {	
+	protected function _getIconPath($index, $scalable = false) {	
 		$fileManager = $this->managers()->getManagerOf('file');
 
 		$indexData = explode('/', $index, 4);
@@ -54,7 +55,19 @@ class IconController extends \lib\RawBackController {
 			);
 		}
 
-		//First, try to find the icon with the specified size
+		if ($scalable) {
+			//First, if scalable icons are supported, try to find one
+			$scalableIconData = $iconData;
+			$scalableIconData['size'] = 'scalable';
+			$iconPath = $this->_buildFinalPath($scalableIconData);
+
+			if ($fileManager->exists($iconPath)) {
+				return $iconPath;
+			}
+		}
+		
+
+		//Try to find the icon with the specified size
 		$iconPath = $this->_buildFinalPath($iconData);
 		if ($fileManager->exists($iconPath)) {
 			return $iconPath;
@@ -136,7 +149,7 @@ class IconController extends \lib\RawBackController {
 			$currentIconData[$variableKey] = $filename;
 
 			if ($variableKey == 'size') { //Check if the icon size is equal or greater
-				if ((int) $filename < $iconData['size']) {
+				if (!is_int($filename) || (int) $filename < $iconData['size']) {
 					continue;
 				}
 			}
@@ -168,6 +181,12 @@ class IconController extends \lib\RawBackController {
 	}
 
 	protected function _buildFinalPath(array $iconData) {
-		return $this->_buildPath($iconData) . '.png';
+		$format = 'png';
+
+		if ($iconData['size'] == 'scalable') {
+			$format = 'svg';
+		}
+
+		return $this->_buildPath($iconData) . '.' . $format;
 	}
 }

@@ -24,6 +24,11 @@ Extensions support ?
 
 Change `extension_registry` and `extension_url` in `src/brackets.config.js` to an URL that support CORS headers.
 
+Copy files
+---
+
+Copy `src/` and `samples/` to this directory.
+
 Disable useless modules
 ---
 

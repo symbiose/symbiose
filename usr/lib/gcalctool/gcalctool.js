@@ -1,7 +1,7 @@
 /**
- * GCalcTool represente une calculatrice.
- * @author Doppelganger & $imon
- * @version 1.3
+ * GCalcTool is the GNOME calculator.
+ * @author Doppelganger & emersion
+ * @version 1.3.1
  */
 function GCalcTool() {
 	this.mode = 'calcul';
@@ -113,9 +113,19 @@ function GCalcTool() {
 	
 			if(touche_press == 13) {
 				gcalctool.execute();
-				event.preventDefault(); // Permet d'annuler la touche enter
+				event.preventDefault();
+			} else if(touche_press == 27) {
+				gcalctool.insert('', true);
+				event.preventDefault();
 			} else {
-				gcalctool.toInsertMode(); // Permet de repasser en mode calcul si on est en mode resultat
+				// Permet de repasser en mode calcul si on est en mode resultat
+				gcalctool.toInsertMode();
+			}
+		});
+		gcalctool.textarea.bind('keyup', function(e) {
+			if(e.keyCode == 27) {
+				gcalctool.insert('', true);
+				e.preventDefault();
 			}
 		});
 		gcalctool.container.append(gcalctool.textarea);

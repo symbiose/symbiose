@@ -1,0 +1,67 @@
+.slides-ctn, .slides, .slides > .slide {
+	width: 100%;
+	height: 100%;
+}
+.slides-ctn, .slides > .slide {
+	overflow: hidden;
+}
+.slides-ctn {
+	position: relative;
+}
+.slides {
+	position: absolute;
+	white-space: nowrap;
+}
+.slides > .slide {
+	display: inline-block;
+}
+
+.slide {
+	font-size: 20px;
+	text-align: center;
+	margin-left: -4px;
+}
+.slide.has-bg h2, .slide.has-bg p {
+	color: white;
+	text-shadow: 0 0 3px black;
+}
+.slide.has-bg x-button {
+	margin-top: 20px;
+}
+.slide h2 {
+	font-size: 30px;
+}
+.slide-bg-ctn, .slide-content {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+.slide-bg-ctn {
+	text-align: left;
+}
+.slide-bg-ctn > * {
+	position: absolute;
+}
+.slide-bg-ctn .slide-bg-overlay {
+	background-color: black;
+	opacity: 0.6;
+	width: 100%;
+	height: 100%;
+}
+.slide-bg-ctn .slide-bg {
+	min-width: 100%;
+	height: 100%;
+}
+.slide-content {
+	top: 10%;
+}
+
+.slide-welcome .welcome-logo {
+	height: 200px;
+	margin-top: -20px;
+	margin-bottom: -50px;
+}
+.slide-welcome .btn-start {
+	margin-top: 20px;
+}

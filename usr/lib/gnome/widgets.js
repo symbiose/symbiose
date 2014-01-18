@@ -22,8 +22,6 @@ $.webos.widget('contextMenu', 'container', {
 	_setTarget: function(target) {
 		var that = this;
 		
-		this.element.appendTo(W.UserInterface.Booter.current().element());
-		
 		this.element.hide();
 		
 		target.bind('contextmenu', function(e) {
@@ -31,8 +29,11 @@ $.webos.widget('contextMenu', 'container', {
 				return false;
 			}
 			
+			// Hide the menu
 			var clickFn = function() {
-				that.element.fadeOut('fast');
+				that.element.fadeOut('fast', function () {
+					$(this).detach();
+				});
 			};
 			
 			var childContextmenuOpened = false;
@@ -55,8 +56,10 @@ $.webos.widget('contextMenu', 'container', {
 
 			var y = e.pageY;
 			var x = e.pageX;
-			
-			that.element.show();
+
+			that.element
+				.appendTo(W.UserInterface.Booter.current().element())
+				.show();
 
 			var maxY = y + that.element.height();
 			var maxX = x + that.element.width();

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<category>
+	<define name="name" value="uploads"/>
+	<define name="title" value="Uploads"/>
+	<define name="title" lang="fr_FR" value="Envois de fichiers"/>
+	<define name="icon" value="actions/document-save"/>
+	<define name="description" value="Manage uploads settings"/>
+	<define name="description" lang="fr_FR" value="Gérer la configuration des envois de fichiers"/>
+	<define name="category" value="system"/>
+	<define name="authorizations" value="file.system.read"/>
+</category>

@@ -11,7 +11,7 @@ html, body {
 	height: 100%;
 	background: url('../../images/splash/darknoise.png') #262626;
 	z-index: 9000;
-	font-family: sans-serif;
+	font-family: Cantarell, 'Droid Sans', 'DejaVu Sans', Arial, sans-serif;
 }
 
 #webos-loading .center, #webos-unsupported .center {

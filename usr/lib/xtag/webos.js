@@ -50,7 +50,9 @@ Webos.require('/usr/lib/xtag/core.min.js', function() {
 	xtag.parse = function(contents) {
 		var $container = $('<div></div>').hide().appendTo('body').html(contents);
 
-		return $container.children();
+		var $els = $container.children();
+
+		return $els;
 	};
 
 	xtag.loadUI = function(file, callback) {
@@ -61,6 +63,8 @@ Webos.require('/usr/lib/xtag/core.min.js', function() {
 			var $elements = xtag.parse(contents);
 
 			setTimeout(function() { //Waiting for the DOM to be ready
+				$elements.detach();
+				$elements.parent().empty().remove();
 				callback.success($elements);
 			}, 0);
 		});

@@ -2,73 +2,77 @@ var confWindow = args.getParam(0);
 
 confWindow.window('dialog', true);
 
-var uisList = $.w.list(['Nom', 'Type', 'Activ&eacute;e', 'Par d&eacute;faut']).appendTo(confWindow.window('content'));
+var uisList = $.w.list(['Name', 'Labels', 'Enabled', 'By default']).appendTo(confWindow.window('content'));
 
-var uisTypes = {
-	'ui': 'Environnement de bureau utilisateur',
-	'gi': 'Environnement de bureau invit&eacute;'
+var uisLabels = {
+	'userInterface': 'User desktop interface',
+	'guestInterface': 'Guest desktop interface',
+	'touchDevices': 'For touch devices'
 };
 var _generatedUIItems = [];
 var generateUIItemFn = function(ui, enabled) {
 	if (!enabled && $.inArray(ui.get('name'), _generatedUIItems) != -1) {
 		return $();
 	}
-	
+
 	_generatedUIItems.push(ui.get('name'));
-	
-	var enabledSelector = $.w.switchButton('', enabled).bind('switchbuttonchange', function() {
-		confWindow.window('loading', true);
-		var $selector = $(this);
-		$selector.switchButton('disabled', true);
-		var enabled = $selector.switchButton('value');
 
-		ui.set('enabled', enabled);
+	var syncUi = function() {
+		confWindow.window('loading', true);
+
 		ui.sync([function() {
 			confWindow.window('loading', false);
-			$selector.switchButton('disabled', false);
-			if (!enabled) {
-				defaultSelector.switchButton('value', false).switchButton('disabled', true);
-			} else {
-				defaultSelector.switchButton('disabled', false);
-			}
 		}, function(response) {
 			confWindow.window('loading', false);
-			$selector.switchButton('toggle').switchButton('disabled', false);
-			response.triggerError('Impossible de modifier les param&egrave;tres sur les interfaces');
+			response.triggerError();
 		}]);
-	});
-	var defaultIsChanging = false;
-	var defaultSelector = $.w.switchButton('', ui.get('default')).bind('switchbuttonchange', function() {
-		if (defaultIsChanging) {
-			return;
-		}
+	};
 
-		defaultIsChanging = true;
-		confWindow.window('loading', true);
-		var $selector = $(this);
+	var syncTypes = function() {};
 
-		ui.set('default', $selector.switchButton('value'));
-		ui.sync([function() {
-			confWindow.window('loading', false);
-			defaultIsChanging = false;
-		}, function(response) {
-			confWindow.window('loading', false);
-			$selector.switchButton('toggle');
-			defaultIsChanging = false;
-			response.triggerError('Impossible de modifier les param&egrave;tres sur les interfaces');
-		}]);
+	var enabledSelector = $.w.switchButton('', (enabled) ? true : false).on('switchbuttonchange', function() {
+		ui.set('enabled', ($(this).switchButton('value')) ? true : false);
+		syncUi();
 	});
-	
+
+	var defaultSelector = $.w.switchButton('', (ui.get('default')) ? true : false).on('switchbuttonchange', function() {
+		ui.set('default', ($(this).switchButton('value')) ? true : false);
+		syncUi();
+	});
+
 	if (!enabled) {
 		defaultSelector.switchButton('disabled', true);
 	}
 
-	var types = [];
-	for (var i = 0; i < ui.get('types').length; i++) {
-		types.push(uisTypes[ui.get('types')[i]]);
-	} 
-	
-	return $.w.listItem([(typeof ui.get('displayname') != 'undefined') ? '<strong>'+ui.get('displayname')+'</strong> (<em>'+ui.get('name')+'</em>)' : '<strong>'+ui.get('name')+'</strong>', types.join('<br />'), enabledSelector, defaultSelector]);
+	var $labels = $();
+	for (var labelName in uisLabels) {
+		(function (labelName, labelTitle) {
+			var isLabelled = (~jQuery.inArray(labelName, ui.get('labels')));
+			var $checkbox = $.w.checkButton(labelTitle, isLabelled).on('checkbuttonchange', function() {
+				var labels = ui.get('labels'), labelIndex = labels.indexOf(labelName);
+				if ($checkbox.checkButton('value')) {
+					console.log('add', !~labelIndex);
+					if (!~labelIndex) {
+						console.log('doadd');
+						labels.push(labelName);
+					}
+				} else {
+					console.log('remove', !!~labelIndex);
+					if (~labelIndex) {
+						console.log('doremove');
+						labels.splice(labelIndex, 1);
+					}
+				}
+				console.log(labels);
+				ui.set('labels', labels);
+				syncUi();
+			});
+
+			$labels = $labels.add($checkbox);
+		})(labelName, uisLabels[labelName]);
+	}
+
+	return $.w.listItem([(typeof ui.get('displayname') != 'undefined') ? '<strong>'+ui.get('displayname')+'</strong> (<em>'+ui.get('name')+'</em>)' : '<strong>'+ui.get('name')+'</strong>', $labels, enabledSelector, defaultSelector]);
 };
 var displayUIsFn = function() {
 	uisList.list('content').empty();

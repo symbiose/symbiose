@@ -11,6 +11,17 @@ window.onload = function () { //When the window is loaded
 		return (results === null) ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 	};
 
+	Webos.buildWebosUrl = function (options) {
+		var queryParamsList = [];
+		for (var optName in options) {
+			queryParamsList.push(optName+'='+options[optName]);
+		}
+		var queryParams = '?'+queryParamsList.join('&');
+
+		var loc = window.location;
+		return loc.origin + loc.pathname + queryParams;
+	};
+
 	//URL analysis
 	var actualLocation = window.location.href;
 	var locationArray = actualLocation.split('/');
@@ -30,6 +41,10 @@ window.onload = function () { //When the window is loaded
 		if (appToLaunchName) {
 			Webos.require('/usr/lib/webos/applications.js', function() {
 				Webos.Application.get(appToLaunchName, [function(appToLaunch) {
+					if (!appToLaunch) {
+						return;
+					}
+
 					Webos.Cmd.execute(appToLaunch.get('command'));
 				}, function() {}]);
 			});

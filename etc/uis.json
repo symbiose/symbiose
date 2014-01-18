@@ -12,27 +12,40 @@
         "labels": [
             "userInterface",
             "guestInterface"
-        ]
+        ],
+        "isDefault": false
     },
     {
         "name": "windoze",
         "labels": [
             "userInterface",
             "guestInterface"
-        ]
+        ],
+        "isDefault": false
     },
     {
         "name": "cli",
         "labels": [
             "userInterface",
             "guestInterface"
-        ]
+        ],
+        "isDefault": false
     },
     {
         "name": "stunning",
         "labels": [
             "userInterface",
-            "guestInterface"
-        ]
+            "guestInterface",
+            "touchDevices"
+        ],
+        "isDefault": false
+    },
+    {
+        "name": "slym",
+        "labels": [
+            "guestInterface",
+            "touchDevices"
+        ],
+        "isDefault": false
     }
 ]

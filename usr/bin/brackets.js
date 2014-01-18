@@ -29,7 +29,7 @@ Webos.require(bracketsLibPath+'/webos.js', function() {
 	}
 
 	$window.window('loading', true, {
-		lock: false
+		message: 'Loading Brackets, this may take a few seconds...'
 	});
 
 	$iframe.load(function() {
