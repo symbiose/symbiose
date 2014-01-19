@@ -1,5 +1,6 @@
-/.git-ftp-ignore
 /home/
 /var/
 /etc/websocket-server-pid
 /etc/websocket-server.json
+/.git-ftp-ignore
+/composer.phar
