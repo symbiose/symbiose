@@ -32,89 +32,14 @@ Webos.require('/usr/lib/apt/apt.js', function() {
 		 * @param Webos.Callback callback
 		 */
 		install: function(callback) {
-			callback = Webos.Callback.toCallback(callback);
-			var that = this;
-
-			if (!this.get('installable')) {
-				callback.success(Webos.Callback.Result.error('This app cannot be installed'));
-				return;
-			}
-
-			this._running = true;
-			
-			this.trigger('installstart');
-			Webos.Package.trigger('installstart', { 'package': this });
-			
-			return new W.ServerCall({
-				'class': 'ConfitureRepositoryController',
-				'method': 'install',
-				arguments: {
-					'pkgNames': [this.get('name')],
-					//'repository': this.get('repository') //Do not specify the repository (prevent from installing from the local repository)
-				}
-			}).load([function(res) {
-				that._running = false;
-				that._hydrate({
-					'installed': true,
-					'installDate': Math.round(+new Date() / 1000)
-				});
-
-				callback.success();
-
-				that.trigger('install installcomplete installsuccess');
-				Webos.Package.trigger('install installcomplete installsuccess', { 'package': that });
-			}, function(res) {
-				that._running = false;
-
-				callback.error(res);
-
-				that.trigger('installcomplete installerror');
-				Webos.Package.trigger('installcomplete installerror', { 'package': that });
-			}]);
+			return Webos.Confiture.install([this], callback);
 		},
 		/**
 		 * Supprimer le paquet.
 		 * @param Webos.Callback callback
 		 */
 		remove: function(callback) {
-			callback = Webos.Callback.toCallback(callback);
-			var that = this;
-
-			if (!this.get('installed')) {
-				callback.error(Webos.Callback.Result.error('This app is not installed'));
-				return;
-			}
-
-			this._running = true;
-			
-			this.trigger('removestart');
-			Webos.Package.trigger('removestart', { 'package': this });
-			
-			return new W.ServerCall({
-				'class': 'ConfitureRepositoryController',
-				'method': 'remove',
-				arguments: {
-					'pkgName': this.get('name')
-				}
-			}).load([function(res) {
-				that._running = false;
-				that._hydrate({
-					'installed': false,
-					'installDate': null
-				});
-				
-				callback.success();
-				
-				that.trigger('remove removecomplete removesuccess');
-				Webos.Package.trigger('remove removecomplete removesuccess', { 'package': that });
-			}, function(res) {
-				that._running = false;
-
-				callback.error(res);
-				
-				that.trigger('removecomplete removeerror');
-				Webos.Package.trigger('removecomplete removeerror', { 'package': that });
-			}]);
+			return Webos.Confiture.remove([this], callback);
 		},
 		isRunning: function() {
 			return this._running;
