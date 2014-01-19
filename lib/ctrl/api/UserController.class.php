@@ -272,6 +272,7 @@ class UserController extends \lib\ApiBackController {
 	 */
 	public function executeConnect($username, $password) {
 		$manager = $this->managers()->getManagerOf('user');
+		$cryptoManager = $this->managers()->getManagerOf('crypto');
 		$user = $this->app()->user();
 
 		if ($user->isLogged()) {
@@ -291,9 +292,15 @@ class UserController extends \lib\ApiBackController {
 		}
 
 		//Password check
-		if (!$manager->checkPassword($userData['id'], $password)) {
+		if (!$cryptoManager->verifyPassword($password, $userData['password'])) {
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Bad username or password', 401);
+			return;
+		}
+
+		if ($cryptoManager->needsRehash($userData['password'])) {
+			$userData['password'] = $cryptoManager->hashPassword($password);
+			$manager->update($userData);
 		}
 
 		//Set the user as logged in
@@ -371,6 +378,7 @@ class UserController extends \lib\ApiBackController {
 	public function executeSetPassword($currentPassword, $newPassword) {
 		$manager = $this->managers()->getManagerOf('user');
 		$authManager = $this->managers()->getManagerOf('authorization');
+		$cryptoManager = $this->managers()->getManagerOf('crypto');
 		$user = $this->app()->user();
 		$userId = $user->id();
 
@@ -386,13 +394,15 @@ class UserController extends \lib\ApiBackController {
 		$userData = $manager->getById($userId);
 
 		//Check password
-		if (!$manager->checkPassword($userId, $currentPassword)) {
+		if (!$cryptoManager->verifyPassword($currentPassword, $userData['password'])) {
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Bad password', 403);
+			return;
 		}
 
 		//Change password
-		$manager->updatePassword($userId, $newPassword);
+		$userData['password'] = $cryptoManager->hashPassword($password);
+		$manager->update($userData);
 	}
 
 	/**
@@ -470,20 +480,18 @@ class UserController extends \lib\ApiBackController {
 	public function executeCreate($data, $authsList) {
 		$manager = $this->managers()->getManagerOf('user');
 		$authManager = $this->managers()->getManagerOf('authorization');
+		$cryptoManager = $this->managers()->getManagerOf('crypto');
 
 		if (strlen($data['password']) < 4) {
 			throw new \RuntimeException('Invalid user password (password is too short, at least 4 characters are required)');
 		}
 
 		//Hash the password
-		$data['password'] = $manager->hashPassword($data['password']);
+		$data['password'] = $cryptoManager->hashPassword($data['password']);
 
 		//Create the user
 		$user = new User($data);
 		$manager->insert($user);
-
-		//Set his password
-		$manager->updatePassword($user['id'], $data['password']);
 
 		//Store authorizations
 		foreach($authsList as $authName) {
@@ -644,6 +652,7 @@ class UserController extends \lib\ApiBackController {
 	public function executeResetPassword($tokenId, $key, $newPassword) {
 		$manager = $this->managers()->getManagerOf('user');
 		$tokenManager = $this->managers()->getManagerOf('userToken');
+		$cryptoManager = $this->managers()->getManagerOf('crypto');
 
 		//Get token
 		$userToken = $tokenManager->getById($tokenId);
@@ -656,6 +665,7 @@ class UserController extends \lib\ApiBackController {
 		if ($userToken['key'] !== $key) {
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Invalid token key "'.$key.'"', 403);
+			return;
 		}
 
 		//Get user
@@ -666,7 +676,8 @@ class UserController extends \lib\ApiBackController {
 		}
 
 		//Change password
-		$manager->updatePassword($userToken['userId'], $newPassword);
+		$user['password'] = $cryptoManager->hashPassword($newPassword);
+		$manager->update($user);
 
 		//Delete token
 		$tokenManager->delete($userToken['id']);
