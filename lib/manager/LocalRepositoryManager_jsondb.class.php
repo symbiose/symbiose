@@ -5,8 +5,8 @@ use \lib\entities\PackageMetadata;
 use \RuntimeException;
 
 class LocalRepositoryManager_jsondb extends LocalRepositoryManager {
-	const PKGS_DB = 'core/packages';
-	const FILES_DB = 'core/packages_files';
+	const PKGS_DB = 'confiture/packages';
+	const FILES_DB = 'confiture/packages_files';
 
 	protected function _buildPackageMetadata($pkgData) {
 		$pkgType = $pkgData['type'];
