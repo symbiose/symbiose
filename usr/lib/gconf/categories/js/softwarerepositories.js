@@ -1,7 +1,12 @@
 var confWindow = args.getParam(0);
-confWindow.window('stylesheet', 'usr/share/css/gconf/categories/softwarerepositories.css').window('dialog', true);
+confWindow
+	.window('stylesheet', '/usr/share/css/gconf/categories/softwarerepositories.css')
+	.window('dialog', true);
 
-Webos.require('/usr/lib/apt/apt.js', function() {
+Webos.require([
+	'/usr/lib/apt/apt.js',
+	'/usr/lib/confiture/webos.js'
+], function() {
 	var selectedRepo = null;
 
 	var content = $.w.container().addClass('softwarerepositories').appendTo(confWindow.window('content'));
