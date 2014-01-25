@@ -70,8 +70,8 @@ Webos.Observable.prototype = {
 	once: function (event, fn) {
 		var that = this;
 
-		var callbackId = this.bind(event, function(data) {
-			that.unbind(callbackId);
+		var callbackId = this.on(event, function(data) {
+			that.off(callbackId);
 			fn.call(this, data);
 		});
 
@@ -136,8 +136,9 @@ Webos.Observable.prototype = {
 		data = data || {};
 		var scope = thisObj || this, events = event.split(' ');
 
-		for (var i = 0; i < this._observers.length; i++) {
-			var el = this._observers[i];
+		var observers = this._observers.slice(0); //Clone array. Required because once() removes callbacks.
+		for (var i = 0; i < observers.length; i++) {
+			var el = observers[i];
 
 			for (var j = 0; j < events.length; j++) {
 				if (jQuery.inArray(events[j], el.eventsNames) != -1 || jQuery.inArray(events[j], el.events) != -1) {

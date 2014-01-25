@@ -43,8 +43,15 @@
     {
         "name": "slym",
         "labels": [
-            "guestInterface",
-            "touchDevices"
+            "guestInterface"
+        ],
+        "isDefault": false
+    },
+    {
+        "name": "elementary",
+        "labels": [
+            "userInterface",
+            "guestInterface"
         ],
         "isDefault": false
     }

@@ -1,0 +1,346 @@
+/* FENETRE */
+.webos-window {
+	position: absolute;
+	z-index: 1005;
+	-moz-border-radius: 5px 5px 0px 0px;
+	-webkit-border-radius: 5px 5px 0px 0px;
+	border-radius: 5px 5px 0px 0px;
+	-moz-box-shadow:0px 0px 15px black; 
+	-webkit-box-shadow:0px 0px 15px black;
+	box-shadow: 0px 0px 15px black;
+	border: 1px solid #6f6f6f;
+}
+
+.webos-window.dragging,
+.webos-window.resizing,
+.webos-window.animating {
+	-moz-box-shadow: none; 
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+
+.webos-window.resizing .webos-scrollpane .vertical-bar,
+.webos-window.resizing .webos-scrollpane .horizontal-bar {
+	visibility: hidden;
+}
+
+.webos-window.bg-window {
+	-moz-box-shadow: none; 
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+
+.webos-window .header {
+	background-color: #bdbdbd;
+	background: -moz-linear-gradient(#e5e5e5, #bdbdbd);
+	background: -webkit-linear-gradient(#e5e5e5, #bdbdbd);
+	background: linear-gradient(#e5e5e5, #bdbdbd);
+	-moz-border-radius: 5px 5px 0px 0px;
+	-webkit-border-radius: 5px 5px 0px 0px;
+	border-radius: 5px 5px 0px 0px;
+	border-bottom: 1px solid #7c7c7c;
+}
+
+/* BARRE DU HEADER */
+.webos-window .header .top {
+	-moz-border-radius: 4px 4px 0px 0px;
+	-webkit-border-radius: 4px 4px 0px 0px;
+	border-radius: 4px 4px 0px 0px;
+	height: 25px;
+}
+
+.webos-window.bg-window .header .top {
+	color: #6f6f6f;
+}
+
+/* CONTROLLEURS DE LA FENETRE */
+.webos-window .header .top .controllers {
+	float: right;
+	height: 23px;
+}
+.webos-window.bg-window .header .top .controllers {
+	border: none;
+	margin-left: 1px;
+	margin-bottom: 1px;
+}
+
+.webos-window .header .top .controllers .hide,
+.webos-window .header .top .controllers .maximize,
+.webos-window .header .top .controllers .close {
+	height: 23px;
+	width: 23px;
+	display: inline-block;
+	background: none no-repeat center center;
+}
+
+.webos-window .header .top .controllers .close {
+	float: right;
+}
+
+.webos-window.bg-window .header .top .controllers .hide,
+.webos-window.bg-window .header .top .controllers .maximize,
+.webos-window.bg-window .header .top .controllers .close {
+	opacity: 0.6;
+}
+
+/* Cacher */
+.webos-window .header .top .controllers .hide {
+	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#minimize');
+}
+.webos-window .header .top .controllers .hide:hover {
+	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#minimize'),
+		url('usr/share/images/themes/elementary/windows/controllers.svg#hover');
+}
+.webos-window .header .top .controllers .hide:active {
+	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#minimize'),
+		url('usr/share/images/themes/elementary/windows/controllers.svg#pressed');
+}
+.webos-window.not-hideable .header .top .controllers .hide {
+	display: none;
+}
+
+/* Maximiser */
+.webos-window .header .top .controllers .maximize {
+	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#maximize');
+}
+.webos-window .header .top .controllers .maximize:hover {
+	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#maximize'),
+		url('usr/share/images/themes/elementary/windows/controllers.svg#hover');
+}
+.webos-window .header .top .controllers .maximize:active {
+	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#maximize'),
+		url('usr/share/images/themes/elementary/windows/controllers.svg#hover');
+}
+.webos-window.not-maximizable .header .top .controllers .maximize {
+	display: none;
+}
+
+/* Fermer */
+.webos-window .header .top .controllers .close {
+	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#close');
+}
+.webos-window .header .top .controllers .close:hover {
+	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#close'),
+		url('usr/share/images/themes/elementary/windows/controllers.svg#hover');
+}
+.webos-window .header .top .controllers .close:active {
+	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#close'),
+		url('usr/share/images/themes/elementary/windows/controllers.svg#pressed');
+}
+.webos-window.not-closeable .header .top .controllers .close {
+	display: none;
+}
+
+/* TITRE DE LA FENETRE */
+.webos-window .header .top .title {
+	padding-top: 3px;
+	font-size: 14px;
+	font-weight: bold;
+	font-family: Cantarell, 'Droid Sans', Ubuntu, 'DejaVu Sans', Arial, sans-serif;
+	color: #6f6f6f;
+	white-space: nowrap;
+	overflow: hidden;
+	text-align: center;
+}
+.webos-window.bg-window .header .top .title {
+	color: #a7aba7;
+}
+
+/* CONTENU DE LA FENETRE */
+.webos-window .content {
+	background-color: white;
+	color: #6f6f6f;
+	overflow: auto;
+	min-width: 10px;
+}
+
+.webos-window.dialog .content {
+	padding: 5px;
+}
+
+.webos-window.ui-resizable-resizing .content,
+.webos-window.animating .content {
+	overflow: hidden;
+}
+
+.webos-window .content,
+.webos-window .content * {
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-o-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.webos-window .content p {
+	margin: 0;
+}
+
+.webos-window .content.loading {
+	position: relative;
+	overflow: hidden;
+}
+.webos-window .content.loading .message-container {
+	position: absolute;
+	top: 50%;
+	width: 100%;
+	text-align: center;
+}
+.webos-window .content.loading .message-container .message {
+	position: relative;
+	top: -27px;
+	background: url("usr/share/images/themes/adwaita/loading.gif") no-repeat top center;
+	padding-top: 35px;
+}
+
+/* HEADERS SPECIFIQUES */
+.webos-window .header .header-specific .webos-menuwindowheader {
+	color: #303638;
+	height: 25px;
+	margin: 0;
+	padding-left: 0;
+	display: block;
+}
+
+.webos-window .header .header-specific .webos-menuwindowheader .webos-menuitem {
+	list-style-type: none;
+}
+
+.webos-window .header .header-specific .webos-buttonwindowheader {
+	height: 65px;
+	padding-left: 13px;
+	margin:0;
+	overflow: hidden;
+	color: #303638;
+}
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem,
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-windowheaderitem,
+.webos-window .header .header-specific .webos-buttonwindowheader > * {
+	height: 56px;
+	float:left;
+	padding-top: 9px;
+	list-style-type:none;
+	display: inline;
+}
+.webos-window .header .header-specific .webos-buttonwindowheader .buttonwindowheaderseparator {
+	float: right;
+	height: 56px;
+	position: relative;
+	top: -9px;
+	width: 1px;
+	background: url('usr/share/images/themes/adwaita/windows/button-header-border.png');
+}
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem {
+	width: 100px;
+	text-align: center;
+}
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem.active,
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem:active {
+	background: -moz-linear-gradient(#d8d8d8, #aeaeae, #bcbcbc);
+	background: -webkit-linear-gradient(#d8d8d8, #aeaeae, #bcbcbc);
+	background: linear-gradient(#d8d8d8, #aeaeae, #bcbcbc);
+}
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem img {
+	height: 30px;
+	width: 30px;
+}
+
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-buttonwindowheaderitem:last-child .buttonwindowheaderseparator {
+	display: none;
+}
+
+.webos-window .header .header-specific .webos-buttonwindowheader input[type="text"],
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-windowheaderitem {
+	margin: 3px;
+	margin-top: 13px;
+	margin-bottom: 22px;
+}
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-button {
+	background-size: auto;
+}
+
+.webos-window .header .header-specific .webos-toolbarwindowheader {
+	height: 40px;
+	padding-left: 5px;
+	margin: 0;
+	overflow: hidden;
+	color: #303638;
+	display: block;
+}
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem,
+.webos-window .header .header-specific .webos-toolbarwindowheader > * {
+	height: 19px;
+	float:left;
+	padding: 5px 4px;
+	margin-top: 5px;
+	margin-left: 1px;
+	margin-right: 4px;
+	list-style-type:none;
+	vertical-align: middle;
+	/*-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-o-user-select: none;
+	user-select: none;*/
+	max-width: 35%;
+	white-space: nowrap;
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	display: inline-block;
+}
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem img {
+	height: 22px;
+	width: 22px;
+	float: left;
+}
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem span {
+	margin-left: 2px;
+}
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem.hover,
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem:hover,
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem.active,
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem:active {
+	margin-top: 4px;
+	margin-left: 0px;
+	margin-right: 3px;
+	border: 1px solid #8d8d8d;
+	background-color: #ebebeb;
+	background-image: -moz-linear-gradient(#fefefe, #e1e1e1);
+	background-image: -webkit-linear-gradient(#fefefe, #e1e1e1);
+	background-image: linear-gradient(#fefefe, #e1e1e1);
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem.active,
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-toolbarwindowheaderitem:active {
+	background-color: #c9c9c9;
+	background-image: -moz-linear-gradient(#c0c0c0, #d1d1d1);
+	background-image: -webkit-linear-gradient(#c0c0c0, #d1d1d1);
+	background-image: linear-gradient(#c0c0c0, #d1d1d1);
+	border: 1px solid #8a8a8a;
+}
+.webos-window .header .header-specific .webos-toolbarwindowheader .webos-search-entry,
+.webos-window .header .header-specific .webos-buttonwindowheader .webos-search-entry {
+	float: right;
+}
+.webos-window .header .header-specific .webos-toolbarwindowheader input[type="text"],
+.webos-window .header .header-specific .webos-buttonwindowheader input[type="text"] {
+	border: 1px solid #abaea6;
+	height: 18px;
+}
+.webos-window .header .header-specific .webos-toolbarwindowheader input[type="text"]:focus,
+.webos-window .header .header-specific .webos-buttonwindowheader input[type="text"]:focus {
+	border: 1px solid #62a2e8;
+}
+
+.webos-window-manip-helper {
+	background-color: rgba(98, 162, 232, 0.4);
+	border: 2px solid #62a2e8;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-o-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
