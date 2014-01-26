@@ -58,11 +58,17 @@ class CryptoManager extends Manager {
 			if ($this->_supportsBasicHash()) {
 				return password_verify($password, $hash);
 			} else {
-				$passwordHash = $this->generateCryptHash($hashGenerator, $password, $hash);
+				$passwordHash = $this->generateCryptHash($password, $hash);
 
 				return ($hash === $passwordHash);
 			}
 		} else {
+			if (preg_match('#^\$[a-z0-9]{1,2}\$#', $hash)) {
+				$passwordHash = $this->generateCryptHash($password, $hash);
+
+				return ($hash === $passwordHash);
+			}
+
 			if (strlen($hash) == 40) { //SHA1 support for old accounts (before 1.0 beta 3)
 				$hashGenerator = 'sha1';
 			}
@@ -196,7 +202,10 @@ class CryptoManager extends Manager {
 	}
 
 	public function generateCryptHash($password, $salt) {
-		return crypt($password, '$6$rounds=5000$'.$salt.'$');
+		if (strpos($salt, '$') === false) {
+			$salt = '$6$rounds=5000$'.$salt.'$';
+		}
+		return crypt($password, $salt);
 	}
 
 	public function generateSha512Hash($password, $salt) {
