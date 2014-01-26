@@ -289,6 +289,28 @@ Webos.require([
 		hideLauncher: function () {
 			this._$launcher.addClass('launcher-hidden');
 		},
+		addFavorite: function (app) {
+			var that = this, t = this.translations();
+			
+			Webos.Application.listFavorites(function(favorites) {
+				app.set('favorite', favorites.length + 1);
+				app.sync([function() {
+					that.renderLauncher();
+				}, function(response) {
+					response.triggerError(t.get('Cannot add "${app}" to favorites', { 'app': app.get('title') }));
+				}]);
+			});
+		},
+		removeFavorite: function (app) {
+			var that = this, t = this.translations();
+			
+			app.set('favorite', 0);
+			app.sync([function() {
+				that.renderLauncher();
+			}, function(response) {
+				response.triggerError(t.get('Cannot remove "${app}" from favorites', { 'app': app.get('title') }));
+			}]);
+		},
 		_displayApps: function (list) {
 			var that = this, t = this.translations();
 
