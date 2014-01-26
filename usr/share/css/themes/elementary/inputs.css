@@ -253,22 +253,26 @@ input[type="submit"][disabled]:active,
 .webos-switchbutton .entry .labels * {
 	display: none;
 }
+.webos-switchbutton .entry .labels,
+.webos-switchbutton .entry .slider {
+	background: url('usr/share/images/themes/elementary/inputs/switch.svg') no-repeat;
+}
 .webos-switchbutton .entry.on .labels {
-	background: url('usr/share/images/themes/elementary/inputs/switch.svg#switch-on') no-repeat;
+	background-position: right 50%;
 }
 .webos-switchbutton .entry.off .labels {
-	background: url('usr/share/images/themes/elementary/inputs/switch.svg#switch-off') no-repeat;
+	background-position: right top;
 }
 .webos-switchbutton .entry .slider {
 	position: relative;
 	top: 1px;
 	height: 22px;
 	width: 22px;
-	background: url('usr/share/images/themes/elementary/inputs/switch.svg#switch-slider') no-repeat;
+	background-position: left top;
 }
 .webos-switchbutton[disabled] .entry.on .labels {
-	background: url('usr/share/images/themes/elementary/inputs/switch.svg#switch-on-disabled') no-repeat;
+	background-position: left bottom;
 }
 .webos-switchbutton[disabled] .entry.off .labels {
-	background: url('usr/share/images/themes/elementary/inputs/switch.svg#switch-off-disabled') no-repeat;
+	background-position: left 50%;
 }
