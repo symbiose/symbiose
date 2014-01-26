@@ -56,7 +56,8 @@
 /* CONTROLLEURS DE LA FENETRE */
 .webos-window .header .top .controllers {
 	float: right;
-	height: 23px;
+	height: 16px;
+	margin-top: 4px;
 }
 .webos-window.bg-window .header .top .controllers {
 	border: none;
@@ -67,10 +68,12 @@
 .webos-window .header .top .controllers .hide,
 .webos-window .header .top .controllers .maximize,
 .webos-window .header .top .controllers .close {
-	height: 23px;
-	width: 23px;
+	height: 16px;
+	width: 18px;
 	display: inline-block;
-	background: none no-repeat center center;
+	margin-right: 3px;
+	background: url('usr/share/images/themes/elementary/windows/controllers.svg') no-repeat right bottom,
+		url('usr/share/images/themes/elementary/windows/controllers.svg') no-repeat right bottom;
 }
 
 .webos-window .header .top .controllers .close {
@@ -85,15 +88,13 @@
 
 /* Cacher */
 .webos-window .header .top .controllers .hide {
-	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#minimize');
+	background-position: right 33.33%;
 }
 .webos-window .header .top .controllers .hide:hover {
-	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#minimize'),
-		url('usr/share/images/themes/elementary/windows/controllers.svg#hover');
+	background-position: right 33.33%, top right;
 }
 .webos-window .header .top .controllers .hide:active {
-	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#minimize'),
-		url('usr/share/images/themes/elementary/windows/controllers.svg#pressed');
+	background-position: right 33.33%, top left;
 }
 .webos-window.not-hideable .header .top .controllers .hide {
 	display: none;
@@ -101,15 +102,22 @@
 
 /* Maximiser */
 .webos-window .header .top .controllers .maximize {
-	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#maximize');
+	background-position: left 66.66%;
 }
 .webos-window .header .top .controllers .maximize:hover {
-	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#maximize'),
-		url('usr/share/images/themes/elementary/windows/controllers.svg#hover');
+	background-position: left 66.66%, top right;
 }
 .webos-window .header .top .controllers .maximize:active {
-	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#maximize'),
-		url('usr/share/images/themes/elementary/windows/controllers.svg#hover');
+	background-position: left 66.66%, top left;
+}
+.webos-window.maximized .header .top .controllers .maximize {
+	background-position: right 66.66%;
+}
+.webos-window.maximized .header .top .controllers .maximize:hover {
+	background-position: right 66.66%, top right;
+}
+.webos-window.maximized .header .top .controllers .maximize:active {
+	background-position: right 66.66%, top left;
 }
 .webos-window.not-maximizable .header .top .controllers .maximize {
 	display: none;
@@ -117,15 +125,13 @@
 
 /* Fermer */
 .webos-window .header .top .controllers .close {
-	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#close');
+	background-position: left 33.33%;
 }
 .webos-window .header .top .controllers .close:hover {
-	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#close'),
-		url('usr/share/images/themes/elementary/windows/controllers.svg#hover');
+	background-position: left 33.33%, top right;
 }
 .webos-window .header .top .controllers .close:active {
-	background-image: url('usr/share/images/themes/elementary/windows/controllers.svg#close'),
-		url('usr/share/images/themes/elementary/windows/controllers.svg#pressed');
+	background-position: left 33.33%, top left;
 }
 .webos-window.not-closeable .header .top .controllers .close {
 	display: none;
