@@ -196,6 +196,9 @@
 }
 
 /* HEADERS SPECIFIQUES */
+.webos-window .header .header-specific {
+	background-color: rgb(237, 237, 237);
+}
 .webos-window .header .header-specific .webos-menuwindowheader {
 	background-color: #ededed;
 	color: #303638;

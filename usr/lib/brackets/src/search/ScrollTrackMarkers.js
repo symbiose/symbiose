@@ -33,9 +33,10 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("thirdparty/lodash");
+    
     var Editor              = require("editor/Editor"),
-        EditorManager       = require("editor/EditorManager"),
-        Async               = require("utils/Async");
+        EditorManager       = require("editor/EditorManager");
     
     
     /** @const @type {number} Height (and width) or scrollbar up/down arrow button on Win */
@@ -54,10 +55,14 @@ define(function (require, exports, module) {
     var marks = [];
     
     
+    function _getScrollbar(editor) {
+        // Be sure to select only the direct descendant, not also elements within nested inline editors
+        return $(editor.getRootElement()).children(".CodeMirror-vscrollbar");
+    }
+    
     /** Measure scrollbar track */
     function _calcScaling() {
-        var rootElem = editor.getRootElement();
-        var $sb = $(".CodeMirror-vscrollbar", rootElem);
+        var $sb = _getScrollbar(editor);
         
         trackHt = $sb[0].offsetHeight;
         
@@ -68,14 +73,14 @@ define(function (require, exports, module) {
             } else {
                 trackOffset = 0;             // No arrows
             }
+            trackHt -= trackOffset * 2;
             
         } else {
             // No scrollbar: use the height of the entire code content
-            trackHt = $(".CodeMirror-sizer", rootElem)[0].offsetHeight;
-            trackOffset = 0;
+            var codeContainer = $(editor.getRootElement()).find("> .CodeMirror-scroll > .CodeMirror-sizer > div > .CodeMirror-lines > div")[0];
+            trackHt = codeContainer.offsetHeight;
+            trackOffset = codeContainer.offsetTop;
         }
-        
-        trackHt -= trackOffset * 2;
     }
 
     /** Add all the given tickmarks to the DOM in a batch */
@@ -118,21 +123,20 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var rootElem = editor.getRootElement();
-            var $sb = $(".CodeMirror-vscrollbar", rootElem);
+            var $sb = _getScrollbar(editor);
             var $overlay = $("<div class='tickmark-track'></div>");
             $sb.parent().append($overlay);
             
             _calcScaling();
             
             // Update tickmarks during window resize (whenever resizing has paused/stopped for > 1/3 sec)
-            $(window).on("resize.ScrollTrackMarkers", Async.whenIdle(300, function () {
+            $(window).on("resize.ScrollTrackMarkers", _.debounce(function () {
                 if (marks.length) {
                     _calcScaling();
                     $(".tickmark-track", editor.getRootElement()).empty();
                     _renderMarks(marks);
                 }
-            }));
+            }, 300));
             
         } else {
             console.assert(editor === curEditor);

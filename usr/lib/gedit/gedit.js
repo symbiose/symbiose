@@ -179,7 +179,7 @@ $.webos.gedit.loadMode = function(mode) {
 	$.webos.gedit.modesLoaded.push(mode);
 };
 
-function GEditWindow(file) {
+var GEditWindow = function (file) {
 	Webos.Observable.call(this);
 	
 	this.bind('translationsloaded', function() {
@@ -639,3 +639,5 @@ GEditWindow.prototype = {
 
 Webos.inherit(GEditWindow, Webos.Observable);
 Webos.inherit(GEditWindow, Webos.TranslatedLibrary);
+
+window.GEditWindow = GEditWindow;

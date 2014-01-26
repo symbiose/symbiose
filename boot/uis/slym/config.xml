@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userinterface>
+	<attribute name="displayname" value="Slym login manager"/>
+	<includes>
+		<file path="/usr/share/css/slym/main.css"/>
+	</includes>
+</userinterface>

@@ -1,0 +1,84 @@
+/* Generic context menu styles */
+.webos-contextmenu, .webos-contextmenu li ul {
+	position: absolute;
+	min-width: 274px;
+	z-index: 99999;
+	background: white;
+	padding: 0px;
+	margin: 0px;
+	display: none;
+	border: 1px solid #aaaaaa;
+	-moz-box-shadow: 5px 4px 12px black;
+	-webkit-box-shadow: 5px 4px 12px black;
+	box-shadow: 5px 4px 12px black;
+}
+
+ul.webos-contextmenu li {
+	list-style: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+ul.webos-contextmenu a {
+	color: black;
+	text-decoration: none;
+	display: block;
+	line-height: 25px;
+	height: 25px;
+	background-repeat: no-repeat;
+	outline: none;
+	padding: 0px 5px;
+	padding-left: 22px;
+	padding-right:15px;
+	border: 1px solid transparent;
+}
+
+ul.webos-contextmenu li:hover > a {
+	color: white;
+	background: #98b9e2;
+	border: 1px solid #4b6e99;
+}
+
+ul.webos-contextmenu li.disabled a {
+	color: #a9a5a2;
+}
+
+ul.webos-contextmenu li:hover.disabled > a {
+	background: none;
+	border: 1px solid transparent;
+}
+
+ul.webos-contextmenu li.separator {
+	border-top: solid 1px #aaaaaa;
+}
+
+/* Permet d'afficher les sous catégories*/
+
+
+ul.webos-contextmenu li ul /* Sous-listes */
+{
+	margin: -27px 0px 0 274px;
+}
+
+ul.webos-contextmenu li ul li /* Éléments de sous-listes */
+{
+	min-width:274px;
+	margin-left:0px;
+	padding-right:0px;
+}
+
+/*ul.webos-contextmenu li:hover > ul  /* Sous-listes lorsque la souris passe sur un élément de liste *\/
+{
+	display:block;
+}*/
+
+/* Gere les images icones ===> IMAGE AVEC 20PX DE LARGEUR ET 25 DE HAUTEUR MERCI<===*/
+ul.webos-contextmenu li img.icon_left {
+	float:left;
+	line-height:middle;
+}
+ul.webos-contextmenu li img.icon_right {
+	float:right;
+	height:20px;
+	margin-right:2px;
+}

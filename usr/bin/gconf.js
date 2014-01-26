@@ -1,5 +1,10 @@
-//On charge la bibliotheque des parametres systeme
-new W.ScriptFile('usr/lib/gconf/gconf.js');
+var that = this, args = that.getArguments();
 
-//On ouvre les parametres systeme
-new GConf();
+Webos.require('/usr/lib/gconf/gconf.js', function () {
+	if (args.isOption('category')) {
+		console.log(args.getOption('category'));
+		new GConf(args.getOption('category'));
+	} else {
+		new GConf();
+	}
+});

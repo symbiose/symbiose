@@ -37,15 +37,10 @@ class FileController extends \lib\RawBackController {
 
 		$sharedAccess = false;
 		if (!empty($options['shareKey'])) {
-			$sharedFile = $shareManager->getByPath($user->id(), $fileManager->toInternalPath($filePath));
+			$sharedFile = $shareManager->getByKey($options['shareKey'], $fileManager->toInternalPath($filePath));
 
 			if (!empty($sharedFile)) {
-				if ($sharedFile['key'] == $options['shareKey']) {
-					$sharedAccess = true;
-				} else {
-					$this->app->httpResponse()->addHeader('HTTP/1.0 403 Forbidden');
-					throw new RuntimeException('Bad shared file key');
-				}
+				$sharedAccess = true;
 			}
 		}
 

@@ -1,0 +1,366 @@
+/* UBUNTU CURSORS */
+* {
+	cursor: url("usr/share/images/themes/adwaita/cursors/default.png"), default;
+}
+p, textarea, input[type="text"], input[type="password"],
+*::selection, *::-moz-selection, *::-webkit-selection, *::-o-selection {
+	cursor: url("usr/share/images/themes/adwaita/cursors/text.png"), text;
+}
+a, a * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.png"), pointer, hand;
+}
+
+.cursor-default,.cursor-default * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/default.png"), default;
+}
+
+.cursor-text, .cursor-text * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/text.png"), text;
+}
+
+.cursor-pointer, .cursor-pointer * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.png"), pointer, hand;
+}
+
+.cursor-wait, .cursor-wait * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/wait.ani"), wait;
+}
+
+.cursor-move, .cursor-move * {
+	cursor: url("usr/share/images/themes/adwaita/cursors/move.png"), move;
+}
+
+.cursor-none, .cursor-none * {
+	cursor: none;
+}
+
+img {
+	border-width: 0px;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+a, a:hover, a:active {
+	color: #04369a;
+	outline: none; /* On enleve la bordure en pointilles par defaut sur certains navigateurs lors du clic sur un lien */
+}
+
+*::selection, *::-moz-selection, *::-webkit-selection, *::-o-selection {
+	background: #498ed6;
+	color: #fff;
+}
+
+body {
+	overflow: hidden;
+}
+
+/* Ensemble de l'interface */
+{
+	padding: 0px;
+	margin: 0px;
+	font-size: 14px;
+	font-family: Cantarell, 'Droid Sans', Ubuntu, 'DejaVu Sans', Arial, sans-serif;
+	background-color: black;
+	overflow: hidden;
+	position: absolute;
+}
+
+#header {
+	background-color: black;
+	background-color: rgba(0, 0, 0, 0.7);
+	width: 100%;
+	height: 26px;
+	color: #cbcbcb;
+	padding: 0;
+	position: absolute;
+	left: 0;
+	z-index: 2000;
+	top: 0px;
+}
+
+#elementary-apps {
+	display: none;
+	width: 700px;
+	position: absolute;
+	top: 50px;
+	left: 15px;
+	padding: 20px;
+	background-color: #f6f6f6;
+	color: #35373e;
+	border: 1px solid rgba(111, 111, 111, 0.7);
+	border-radius: 5px;
+	box-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
+	z-index: 2000;
+}
+/* Cela permet de faire une fleche */
+#elementary-apps:after, #elementary-apps:before {
+	bottom: 100%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+#elementary-apps:after {
+	border-bottom-color: #f6f6f6;
+	border-width: 10px;
+	left: 30px;
+	margin-left: -10px;
+}
+#elementary-apps:before {
+	border-bottom-color: rgba(111, 111, 111, 0.7);
+	border-width: 11px;
+	left: 30px;
+	margin-left: -11px;
+}
+#elementary-apps ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	max-height: 400px;
+	overflow: auto;
+}
+#elementary-apps .apps-list li {
+	display: inline-block;
+	text-align: center;
+	width: 90px;
+	margin: 5px;
+}
+#elementary-apps .apps-list li img.app-icon {
+	width: 48px;
+	height: 48px;
+}
+#elementary-apps li .app-title {
+	height: 38px;
+	overflow: hidden;
+}
+#elementary-apps li .app-description {
+	display: none;
+}
+#elementary-apps .apps-categories {
+	height: 100%;
+	float: left;
+	border-right: 1px solid #d1d1d1;
+}
+#elementary-apps .apps-categories li {
+	display: block;
+	padding: 7px 15px;
+}
+#elementary-apps .apps-categories .category-active {
+	border: 1px solid #b8b9b9;
+	border-left: none;
+	border-right: none;
+	background-color: #e2e3e3;
+	background: -moz-linear-gradient(#dcdcdd, #e4e4e4);
+	background: -webkit-linear-gradient(#dcdcdd, #e4e4e4);
+	background: linear-gradient(#dcdcdd, #e4e4e4);
+}
+#elementary-apps .apps-view-filter .apps-categories {
+	width: 145px;
+}
+#elementary-apps .apps-view-filter .apps-list {
+	margin-left: 160px;
+}
+#elementary-apps .apps-view-search .apps-list li {
+	display: block;
+	text-align: left;
+	width: auto;
+	margin: 5px;
+	padding: 5px;
+	clear: both;
+	height: 48px;
+}
+#elementary-apps .apps-view-search .apps-list li:hover {
+	background-color: #e2e2e2;
+	border-radius: 4px;
+}
+#elementary-apps .apps-view-search .apps-list li img.app-icon {
+	float: left;
+}
+#elementary-apps .apps-view-search li .app-title,
+#elementary-apps .apps-view-search li .app-description {
+	overflow: hidden;
+	white-space: nowrap;
+}
+#elementary-apps .apps-view-search li .app-title {
+	height: auto;
+	font-weight: bold;
+}
+#elementary-apps .apps-view-search li .app-description {
+	display: block;
+}
+
+#elementary-apps .apps-header {
+	margin-bottom: 10px;
+}
+#elementary-apps .apps-view-btn-group svg path {
+	fill: #323232 !important;
+}
+#elementary-apps .webos-button { 
+	border: 1px solid #bfbfbf;
+	color: #323232;
+	display: inline-block;
+	position: relative;
+	margin: 0;
+	padding: 0 2px;
+	text-align: center;
+	border-radius: 2px;
+	background: none #f4f5f5;
+}
+#elementary-apps .webos-button:active,
+#elementary-apps .webos-button.active {
+	border: 1px solid #bfbfbf;
+	background: #e9eaea;
+}
+#elementary-apps .apps-header .search-entry {
+	float: right;
+	padding-left: 20px;
+	background: url('usr/share/icons/themes/elementary/scalable/actions/edit-find-symbolic.svg') no-repeat 2px center;
+}
+
+#desktop {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	color: white;
+	overflow: hidden;
+	top: 27px;
+	bottom: 0;
+}
+
+#launcher, #launcher-overlay {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	height: 20px;
+	text-align: center;
+	z-index: 2000;
+	transition: bottom 0.5s;
+}
+#launcher.launcher-hidden {
+	bottom: -81px;
+}
+#launcher-overlay {
+	display: none;
+}
+#launcher-overlay:hover {
+	pointer-events: none;
+	display: none;
+}
+
+#launcher .launcher-inner {
+	display: inline-block;
+	border: 1px solid #777879;
+	border-bottom: none;
+	border-radius: 3px 3px 0 0;
+	background-color: #f9f9f9;
+	background: -moz-linear-gradient(#f9f9f9, #e5e9ea);
+	background: -webkit-linear-gradient(#f9f9f9, #e5e9ea);
+	background: linear-gradient(#f9f9f9, #e5e9ea);
+	height: 20px;
+}
+#launcher ul {
+	position: relative;
+	top: -32px;
+	list-style-type: none;
+	margin: 0;
+	padding: 0 3px;
+}
+#launcher ul li {
+	display: inline-block;
+	width: 48px;
+	height: 48px;
+	padding: 0 5px 3px 5px;
+}
+#launcher .app-active {
+	background: -moz-linear-gradient(transparent 32px, #f9f9f9 32px, #b3b5b6);
+	background: -webkit-linear-gradient(transparent 32px, #f9f9f9 32px, #b3b5b6);
+	background: linear-gradient(transparent 32px, #f9f9f9 32px, #b3b5b6);
+}
+#launcher ul li img.app-icon {
+	width: 48px;
+	height: 48px;
+}
+#launcher ul li .app-indicators {
+	width: 48px;
+	height: 6px;
+	position: absolute;
+	text-align: center;
+	bottom: 36px;
+}
+#launcher ul li .app-indicators-inner {
+	height: 6px;
+	display: inline-block;
+	box-shadow: 0 0 3px 3px #53a6dc;
+}
+#launcher ul li .app-indicators .window-indicator {
+	display: block;
+	width: 2px;
+	height: 4px;
+	float: left;
+	background-color: #8dc4e9;
+	border: 1px solid #53a6dc;
+}
+#launcher ul li .app-title {
+	position: relative;
+	left: -177px;
+	width: 400px;
+	opacity: 0;
+}
+#launcher ul li .app-title .app-title-inner {
+	display: inline-block;
+	padding: 3px;
+	color: white;
+	background-color: black;
+	opacity: 0.7;
+	border-radius: 3px;
+	overflow: hidden;
+	max-width: 100%;
+}
+#launcher ul li:hover img.app-icon {
+	-webkit-filter: brightness(120%);
+	filter: brightness(120%);
+}
+#launcher ul li:hover .app-title {
+	bottom: 85px;
+	opacity: 1;
+}
+#launcher ul li:active img.app-icon {
+	-webkit-filter: brightness(50%);
+	filter: brightness(50%);
+}
+
+.ui-selectable-helper {
+	border: 1px solid #498ed6;
+	background: rgba(73, 142, 214, 0.3);
+}
+
+.webos-nautilus ul.icons li.active span.filename {
+	background-color: #4a90d9 !important;
+	color: white;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+}
+
+.webos-nautilusshortcuts {
+	background-color: #dedede;
+}
+.webos-window.dialog .webos-nautilusshortcuts {
+	background-color: transparent;
+}
+.webos-nautilusshortcuts .webos-list table tbody tr {
+	display: block;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+.webos-nautilusshortcuts .webos-list table tbody tr.active {
+	background-color: #cacaca;
+	border: none;
+	border-top: 1px solid #a7a7a7;
+	border-bottom: 1px solid #a7a7a7;
+	color: inherit;
+}

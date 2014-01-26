@@ -45,12 +45,20 @@
 
 			return file.get('alternateLink');
 		},
-		_getViewUrl: function() {
+		_getViewUrl: function(file) {
 			if (!this._isGoogleDriveFile(file)) {
-				return false;
+				//Relative path to absolute one
+				var fileLink = document.createElement("a");
+				fileLink.href = file.get('realpath');
+				var fileUrl = fileLink.href;
+
+				return this._getViewUrlFromUrl(fileUrl);
 			}
 
 			return file.get('embedLink');
+		},
+		_getViewUrlFromUrl: function(fileUrl) {
+			return 'http://docs.google.com/viewer?url='+encodeURIComponent(fileUrl)+'&embedded=true';
 		},
 		openFile: function(path, callback) {
 			file = W.File.get(path);
@@ -63,83 +71,132 @@
 			file.load([function(file) {
 				var url = that._getEditUrl(file);
 
+				var doOpenFile = function (url) {
+					that._window.window('loading', true, {
+						lock: false
+					});
+
+					that._iframe.load(function() {
+						that._window.window('loading', false);
+						callback.success();
+					});
+
+					that._openFileBtnContainer.hide();
+					that._iframe.show().attr('src', url);
+
+					callback.success();
+				};
+
 				if (url === false) {
 					that._window.window('loading', false);
 
-					var mountedDevices = Webos.File.mountedDevices(), isGoogleDriveDevice = false;
-					for (var localPath in mountedDevices) {
-						var point = mountedDevices[localPath];
-
-						if (point.get('driver') == 'GoogleDriveFile') {
-							isGoogleDriveDevice = true;
-							break;
-						}
-					}
-
-					if (isGoogleDriveDevice) {
+					var askToShareFile = function () {
 						$.webos.window.confirm({
 							title: t.get('Opening a file outside Google Drive'),
-							label: t.get('The specified file is not in Google Drive. Do you want to copy it to Google Drive ?'),
+							label: t.get('The specified file is not in Google Drive. Do you want to share it to allow Google Drive to read it ?'),
 							cancel: function() {
-								callback.success();
+								askToCopyFile();
 							},
 							confirm: function() {
-								new NautilusFileSelectorWindow({
-									title: t.get('Choose a destination folder'),
-									parentWindow: that._window,
-									selectDirs: true,
-									filter: {
-										mime_type: 'application/vnd.google-apps.folder'
-									}
-								}, function(files) {
-									if (files.length) {
-										var destDir = files[0];
-										
-										if (!that._isGoogleDriveFile(destDir)) {
-											callback.error(W.Callback.Result.error(t.get('Specified directory is not in Google Drive')));
-											return;
-										}
-
-										that._window.window('loading', true, {
-											message: t.get('Copying file to Google Drive...')
-										});
-
-										var destFile = Webos.File.get(destDir.get('path') + '/' + file.get('basename'));
-										console.log('original', file.get('mime_type'));
-										destFile.hydrate({
-											'mime_type': file.get('mime_type')
-										});
-										console.log('dest', destFile.get('mime_type'), destFile);
-
-										Webos.File.copy(file, destFile, [function(destFile) {
-											that._window.window('loading', false);
-											that.openFile(destFile, callback);
-										}, callback.error]);
-									} else {
-										callback.success();
-									}
-								});
+								shareFile();
 							},
 							cancelLabel: t.get('No'),
-							confirmLabel: t.get('Copy this file to Google Drive')
+							confirmLabel: t.get('Share this file with Google Drive')
 						}).window('open');
-					} else {
-						callback.error(W.Callback.Result.error(t.get('Specified file is not in Google Drive')));
-					}
-					return;
+					};
+
+					var shareFile = function () {
+						that._window.window('loading', true, {
+							message: t.get('Sharing file with Google Drive...')
+						});
+
+						file.share([function(shareData) {
+							that._window.window('loading', false);
+
+							var shareLink = document.createElement("a");
+							shareLink.href = shareData.url;
+							var shareUrl = shareLink.href,
+								viewUrl = that._getViewUrlFromUrl(shareUrl);
+
+							doOpenFile(viewUrl);
+						}, function(res) {
+							that._window.window('loading', false);
+							res.triggerError();
+							askToCopyFile();
+						}]);
+					};
+
+					var askToCopyFile = function () {
+						var mountedDevices = Webos.File.mountedDevices(), isGoogleDriveDevice = false;
+						for (var localPath in mountedDevices) {
+							var point = mountedDevices[localPath];
+
+							if (point.get('driver') == 'GoogleDriveFile') {
+								isGoogleDriveDevice = true;
+								break;
+							}
+						}
+
+						if (isGoogleDriveDevice) {
+							$.webos.window.confirm({
+								title: t.get('Opening a file outside Google Drive'),
+								label: t.get('The specified file is not in Google Drive. Do you want to copy it to Google Drive ?'),
+								cancel: function() {
+									callback.success();
+								},
+								confirm: function() {
+									copyFile();
+								},
+								cancelLabel: t.get('No'),
+								confirmLabel: t.get('Copy this file to Google Drive')
+							}).window('open');
+						} else {
+							callback.error(W.Callback.Result.error(t.get('Specified file is not in Google Drive')));
+						}
+					};
+
+					var copyFile = function () {
+						new NautilusFileSelectorWindow({
+							title: t.get('Choose a destination folder'),
+							parentWindow: that._window,
+							selectDirs: true,
+							filter: {
+								mime_type: 'application/vnd.google-apps.folder'
+							}
+						}, function(files) {
+							if (files.length) {
+								var destDir = files[0];
+								
+								if (!that._isGoogleDriveFile(destDir)) {
+									callback.error(W.Callback.Result.error(t.get('Specified directory is not in Google Drive')));
+									return;
+								}
+
+								that._window.window('loading', true, {
+									message: t.get('Copying file to Google Drive...')
+								});
+
+								var destFile = Webos.File.get(destDir.get('path') + '/' + file.get('basename'));
+								console.log('original', file.get('mime_type'));
+								destFile.hydrate({
+									'mime_type': file.get('mime_type')
+								});
+								console.log('dest', destFile.get('mime_type'), destFile);
+
+								Webos.File.copy(file, destFile, [function(destFile) {
+									that._window.window('loading', false);
+									that.openFile(destFile, callback);
+								}, callback.error]);
+							} else {
+								callback.success();
+							}
+						});
+					};
+
+					askToShareFile();
+				} else {
+					doOpenFile(url);
 				}
-
-				that._window.window('loading', true, {
-					lock: false
-				});
-
-				that._iframe.load(function() {
-					that._window.window('loading', false);
-					callback.success();
-				});
-
-				that._openFileBtnContainer.hide();
-				that._iframe.show().attr('src', url);
 			}, callback.error]);
 		},
 		selectFile: function(callback) {

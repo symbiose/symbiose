@@ -1,0 +1,69 @@
+#slym-wrapper {
+	width: 100%;
+	height: 100%;
+	background: url('usr/share/images/splash/darknoise.png') #262626;
+	color: gray;
+	font-family: Cantarell, 'Droid Sans', 'DejaVu Sans', Arial, sans-serif;
+}
+#slym-wrapper input {
+	font-size: 20px;
+}
+
+#slym-inner {
+	position: relative;
+	top: 32%;
+	margin: auto;
+	text-align: center;
+	padding: 15px;
+	border-radius: 5px;
+}
+
+#slym-inner input[type="text"],
+#slym-inner input[type="password"] {
+	border: 1px solid rgb(249, 249, 249);
+	border-radius: 4px;
+}
+
+#slym-inner #slym-username {
+	border-radius: 4px 4px 0 0;
+}
+#slym-inner #slym-password {
+	border-radius: 0 0 4px 4px;
+}
+
+#slym-inner input[type="submit"] {
+	width: 51px;
+	border: none;
+	padding: 0;
+	background-color: transparent;
+	margin-left: -50px;
+	opacity: 1;
+	-moz-transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-o-transition: opacity 1s;
+	transition: opacity 1s;
+}
+#slym-inner.slym-nosubmit input[type="submit"] {
+	margin-left: 1px;
+	width: 0px;
+	opacity: 0;
+}
+
+#slym-inner .slym-loading {
+	display: none;
+}
+#slym-inner .slym-loading .slym-loading-inner {
+	background: url('usr/share/images/splash/loader.gif') no-repeat left center;
+	padding: 5px 0 5px 30px;
+}
+#slym-inner .slym-error {
+	display: none;
+	color: #ffa500;
+}
+
+#slym-inner a,
+#slym-inner a:hover,
+#slym-inner a:active,
+#slym-inner a:visited {
+	color: lightgray;
+}

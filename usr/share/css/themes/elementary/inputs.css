@@ -1,0 +1,278 @@
+textarea {
+	resize: none;
+}
+
+input[type="text"], input[type="password"], input[type="number"], input[type="email"] {
+	width: 170px;
+	border: 1px solid #b0b3ab;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+}
+
+input[type="text"]:focus, input[type="password"]:focus,
+input[type="number"]:focus, input[type="email"]:focus {
+	border:1px solid #3a80ca;
+	outline: none;
+}
+
+.webos-text-entry.error input, .webos-password-entry.error input, .webos-textarea-entry.error textarea {
+	border-color: #b30000;
+}
+
+.webos-search-entry input[type="text"] {
+	background: url('usr/share/images/themes/adwaita/search.png') no-repeat center right white;
+}
+
+input[type="button"], input[type="submit"], .webos-button { 
+	min-height: 25px;
+	font-size: 1.1em;
+	border: 1px solid #9d9d9d;
+	font-weight: normal;
+	color: #505156;
+	display: inline-block;
+	position: relative;
+	margin-left: .1em;
+	margin-right: .1em;
+	padding: 0 16px;
+	text-decoration: none !important;
+	text-align: center;
+	background-color: #fcfcfc;
+	background: -moz-linear-gradient(white, #e8e8e8);
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+}
+.webos-button { /* On desactive la selection des boutons */
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+input[type="button"]:hover, input[type="submit"]:hover, .webos-button:hover {
+	background: -moz-linear-gradient(white, #dddddd);
+}
+input[type="button"]:active, input[type="submit"]:active, .webos-button:active,
+input[type="button"].active, input[type="submit"].active, .webos-button.active {
+	background: -moz-linear-gradient(#b6b6b6, #a0a0a0);
+	border-color: #636363;
+	color: #4f5054;
+}
+input[type="button"][disabled],
+input[type="button"][disabled]:hover,
+input[type="button"][disabled]:active,
+input[type="submit"][disabled],
+input[type="submit"][disabled]:hover,
+input[type="submit"][disabled]:active,
+.webos-button.disabled,
+.webos-button.disabled:hover,
+.webos-button.disabled:active {
+	border: 1px solid #b6b9b6;
+	color: #a8aca8;
+	background: #f4f4f2;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+
+.webos-entry-container input[type="submit"].fake-submit {
+	width: 0;
+	height: 0;
+	margin: 0;
+	padding: 0;
+	border: none;
+	display: inline;
+	overflow: hidden;
+	font-size: 0px;
+	float: left;
+}
+
+.webos-list {
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+	overflow: auto;
+}
+.webos-list table {
+	border: 1px solid #c4c1bd;
+	border-collapse: collapse;
+	background-color: white;
+	width: 100%;
+	height: 100%;
+}
+.webos-list table tbody {
+	/*height: 100px;*/
+	overflow: auto;
+}
+.webos-list table tr {
+	min-height: 24px;
+	max-width: 100%;
+}
+.webos-list table tbody tr td {
+	text-decoration: none;
+	padding: 2px;
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+.webos-list table thead tr {
+	background: url('usr/share/images/themes/adwaita/inputs/list-header.png') repeat-x;
+	background-image: -moz-linear-gradient(top, #fbfbfb 0%, #e3e1df 100%);
+	background-image: -webkit-linear-gradient(top, #fbfbfb 0%, #e3e1df 100%);
+	background-image: -o-linear-gradient(top, #fbfbfb 0%, #e3e1df 100%);
+	background-image: linear-gradient(top, #fbfbfb 0%, #e3e1df 100%);
+}
+.webos-list table thead tr td, .webos-list table thead tr th {
+	font-weight: normal;
+	border: 1px solid #bcb8b4;
+	padding: 2px 4px;
+}
+.webos-list table tbody tr.active, .webos-list table tbody tr:active {
+	color: white;
+	background-color: #4a90d9;
+	border: 1px solid #4a90d9;
+}
+.webos-list .webos-button-container {
+	float: none;
+	width: 100%;
+	border: 1px solid #c4c1bd;
+	border-top: none;
+	padding: 3px;
+	background: url('usr/share/images/themes/adwaita/inputs/list-btn-bg.png') repeat-x white;
+}
+
+.webos-container {
+	overflow: auto;
+}
+
+.desc {
+	font-size: 12px;
+}
+
+.webos-button-container {
+	padding: 2px;
+	text-align: right;
+}
+
+.webos-spoiler {
+	padding: 2px;
+	padding-left: 4px;
+}
+.webos-spoiler .label {
+	font-weight: bold;
+}
+.webos-spoiler .label .arrow {
+	display: inline-block;
+	width: 9px;
+	height: 9px;
+	margin-right: 4px;
+	background: url('usr/share/images/themes/adwaita/spoiler-arrow.png') no-repeat left top;
+}
+.webos-spoiler.shown .label .arrow {
+	background-position: left bottom;
+}
+
+.webos-progressbar {
+	display: block;
+	min-height: 9px;
+	min-width: 75px;
+	color: white;
+	border: 1px solid #8e8c89;
+	/*border-top: 1px solid #bbb7b3;
+	border-bottom: 1px solid white;*/
+	background-color: #d6d4d2;
+	width: 100%;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.webos-progressbar div {
+	min-height: 7px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	border-right: 1px solid #688bb6;
+	background-color: #3a81cc;
+}
+
+.webos-iconslist {
+	list-style-type: none;
+	list-style-position: inside;
+	margin: 0;
+	padding: 4px;
+	background-color: white;
+	overflow: auto;
+}
+.webos-iconslist .webos-iconslistitem {
+	max-width: 100px;
+	display: inline-block;
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+	text-align: center;
+	margin: 4px;
+	border: 1px solid white;
+	padding: 7px;
+}
+.webos-iconslist .webos-iconslistitem.active,
+.webos-iconslist .webos-iconslistitem:active {
+	border: 1px solid #417ebe;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	background-color: #4a90d9;
+	color: white;
+}
+.webos-iconslist .webos-iconslistheader {
+	width: 100%;
+	white-space: nowrap;
+	font-size: 1.25em;
+	font-weight: bold;
+	padding: 7px 16px;
+}
+
+.webos-switchbutton label {
+	margin-left: 3px;
+}
+.webos-switchbutton .entry {
+	display: inline-block;
+	height: 24px;
+	width: 60px;
+}
+.webos-switchbutton .entry .labels {
+	position: relative;
+	float: left;
+	height: 100%;
+	width: 100%;
+}
+.webos-switchbutton .entry .labels * {
+	display: none;
+}
+.webos-switchbutton .entry .labels,
+.webos-switchbutton .entry .slider {
+	background: url('usr/share/images/themes/elementary/inputs/switch.svg') no-repeat;
+}
+.webos-switchbutton .entry.on .labels {
+	background-position: right 50%;
+}
+.webos-switchbutton .entry.off .labels {
+	background-position: right top;
+}
+.webos-switchbutton .entry .slider {
+	position: relative;
+	top: 1px;
+	height: 22px;
+	width: 22px;
+	background-position: left top;
+}
+.webos-switchbutton[disabled] .entry.on .labels {
+	background-position: left bottom;
+}
+.webos-switchbutton[disabled] .entry.off .labels {
+	background-position: left 50%;
+}

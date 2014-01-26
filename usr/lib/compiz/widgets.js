@@ -197,6 +197,9 @@ $.webos.widget('window', 'container', {
 			case 'top':
 				this.element.css('top', value);
 				break;
+			case 'dialog':
+				this.dialog(value);
+				break;
 		}
 	},
 	destroy: function() {
@@ -243,7 +246,14 @@ $.webos.widget('window', 'container', {
 		this._trigger('open', { type: 'open' }, { window: this.element });
 
 		if (!$.w.window.workspace || this.options.workspace.id() == $.w.window.workspace.getCurrent().id()) {
-			this.element.fadeIn('fast', function() {
+			this.element.css({
+				opacity: 0,
+				scale: 0.9,
+				display: 'block'
+			}).animate({
+				opacity: 1,
+				scale: 1
+			}, 'fast', function() {
 				that._trigger('afteropen', { type: 'afteropen' }, { window: that.element });
 			});
 		}
@@ -295,7 +305,10 @@ $.webos.widget('window', 'container', {
 			this.options.parentWindow.window('option', 'childWindow', []);
 		}
 
-		this.element.fadeOut('fast', function() {
+		this.element.animate({
+			opacity: 0,
+			scale: 0.9
+		}, 'fast', function() {
 			that._trigger('afterclose', { type: 'afterclose' }, { window: that.element });
 			$(this).removeClass('closing').detach();
 

@@ -63,6 +63,14 @@ abstract class UserManager extends \lib\Manager {
 	 */
 	abstract public function emailExists($email);
 
+	/**
+	 * Check if a password is correct.
+	 * @param  int $userId   The user id.
+	 * @param  string $password The password.
+	 * @return bool           Tru if the password is correct, false otherwise.
+	 */
+	abstract public function checkPassword($userId, $password);
+
 	// SETTERS
 
 	/**
@@ -82,6 +90,13 @@ abstract class UserManager extends \lib\Manager {
 	 * @param  int $userId The user id.
 	 */
 	abstract public function delete($userId);
+
+	/**
+	 * Update a user's password.
+	 * @param  int $userId      The user id.
+	 * @param  string $newPassword The new password.
+	 */
+	abstract public function updatePassword($userId, $newPassword);
 	
 	/**
 	 * Hash a password.

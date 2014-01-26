@@ -137,6 +137,9 @@ function doShutdown() {
 
 var shutdown = setTimeout(doShutdown, maxIdleTime);
 
+process.stdin.on("end", function() { process.exit(); });
+process.stdin.resume();
+
 var httpServer = require("http").createServer(function(req, resp) {
   clearTimeout(shutdown);
   shutdown = setTimeout(doShutdown, maxIdleTime);

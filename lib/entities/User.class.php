@@ -4,7 +4,7 @@ namespace lib\entities;
 use \InvalidArgumentException;
 
 class User extends \lib\Entity {
-	protected $username, $realname, $password, $email, $disabled;
+	protected $username, $password, $realname, $email, $disabled;
 
 	// SETTERS
 
@@ -23,23 +23,20 @@ class User extends \lib\Entity {
 		$this->username = $username;
 	}
 
+	public function setPassword($password) {
+		if (!is_string($password) || empty($password)) {
+			throw new InvalidArgumentException('Invalid user password (empty password)');
+		}
+
+		$this->password = $password;
+	}
+
 	public function setRealname($realname) {
 		if (!is_string($realname) || empty($realname)) {
 			throw new InvalidArgumentException('Invalid user real name (empty name)');
 		}
 
 		$this->realname = $realname;
-	}
-
-	public function setPassword($password) {
-		if (!is_string($password) || empty($password)) {
-			throw new InvalidArgumentException('Invalid user password (empty password)');
-		}
-		if (strlen($password) < 4) {
-			throw new InvalidArgumentException('Invalid user password (password is too short, at least 4 characters are required)');
-		}
-
-		$this->password = $password;
 	}
 
 	public function setEmail($email) {
@@ -67,12 +64,12 @@ class User extends \lib\Entity {
 		return $this->username;
 	}
 
-	public function realname() {
-		return $this->realname;
-	}
-
 	public function password() {
 		return $this->password;
+	}
+
+	public function realname() {
+		return $this->realname;
 	}
 
 	public function email() {

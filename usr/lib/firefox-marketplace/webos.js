@@ -71,7 +71,7 @@ Webos.require([
 	FirefoxMarketplace.api.App.prototype = {
 		hydrate: function(data) {
 			if (!data.title) {
-				data.title = data.name;
+				data.title = this._localizedData(data.name);
 				data.name = data.codename;
 			}
 			if (!data.codename) {
@@ -86,7 +86,24 @@ Webos.require([
 			}
 			data.lastupdate = Date.parse(data.created) / 1000;
 
+			data.description = this._localizedData(data.description);
+			data.homepage = this._localizedData(data.homepage);
+
 			return Webos.Package.prototype.hydrate.call(this, data);
+		},
+		_localizedData: function(data) {
+			var key = '', keyLocale = '', defaultLocale = this._get('default_locale');
+
+			for(var locale in data) {
+				if (Webos.Locale.compareTags(locale, Webos.Locale.current().tag()) ||
+					(!Webos.Locale.compareTags(keyLocale, Webos.Locale.current().tag()) && defaultLocale == locale) ||
+					(!keyLocale)) {
+					key = data[locale];
+					keyLocale = locale;
+				}
+			}
+
+			return key;
 		},
 		icon: function() {
 			if (this._get('icon')) {
@@ -101,15 +118,6 @@ Webos.require([
 					return icons[size];
 				}
 			}
-		},
-		shortdescription: function() {
-			var desc = this._get('description'), maxShortDescLength = 40, shortDescription = desc;
-
-			if (desc.length > maxShortDescLength) {
-				shortDescription = desc.slice(0, maxShortDescLength) + '...';
-			}
-
-			return shortDescription;
 		},
 		installable: function() {
 			return (this.get('app_type') == 'hosted');
@@ -317,11 +325,6 @@ Webos.require([
 		}, callback.error]);
 	};
 
-	if (!Webos.Package.typeExists('firefoxMarketplace')) {
-		Webos.Package.addType('firefoxMarketplace', FirefoxMarketplace.api);
-		Webos.Package.addSource('firefoxMarketplace', 'firefoxMarketplace');
-	}
-
 	FirefoxMarketplace._getManifest = function(manifestUrl, callback) {
 		callback = W.Callback.toCallback(callback);
 
@@ -424,6 +427,11 @@ Webos.require([
 			callback.error(res);
 		}]);
 	};
+
+	if (!Webos.Package.typeExists('firefoxMarketplace')) {
+		Webos.Package.addType('firefoxMarketplace', FirefoxMarketplace.api);
+		Webos.Package.addSource('firefoxMarketplace', 'firefoxMarketplace');
+	}
 
 	window.FirefoxMarketplace = FirefoxMarketplace; //Export API
 });

@@ -150,13 +150,80 @@ Webos.Terminal.prototype = {
 	 * @param  {string} contents The content.
 	 */
 	echo: function(contents) {
-		contents = String(contents).replace(/\n/g, '<br />');
+		contents = String(contents).replace(/\n/g, '<br />').replace(/(^ | $)/g, '&nbsp;');
 		this._output += contents;
 		this.notify('echo', {
 			contents: contents,
 			output: this._output,
 			cmd: this.cmd
 		});
+	},
+	/**
+	 * Prompt some question.
+	 * @param  {Function} callback The callback.
+	 * @param  {object}   options  Options, which are mainly "label" and "type".
+	 */
+	prompt: function(callback, options) {
+		var that = this;
+
+		if (this._promptCallback) {
+			return;
+		}
+
+		var originalOptions = options;
+		options = $.extend({
+			label: '',
+			type: 'text'
+		}, options);
+
+		if (options.type == 'yn') {
+			options.label += ' [Y/n] ';
+		}
+
+		var triggerResult = function (val) {
+			callback(val);
+		};
+
+		this._promptCallback = function(e, el) {
+			if (e.type == 'keydown') {
+				if (e.keyCode == 13) {
+					e.preventDefault();
+					that._promptCallback = null;
+
+					var val = $(el).val();
+					$(el).replaceWith(val);
+
+					that.echo('\n');
+
+					switch (options.type) {
+						case 'yn':
+							if (val == 'Y' || val == 'n') {
+								triggerResult(val);
+							} else {
+								if (originalOptions.label.indexOf('\n') != 0) {
+									originalOptions.label = '\n' + originalOptions.label;
+								}
+								that.prompt(callback, originalOptions);
+							}
+							break;
+						case 'text':
+						default:
+							triggerResult(val);
+					}
+				}
+			}
+		};
+
+		var callbackName = 'Webos.Terminal._list['+this.getId()+']._promptCallback'
+		options.label += '<input type="text" onkeydown="'+callbackName+'(event || window.event, this);"';
+
+		if (options.type == 'yn') {
+			options.label += ' size="2" maxlength="1"';
+		}
+
+		options.label += '/>';
+
+		this.echo(options.label);
 	},
 	/**
 	 * Executer une commande dans le terminal.

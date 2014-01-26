@@ -1,7 +1,32 @@
 [Symbiose 1.0 beta 4](http://symbiose.fr.cr/)
 ==============================================
 
-This version (beta) is unstable.  
+This version (beta) is unstable. 
+
+Key features
+------------
+
+* Apps:
+ * Calculator (essential!)
+ * Brackets code editor
+ * Basic text editor ([gedit](https://en.wikipedia.org/wiki/Gedit))
+ * File manager with copy-paste, drag'n'drop, file sharing, searching...
+ * Google Docs to display and edit your documents
+ * Basic multimedia player
+ * Music player (based on [GNOME Music](https://wiki.gnome.org/Apps/Music))
+ * Basic web browser
+ * Terminal (with a basic interpreter)
+ * Very basic word processor
+ * Image viewer, archive manager, software centre...
+* Customizable: themes, background and so on
+* Multiple interfaces: GNOME Shell, GNOME Panel (GNOME 2), Windows 7-like, mobile, CLI
+* Easy configuration with a _System settings_ app and simple config files
+* FTP, Dropbox and Google Drive integration
+* LDAP authentication support
+* Firefox Marketplace apps integration
+* Available in English, French, German, Italian and Spanish
+* WebSocket support
+* And more! 
 
 Quick start
 -----------
@@ -33,14 +58,14 @@ Software requirements
 * Client: a fast and modern web browser (e.g. the latest *Mozilla Firefox*). Tested on:
  * Firefox (latest version)
  * Chromium (latest version)
- * Internet Explorer 9
+ * Internet Explorer 9+
 
 Authors
 -------
 
-**$imon**
+**Emersion**
 + http://emersion.fr/
-+ http://github.com/simonser
++ http://github.com/emersion
 
 **Codel**
 + https://github.com/Codel
@@ -52,7 +77,7 @@ Copyright
 ---------
 
 Contact: symbiose@emersion.fr  
-Copyright (C) 2013 Simon Ser
+Copyright (C) 2014 Simon Ser
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

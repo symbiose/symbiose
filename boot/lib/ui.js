@@ -33,11 +33,14 @@ Webos.UserInterface.prototype = {
 	name: function () {
 		return this._name;
 	},
+	labels: function () {
+		return this._get('labels') || [];
+	},
 	/**
 	 * @deprecated Use labels instead.
 	 */
 	types: function() {
-		return this._get('labels');
+		return this.get('labels');
 	},
 	/**
 	 * Set this UI's labels.
@@ -134,6 +137,13 @@ Webos.UserInterface.prototype = {
 				data: data
 			}
 		}).load([function(response) {
+			for (var key in that._unsynced) {
+				if (that._unsynced[key].state === 2) {
+					that._data[key] = that._unsynced[key].value;
+					delete that._unsynced[key];
+					that.notify('update', { key: key, value: that._data[key].value });
+				}
+			}
 			callback.success();
 		}, callback.error]);
 	}

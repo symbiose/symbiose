@@ -1,6 +1,6 @@
 var thisProcess = W.Process.current();
 
-function GConf(category) {
+var GConf = function (category) {
 	Webos.Observable.call(this);
 
 	var that = this;
@@ -181,7 +181,12 @@ function GConf(category) {
 			.appendTo(toolbar);
 		
 		this._window.window('open');
-		this.home();
+
+		if (!category) {
+			this.home();
+		} else {
+			this.category(category);
+		}
 		
 		this.notify('ready');
 	});
@@ -193,3 +198,5 @@ GConf.prototype = {
 };
 Webos.inherit(GConf, Webos.Observable);
 Webos.inherit(GConf, Webos.TranslatedLibrary);
+
+window.GConf = GConf;

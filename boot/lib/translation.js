@@ -227,6 +227,13 @@ Webos.Locale.prototype = {
 		return this._name;
 	},
 	/**
+	 * Alias for name().
+	 * @return {String} This locale's tag.
+	 */
+	tag: function() {
+		return this._name;
+	},
+	/**
 	 * Get a data relative to this locale.
 	 * @param  {String} index The key.
 	 * @returns               The data.
@@ -402,6 +409,42 @@ Webos.Locale.detect = function () {
 	}
 	
 	return Webos.Locale.getDefault().name();
+};
+
+/**
+ * Convert a locale tag to POSIX format.
+ * POSIX format is : [language[_territory][.codeset][@modifier]]
+ * @param  {string} originalTag The original tag.
+ * @return {string}             The converted tag.
+ */
+Webos.Locale.toPosix = function(originalTag) {
+	originalTag = originalTag.replace('-', '_');
+	var parts = originalTag.split('_');
+	parts[0] = parts[0].toLowerCase();
+	if (!parts[1]) {
+		parts[1] = parts[0].toUpperCase();
+	}
+	return parts.join('_');
+};
+
+/**
+ * Compare two locale tags.
+ * @param  {string}  a      The first one.
+ * @param  {string}  b      The second one.
+ * @param  {boolean} strict True if territories must match too.
+ * @return {boolean}        True if they match, false otherwise.
+ */
+Webos.Locale.compareTags = function(a, b, strict) {
+	a = Webos.Locale.toPosix(a);
+	b = Webos.Locale.toPosix(b);
+
+	if (strict) {
+		return (a == b);
+	} else {
+		var aParts = a.split('_'), bParts = b.split('_');
+
+		return (aParts[0] == bParts[0]);
+	}
 };
 
 /**

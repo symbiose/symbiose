@@ -53,6 +53,15 @@
 		operationPending: function() {
 			return this._operationPending;
 		},
+		shortdescription: function() {
+			var desc = this._get('description'), maxShortDescLength = 40, shortDescription = desc;
+
+			if (desc.length > maxShortDescLength) {
+				shortDescription = desc.slice(0, maxShortDescLength) + '...';
+			}
+
+			return shortDescription;
+		},
 		installed_time: function() {
 			return this.get('installDate');
 		},
@@ -60,10 +69,10 @@
 			return this.get('maintainer');
 		},
 		category: function() {
-			if (typeof this._get('category') != 'undefined') {
+			if (this._get('category')) {
 				return this._get('category');
 			}
-			if (typeof this._get('categories') != 'undefined') {
+			if (this._get('categories')) {
 				return this._get('categories')[0];
 			}
 		},
@@ -270,7 +279,7 @@
 	 * Recuperer les paquets installes.
 	 * @param Webos.Callback callback
 	 */
-	Webos.Package.getInstalled = function(callback) {
+	Webos.Package.listInstalled = function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 
 		if (Webos.Package._cache.installed !== null) {
@@ -280,7 +289,7 @@
 
 		return new W.ServerCall({
 			'class': 'LocalRepositoryController',
-			'method': 'getInstalled'
+			'method': 'listInstalled'
 		}).load([function(response) {
 			var packagesData = response.getData(), list = [];
 
@@ -296,11 +305,16 @@
 		}, callback.error]);
 	};
 	Webos.Package.on('install', function(data) {
-		Webos.Package._cache.installed.push(data.package);
+		if (Webos.Package._cache.installed !== null) {
+			Webos.Package._cache.installed.push(data.package);
+		}
 	});
 	Webos.Package.on('remove', function(data) {
 		var pkgToRemove = data.package;
-		Webos.Package._cache.installed.push(pkgToRemove);
+		
+		if (Webos.Package._cache.installed === null) {
+			return;
+		}
 
 		var list = [];
 
@@ -315,18 +329,45 @@
 		Webos.Package._cache.installed = list;
 	});
 
+	/**
+	 * @deprecated Use Webos.Package.listInstalled() instead.
+	 */
+	Webos.Package.getInstalled = function(callback) {
+		return Webos.Package.listInstalled(callback);
+	};
+
+	Webos.Package.getInstalledPackage = function(pkgName, callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		var findPackage = function(installed) {
+			for (var i = 0; i < installed.length; i++) {
+				var pkg = installed[i];
+
+				if (pkg.get('name') == pkgName) {
+					callback.success(pkg);
+					return;
+				}
+			}
+
+			callback.error(Webos.Callback.Result.error('Cannot find package "'+pkgName+'"'));
+		};
+
+		if (Webos.Package._cache.installed !== null) {
+			findPackage(Webos.Package._cache.installed);
+			return;
+		}
+
+		return Webos.Package.listInstalled([function (list) {
+			findPackage(list);
+		}, callback.error]);
+	};
+
 	Webos.Package.getLastInstalled = function(limit, callback) {
 		callback = Webos.Callback.toCallback(callback);
 
 		return Webos.Package.getInstalled([function(list) {
 			list.sort(function (a, b) {
-				if (a.get('installDate') > b.get('installDate')) {
-					return 1;
-				}
-				if (a.get('installDate') < b.get('installDate')) {
-					return -1;
-				}
-				return 0;
+				return a.get('installDate') - b.get('installDate');
 			});
 
 			callback.success(list.slice(0, limit));
@@ -354,15 +395,6 @@
 	 * @param Webos.Callback callback Le callback.
 	 */
 	Webos.Package.upgrade = function(callback) {
-		callback = Webos.Callback.toCallback(callback);
-
-		callback.error(Webos.Callback.Result.error('Updates are not available for the moment'));
-	};
-
-	/**
-	 * @deprecated
-	 */
-	Webos.Package.updateCache = function(callback) {
 		callback = Webos.Callback.toCallback(callback);
 
 		callback.error(Webos.Callback.Result.error('Updates are not available for the moment'));
@@ -405,356 +437,4 @@
 			Webos.Application.clearCache();
 		}
 	});
-
-
-	// CONFITURE
-
-	Webos.Confiture = {};
-	Webos.Observable.build(Webos.Confiture);
-
-	/**
-	 * Webos.Confiture.Package represente un paquet.
-	 * @param name Le nom du paquet.
-	 * @param data Les donnees sur le paquet.
-	 * @return Webos.Confiture.Package Le paquet.
-	 */
-	Webos.Confiture.Package = function (data, codename) {
-		this._codename = codename;
-		this._running = false;
-		Webos.Package.call(this, data);
-	};
-
-	Webos.Confiture.Package.prototype = {
-		/**
-		 * Recuperer le nom du paquet.
-		 * @return string Le nom du paquet.
-		 */
-		codename: function() {
-			return this._codename;
-		},
-		/**
-		 * Installer le paquet.
-		 * @param Webos.Callback callback
-		 */
-		install: function(callback) {
-			callback = Webos.Callback.toCallback(callback);
-			var that = this;
-			this._running = true;
-			
-			this.notify('installstart');
-			Webos.Confiture.Package.notify('installstart', { 'package': that });
-			
-			return new W.ServerCall({
-				'class': 'PackageController',
-				'method': 'install',
-				arguments: {
-					'package': this.codename(),
-					//'repository': this.get('repository') //Do not specify the repository (prevent from installing from the local repository)
-				}
-			}).load(new Webos.Callback(function(response) {
-				that._running = false;
-				that._hydrate({
-					'installed': true,
-					'installed_time': Math.round(+new Date() / 1000)
-				});
-				
-				callback.success(that);
-				
-				that.notify('install');
-				Webos.Confiture.Package.notify('install', { 'package': that });
-				that.notify('installsuccess');
-				Webos.Confiture.Package.notify('installsuccess', { 'package': that });
-				that.notify('installcomplete');
-				Webos.Confiture.Package.notify('installcomplete', { 'package': that });
-			}, function(response) {
-				that._running = false;
-				callback.error(response);
-				
-				that.notify('installerror');
-				Webos.Confiture.Package.notify('installerror', { 'package': that });
-				that.notify('installcomplete');
-				Webos.Confiture.Package.notify('installcomplete', { 'package': that });
-			}));
-		},
-		/**
-		 * Supprimer le paquet.
-		 * @param Webos.Callback callback
-		 */
-		remove: function(callback) {
-			callback = Webos.Callback.toCallback(callback);
-			var that = this;
-			this._running = true;
-			
-			this.notify('removestart');
-			Webos.Confiture.Package.notify('removestart', { 'package': that });
-			
-			return new W.ServerCall({
-				'class': 'PackageController',
-				'method': 'remove',
-				arguments: {
-					'package': this.codename()
-				}
-			}).load(new Webos.Callback(function(response) {
-				that._running = false;
-				that._hydrate({
-					'installed': false,
-					'installed_time': null
-				});
-				
-				callback.success(that);
-				
-				that.notify('remove');
-				Webos.Confiture.Package.notify('remove', { 'package': that });
-				that.notify('removesuccess');
-				Webos.Confiture.Package.notify('removesuccess', { 'package': that });
-				that.notify('removecomplete');
-				Webos.Confiture.Package.notify('removecomplete', { 'package': that });
-			}, function(response) {
-				that._running = false;
-				callback.error(response);
-				
-				that.notify('removeerror');
-				Webos.Confiture.Package.notify('removeerror', { 'package': that });
-				that.notify('removecomplete');
-				Webos.Confiture.Package.notify('removecomplete', { 'package': that });
-			}));
-		},
-		isRunning: function() {
-			return this._running;
-		},
-		set: function() {
-			return false;
-		}
-	};
-	Webos.inherit(Webos.Confiture.Package, Webos.Package);
-
-	/**
-	 * Recuperer tous les paquets disponibles.
-	 * @param Webos.Callback callback
-	 */
-	Webos.Confiture.Package.getAvailable = function(callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'getAvailable'
-		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-
-	/**
-	 * Recuperer un paquet.
-	 * @param string name Le nom du paquet.
-	 * @param Webos.Callback callback
-	 */
-	Webos.Confiture.Package.get = function(name, callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'getPackage',
-			'arguments': {
-				'package': name
-			}
-		}).load(new Webos.Callback(function(response) {
-			var pkg = new Webos.Confiture.Package(response.getData(), name);
-			callback.success(pkg);
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-
-	/**
-	 * Recuperer tous les paquets d'une categorie.
-	 * @param string name Le nom de la categorie.
-	 * @param Webos.Callback callback
-	 */
-	Webos.Confiture.Package.getFromCategory = function(name, callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'getFromCategory',
-			'arguments': {
-				'category': name
-			}
-		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-
-	/**
-	 * Recuperer les derniers paquets parus.
-	 * @param int limit Le nombre de paquets a renvoyer.
-	 * @param Webos.Callback callback
-	 */
-	Webos.Confiture.Package.getLastPackages = function(limit, callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'getLastPackages',
-			'arguments': {
-				'limit': limit
-			}
-		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-
-	/**
-	 * Recuperer les paquets installes.
-	 * @param Webos.Callback callback
-	 */
-	Webos.Confiture.Package.getInstalled = function(callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'getInstalled'
-		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-
-	Webos.Confiture.Package.getLastInstalled = function(limit, callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'getLastInstalled',
-			arguments: {
-				limit: limit
-			}
-		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-
-	Webos.Confiture.Package.searchPackages = function(search, callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'searchPackages',
-			arguments: {
-				search: search
-			}
-		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-
-	/**
-	 * Recuperer les mises a jour disponibles.
-	 * @param Webos.Callback callback Le callback.
-	 */
-	Webos.Confiture.Package.getUpdates = function(callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'getUpdates'
-		}).load(new Webos.Callback(function(response) {
-			callback.success(Webos.Confiture.Package._objectToPackageList(response.getData()));
-		}, function(response) {
-			callback.error(response);
-		}));
-	};
-
-	/**
-	 * Recharger le cache.
-	 * @param Webos.Callback callback Le callback.
-	 */
-	Webos.Confiture.Package.updateCache = function(callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		Webos.Confiture.Package.notify('updatestart');
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'updateCache'
-		}).load(new Webos.Callback(function(response) {
-			callback.success(response);
-			
-			Webos.Confiture.Package.notify('update');
-			Webos.Confiture.Package.notify('updatesuccess');
-			Webos.Confiture.Package.notify('updatecomplete');
-		}, function(response) {
-			callback.error(response);
-			
-			Webos.Confiture.Package.notify('updateerror');
-			Webos.Confiture.Package.notify('updatecomplete');
-		}));
-	};
-
-	/**
-	 * Installer les mises a jour.
-	 * @param Webos.Callback callback Le callback.
-	 */
-	Webos.Confiture.Package.upgrade = function(callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		Webos.Confiture.Package.notify('upgradestart');
-		
-		new W.ServerCall({
-			'class': 'PackageController',
-			'method': 'upgrade'
-		}).load(new Webos.Callback(function(response) {
-			callback.success(response);
-			
-			Webos.Confiture.Package.notify('upgrade');
-			Webos.Confiture.Package.notify('upgradesuccess');
-			Webos.Confiture.Package.notify('upgradecomplete');
-		}, function(response) {
-			callback.error(response);
-			
-			Webos.Confiture.Package.notify('upgradeerror');
-			Webos.Confiture.Package.notify('upgradecomplete');
-		}));
-	};
-
-	/**
-	 * Convertir un objet en liste de paquets.
-	 * @param data L'objet a convertir.
-	 * @return object Un objet contenant les paquets.
-	 */
-	Webos.Confiture.Package._objectToPackageList = function(data) {
-		var list = [];
-		for (var key in data) {
-			list.push(new Webos.Confiture.Package(data[key], key));
-		}
-		return list;
-	};
-
-	//Objet contenant le nom de code des categories et leur titre associe
-	Webos.Confiture.Package._categories = {
-		accessories: 'Accessoires',
-		office: 'Bureautique',
-		graphics: 'Graphisme',
-		internet: 'Internet',
-		games: 'Jeux',
-		soundandvideo: 'Son et vid&eacute;o',
-		system: 'Syst&egrave;me'
-	};
-	Webos.Confiture.Package.categories = function(callback) {
-		callback = Webos.Callback.toCallback(callback);
-		
-		callback.success(Webos.Confiture.Package._categories);
-		
-		return Webos.Confiture.Package._categories;
-	};
 })();

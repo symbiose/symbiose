@@ -272,13 +272,14 @@ class UserController extends \lib\ApiBackController {
 	 */
 	public function executeConnect($username, $password) {
 		$manager = $this->managers()->getManagerOf('user');
+		$cryptoManager = $this->managers()->getManagerOf('crypto');
 		$user = $this->app()->user();
 
 		if ($user->isLogged()) {
 			$user->loggedOut();
 		}
 
-		$userData = $manager->getByUsername($username); //Get users list
+		$userData = $manager->getByUsername($username); //Get user
 
 		if (empty($userData)) { //Invalid username
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
@@ -291,14 +292,15 @@ class UserController extends \lib\ApiBackController {
 		}
 
 		//Password check
-		if (strlen($userData['password']) == 40) { //SHA1 support for old accounts (before 1.0 beta 3)
-			$hashedPasswd = sha1($password);
-		} else {
-			$hashedPasswd = $manager->hashPassword($password);
-		}
-		if ($hashedPasswd != $userData['password']) { //Invalid password ?
+		if (!$cryptoManager->verifyPassword($password, $userData['password'])) {
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Bad username or password', 401);
+			return;
+		}
+
+		if ($cryptoManager->needsRehash($userData['password'])) {
+			$userData['password'] = $cryptoManager->hashPassword($password);
+			$manager->update($userData);
 		}
 
 		//Set the user as logged in
@@ -376,33 +378,30 @@ class UserController extends \lib\ApiBackController {
 	public function executeSetPassword($currentPassword, $newPassword) {
 		$manager = $this->managers()->getManagerOf('user');
 		$authManager = $this->managers()->getManagerOf('authorization');
+		$cryptoManager = $this->managers()->getManagerOf('crypto');
 		$user = $this->app()->user();
+		$userId = $user->id();
 
 		if (!$user->isLogged()) { //User not logged in
 			throw new \RuntimeException('Cannot change password of another user than you', 403);
 		}
 
 		//Control authorizations
-		$userAuths = $authManager->getByUserId($user->id());
-		$this->guardian->controlArgAuth('user.edit', $user->id(), $userAuths);
+		$userAuths = $authManager->getByUserId($userId);
+		$this->guardian->controlArgAuth('user.edit', $userId, $userAuths);
 
 		//Get user data
-		$userData = $manager->getById($user->id());
+		$userData = $manager->getById($userId);
 
 		//Check password
-		if (strlen($userData['password']) == 40) { //SHA1 support for old accounts (before 1.0 beta 3)
-			$hashedPasswd = sha1($currentPassword);
-		} else {
-			$hashedPasswd = $manager->hashPassword($currentPassword);
-		}
-		if ($hashedPasswd != $userData['password']) { //Invalid password ?
+		if (!$cryptoManager->verifyPassword($currentPassword, $userData['password'])) {
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Bad password', 403);
+			return;
 		}
 
 		//Change password
-		$userData['password'] = $manager->hashPassword($newPassword);
-
+		$userData['password'] = $cryptoManager->hashPassword($password);
 		$manager->update($userData);
 	}
 
@@ -481,9 +480,14 @@ class UserController extends \lib\ApiBackController {
 	public function executeCreate($data, $authsList) {
 		$manager = $this->managers()->getManagerOf('user');
 		$authManager = $this->managers()->getManagerOf('authorization');
+		$cryptoManager = $this->managers()->getManagerOf('crypto');
+
+		if (strlen($data['password']) < 4) {
+			throw new \RuntimeException('Invalid user password (password is too short, at least 4 characters are required)');
+		}
 
 		//Hash the password
-		$data['password'] = $manager->hashPassword($data['password']);
+		$data['password'] = $cryptoManager->hashPassword($data['password']);
 
 		//Create the user
 		$user = new User($data);
@@ -544,6 +548,7 @@ class UserController extends \lib\ApiBackController {
 
 	public function executeSendResetPasswordRequest($email, $webosUrl) {
 		$manager = $this->managers()->getManagerOf('user');
+		$tokenManager = $this->managers()->getManagerOf('userToken');
 		$emailManager = $this->managers()->getManagerOf('email');
 		$translationManager = $this->managers()->getManagerOf('translation');
 
@@ -558,7 +563,7 @@ class UserController extends \lib\ApiBackController {
 			throw new \RuntimeException('Cannot find user with e-mail "'.$email.'"', 404);
 		}
 
-		$userToken = $manager->getTokenByUser($user['id']);
+		$userToken = $tokenManager->getByUser($user['id']);
 
 		$newTokenData = array(
 			'userId' => $user['id'],
@@ -572,12 +577,12 @@ class UserController extends \lib\ApiBackController {
 				throw new \RuntimeException('Too many reset password requests were sent. Please try again later', 429);
 			}
 
-			$manager->deleteToken($userToken['id']);
+			$tokenManager->delete($userToken['id']);
 		}
 
 		//Create a new token
 		$userToken = new UserToken($newTokenData);
-		$manager->insertToken($userToken);
+		$tokenManager->insert($userToken);
 
 		//Send an e-mail with token key
 		$dict = $translationManager->load('webos');
@@ -618,13 +623,14 @@ class UserController extends \lib\ApiBackController {
 		try {
 			$emailManager->send($email);
 		} catch (\Exception $e) { //Mail not sent
-			//$manager->deleteToken($userToken['id']);
+			$tokenManager->delete($userToken['id']);
 			throw $e;
 		}
 	}
 
 	public function executeGetTokenByEmail($email) {
 		$manager = $this->managers()->getManagerOf('user');
+		$tokenManager = $this->managers()->getManagerOf('userToken');
 
 		//Get user
 		$user = $manager->getByEmail($email);
@@ -634,7 +640,7 @@ class UserController extends \lib\ApiBackController {
 		}
 
 		//Get token
-		$userToken = $manager->getTokenByUser($user['id']);
+		$userToken = $tokenManager->getByUser($user['id']);
 
 		if (empty($userToken)) {
 			throw new \RuntimeException('Cannot find token with user id "'.$user['id'].'"', 404);
@@ -645,18 +651,21 @@ class UserController extends \lib\ApiBackController {
 
 	public function executeResetPassword($tokenId, $key, $newPassword) {
 		$manager = $this->managers()->getManagerOf('user');
+		$tokenManager = $this->managers()->getManagerOf('userToken');
+		$cryptoManager = $this->managers()->getManagerOf('crypto');
 
 		//Get token
-		$userToken = $manager->getToken($tokenId);
+		$userToken = $tokenManager->getById($tokenId);
 
 		if (empty($userToken)) {
 			throw new \RuntimeException('This token may have expired : cannot find token with id "'.$tokenId.'"', 404);
 		}
 
 		//Check token key
-		if ($userToken['key'] != $key) {
+		if ($userToken['key'] !== $key) {
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Invalid token key "'.$key.'"', 403);
+			return;
 		}
 
 		//Get user
@@ -667,12 +676,10 @@ class UserController extends \lib\ApiBackController {
 		}
 
 		//Change password
-		$user['password'] = $manager->hashPassword($newPassword);
-
-		//Update user data
+		$user['password'] = $cryptoManager->hashPassword($newPassword);
 		$manager->update($user);
 
 		//Delete token
-		$manager->deleteToken($userToken['id']);
+		$tokenManager->delete($userToken['id']);
 	}
 }

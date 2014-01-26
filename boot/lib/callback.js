@@ -22,6 +22,10 @@ Webos.Callback = function WCallback(successCallback, errorCallback) {
 					resp = resp.getError();
 				}
 
+				if (!resp) {
+					resp = 'Unknown error';
+				}
+
 				Webos.Error.trigger(resp);
 			}, //The function
 			arguments: [],

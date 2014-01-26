@@ -1,5 +1,6 @@
 Webos.require([
 	'/usr/lib/apt/apt.js',
+	'/usr/lib/confiture/webos.js',
 	'/usr/lib/firefox-marketplace/webos.js'
 ], function() {
 	var thisProcess = W.Process.current(), permissions = {
@@ -100,11 +101,18 @@ Webos.require([
 			};
 
 			var getHeaderImgDirFn = function() {
-				var baseDir = 'usr/share/images/software-center/header', supportedThemes = ['ambiance', 'adwaita'];
-				if (jQuery.inArray(Webos.Theme.current().get('desktop'), supportedThemes) != -1) {
-					return baseDir+'/'+Webos.Theme.current().get('desktop');
+				var baseDir = 'usr/share/images/software-center/header',
+					supportedThemes = ['ambiance', 'adwaita'],
+					otherThemes = { 'elementary': 1 },
+					currentTheme = Webos.Theme.current().get('desktop');
+				if (jQuery.inArray(currentTheme, supportedThemes) != -1) {
+					return baseDir+'/'+currentTheme;
 				} else {
-					return baseDir+'/'+supportedThemes[0];
+					var index = 0;
+					if (otherThemes[currentTheme]) {
+						index = otherThemes[currentTheme];
+					}
+					return baseDir+'/'+supportedThemes[index];
 				}
 			};
 

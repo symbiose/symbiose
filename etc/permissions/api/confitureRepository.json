@@ -1,0 +1,32 @@
+{
+	"executeListAll":[{
+		"permission":"package.read"
+	}],
+	"executeGetByName":[{
+		"permission":"package.read"
+	}],
+	"executeSearch":[{
+		"permission":"package.read"
+	}],
+	"executeCalculateUpgrades":[{
+		"permission":"package.read"
+	}],
+	"executeListRepositories":[{
+		"permission":"package.read"
+	}],
+	"executeInstall":[{
+		"permission":"package.manage"
+	}],
+	"executeRemove":[{
+		"permission":"package.manage"
+	}],
+	"executeUpdateCache":[{
+		"permission":"package.manage"
+	}],
+	"executeInsertRepository":[{
+		"permission":"package.manage"
+	}],
+	"executeDeleteRepository":[{
+		"permission":"package.manage"
+	}]
+}

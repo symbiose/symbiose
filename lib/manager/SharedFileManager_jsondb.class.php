@@ -31,10 +31,7 @@ class SharedFileManager_jsondb extends SharedFileManager {
 		return new SharedFile($sharesData[0]);
 	}
 
-	public function getByPath($userId, $filepath) {
-		$sharesFile = $this->dao->open(self::SHARES_DB);
-		$sharesData = $sharesFile->read()->filter(array('userId' => $userId));
-
+	protected function _getByPath($sharesData, $filepath) {
 		$filepath = rtrim($filepath, '/'); //Remove trailing slash
 
 		foreach($sharesData as $shareData) {
@@ -45,6 +42,22 @@ class SharedFileManager_jsondb extends SharedFileManager {
 				return new SharedFile($shareData);
 			}
 		}
+
+		return null;
+	}
+
+	public function getByPath($userId, $filepath) {
+		$sharesFile = $this->dao->open(self::SHARES_DB);
+		$sharesData = $sharesFile->read()->filter(array('userId' => $userId));
+
+		return $this->_getByPath($sharesData, $filepath);
+	}
+
+	public function getByKey($shareKey, $filepath) {
+		$sharesFile = $this->dao->open(self::SHARES_DB);
+		$sharesData = $sharesFile->read()->filter(array('key' => $shareKey));
+
+		return $this->_getByPath($sharesData, $filepath);
 	}
 
 	public function pathExists($userId, $filepath) {
