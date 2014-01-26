@@ -1,10 +1,12 @@
 <?php
 require_once(dirname(__FILE__).'/../boot/ini.php');
 
-use Ratchet\Server\IoServer;
-use Ratchet\Http\HttpServer;
-use Ratchet\WebSocket\WsServer;
+use Ratchet\App;
 use lib\ApiWebSocketServer;
+use lib\PeerServer;
+
+use Symfony\Component\Routing\Route;
+use Ratchet\WebSocket\WsServer;
 
 set_time_limit(0);
 
@@ -20,13 +22,10 @@ if (!$enabled) {
 
 $port = (isset($serverConfig['port'])) ? $serverConfig['port'] : 9000;
 
-$server = IoServer::factory(
-	new HttpServer(
-		new WsServer(
-			new ApiWebSocketServer()
-		)
-	),
-	$port
-);
+$apiServer = new ApiWebSocketServer;
+$peerServer = new PeerServer;
 
-$server->run();
+$app = new App('localhost', $port);
+$app->route('/api', $apiServer);
+$app->route('/peerjs', $peerServer);
+$app->run();
