@@ -39,6 +39,16 @@ class PeerServer implements MessageComponentInterface {
 		
 		$params = $conn->WebSocket->request->getQuery()->getAll();
 
+		//Check ID
+		if (!preg_match('#^[a-zA-Z0-9@]+$#', $params['id'])) {
+			$conn->send(json_encode(array(
+				'type' => 'ERROR',
+				'payload' => array('msg' => 'Bad ID')
+			)));
+			$conn->close();
+			return;
+		}
+
 		//ID already taken?
 		if (in_array($params['id'], $this->clientsIds)) {
 			$conn->send(json_encode(array(
@@ -58,16 +68,76 @@ class PeerServer implements MessageComponentInterface {
 		$conn->send($welcomeMsg);
 	}
 
-	public function onMessage(ConnectionInterface $from, $msg) {
-		echo 'Received data from '.$from->resourceId.' ('.strlen($msg).')'."\n";
+	protected function _sendMsgToClient(ConnectionInterface $from, $dst, $msg) {
+		$msgSent = false;
 
-		$msgData = json_decode($msg, true);
+		$src = $this->clientsIds[$from->resourceId];
 
-		if (json_last_error() != JSON_ERROR_NONE) {
-			echo 'Error: Invalid JSON data ('.json_last_error().')';
+		try {
+			foreach($this->clients as $conn) {
+				if ($this->clientsIds[$conn->resourceId] == $dst) {
+					echo 'Sending data from '.$src.' to '.$dst.' ('.strlen($msg).')'."\n";
+					$conn->send($msg);
+					$msgSent = true;
+					break;
+				}
+			}
+		} catch (\Exception $e) {
+			// This happens when a peer disconnects without closing connections and
+			// the associated WebSocket has not closed.
+
+			/*foreach($this->clients as $conn) {
+				if ($conn->resourceId == $dst) {
+					$this->onClose($conn);
+					break;
+				}
+			}
+
+			// Tell other side to stop trying.
+			// TODO: $this->onMessage() can trigger an infinite loop
+			$leaveMsg = json_encode(array(
+				'type' => 'LEAVE',
+				'src' => $dst,
+				'dst' => $src
+			));
+			$this->onMessage($leaveMsg);*/
 			return;
 		}
 
+		return $msgSent;
+	}
+
+	protected function _sendMsgToServer(ConnectionInterface $from, $dst, $msgData) {
+		//TODO
+		$src = $this->clientsIds[$from->resourceId].'@'.$_SERVER['SERVER_NAME'].':9000/peerjs';
+
+		$dstData = parse_url('//'.$dst);
+		if (!isset($dstData['user']) || !isset($dstData['host'])) {
+			return false;
+		}
+
+		$dstId = $dstData['user'];
+		$dstHost = $dstData['host'];
+		$dstPort = (isset($dstData['port'])) ? $dstData['port'] : 80;
+		$dstPath = (isset($dstData['path'])) ? $dstData['path'] : '/';
+		$dstPath .= '?id='.$src;
+
+		$peerClient = new PeerClient;
+
+		$loop = React\EventLoop\Factory::create();
+		$client = new WebSocketClient($peerClient, $loop, $dstHost, $dstPort, $dstPath);
+
+		$peerClient->setOnMessage(function ($data) use($peerClient) {
+			if ($data['type'] == 'OPEN') { //Connection accepted
+				$peerClient->sendData($msgData);
+				$client->disconnect(); // Useful ?
+			}
+		});
+
+		$loop->run();
+	}
+
+	protected function _handleTransmission(ConnectionInterface $from, $msgData) {
 		$msgData['src'] = $this->clientsIds[$from->resourceId];
 
 		$type = $msgData['type'];
@@ -84,35 +154,10 @@ class PeerServer implements MessageComponentInterface {
 		$msgSent = false;
 
 		if ($dst !== null) {
-			try {
-				foreach($this->clients as $conn) {
-					if ($this->clientsIds[$conn->resourceId] == $dst) {
-						echo 'Sending data from '.$src.' to '.$dst.' ('.strlen($msg).')'."\n";
-						$conn->send($msg);
-						$msgSent = true;
-						break;
-					}
-				}
-			} catch (\Exception $e) {
-				// This happens when a peer disconnects without closing connections and
-				// the associated WebSocket has not closed.
-				
-				/*foreach($this->clients as $conn) {
-					if ($conn->resourceId == $dst) {
-						$this->onClose($conn);
-						break;
-					}
-				}
-
-				// Tell other side to stop trying.
-				// TODO: $this->onMessage() can trigger an infinite loop
-				$leaveMsg = json_encode(array(
-					'type' => 'LEAVE',
-					'src' => $dst,
-					'dst' => $src
-				));
-				$this->onMessage($leaveMsg);*/
-				return;
+			if (strpos($dst, '@') !== false) {
+				$msgSent = $this->_sendMsgToServer($from, $dst, $msgData);
+			} else {
+				$msgSent = $this->_sendMsgToClient($from, $dst, $msg);
 			}
 		}
 
@@ -127,6 +172,19 @@ class PeerServer implements MessageComponentInterface {
 				// Ignore
 			}
 		}
+	}
+
+	public function onMessage(ConnectionInterface $from, $msg) {
+		echo 'Received data from '.$from->resourceId.' ('.strlen($msg).')'."\n";
+
+		$msgData = json_decode($msg, true);
+
+		if (json_last_error() != JSON_ERROR_NONE) {
+			echo 'Error: Invalid JSON data ('.json_last_error().')';
+			return;
+		}
+
+		$this->_handleTransmission($from, $msgData);
 	}
 
 	public function onClose(ConnectionInterface $conn) {
