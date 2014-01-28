@@ -3,6 +3,8 @@ namespace lib;
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
+use React\EventLoop\Factory as EventLoopFactory;
+use \WebSocketClient;
 
 class PeerServer implements MessageComponentInterface {
 	/*protected $config = array(
@@ -38,19 +40,20 @@ class PeerServer implements MessageComponentInterface {
 		echo "New connection! ({$conn->resourceId})\n";
 		
 		$params = $conn->WebSocket->request->getQuery()->getAll();
+		$username = urldecode($params['id']);
 
 		//Check ID
-		if (!preg_match('#^[a-zA-Z0-9@]+$#', $params['id'])) {
+		if (!preg_match('#^[a-zA-Z0-9]+(@[a-zA-Z0-9\./:-]+)?$#', $username)) {
 			$conn->send(json_encode(array(
 				'type' => 'ERROR',
-				'payload' => array('msg' => 'Bad ID')
+				'payload' => array('msg' => 'Bad ID : '.$username)
 			)));
 			$conn->close();
 			return;
 		}
 
 		//ID already taken?
-		if (in_array($params['id'], $this->clientsIds)) {
+		if (in_array($username, $this->clientsIds)) {
 			$conn->send(json_encode(array(
 				'type' => 'ID-TAKEN',
 				'payload' => array('msg' => 'ID is taken')
@@ -59,7 +62,7 @@ class PeerServer implements MessageComponentInterface {
 			return;
 		}
 
-		$this->clientsIds[$conn->resourceId] = $params['id'];
+		$this->clientsIds[$conn->resourceId] = $username;
 
 		//Send welcome message
 		$welcomeMsg = json_encode(array(
@@ -108,10 +111,11 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	protected function _sendMsgToServer(ConnectionInterface $from, $dst, $msgData) {
+		$srcId = $this->clientsIds[$from->resourceId];
 		//TODO
-		$src = $this->clientsIds[$from->resourceId].'@'.$_SERVER['SERVER_NAME'].':9000/peerjs';
+		$src = $srcId.'@'.$_SERVER['SERVER_NAME'].':9000/peerjs';
 
-		$dstData = parse_url('//'.$dst);
+		$dstData = parse_url($dst);
 		if (!isset($dstData['user']) || !isset($dstData['host'])) {
 			return false;
 		}
@@ -120,17 +124,29 @@ class PeerServer implements MessageComponentInterface {
 		$dstHost = $dstData['host'];
 		$dstPort = (isset($dstData['port'])) ? $dstData['port'] : 80;
 		$dstPath = (isset($dstData['path'])) ? $dstData['path'] : '/';
-		$dstPath .= '?id='.$src;
+		$dstPath .= '?id='.urlencode($src);
+
+		$msgData['src'] = $src;
+		$msgData['dst'] = $dstId;
 
 		$peerClient = new PeerClient;
-
-		$loop = React\EventLoop\Factory::create();
+		$loop = EventLoopFactory::create();
 		$client = new WebSocketClient($peerClient, $loop, $dstHost, $dstPort, $dstPath);
 
-		$peerClient->setOnMessage(function ($data) use($peerClient) {
-			if ($data['type'] == 'OPEN') { //Connection accepted
-				$peerClient->sendData($msgData);
-				$client->disconnect(); // Useful ?
+		$peerClient->setOnMessage(function ($data) use($peerClient, $client, $msgData) {
+			switch ($data['type']) {
+				case 'OPEN': //Connection accepted
+					$peerClient->sendData($msgData);
+					$client->getSocket()->on('end', function() use ($client) { //Wait the message to be sent before closing this connection
+						$client->disconnect();
+					});
+					$client->getSocket()->end();
+					break;
+				case 'ID-TAKEN':
+				case 'ERROR':
+				default:
+					$client->disconnect();
+					break;
 			}
 		});
 

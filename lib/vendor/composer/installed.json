@@ -712,12 +712,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/symbiose/php-websocket-client.git",
-            "reference": "11846d7f4744ec54a48927d91865e37b570ad9c0"
+            "reference": "0638e1477536134683ca82d5c487d0a0590f05f2"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symbiose/php-websocket-client/zipball/11846d7f4744ec54a48927d91865e37b570ad9c0",
-            "reference": "11846d7f4744ec54a48927d91865e37b570ad9c0",
+            "url": "https://api.github.com/repos/symbiose/php-websocket-client/zipball/0638e1477536134683ca82d5c487d0a0590f05f2",
+            "reference": "0638e1477536134683ca82d5c487d0a0590f05f2",
             "shasum": ""
         },
         "require": {
@@ -728,7 +728,7 @@
             "cboden/ratchet": "0.3.*",
             "phpunit/phpunit": "3.7.28"
         },
-        "time": "2014-01-26 18:34:15",
+        "time": "2014-01-28 16:44:27",
         "type": "library",
         "installation-source": "source",
         "autoload": {
