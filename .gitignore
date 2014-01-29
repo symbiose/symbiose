@@ -4,3 +4,4 @@
 /etc/websocket-server.json
 /.git-ftp-ignore
 /composer.phar
+.git.sav
