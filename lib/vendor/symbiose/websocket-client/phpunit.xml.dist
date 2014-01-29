@@ -1,0 +1,19 @@
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         bootstrap="test/bootstrap.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         syntaxCheck="false">
+    <testsuites>
+        <testsuite name="WebSocket Client Test Suite">
+            <directory>./test/WebSocketClient/</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <var name="port" value="8080" />
+    </php>
+</phpunit>

@@ -3,7 +3,7 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "1dd8a3d7efea99157d7967aa21684e87",
+    "hash": "14d8a169d2e4ba2b2060ac6fae34506e",
     "packages": [
         {
             "name": "cboden/ratchet",
@@ -514,6 +514,55 @@
             "time": "2013-07-09 00:44:12"
         },
         {
+            "name": "symbiose/websocket-client",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symbiose/php-websocket-client.git",
+                "reference": "0638e1477536134683ca82d5c487d0a0590f05f2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symbiose/php-websocket-client/zipball/0638e1477536134683ca82d5c487d0a0590f05f2",
+                "reference": "0638e1477536134683ca82d5c487d0a0590f05f2",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.9",
+                "react/socket": "0.3.*"
+            },
+            "require-dev": {
+                "cboden/ratchet": "0.3.*",
+                "phpunit/phpunit": "3.7.28"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "WebSocketClient": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Gabriel Bull",
+                    "email": "gavroche.bull@gmail.com"
+                },
+                {
+                    "name": "Simon Ser"
+                }
+            ],
+            "description": "A simple PHP WebSocket Client",
+            "homepage": "https://github.com/symbiose/php-websocket-client",
+            "keywords": [
+                "client",
+                "websocket"
+            ],
+            "time": "2014-01-28 16:44:27"
+        },
+        {
             "name": "symfony/event-dispatcher",
             "version": "v2.4.1",
             "target-dir": "Symfony/Component/EventDispatcher",
@@ -692,6 +741,7 @@
     ],
     "minimum-stability": "stable",
     "stability-flags": {
+        "symbiose/websocket-client": 20,
         "nitra/php-min": 20,
         "ircmaxell/password-compat": 20
     },
