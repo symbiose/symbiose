@@ -289,6 +289,7 @@ class FileController extends \lib\ApiBackController {
 
 		//Load config
 		$config = $configManager->open(self::UPLOADS_CONFIG)->read();
+		$config['allowedExtensions'] = explode(',', $config['allowedExtensions']);
 
 		//Uploads disabled
 		if (!$config['enabled']) {

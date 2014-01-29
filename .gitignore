@@ -2,6 +2,8 @@
 /var/
 /etc/websocket-server-pid
 /etc/websocket-server.json
+/var/lib/jsondb/core/users.json
+/var/lib/jsondb/core/users_permissions.json
 /.git-ftp-ignore
 /composer.phar
 .git.sav
