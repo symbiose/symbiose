@@ -1,6 +1,6 @@
 /**
- * Widgets pour le webos.
- * @author $imon <contact@simonser.fr.nf>
+ * Webos' widgets.
+ * @author Simon Ser
  * @version 2.0
  * @since 1.0alpha1
  */
@@ -8,16 +8,15 @@
 (function($) {
 
 /**
- * Namespace global pour les widgets du webos.
- * @namespace
+ * Global namespace for webos' widgets.
  */
 $.webos = {};
 
 /**
-* Declarer un widget.
-* @param string widgetName Le nom du widget.
-* @param object|string arg1 Les proprietes du widget. Si est le nom d'un widget, le nouveau widget heritera de celui-ci.
-* @param object arg2 Si arg1 est le nom d'un widget, arg2 sera les proprietes du widget.
+* Define a new widget.
+* @param {String} widgetName The widget's name.
+* @param {Object|String} arg1 The widget's properties. If it is the name of a widget, the new widget will inherit from it.
+* @param {Object} [arg2] If arg1 is the name of a widget, arg2 will be the widget's properties.
 * @static
 */
 $.webos.widget = function(widgetName) {
@@ -68,6 +67,13 @@ $.webos.widget = function(widgetName) {
 		});
 	}
 };
+
+/**
+ * Define a new subwidget.
+ * @param {String} widgetName The widget's name.
+ * @param {String} widgetName The subwidget's name.
+ * @param {Function} init The initialization callback.
+ */
 $.webos.subwidget = function(widgetName, subwidgetName, init) {
 	var subwidgetFullName = widgetName+'.'+subwidgetName;
 
@@ -91,20 +97,35 @@ $.webos.subwidget = function(widgetName, subwidgetName, init) {
 	}
 };
 
+/**
+ * The widgets' namespace.
+ * @static
+ * @private
+ */
 $.webos.widget._namespace = 'gtk';
+
+/**
+ * Get the widgets' namespace.
+ * @return {String}
+ */
 $.webos.widget.namespace = function() {
 	return $.webos.widget._namespace;
 };
 
+/**
+ * Get a widget selector.
+ * @param {String} widgetName The widget's name.
+ * @return {String}
+ */
 $.webos.widget._widgetSelector = function(widgetName) {
 	return ':data(\'' + $.webos.widget.namespace() + '-' + widgetName +'\')';
 };
 
 /**
- * Determiner si est element est un widget.
- * @param {jQuery} element L'element.
- * @param {String} widgetName Le nom du widget.
- * @returns {Boolean} Vrai si l'element est le widget specifie, faux sinon.
+ * Check if an element if a specified widget or not.
+ * @param {jQuery} element The element which will be tested.
+ * @param {String} widgetName The widget's name.
+ * @return {Boolean}
  * @static
  */
 $.webos.widget.is = function(element, widgetName) {
