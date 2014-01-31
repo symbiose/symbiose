@@ -7,7 +7,10 @@
 
  (function($) {
 
-//Window
+/**
+ * A window.
+ * @namespace $.webos.window
+ */
 $.webos.widget('window', 'container', {
 	_name: 'window',
 	options: {
@@ -230,6 +233,9 @@ $.webos.widget('window', 'container', {
 			$.webos.window.getActive().window('toForeground');
 		}
 	},
+	/**
+	 * Open this window.
+	 */
 	open: function() {
 		var that = this;
 		
@@ -280,6 +286,9 @@ $.webos.widget('window', 'container', {
 			that._trigger('afteropen', { type: 'afteropen' }, { window: that.element });
 		}
 	},
+	/**
+	 * Close this window.
+	 */
 	close: function() {
 		var that = this;
 		
@@ -318,6 +327,9 @@ $.webos.widget('window', 'container', {
 			}
 		});
 	},
+	/**
+	 * Maximize this window.
+	 */
 	maximize: function() {
 		if (this.is('maximized')) {
 			return;
@@ -412,6 +424,9 @@ $.webos.widget('window', 'container', {
 
 		this.element.children('.title-window').css('cursor','auto');
 	},
+	/**
+	 * Minimize this window.
+	 */
 	minimize: function(animate) {
 		if (this.is('minimized')) {
 			return;
@@ -456,6 +471,9 @@ $.webos.widget('window', 'container', {
 			this.element.children('.title-window').css('cursor','move');
 		}
 	},
+	/**
+	 * Maximize/minimize the window, depending on its current status.
+	 */
 	minimizeOrMaximize: function() {
 		if (this.is('maximized')) {
 			this.minimize();
@@ -463,9 +481,18 @@ $.webos.widget('window', 'container', {
 			this.maximize();
 		}
 	},
+	/**
+	 * Get this window's maximized display data.
+	 *  - `mode`: the maximize mode (`full` or `half`)
+	 *  - `position`: if `mode` is set to `half`, the position of the window (`right` or `left`)
+	 * @return {Object}
+	 */
 	maximizedDisplay: function() {
 		return this.options.maximizedDisplay;
 	},
+	/**
+	 * Hide this window.
+	 */
 	hide: function() {
 		if (this.is('hidden')) {
 			return;
@@ -508,6 +535,9 @@ $.webos.widget('window', 'container', {
 			this.options.parentWindow.window('hide');
 		}
 	},
+	/**
+	 * Show this window.
+	 */
 	show: function() {
 		if (this.is('visible')) {
 			return;
@@ -552,6 +582,9 @@ $.webos.widget('window', 'container', {
 			this.options.childWindow.window('show');
 		}
 	},
+	/**
+	 * Hide/show the window, depending on its current status.
+	 */
 	hideOrShow: function() {
 		if (this.is('hidden')) {
 			this.show();
@@ -559,6 +592,9 @@ $.webos.widget('window', 'container', {
 			this.hide();
 		}
 	},
+	/**
+	 * Send the window to foreground.
+	 */
 	toForeground: function() {
 		$.webos.window.allToBackGroundExcluding(this.element);
 		
@@ -576,6 +612,9 @@ $.webos.widget('window', 'container', {
 			this.options.childWindow.window('toForeground');
 		}
 	},
+	/**
+	 * Send the window to background.
+	 */
 	toBackground: function() {
 		if (this.is('background')) {
 			return;
@@ -585,6 +624,9 @@ $.webos.widget('window', 'container', {
 		this._trigger('tobackground', { type: 'tobackground' }, { window: this.element });
 		this.options.states.foreground = false;
 	},
+	/**
+	 * Hide/show/send to foreground the window, depending on its current status.
+	 */
 	hideOrShowOrToForeground: function() {
 		if (this.is('visible')) {
 			if (this.is('background')) {
@@ -596,9 +638,18 @@ $.webos.widget('window', 'container', {
 			this.show();
 		}
 	},
+	/**
+	 * Get current window's states.
+	 * @return {Array}
+	 */
 	states: function() {
 		return this.options.states;
 	},
+	/**
+	 * Check if the window is in a given state.
+	 * @param {String} state The state to check.
+	 * @return {Boolean} True if the window is in the specified state, false otherwise.
+	 */
 	is: function(state) {
 		if (typeof this.options.states[state] != 'undefined') {
 			return this.options.states[state];
@@ -612,6 +663,9 @@ $.webos.widget('window', 'container', {
 		
 		return false;
 	},
+	/**
+	 * @private
+	 */
 	_saveDimentions: function() {
 		if (this.is('maximized')) {
 			if (!this.options._dimentions) {
@@ -634,9 +688,17 @@ $.webos.widget('window', 'container', {
 		this.options._dimentions.height = this.element.height();
 		this.options._position = this.element.position();
 	},
+	/**
+	 * Get this window's cached dimentions.
+	 * @return {Object} An object containing `width` and `height` properties.
+	 */
 	cachedDimentions: function() {
 		return this.options._dimentions;
 	},
+	/**
+	 * Get this window's dimentions.
+	 * @return {Object} An object containing `width` and `height` properties.
+	 */
 	dimentions: function() {
 		if (this.is('maximized')) {
 			return this.options._maximizedDimentions;
@@ -644,16 +706,28 @@ $.webos.widget('window', 'container', {
 			return this.options._dimentions;
 		}
 	},
+	/**
+	 * Get this window's content's dimentions.
+	 * @return {Object} An object containing `width` and `height` properties.
+	 */
 	contentDimentions: function() {
 		var dim = $.extend({}, this.dimentions());
 		dim.height -= this.options._components.header.outerHeight(true);
 		return dim;
 	},
+	/**
+	 * Get this window's content's cached dimentions.
+	 * @return {Object} An object containing `width` and `height` properties.
+	 */
 	contentCachedDimentions: function() {
 		var dim = $.extend({}, this.cachedDimentions());
 		dim.height -= this.options._components.header.outerHeight(true);
 		return dim;
 	},
+	/**
+	 * Get this window's position.
+	 * @return {Object} An object containing `top` and `left` properties.
+	 */
 	position: function() {
 		if (this.is('maximized')) {
 			return this.options._maximizedPosition;
@@ -661,14 +735,24 @@ $.webos.widget('window', 'container', {
 			return this.options._position;
 		}
 	},
+	/**
+	 * @private
+	 */
 	_restoreFocus: function() {
 		if (typeof this.options._focus != 'undefined') {
 			this.options._focus.focus();
 		}
 	},
+	/**
+	 * Get this window's header.
+	 * @return {jQuery}
+	 */
 	header: function() {
 		return this.options._components.specificHeader;
 	},
+	/**
+	 * Move this window in the center of the screen.
+	 */
 	center: function() {
 		var dimentions = {
 			top: ($('#desktop').height() - this.element.outerHeight()) / 2,
@@ -679,6 +763,11 @@ $.webos.widget('window', 'container', {
 		this.element.css('top', dimentions.top);
 		this.element.css('left', dimentions.left);
 	},
+	/**
+	 * Set this window's width.
+	 * @param {Number} width The new width.
+	 * @deprecated Use options instead.
+	 */
 	setWidth: function(width) {
 		if (width == 0) {
 			return;
@@ -687,6 +776,11 @@ $.webos.widget('window', 'container', {
 		this.element.width(width);
 		this.options._content.width(this.element.innerWidth());
 	},
+	/**
+	 * Set this window's height.
+	 * @param {Number} height The new height.
+	 * @deprecated Use options instead.
+	 */
 	setHeight: function(height) {
 		if (height == 0) {
 			return;
@@ -694,6 +788,11 @@ $.webos.widget('window', 'container', {
 
 		this.options._content.height(height);
 	},
+	/**
+	 * Define if the window is loading or not.
+	 * @param {Boolean} value True if teh window is loading, false otherwise.
+	 * @param {Object} [opts] Options. Can contain `message` to set a loading message and `lock` to set if the window should be locked.
+	 */
 	loading: function(value, opts) {
 		if (value) {
 			var options = $.extend({
@@ -758,6 +857,9 @@ $.webos.widget('window', 'container', {
 			this.options.states.loading = false;
 		}
 	},
+	/**
+	 * @private
+	 */
 	_protectIframes: function(value) {
 		if (value || typeof value == 'undefined') {
 			//Add an overlay over iframes
@@ -781,6 +883,10 @@ $.webos.widget('window', 'container', {
 			this.options._components.iframesOverlays = null;
 		}
 	},
+	/**
+	 * Set this window resizable or not.
+	 * @deprecated Use options instead.
+	 */
 	resizable: function(value) {
 		this.options.resizable = (value) ? true : false;
 		if (!this.options.resizable && this.options.maximizable) {
@@ -814,6 +920,11 @@ $.webos.widget('window', 'container', {
 			this.element.resizable('destroy');
 		}
 	},
+	/**
+	 * Make this window draggable.
+	 * @private
+	 * @deprecated All windows are draggable.
+	 */
 	draggable: function() {
 		var that = this;
 		
@@ -990,6 +1101,9 @@ $.webos.widget('window', 'container', {
 			e.preventDefault();
 		});
 	},
+	/**
+	 * Get/set this window's workspace.
+	 */
 	workspace: function(workspace) {
 		if (typeof workspace != 'undefined') {
 			this.options.workspace = workspace;
@@ -997,6 +1111,10 @@ $.webos.widget('window', 'container', {
 			return this.options.workspace;
 		}
 	},
+	/**
+	 * Check/set if the window can be closed.
+	 * @deprecated Use options instead.
+	 */
 	closeable: function(value) {
 		if (typeof value == 'undefined') {
 			return this.options.closeable;
@@ -1009,6 +1127,10 @@ $.webos.widget('window', 'container', {
 			}
 		}
 	},
+	/**
+	 * Check/set if the window can be hidden.
+	 * @deprecated Use options instead.
+	 */
 	hideable: function(value) {
 		if (typeof value == 'undefined') {
 			return this.options.hideable;
@@ -1021,6 +1143,10 @@ $.webos.widget('window', 'container', {
 			}
 		}
 	},
+	/**
+	 * Check/set if the window can be maximized.
+	 * @deprecated Use options instead.
+	 */
 	maximizable: function(value) {
 		if (typeof value == 'undefined') {
 			return this.options.maximizable;
@@ -1033,6 +1159,10 @@ $.webos.widget('window', 'container', {
 			}
 		}
 	},
+	/**
+	 * Get/set this window's stylesheet.
+	 * @deprecated Use options instead.
+	 */
 	stylesheet: function(stylesheet) {
 		if (typeof stylesheet == 'undefined') {
 			return this.options.stylesheet;
@@ -1046,6 +1176,10 @@ $.webos.widget('window', 'container', {
 			});
 		}
 	},
+	/**
+	 * Check/set if the window is a dialog.
+	 * @deprecated Use options instead.
+	 */
 	dialog: function(value) {
 		if (typeof value == 'undefined') {
 			return this.element.is('.dialog');
@@ -1055,10 +1189,22 @@ $.webos.widget('window', 'container', {
 	}
 });
 
+/**
+ * Create a new window.
+ * @param {Object} The new window's options.
+ * @return {jQuery}
+ * @constructor
+ * @static
+ */
 $.webos.window = function(options) {
 	return $('<div></div>').window(options);
 };
 
+/**
+ * Windows' states.
+ * @static
+ * @private
+ */
 $.webos.window.states = [
 	['opened', 'closed'],
 	['foreground', 'background'],
