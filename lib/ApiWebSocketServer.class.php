@@ -50,9 +50,10 @@ class ApiWebSocketServer implements MessageComponentInterface {
 		try {
 			$req = json_decode($msg, true);
 
-			if (empty($req) || $req === false) {
-				throw new \RuntimeException('Bad request: invalid JSON: '.$input);
+			if (json_last_error() !== JSON_ERROR_NONE || empty($req)) {
+				throw new \RuntimeException('Bad request: invalid JSON (#'.json_last_error().'): '.$input);
 			}
+
 			if (!isset($req['id']) || !is_int($req['id'])) {
 				throw new \RuntimeException('Bad request: invalid request id');
 			}
