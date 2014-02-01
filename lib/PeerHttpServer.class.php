@@ -6,6 +6,7 @@ use Ratchet\Http\HttpServer;
 use Ratchet\ConnectionInterface;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
+use \Exception;
 
 /**
  * HTTP PeerJS server.
