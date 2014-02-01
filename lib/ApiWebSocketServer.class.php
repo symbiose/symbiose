@@ -104,7 +104,7 @@ class ApiWebSocketServer implements MessageComponentInterface {
 	}
 
 	public function run() {
-		echo "Starting server...\n";
+		echo "Starting API WebSocket server...\n";
 
 		$this->server->run();
 	}

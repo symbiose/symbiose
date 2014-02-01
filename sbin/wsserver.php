@@ -5,8 +5,8 @@ use Ratchet\App;
 use Ratchet\Session\SessionProvider;
 use lib\ApiWebSocketServer;
 use lib\PeerServer;
+use lib\PeerHttpServer;
 use lib\JsonConfig;
-//use lib\LocalSessionHandler;
 use \SessionHandler;
 
 set_time_limit(0); //No time limit
@@ -29,9 +29,21 @@ echo 'Starting WebSocket server...'."\n";
 
 $apiServer = new ApiWebSocketServer;
 $peerServer = new PeerServer($hostname, $port);
+$peerHttpServer = new PeerHttpServer($peerServer);
+$sessionHandler = new SessionHandler;
 
 $app = new App($hostname, $port, '0.0.0.0'); // 0.0.0.0 to accept remote connections
-$app->route('/api', new SessionProvider($apiServer, new SessionHandler)); //Webos' API. Accessible from the same origin only
-$app->route('/peerjs', $peerServer, array('*')); //PeerJS server. Accessible from all origins
-//$app->route('/peerjs/{id}/{token}/id', $peerServer, array('*'));
+
+//Webos' API. Accessible from the same origin only
+$app->route('/api', new SessionProvider($apiServer, $sessionHandler)); 
+
+//PeerJS server. Accessible from all origins
+$app->route('/peerjs', new SessionProvider($peerServer, $sessionHandler), array('*'));
+$app->route('/peerjs/id', $peerHttpServer, array('*'));
+$app->route('/peerjs/{id}/{token}/id', $peerHttpServer, array('*'));
+$app->route('/peerjs/{id}/{token}/offer', $peerHttpServer, array('*'));
+$app->route('/peerjs/{id}/{token}/candidate', $peerHttpServer, array('*'));
+$app->route('/peerjs/{id}/{token}/answer', $peerHttpServer, array('*'));
+$app->route('/peerjs/{id}/{token}/leave', $peerHttpServer, array('*'));
+
 $app->run(); //Start the server

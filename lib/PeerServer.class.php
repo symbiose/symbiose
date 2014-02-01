@@ -38,6 +38,8 @@ class PeerServer implements MessageComponentInterface {
 		$this->port = $port;
 	}
 
+	//MessageComponentInterface methods
+
 	public function onOpen(ConnectionInterface $conn) {
 		// Store the new connection to send messages to later
 		$this->clients->attach($conn);
@@ -160,6 +162,8 @@ class PeerServer implements MessageComponentInterface {
 		});
 
 		$loop->run();
+
+		return true;
 	}
 
 	protected function _handleTransmission(ConnectionInterface $from, $msgData) {
@@ -229,10 +233,18 @@ class PeerServer implements MessageComponentInterface {
 		$conn->close();
 	}
 
-	public function run() {
-		echo "Starting server...\n";
+	//Other methods
 
-		$this->server->run();
+	public function clientIdExists($id) {
+		return in_array($id, $this->clientsIds);
+	}
+
+	public function clientIdByConnId($connId) {
+		if (!isset($this->clientsIds[$connId])) {
+			return null;
+		}
+
+		return $this->clientsIds[$connId];
 	}
 
 	public function hostname() {
