@@ -2,14 +2,6 @@
 namespace lib;
 
 class User extends ApplicationComponent {
-	public function __construct(Application $app) {
-		parent::__construct($app);
-
-		try {
-			$this->app()->httpRequest()->session()->start();
-		} catch(\Exception $e) {}
-	}
-
 	public function id() {
 		$session = $this->app()->httpRequest()->session();
 
