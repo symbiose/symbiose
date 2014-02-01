@@ -61,6 +61,13 @@ class Daos extends ApplicationComponent {
 		//Create the DAO
 		$daoData = $this->config[$api];
 
+		if (!isset($daoData['callback'])) {
+			throw new \RuntimeException('Unable to initialize DAO "'.$api.'" : no callback specified');
+		}
+		if (!isset($daoData['config'])) {
+			$daoData['config'] = array();
+		}
+
 		if (!is_callable($daoData['callback'])) {
 			throw new \RuntimeException('Unable to initialize DAO "'.$api.'" : invalid callback');
 		}

@@ -11,9 +11,12 @@ class ApiWebSocketServer implements MessageComponentInterface {
 		$this->clients = new \SplObjectStorage;
 	}
 
-	protected function _handleRequest($reqData) {
+	protected function _handleRequest(ConnectionInterface $from, $reqData) {
+		$request = new HTTPRequest;
+		$request->setSession($from->Session);
+
 		$apiCall = new Api;
-		$apiCall->emulate($reqData);
+		$apiCall->emulate($reqData, $request);
 		$apiCall->run();
 
 		$resp = $apiCall->httpResponse()->content();
@@ -21,11 +24,11 @@ class ApiWebSocketServer implements MessageComponentInterface {
 		return $resp;
 	}
 
-	protected function _handleRequestGroup($reqsData) {
+	protected function _handleRequestGroup(ConnectionInterface $from, $reqsData) {
 		$responses = array();
 
 		foreach($reqsData as $reqData) {
-			$responses[] = $this->_handleRequest($reqData);
+			$responses[] = $this->_handleRequest($from, $reqData);
 		}
 
 		$resp = new ApiGroupResponse;
@@ -65,9 +68,9 @@ class ApiWebSocketServer implements MessageComponentInterface {
 			$reqId = $req['id'];
 
 			if (isset($req['groupped']) && $req['groupped'] == true) {
-				$resp = $this->_handleRequestGroup($req['data']);
+				$resp = $this->_handleRequestGroup($from, $req['data']);
 			} else {
-				$resp = $this->_handleRequest($req['data']);
+				$resp = $this->_handleRequest($from, $req['data']);
 			}
 
 			$resp->setId($reqId);

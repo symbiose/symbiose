@@ -2,9 +2,12 @@
 require_once(dirname(__FILE__).'/../boot/ini.php');
 
 use Ratchet\App;
+use Ratchet\Session\SessionProvider;
 use lib\ApiWebSocketServer;
 use lib\PeerServer;
 use lib\JsonConfig;
+//use lib\LocalSessionHandler;
+use \SessionHandler;
 
 set_time_limit(0); //No time limit
 
@@ -22,14 +25,13 @@ if (!$enabled) { //WebSocket server not enabled
 $hostname = (isset($serverConfig['hostname'])) ? $serverConfig['hostname'] : 'localhost';
 $port = (isset($serverConfig['port'])) ? $serverConfig['port'] : 9000;
 
-$_SERVER['SERVER_NAME'] = $hostname; //Set global var. Useful for PeerServer
-
 echo 'Starting WebSocket server...'."\n";
 
 $apiServer = new ApiWebSocketServer;
-$peerServer = new PeerServer;
+$peerServer = new PeerServer($hostname, $port);
 
 $app = new App($hostname, $port, '0.0.0.0'); // 0.0.0.0 to accept remote connections
-$app->route('/api', $apiServer); //Webos' API. Accessible from the same origin only
+$app->route('/api', new SessionProvider($apiServer, new SessionHandler)); //Webos' API. Accessible from the same origin only
 $app->route('/peerjs', $peerServer, array('*')); //PeerJS server. Accessible from all origins
+//$app->route('/peerjs/{id}/{token}/id', $peerServer, array('*'));
 $app->run(); //Start the server

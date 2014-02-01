@@ -1,32 +1,44 @@
 <?php
 namespace lib;
 
-if (!isset($_SESSION)) {
-	session_start();
-}
-
 class User extends ApplicationComponent {
+	public function __construct(Application $app) {
+		parent::__construct($app);
+
+		try {
+			$this->app()->httpRequest()->session()->start();
+		} catch(\Exception $e) {}
+	}
+
 	public function id() {
+		$session = $this->app()->httpRequest()->session();
+
 		if (!$this->isLogged()) {
 			return null;
 		}
 
-		return $_SESSION['user_data_id'];
+		return $session->get('user_data_id');
 	}
 
 	public function username() {
+		$session = $this->app()->httpRequest()->session();
+
 		if (!$this->isLogged()) {
 			return null;
 		}
 
-		return $_SESSION['user_data_username'];
+		return $session->get('user_data_username');
 	}
 
 	public function isLogged() {
-		return (isset($_SESSION['user_logged']) && $_SESSION['user_logged'] === true);
+		$session = $this->app()->httpRequest()->session();
+
+		return ($session->has('user_logged') && $session->get('user_logged') === true);
 	}
 
 	public function loggedIn($userId, $username) {
+		$session = $this->app()->httpRequest()->session();
+
 		if (!is_int($userId)) {
 			throw new \InvalidArgumentException('Invalid user id');
 		}
@@ -34,14 +46,16 @@ class User extends ApplicationComponent {
 			throw new \InvalidArgumentException('Invalid username');
 		}
 
-		$_SESSION['user_logged'] = true;
-		$_SESSION['user_data_id'] = $userId;
-		$_SESSION['user_data_username'] = $username;
+		$session->set('user_logged', true);
+		$session->set('user_data_id', $userId);
+		$session->set('user_data_username', $username);
 	}
 
 	public function loggedOut() {
-		$_SESSION['user_logged'] = false;
-		$_SESSION['user_data_id'] = null;
-		$_SESSION['user_data_username'] = null;
+		$session = $this->app()->httpRequest()->session();
+
+		$session->set('user_logged', false);
+		$session->set('user_data_id', null);
+		$session->set('user_data_username', null);
 	}
 }

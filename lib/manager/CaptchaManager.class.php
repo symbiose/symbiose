@@ -1,35 +1,31 @@
 <?php
 namespace lib\manager;
 
+use \lib\Manager;
 use \lib\entities\Captcha;
-
-//Initialize sessions
-if (!isset($_SESSION)) {
-	session_start();
-}
-if (!isset($_SESSION['captcha'])) {
-	$_SESSION['captcha'] = array();
-}
 
 /**
  * Manage captchas.
  * @author $imon
  */
-class CaptchaManager extends \lib\Manager {
+abstract class CaptchaManager extends Manager {
 	/**
 	 * Get a captcha.
 	 * @param int $id The captcha id.
 	 */
-	public function get($id) {
-		if (!isset($_SESSION['captcha'][$id])) {
-			throw new \InvalidArgumentException('Cannot find captcha with id #'.$id.'. Your session might be outdated, please try again');
-		}
+	abstract public function get($id);
 
-		$captcha = unserialize($_SESSION['captcha'][$id]);
+	/**
+	 * Generate a new captcha.
+	 * @return Captcha The new captcha.
+	 */
+	abstract public function generate();
 
-		return $captcha;
-	}
-
+	/**
+	 * Build a new captcha, giving its data.
+	 * @param  array $captchaData The captcha data.
+	 * @return Captcha            The new captcha.
+	 */
 	protected function _buildCaptcha($captchaData) {
 		return new Captcha($captchaData);
 	}
@@ -61,6 +57,18 @@ class CaptchaManager extends \lib\Manager {
 	 */
 	protected function _randNbr($n) {
 		return str_pad(mt_rand(0,pow(10,$n)-1),$n,'0',STR_PAD_LEFT);
+	}
+
+	/**
+	 * Generate a new captcha.
+	 * @return Captcha
+	 */
+	protected function _generateCaptcha() {
+		if (extension_loaded('gd') && function_exists('gd_info')) {
+			return $this->_generateImage();
+		} else {
+			return $this->_generateMath();
+		}
 	}
 
 	/**
@@ -122,24 +130,6 @@ class CaptchaManager extends \lib\Manager {
 			'result' => $result,
 			'type' => Captcha::TYPE_IMAGE
 		));
-
-		return $captcha;
-	}
-
-	public function generate() {
-		if (extension_loaded('gd') && function_exists('gd_info')) {
-			$captcha = $this->_generateImage();
-		} else {
-			$captcha = $this->_generateMath();
-		}
-
-		$keys = array_keys($_SESSION['captcha']);
-		$id = (count($keys) > 0) ? array_pop($keys) + 1 : 0;
-
-		$captcha->setId($id);
-
-		//Save captcha
-		$_SESSION['captcha'][] = serialize($captcha);
 
 		return $captcha;
 	}

@@ -24,13 +24,18 @@ class PeerServer implements MessageComponentInterface {
 		)
 	);*/
 
+	protected $hostname;
+	protected $port;
+
 	protected $clients;
 
 	protected $clientsIds;
 
-	public function __construct() {
+	public function __construct($hostname, $port) {
 		$this->clients = new \SplObjectStorage;
 		$this->clientsIds = array();
+		$this->hostname = $hostname;
+		$this->port = $port;
 	}
 
 	public function onOpen(ConnectionInterface $conn) {
@@ -46,7 +51,7 @@ class PeerServer implements MessageComponentInterface {
 		if (!preg_match('#^[a-zA-Z0-9]+(@[a-zA-Z0-9\./:-]+)?$#', $username)) {
 			$conn->send(json_encode(array(
 				'type' => 'ERROR',
-				'payload' => array('msg' => 'Bad ID : '.$username)
+				'payload' => array('msg' => 'Bad ID: '.$username)
 			)));
 			$conn->close();
 			return;
@@ -56,7 +61,7 @@ class PeerServer implements MessageComponentInterface {
 		if (in_array($username, $this->clientsIds)) {
 			$conn->send(json_encode(array(
 				'type' => 'ID-TAKEN',
-				'payload' => array('msg' => 'ID is taken')
+				'payload' => array('msg' => 'ID is already taken')
 			)));
 			$conn->close();
 			return;
@@ -112,8 +117,7 @@ class PeerServer implements MessageComponentInterface {
 
 	protected function _sendMsgToServer(ConnectionInterface $from, $dst, $msgData) {
 		$srcId = $this->clientsIds[$from->resourceId];
-		//TODO
-		$src = $srcId.'@'.$_SERVER['SERVER_NAME'].':9000/peerjs';
+		$src = $srcId.'@'.$this->hostname().':'.$this->port().'/peerjs';
 
 		$dstData = parse_url($dst);
 		if (!isset($dstData['user']) || !isset($dstData['host'])) {
@@ -128,6 +132,11 @@ class PeerServer implements MessageComponentInterface {
 
 		$msgData['src'] = $src;
 		$msgData['dst'] = $dstId;
+
+		//Check that the dst is located on another server
+		if ($dstHost == $this->hostname() && $dstPort == $this->port()) {
+			return $this->_sendMsgToServer($from, $dstId, $msgData);
+		}
 
 		$peerClient = new PeerClient;
 		$loop = EventLoopFactory::create();
@@ -224,5 +233,13 @@ class PeerServer implements MessageComponentInterface {
 		echo "Starting server...\n";
 
 		$this->server->run();
+	}
+
+	public function hostname() {
+		return $this->hostname;
+	}
+
+	public function port() {
+		return $this->port;
 	}
 }

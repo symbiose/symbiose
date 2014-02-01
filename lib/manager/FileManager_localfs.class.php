@@ -25,7 +25,10 @@ class FileManager_localfs extends FileManager {
 		$aliases = $this->dao->aliases();
 		if (isset($aliases['~'])) {
 			$isUserLogged = true;
-			$username = $_SESSION['user_data_username']; //TODO: better way to retrieve the username
+
+			//TODO: better way to retrieve the username
+			$homePathParts = explode('/', preg_replace('#/$#', '', $aliases['~']));
+			$username = end($homePathParts);
 		}
 
 		if (empty($this->quotas)) {

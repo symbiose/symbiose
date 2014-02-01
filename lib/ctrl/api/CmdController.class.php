@@ -17,7 +17,9 @@ class CmdController extends \lib\ApiBackController {
 		$fileManager = $this->managers()->getManagerOf('file');
 		$terminalManager = $this->managers()->getManagerOf('terminal');
 		$authManager = $this->managers()->getManagerOf('authorization');
+		$processAuthManager = $this->managers()->getManagerOf('processAuthorization');
 		$processManager = $this->managers()->getManagerOf('process');
+		$cmdManager = $this->managers()->getManagerOf('cmd');
 		$user = $this->app()->user();
 
 		if (!$terminalManager->isTerminal($terminalId)) {
@@ -30,13 +32,15 @@ class CmdController extends \lib\ApiBackController {
 		}
 
 		$cmd = $terminalManager->buildCmd($cmdText, $terminal);
-		$executablePath = $terminalManager->findExecutable($cmd, $terminal);
+		$executablePath = $cmdManager->findExecutable($cmd, $terminal);
+
+		$processManager->run($cmd);
 
 		$auths = array();
 		if ($user->isLogged()) {
 			$auths = $authManager->getByUserId($user->id());
 		}
-		$authManager->setByPid($cmd->id(), $auths);
+		$processAuthManager->setByPid($cmd->id(), $auths);
 
 		$executableScript = $fileManager->read($executablePath);
 		switch ($fileManager->pathinfo($executablePath, PATHINFO_EXTENSION)) {
@@ -63,16 +67,16 @@ class CmdController extends \lib\ApiBackController {
 					$this->responseContent->setValue($out);
 				}
 
-				$authManager = $this->managers()->getManagerOf('authorization');
-				$authManager->unsetByPid($this->cmd->id());
+				$processAuthManager = $this->managers()->getManagerOf('processAuthorization');
+				$processManager = $this->managers()->getManagerOf('process');
+				$processAuthManager->unsetByPid($this->cmd->id());
+				$processManager->kill($this->cmd->id());
 				break;
 			case 'js':
 				$authsNames = array();
 				foreach($auths as $auth) {
 					$authsNames[] = $auth['name'];
 				}
-
-				$processManager->run($cmd);
 
 				$this->responseContent()->setData(array(
 					'pid' => $cmd->id(),

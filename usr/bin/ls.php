@@ -1,5 +1,5 @@
 <?php
-$authManager = $this->managers()->getManagerOf('authorization');
+$authManager = $this->managers()->getManagerOf('processAuthorization');
 $fileManager = $this->managers()->getManagerOf('file');
 $options = $this->cmd->options();
 $optionsNames = array_keys($options);

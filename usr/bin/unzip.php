@@ -4,7 +4,7 @@
 // Reviewed by $imon
 // Released as GPL v3 software
 
-$authManager = $this->managers()->getManagerOf('authorization');
+$authManager = $this->managers()->getManagerOf('processAuthorization');
 $fileManager = $this->managers()->getManagerOf('file');
 $params = $this->cmd->params();
 

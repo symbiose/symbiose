@@ -4,26 +4,7 @@ namespace lib\manager;
 use \lib\entities\Terminal;
 use \lib\entities\Cmd;
 
-/**
- * Manage terminals.
- * @author $imon
- */
-class TerminalManager_localfs extends TerminalManager {
-	/**
-	 * Executables' directories.
-	 * @var array
-	 */
-	protected $executablesDirs = array('/bin','/usr/bin');
-	/**
-	 * Executables' extensions.
-	 * @var array
-	 */
-	protected $executablesExtensions = array('js', 'php');
-
-	public function buildCmd($rawCmd, $terminalId) {
-		return new Cmd(array('cmd' => $rawCmd));
-	}
-
+class CmdManager_localfs extends CmdManager {
 	public function findExecutable(Cmd $cmd, Terminal $terminal) {
 		$dao = $this->dao;
 

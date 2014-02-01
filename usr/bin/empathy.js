@@ -9,7 +9,7 @@ Webos.require(['/usr/lib/peerjs/peer.js'], function() {
 		console.log('My peer ID is: ' + id);
 
 		if (id == 'test2') {
-			var conn = peer.connect('test1@raspberrypi:9000/peerjs');
+			var conn = peer.connect('test1@localhost:9000/peerjs');
 
 			// Receive messages
 			conn.on('data', function(data) {
