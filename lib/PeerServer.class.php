@@ -1,6 +1,7 @@
 <?php
 namespace lib;
 
+use lib\entities\OnlinePeer;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use React\EventLoop\Factory as EventLoopFactory;
@@ -28,14 +29,24 @@ class PeerServer implements MessageComponentInterface {
 	protected $port;
 
 	protected $clients;
-
-	protected $clientsIds;
+	protected $peers;
 
 	public function __construct($hostname, $port) {
 		$this->clients = new \SplObjectStorage;
 		$this->clientsIds = array();
+		$this->peers = array();
 		$this->hostname = $hostname;
 		$this->port = $port;
+	}
+
+	protected function _getApi(ConnectionInterface $conn, array $reqData = array()) {
+		$request = new HTTPRequest;
+		$request->setSession($conn->Session);
+
+		$api = new Api;
+		$api->emulate($reqData, $request);
+
+		return $api;
 	}
 
 	//MessageComponentInterface methods
@@ -47,20 +58,20 @@ class PeerServer implements MessageComponentInterface {
 		echo "New connection! ({$conn->resourceId})\n";
 		
 		$params = $conn->WebSocket->request->getQuery()->getAll();
-		$username = urldecode($params['id']);
+		$clientId = urldecode($params['id']);
 
 		//Check ID
-		if (!preg_match('#^[a-zA-Z0-9]+(@[a-zA-Z0-9\./:-]+)?$#', $username)) {
+		if (!preg_match('#^[a-zA-Z0-9]+(@[a-zA-Z0-9\./:-]+)?$#', $clientId)) {
 			$conn->send(json_encode(array(
 				'type' => 'ERROR',
-				'payload' => array('msg' => 'Bad ID: '.$username)
+				'payload' => array('msg' => 'Bad ID: '.$clientId)
 			)));
 			$conn->close();
 			return;
 		}
 
 		//ID already taken?
-		if (in_array($username, $this->clientsIds)) {
+		if (in_array($clientId, $this->clientsIds)) {
 			$conn->send(json_encode(array(
 				'type' => 'ID-TAKEN',
 				'payload' => array('msg' => 'ID is already taken')
@@ -69,7 +80,16 @@ class PeerServer implements MessageComponentInterface {
 			return;
 		}
 
-		$this->clientsIds[$conn->resourceId] = $username;
+		$peerData = array(
+			'connectionId' => $conn->resourceId,
+			'id' => $clientId
+		);
+		$api = $this->_getApi($conn);
+		$user = $api->user();
+		if ($user->isLogged()) {
+			//TODO: set userId
+		}
+		$this->insertPeer($this->_buildPeer($peerData));
 
 		//Send welcome message
 		$welcomeMsg = json_encode(array(
@@ -81,11 +101,12 @@ class PeerServer implements MessageComponentInterface {
 	protected function _sendMsgToClient(ConnectionInterface $from, $dst, $msg) {
 		$msgSent = false;
 
-		$src = $this->clientsIds[$from->resourceId];
+		$src = $this->getPeerByConnId($from->resourceId)['id'];
 
 		try {
 			foreach($this->clients as $conn) {
-				if ($this->clientsIds[$conn->resourceId] == $dst) {
+				$peer = $this->getPeerByConnId($conn->resourceId);
+				if ($peer['id'] == $dst) {
 					echo 'Sending data from '.$src.' to '.$dst.' ('.strlen($msg).')'."\n";
 					$conn->send($msg);
 					$msgSent = true;
@@ -118,7 +139,7 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	protected function _sendMsgToServer(ConnectionInterface $from, $dst, $msgData) {
-		$srcId = $this->clientsIds[$from->resourceId];
+		$srcId = $this->getPeerByConnId($from->resourceId)['id'];
 		$src = $srcId.'@'.$this->hostname().':'.$this->port().'/peerjs';
 
 		$dstData = parse_url($dst);
@@ -167,7 +188,7 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	protected function _handleTransmission(ConnectionInterface $from, $msgData) {
-		$msgData['src'] = $this->clientsIds[$from->resourceId];
+		$msgData['src'] = $this->getPeerByConnId($from->resourceId)['id'];
 
 		$type = $msgData['type'];
 		$src = $msgData['src'];
@@ -220,8 +241,9 @@ class PeerServer implements MessageComponentInterface {
 		// The connection is closed, remove it, as we can no longer send it messages
 		$this->clients->detach($conn);
 
-		if (isset($this->clientsIds[$conn->resourceId])) {
-			unset($this->clientsIds[$conn->resourceId]);
+		$peer = $this->getPeerByConnId($conn->resourceId);
+		if (!empty($peer)) {
+			$this->deletePeer($peer['id']);
 		}
 
 		echo "Connection {$conn->resourceId} has disconnected\n";
@@ -235,16 +257,49 @@ class PeerServer implements MessageComponentInterface {
 
 	//Other methods
 
-	public function clientIdExists($id) {
-		return in_array($id, $this->clientsIds);
+	protected function _buildPeer(array $peerData) {
+		return new OnlinePeer($peerData);
 	}
 
-	public function clientIdByConnId($connId) {
-		if (!isset($this->clientsIds[$connId])) {
+	public function peerIdExists($id) {
+		return in_array($id, $this->peers);
+	}
+
+	public function getPeer($id) {
+		foreach ($this->peers as $peer) {
+			if ($peer['id'] == $id) {
+				return $peer;
+			}
+		}
+
+		return null;
+	}
+
+	public function getPeerByConnId($connId) {
+		if (!isset($this->peers[$connId])) {
 			return null;
 		}
 
-		return $this->clientsIds[$connId];
+		return $this->peers[$connId];
+	}
+
+	public function listPeers() {
+		return array_values($this->peers);
+	}
+
+	public function insertPeer($peer) {
+		$this->peers[$peer['connectionId']] = $peer;
+	}
+
+	public function deletePeer($id) {
+		foreach ($this->peers as $i => $peer) {
+			if ($peer['id'] == $id) {
+				unset($this->peers[$i]);
+				return;
+			}
+		}
+
+		throw new \RuntimeException('Cannot find peer with ID "'.$id.'"');
 	}
 
 	public function hostname() {

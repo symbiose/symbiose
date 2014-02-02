@@ -1,13 +1,14 @@
 <?php
 require_once(dirname(__FILE__).'/../boot/ini.php');
 
+use \SessionHandler;
 use Ratchet\App;
 use Ratchet\Session\SessionProvider;
 use lib\ApiWebSocketServer;
 use lib\PeerServer;
 use lib\PeerHttpServer;
 use lib\JsonConfig;
-use \SessionHandler;
+use lib\ctrl\api\PeerController;
 
 set_time_limit(0); //No time limit
 
@@ -25,12 +26,14 @@ if (!$enabled) { //WebSocket server not enabled
 $hostname = (isset($serverConfig['hostname'])) ? $serverConfig['hostname'] : 'localhost';
 $port = (isset($serverConfig['port'])) ? $serverConfig['port'] : 9000;
 
-echo 'Starting WebSocket server...'."\n";
+echo 'Starting WebSocket server at '.$hostname.':'.$port.'...'."\n";
 
 $apiServer = new ApiWebSocketServer;
 $peerServer = new PeerServer($hostname, $port);
 $peerHttpServer = new PeerHttpServer($peerServer);
 $sessionHandler = new SessionHandler;
+
+PeerController::setPeerServer($peerServer); //Provide the peer server to the associated controller
 
 $app = new App($hostname, $port, '0.0.0.0'); // 0.0.0.0 to accept remote connections
 
