@@ -33,15 +33,13 @@ class PeerServer implements MessageComponentInterface {
 
 	public function __construct($hostname, $port) {
 		$this->clients = new \SplObjectStorage;
-		$this->clientsIds = array();
 		$this->peers = array();
 		$this->hostname = $hostname;
 		$this->port = $port;
 	}
 
 	protected function _getApi(ConnectionInterface $conn, array $reqData = array()) {
-		$request = new HTTPRequest;
-		$request->setSession($conn->Session);
+		$request = new HTTPRequest($conn->Session);
 
 		$api = new Api;
 		$api->emulate($reqData, $request);
@@ -58,20 +56,20 @@ class PeerServer implements MessageComponentInterface {
 		echo "New connection! ({$conn->resourceId})\n";
 		
 		$params = $conn->WebSocket->request->getQuery()->getAll();
-		$clientId = urldecode($params['id']);
+		$peerId = urldecode($params['id']);
 
 		//Check ID
-		if (!preg_match('#^[a-zA-Z0-9]+(@[a-zA-Z0-9\./:-]+)?$#', $clientId)) {
+		if (!preg_match('#^[a-zA-Z0-9]+(@[a-zA-Z0-9\./:-]+)?$#', $peerId)) {
 			$conn->send(json_encode(array(
 				'type' => 'ERROR',
-				'payload' => array('msg' => 'Bad ID: '.$clientId)
+				'payload' => array('msg' => 'Bad ID: '.$peerId)
 			)));
 			$conn->close();
 			return;
 		}
 
 		//ID already taken?
-		if (in_array($clientId, $this->clientsIds)) {
+		if ($this->peerIdExists($peerId)) {
 			$conn->send(json_encode(array(
 				'type' => 'ID-TAKEN',
 				'payload' => array('msg' => 'ID is already taken')
@@ -82,12 +80,12 @@ class PeerServer implements MessageComponentInterface {
 
 		$peerData = array(
 			'connectionId' => $conn->resourceId,
-			'id' => $clientId
+			'id' => $peerId
 		);
 		$api = $this->_getApi($conn);
 		$user = $api->user();
 		if ($user->isLogged()) {
-			//TODO: set userId
+			$peerData['userId'] = $user->id();
 		}
 		$this->insertPeer($this->_buildPeer($peerData));
 
@@ -262,7 +260,13 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	public function peerIdExists($id) {
-		return in_array($id, $this->peers);
+		foreach ($this->peers as $peer) {
+			if ($peer['id'] == $id) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public function getPeer($id) {

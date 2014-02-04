@@ -1,0 +1,7 @@
+{
+	"handler":"memcache",
+	"config": {
+		"host": "localhost",
+		"port": 11211
+	}
+}

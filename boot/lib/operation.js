@@ -144,7 +144,7 @@
 			this._completed = true;
 			this._result = result;
 
-			this.trigger('complete', { result: result });
+			this.trigger('complete', { result: result, failed: this.failed() });
 
 			var eventName = (this.failed()) ? 'error' : 'success';
 			this.trigger(eventName, { result: result });

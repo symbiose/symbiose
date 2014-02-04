@@ -1,12 +1,15 @@
-Webos.require(['/usr/lib/peerjs/peer.js'], function() {
-	var $win = $.w.window({
+Webos.require([
+	'/usr/lib/peerjs/peer.js',
+	'/usr/lib/peerjs/webos.js'
+], function() {
+	var $win = $.w.window.main({
 		title: 'Empathy'
 	});
 	var $winCtn = $win.window('content');
 
 	var peer;
 
-	var $peerIdEntry = $.w.textEntry('My peer ID : ').appendTo($winCtn);
+	var $peerIdEntry = $.w.textEntry('My peer ID: ').appendTo($winCtn);
 
 	var $openBtn = $.w.button('Connect').click(function () {
 		peer = new Peer($peerIdEntry.textEntry('value'), {
@@ -62,6 +65,7 @@ Webos.require(['/usr/lib/peerjs/peer.js'], function() {
 
 		peer.on('connection', function(conn) {
 			$logs.append('Connected with '+conn.peer+'!<br />');
+			$dstEntry.textEntry('value', conn.peer);
 
 			// Receive messages
 			conn.on('data', function(data) {
@@ -98,9 +102,68 @@ Webos.require(['/usr/lib/peerjs/peer.js'], function() {
 	}).appendTo($winCtn);
 	var $closeBtn = $.w.button('Disconnect').appendTo($winCtn);
 
-	var $dstEntry = $.w.textEntry('To : ').appendTo($winCtn);
+	var $registerBtn = $.w.button('Register (public)').appendTo($winCtn);
+
+	var $listPeersBtn = $.w.button('List peers').click(function () {
+		Webos.Peer.listByApp('komunikado').on('success', function (data) {
+			var list = data.result;
+			var peers = 'Connected peers ('+list.length+'): ';
+			for (var i = 0; i < list.length; i++) {
+				var thisPeer = list[i], peerName = 'anonymous', peerColor = 'black';
+
+				if (!thisPeer.get('online')) {
+					peerColor = 'gray';
+				} else if (thisPeer.get('registered')) {
+					peerColor = 'red';
+				}
+				if (thisPeer.get('peerId')) {
+					peerName = thisPeer.get('peerId');
+				}
+				if (thisPeer.get('userId')) {
+					peerName += ' (user: '+thisPeer.get('userId')+')';
+				}
+
+				peers += '<span style="color:'+peerColor+'">'+peerName+'</span> ';
+			}
+			$logs.append(peers+'<br />');
+		});
+	}).appendTo($winCtn);
+
+	var $dstEntry = $.w.textEntry('To peer ID: ').appendTo($winCtn);
 	var $dstConnectBtn = $.w.button('Talk').appendTo($winCtn);
 	var $dstDisconnectBtn = $.w.button('End discussion').appendTo($winCtn);
+	var $dstInfoBtn = $.w.button('Info').click(function () {
+		var dst = $dstEntry.textEntry('value');
+		if (!dst) {
+			return;
+		}
+
+		Webos.Peer.getPeer(dst).on('complete', function (data) {
+			if (data.failed) {
+				if (data.result.getStatusCode() == 404) {
+					$logs.append('Error: user is offline<br />');
+				} else {
+					$logs.append('Error (#'+data.result.getStatusCode()+')<br />');
+				}
+			} else {
+				var peer = data.result;
+
+				var peerStr = 'Online';
+
+				if (peer.get('registered')) {
+					if (peer.get('userId')) {
+						peerStr += ' (registered: '+peer.get('userId')+')';
+					} else {
+						peerStr += ' (registered)';
+					}
+				} else {
+					peerStr += ' (anonymous)';
+				}
+
+				$logs.append(peerStr+'<br />');
+			}
+		});
+	}).appendTo($winCtn);
 
 	var $msgEntry = $.w.textEntry('Message : ').appendTo($winCtn);
 	var $sendBtn = $.w.button('Send').appendTo($winCtn);

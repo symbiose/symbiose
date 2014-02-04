@@ -11,8 +11,12 @@ use Symfony\Component\HttpFoundation\Session\Session;
 class HTTPRequest {
 	protected $session;
 
-	public function __construct() {
-		$this->session = new Session;
+	public function __construct(Session $session = null) {
+		if (!empty($session)) {
+			$this->session = $session;
+		} else {
+			$this->session = new Session();
+		}
 	}
 
 	/**

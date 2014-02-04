@@ -35,7 +35,10 @@ abstract class Application {
 	 * Initialize a new application.
 	 */
 	public function __construct() {
-		$this->httpRequest = new HTTPRequest;
+		$sessionProvider = new SessionProvider;
+		$session = $sessionProvider->session();
+
+		$this->httpRequest = new HTTPRequest($session);
 		$this->httpResponse = new HTTPResponse;
 
 		$this->user = new User($this);

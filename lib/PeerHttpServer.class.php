@@ -60,7 +60,6 @@ class PeerHttpServer implements HttpServerInterface {
 
 		//Send response
 		$response = new Response($respStatus, $respHeaders, (string)$respBody);
-		var_dump((string)$response);
 		$from->send((string)$response);
 		$from->close();
 	}
