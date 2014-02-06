@@ -43,6 +43,8 @@ class PeerController extends ApiBackController {
 	}
 
 	protected function _getPeerData(OnlinePeer $onlinePeer = null, OfflinePeer $offlinePeer = null, $isAttached = false) {
+		$userManager = $this->managers()->getManagerOf('user');
+
 		if (empty($onlinePeer) && empty($offlinePeer)) {
 			return null;
 		}
@@ -59,7 +61,19 @@ class PeerController extends ApiBackController {
 			$onlinePeerData = $this->_getOnlinePeerData($onlinePeer, $isAttached);
 		}
 
-		return array_merge($offlinePeerData, $onlinePeerData);
+		$peerData = array_merge($offlinePeerData, $onlinePeerData);
+
+		if (isset($peerData['userId']) && $isAttached) {
+			$peerUser = $userManager->getById($peerData['userId']);
+			if (!empty($peerUser)) {
+				$peerData['user'] = array(
+					'username' => $peerUser['username'],
+					'realname' => $peerUser['realname'],
+				);
+			}
+		}
+
+		return $peerData;
 	}
 
 	// GETTERS
@@ -80,7 +94,9 @@ class PeerController extends ApiBackController {
 		foreach ($onlinePeers as $onlinePeer) {
 			$offlinePeer = null;
 			$isAttached = false;
-			if ($onlinePeer['userId'] !== null && !empty($appName)) {
+			if ($onlinePeer['userId'] !== null && $user->isLogged() && $onlinePeer['userId'] === $user->id()) {
+				$isAttached = true;
+			} elseif ($onlinePeer['userId'] !== null && !empty($appName)) {
 				$offlinePeer = $manager->getByUserAndApp($onlinePeer['userId'], $appName);
 
 				if (!empty($currentOfflinePeer)) {
@@ -117,9 +133,13 @@ class PeerController extends ApiBackController {
 
 		$isAttached = false;
 		if ($user->isLogged()) {
-			$currentOfflinePeer = $manager->getByUserAndApp($user->id(), $appName);
-			if (!empty($currentOfflinePeer)) {
-				$isAttached = $peerLinkManager->existsByPeers($currentOfflinePeer['id'], $offlinePeer['id']);
+			if ($user->id() === $offlinePeer['userId']) {
+				$isAttached = true;
+			} else {
+				$currentOfflinePeer = $manager->getByUserAndApp($user->id(), $appName);
+				if (!empty($currentOfflinePeer)) {
+					$isAttached = $peerLinkManager->existsByPeers($currentOfflinePeer['id'], $offlinePeer['id']);
+				}
 			}
 		}
 

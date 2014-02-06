@@ -36,7 +36,7 @@ $sessionHandler = $sessionProvider->handler();
 //Servers
 $apiServer = new ApiWebSocketServer;
 $peerServer = new PeerServer($hostname, $port);
-$peerHttpServer = new RatchetSessionProvider(new PeerHttpServer($peerServer), $sessionHandler);
+$peerHttpServer = new PeerHttpServer($peerServer); //HTTP servers doesn't support SessionProvider
 
 //Provide the peer server to the associated controller
 PeerController::setPeerServer($peerServer);
