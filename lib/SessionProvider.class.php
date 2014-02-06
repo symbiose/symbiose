@@ -46,7 +46,7 @@ class SessionProvider {
 	public function storage() {
 		$handler = $this->handler();
 
-		$storage = new NativeSessionStorage(array(), $handler);
+		return new NativeSessionStorage(array(), $handler);
 	}
 
 	public function session() {
