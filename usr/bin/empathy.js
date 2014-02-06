@@ -37,8 +37,35 @@ Webos.require([
 			
 			var call = peer.call(dst, stream);
 			handleMediaConn(call);
-		}, function(){
+		}, function(err) {
 			$callWin.window('close');
+			console.log(err);
+		});
+
+		$callWin.window('open');
+	};
+
+	var shareScreen = function (dst) {
+		// Get audio/video stream
+		navigator.getUserMedia({
+			audio: false,
+			video: {
+				mandatory: {
+					chromeMediaSource: 'screen',
+					maxWidth: 1280,
+					maxHeight: 720
+				},
+				optional: []
+			}
+		}, function(stream) {
+			// Set your video displays
+			$srcVideo.attr('src', URL.createObjectURL(stream));
+
+			var call = peer.call(dst, stream);
+			handleMediaConn(call);
+		}, function(err) {
+			$callWin.window('close');
+			console.log(err);
 		});
 
 		$callWin.window('open');
@@ -130,6 +157,10 @@ Webos.require([
 				var dst = $dstEntry.textEntry('value');
 				callPeer(dst);
 			});
+			$dstShareScreenBtn.click(function () {
+				var dst = $dstEntry.textEntry('value');
+				shareScreen(dst);
+			});
 
 			$closeBtn.click(function () {
 				peer.disconnect();
@@ -213,7 +244,6 @@ Webos.require([
 	var $dstEntry = $.w.textEntry('To peer ID: ').appendTo($winCtn);
 	var $dstConnectBtn = $.w.button('Talk').appendTo($winCtn);
 	var $dstDisconnectBtn = $.w.button('End discussion').appendTo($winCtn);
-	var $dstCallBtn = $.w.button('Call').appendTo($winCtn);
 	var $dstInfoBtn = $.w.button('Info').click(function () {
 		var dst = $dstEntry.textEntry('value');
 		if (!dst) {
@@ -246,6 +276,10 @@ Webos.require([
 			}
 		});
 	}).appendTo($winCtn);
+	$winCtn.append('<br />');
+
+	var $dstCallBtn = $.w.button('Call').appendTo($winCtn);
+	var $dstShareScreenBtn = $.w.button('Share screen').appendTo($winCtn);
 
 	var $msgEntry = $.w.textEntry('Message : ').appendTo($winCtn);
 	var $sendBtn = $.w.button('Send').appendTo($winCtn);

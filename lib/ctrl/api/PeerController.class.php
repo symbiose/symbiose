@@ -152,6 +152,10 @@ class PeerController extends ApiBackController {
 		return $peerData;
 	}
 
+	// SETTERS
+	
+	
+
 	// PEER SERVER
 
 	public static function setPeerServer(PeerServer &$peerServer) {
