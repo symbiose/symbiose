@@ -12,8 +12,7 @@ class ApiWebSocketServer implements MessageComponentInterface {
 	}
 
 	protected function _handleRequest(ConnectionInterface $from, $reqData) {
-		$request = new HTTPRequest;
-		$request->setSession($from->Session);
+		$request = new HTTPRequest($from->Session);
 
 		$apiCall = new Api;
 		$apiCall->emulate($reqData, $request);

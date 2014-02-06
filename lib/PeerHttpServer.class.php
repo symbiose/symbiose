@@ -26,28 +26,28 @@ class PeerHttpServer implements HttpServerInterface {
 		$requestPath = $request->getPath();
 		$pathParts = explode('/', preg_replace('#^/peerjs/#', '', $requestPath)); //Remove /peerjs
 		$action = array_pop($pathParts);
-		$token = array_pop($pathParts);
-		$clientId = array_pop($pathParts);
+		$peerToken = array_pop($pathParts);
+		$peerId = array_pop($pathParts);
 		$key = array_pop($pathParts);
 
 		$respStatus = 200;
 		$respHeaders = array(
-            'X-Powered-By' => \Ratchet\VERSION,
-            'Access-Control-Allow-Origin' => '*'
-        );
+			'X-Powered-By' => \Ratchet\VERSION,
+			'Access-Control-Allow-Origin' => '*'
+		);
 		$respBody = null;
 
 		switch ($action) {
 			case 'id':
 				$respHeaders['Content-Type'] = 'text/html';
 
-				if ($clientId === null) {
+				if ($peerId === null) {
 					do {
-						$clientId = sha1(uniqid('', true) . mt_rand());
-					} while ($this->peerServer->clientIdExists($clientId));
+						$peerId = sha1(uniqid('', true) . mt_rand());
+					} while ($this->peerServer->peerIdExists($peerId));
 				}
 
-				$respBody = $clientId;
+				$respBody = $peerId;
 				break;
 			case 'offer':
 			case 'candidate':

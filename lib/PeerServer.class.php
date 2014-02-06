@@ -56,7 +56,18 @@ class PeerServer implements MessageComponentInterface {
 		echo "New connection! ({$conn->resourceId})\n";
 		
 		$params = $conn->WebSocket->request->getQuery()->getAll();
-		$peerId = urldecode($params['id']);
+		$peerId = (isset($params['id'])) ? urldecode($params['id']) : null;
+		$key = (isset($params['key'])) ? urldecode($params['key']) : null;
+		$peerToken = (isset($params['token'])) ? urldecode($params['token']) : null;
+
+		//No ID/token specified ?
+		if (empty($peerId) || empty($peerToken)) {
+			$conn->send(json_encode(array(
+				'type' => 'ERROR',
+				'payload' => array('msg' => 'Empty ID or token')
+			)));
+			$conn->close();
+		}
 
 		//Check ID
 		if (!preg_match('#^[a-zA-Z0-9]+(@[a-zA-Z0-9\./:-]+)?$#', $peerId)) {
@@ -80,7 +91,8 @@ class PeerServer implements MessageComponentInterface {
 
 		$peerData = array(
 			'connectionId' => $conn->resourceId,
-			'id' => $peerId
+			'id' => $peerId,
+			'token' => $peerToken
 		);
 		$api = $this->_getApi($conn);
 		$user = $api->user();
@@ -239,6 +251,7 @@ class PeerServer implements MessageComponentInterface {
 		// The connection is closed, remove it, as we can no longer send it messages
 		$this->clients->detach($conn);
 
+		//Delete peer
 		$peer = $this->getPeerByConnId($conn->resourceId);
 		if (!empty($peer)) {
 			$this->deletePeer($peer['id']);

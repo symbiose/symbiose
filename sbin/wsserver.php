@@ -4,9 +4,6 @@ require_once(dirname(__FILE__).'/../boot/ini.php');
 use \Memcache;
 use Ratchet\App;
 use Ratchet\Session\SessionProvider as RatchetSessionProvider;
-use Ratchet\Session\Storage\VirtualSessionStorage;
-//use Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeSessionHandler;
-use Symfony\Component\HttpFoundation\Session\Storage\Handler\MemcacheSessionHandler;
 use lib\ApiWebSocketServer;
 use lib\PeerServer;
 use lib\PeerHttpServer;
@@ -39,7 +36,7 @@ $sessionHandler = $sessionProvider->handler();
 //Servers
 $apiServer = new ApiWebSocketServer;
 $peerServer = new PeerServer($hostname, $port);
-$peerHttpServer = new PeerHttpServer($peerServer);
+$peerHttpServer = new RatchetSessionProvider(new PeerHttpServer($peerServer), $sessionHandler);
 
 //Provide the peer server to the associated controller
 PeerController::setPeerServer($peerServer);
@@ -47,7 +44,7 @@ PeerController::setPeerServer($peerServer);
 $app = new App($hostname, $port, '0.0.0.0'); // 0.0.0.0 to accept remote connections
 
 //Webos' API. Accessible from the same origin only
-$app->route('/api', new RatchetSessionProvider($apiServer, $sessionHandler)); 
+$app->route('/api', new RatchetSessionProvider($apiServer, $sessionHandler));
 
 //PeerJS server. Accessible from all origins
 $app->route('/peerjs', new RatchetSessionProvider($peerServer, $sessionHandler), array('*'));

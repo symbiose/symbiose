@@ -64,24 +64,29 @@ class PeerController extends ApiBackController {
 
 	// GETTERS
 
-	public function executeListPeers($appName = null) {
+	public function executeListPeers($appName = null, $myPeerId = null) {
 		$server = $this->peerServer();
 		$manager = $this->managers()->getManagerOf('peer');
 		$peerLinkManager = $this->managers()->getManagerOf('peerLink');
-
-		//TODO: get current peer id, if user is logged in and appName is specified
+		$user = $this->app()->user();
+		
+		$currentOfflinePeer = null;
+		if ($user->isLogged()) {
+			$currentOfflinePeer = $manager->getByUserAndApp($user->id(), $appName);
+		}
 
 		$peers = array();
 		$onlinePeers = $server->listPeers();
 		foreach ($onlinePeers as $onlinePeer) {
 			$offlinePeer = null;
+			$isAttached = false;
 			if ($onlinePeer['userId'] !== null && !empty($appName)) {
 				$offlinePeer = $manager->getByUserAndApp($onlinePeer['userId'], $appName);
-			}
 
-			//TODO: Check if users are friends, if so, set $isAttached to true
-			$isAttached = false;
-			//$isAttached = $peerLinkManager->existsByPeers();
+				if (!empty($currentOfflinePeer)) {
+					$isAttached = $peerLinkManager->existsByPeers($currentOfflinePeer['id'], $offlinePeer['id']);
+				}
+			}
 
 			$peers[] = $this->_getPeerData($onlinePeer, $offlinePeer, $isAttached);
 		}
@@ -102,15 +107,22 @@ class PeerController extends ApiBackController {
 		return $peerData;
 	}
 
-	public function executeGetPeerByUserAndApp($userId, $appName) {
+	public function executeGetPeerByUserAndApp($userId, $appName, $myPeerId = null) {
 		$server = $this->peerServer();
 		$manager = $this->managers()->getManagerOf('peer');
 		$peerLinkManager = $this->managers()->getManagerOf('peerLink');
-
-		//TODO: Check if users are friends, if so, set $isAttached to true
-		$isAttached = false;
+		$user = $this->app()->user();
 
 		$offlinePeer = $manager->getByUserAndApp($userId, $appName);
+
+		$isAttached = false;
+		if ($user->isLogged()) {
+			$currentOfflinePeer = $manager->getByUserAndApp($user->id(), $appName);
+			if (!empty($currentOfflinePeer)) {
+				$isAttached = $peerLinkManager->existsByPeers($currentOfflinePeer['id'], $offlinePeer['id']);
+			}
+		}
+
 		$peerData = $this->_getPeerData(null, $offlinePeer, $isAttached);
 
 		if (empty($peerData)) {

@@ -34,7 +34,7 @@ class SessionProvider {
 				}
 
 				$memcache = new Memcache;
-				$memcache->connect($handlerConfig['host'], (int) $handlerConfig['port']);
+				$memcache->addServer($handlerConfig['host'], (int) $handlerConfig['port']);
 
 				return new MemcacheSessionHandler($memcache);
 			case 'native':
