@@ -1,4 +1,6 @@
-$(document).on('click', 'ul.menu > li', function (event) {
+var $rootEl = Webos.UserInterface.Booter.current().element();
+
+$rootEl.on('click', 'ul.menu > li', function (event) {
 	var $menu = $(this);
 	var $subMenu = $menu.children('ul').first();
 
@@ -79,7 +81,7 @@ $(document).on('click', 'ul.menu > li', function (event) {
 
 //Si on survolle un item d'un sous-menu
 //Deprecated ?
-$(document).on('mouseenter', 'ul.menu > li li', function (event) {
+$rootEl.on('mouseenter', 'ul.menu > li li', function (event) {
 	//On selectionne l'item du sous-menu
 	$(event.target).addClass('hover');
 	

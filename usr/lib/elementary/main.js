@@ -1,7 +1,7 @@
 Webos.require([
 	'/usr/lib/webos/applications.js'
 ], function() {
-	if (window.Shell) {
+	if (window.Elementary) {
 		return;
 	}
 
@@ -16,7 +16,7 @@ Webos.require([
 		_$calendar: $('#header .calendar'),
 		_$memenu: $('#header .memenu'),
 		_cmds2Windows: {},
-		_translations: null,
+		_translations: new Webos.Translation(),
 		_appsView: 'grid',
 		_maximizedWindow: false,
 		translations: function() {
@@ -118,7 +118,7 @@ Webos.require([
 		},
 		renderLauncher: function () {
 			var that = this, t = this.translations();
-			
+
 			//On recupere les applications favorites
 			Webos.Application.listFavorites(function(favorites) {
 				//On detecte si c'est le premier rendu
@@ -718,7 +718,7 @@ Webos.require([
 				that.initApps();
 				that.initMeMenu();
 
-				Webos.Theme.on('load', function() {
+				Webos.Theme.on('load.elementary', function() {
 					that.renderLauncher();
 					that.renderApps();
 				});
