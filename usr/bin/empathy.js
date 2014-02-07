@@ -46,16 +46,15 @@ Webos.require([
 	};
 
 	var shareScreen = function (dst) {
-		// Get audio/video stream
+		// Seems to only work over SSL.
 		navigator.getUserMedia({
 			audio: false,
 			video: {
 				mandatory: {
-					chromeMediaSource: 'screen',
-					maxWidth: 1280,
-					maxHeight: 720
-				},
-				optional: []
+					chromeMediaSource: 'screen'
+					//maxWidth: 1280,
+					//maxHeight: 720
+				}
 			}
 		}, function(stream) {
 			// Set your video displays
