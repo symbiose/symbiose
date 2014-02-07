@@ -132,10 +132,20 @@ $.webos.widget.is = function(element, widgetName) {
 	return $(element).is($.webos.widget._widgetSelector(widgetName));
 };
 
+/**
+ * Filter elements by widget name.
+ * @param {jQuery} element Elements to filter.
+ * @param {String} widgetName The widget's name.
+ * @return {jQuery}
+ * @static
+ */
 $.webos.widget.filter = function(element, widgetName) {
 	return $(element).filter($.webos.widget._widgetSelector(widgetName));
 };
 
+/**
+ * @deprecated Manipulates a large number of elements.
+ */
 $.webos.widget.get = function(element) {
 	var widgetsList = $.webos.widget.listAll();
 	var elWidgets = [];
@@ -147,18 +157,30 @@ $.webos.widget.get = function(element) {
 	}
 };
 
+/**
+ * @deprecated Manipulates a large number of elements.
+ */
 $.webos.widget.listAll = function() {
 	return $[$.webos.widget.namespace()];
 };
 
 /**
- * @deprecated
+ * @deprecated Use $.webos.widget.listAll() instead.
  */
 $.webos.widget.list = function() {
 	return $.webos.widget.listAll();
 };
 
+/**
+ * A list of all widgets.
+ * @private
+ */
 $.webos.widgets = [];
+/**
+ * Get widgets by name.
+ * @param {String} widgetName The widget name.
+ * @return {jQuery} All elements that are widgets with the specified name.
+ */
 $.webos.getWidgets = function(widgetName) {
 	if (widgetName) {
 		return $($.webos.widgets).filter($.webos.widget._widgetSelector(widgetName));
@@ -167,7 +189,11 @@ $.webos.getWidgets = function(widgetName) {
 	return $($.webos.widgets);
 };
 
-//Widget
+
+/**
+ * A widget.
+ * @namespace $.webos.widget
+ */
 $.webos.widget('widget', {
 	_name: 'widget',
 	options: {
@@ -194,12 +220,23 @@ $.webos.widget('widget', {
 		this.element.addClass('webos-'+this._name);
 		this.element.attr('id', 'webos-widget-'+this.options.id);
 	},
+	/**
+	 * Get this widget's id.
+	 * @return {Number}
+	 */
 	id: function() {
 		return this.options.id;
 	},
+	/**
+	 * Get the process id which was running when creating the widget.
+	 * @return {Number}
+	 */
 	pid: function() {
 		return this.options.pid;
 	},
+	/**
+	 * Destroy this widget.
+	 */
 	destroy: function() {
 		this._trigger('destroy', { type: 'destroy' });
 
@@ -207,17 +244,29 @@ $.webos.widget('widget', {
 
 		this._super('destroy');
 	},
+	/**
+	 * @private
+	 */
 	_setOption: function(key, value) {
 		this.options[key] = value;
 		this._update(key, value);
 	},
+	/**
+	 * Get a selector for this widget.
+	 */
 	selector: function() {
 		return '#'+this.element.attr('id');
 	},
+	/**
+	 * @private
+	 */
 	_update: function() {}
 });
 
-//Container
+/**
+ * A container.
+ * @namespace $.webos.container
+ */
 $.webos.widget('container', 'widget', {
 	_name: 'container',
 	options: {
@@ -229,13 +278,26 @@ $.webos.widget('container', 'widget', {
 		
 		this.options._content = this.element;
 	},
+	/**
+	 * Get this container's content wrapper.
+	 * @return {jQuery}
+	 */
 	content: function() {
 		return this.options._content;
 	},
+	/**
+	 * Add an element to this container.
+	 * @deprecated Useless function.
+	 */
 	add: function(element) {
 		this.options._content.append(element);
 		element.trigger('insert');
 	},
+	/**
+	 * Get a component of this container.
+	 * @param {String} component The component's name.
+	 * @return {jQuery}
+	 */
 	component: function(component) {
 		return this.options._components[component];
 	}
@@ -244,10 +306,21 @@ $.webos.container = function() {
 	return $('<div></div>').container();
 };
 
-
-//ScrollPane
+/**
+ * A container with a scrollbar.
+ * @namespace $.webos.scrollPane
+ */
 $.webos.widget('scrollPane', 'container', {
 	_name: 'scrollpane',
+	/**
+	 * Options :
+	 *  - `autoReload = false` : auto reload scrollbars
+	 *  - `expand = false` : expand the scrollpane to the largest available space
+	 *  - `keyUpResize = false` : reload on keyup
+	 *  - `alsoResize` : resize also another element
+	 *  - `forceArtificialScrollbars` : force scrollbars to be artificial (you'll have to call the `reload()` function when content is updated)
+	 *  - `forceStyledScrollbars` : force scrollbars to be native (you won't have to call `reload()`)
+	 */
 	options: {
 		autoReload: false,
 		horizontalDragMinWidth: 20,
@@ -326,6 +399,10 @@ $.webos.widget('scrollPane', 'container', {
 			this.scrollToX(originalScrollLeft);
 		}
 	},
+	/**
+	 * Check if this scrollpane have native scrollbars or not.
+	 * @return {Boolean}
+	 */
 	isNatural: function() {
 		return (!this.options.forceArtificialScrollbars && (!this.options.forceStyledScrollbars || (navigator.userAgent && /(webkit|chrome|safari)/i.test(navigator.userAgent) )));
 	},
@@ -818,8 +895,10 @@ $.webos.scrollPane = function(options) {
 	return $('<div></div>').scrollPane(options);
 };
 
-
-//Label
+/**
+ * A text container.
+ * @namespace $.webos.label
+ */
 $.webos.widget('label', 'container', {
 	options: {
 		text: ''
@@ -844,9 +923,18 @@ $.webos.label = function(text) {
 	});
 };
 
-
-//Image
+/**
+ * An image.
+ * @namespace $.webos.image
+ */
 $.webos.widget('image', 'widget', {
+	/**
+	 * Options:
+	 *  - `src`: the image's source path
+	 *  - `title`: the image's title
+	 *  - `loadHidden = true`: load the image even if it is hidden
+	 *  - `animate = false`: animate when the image is loaded
+	 */
 	options: {
 		src: '',
 		title: 'image',
@@ -861,6 +949,9 @@ $.webos.widget('image', 'widget', {
 		this.option('title', this.options.title);
 		this.option('src', this.options.src);
 	},
+	/**
+	 * Load the image.
+	 */
 	load: function() {
 		if (this.options.img) {
 			return;
@@ -949,6 +1040,10 @@ $.webos.widget('image', 'widget', {
 		};
 		this.options.img.src = this.options.src;
 	},
+	/**
+	 * Check if the image is loaded.
+	 * @return {Boolean}
+	 */
 	loaded: function() {
 		return (this.options.img) ? true : false;
 	},
@@ -1015,8 +1110,15 @@ $.webos.image = function(src, title, loadHidden) {
 	});
 };
 
-//Image
+/**
+ * An icon.
+ */
 $.webos.widget('icon', 'image', {
+	/**
+	 * Options:
+	 *  - _Webos.Icon_ `src`: the icon
+	 *  - `size`: the icon's size
+	 */
 	options: {
 		src: new Webos.Icon(),
 		size: undefined
