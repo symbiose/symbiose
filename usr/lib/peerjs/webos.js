@@ -8,6 +8,8 @@
 		return new Webos.Peer(peerData);
 	};
 
+	// Peers
+
 	Webos.Peer.listAll = function() {
 		return Webos.Peer.listByApp(null);
 	};
@@ -24,7 +26,7 @@
 		}).load([function(resp) {
 			var data = resp.getData();
 			console.log(data);
-			
+
 			var peersList = [];
 			for (var i in data) {
 				peersList.push(Webos.Peer._buildPeer(data[i]));
@@ -52,6 +54,112 @@
 			console.log(data);
 
 			op.setCompleted(Webos.Peer._buildPeer(data));
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	};
+
+	// Peer links
+
+	Webos.Peer.listLinkedPeers = function(appName) {
+		var op = new Webos.Operation();
+
+		new Webos.ServerCall({
+			'class': 'PeerController',
+			'method': 'listLinkedPeers',
+			'arguments': {
+				'appName': appName
+			}
+		}).load([function(resp) {
+			var data = resp.getData();
+			console.log(data);
+
+			var peersList = [];
+			for (var i in data) {
+				peersList.push(Webos.Peer._buildPeer(data[i]));
+			}
+
+			op.setCompleted(peersList);
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	};
+
+	// SETTERS
+	
+	Webos.Peer.register = function(appName, isPublic) {
+		var op = new Webos.Operation();
+
+		new Webos.ServerCall({
+			'class': 'PeerController',
+			'method': 'registerPeer',
+			'arguments': {
+				'peerLinkData': {
+					'app': String(appName),
+					'public': (isPublic) ? true : false
+				}
+			}
+		}).load([function(resp) {
+			op.setCompleted();
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	};
+
+	Webos.Peer.requestPeerLink = function(peerId, appName) {
+		var op = new Webos.Operation();
+
+		new Webos.ServerCall({
+			'class': 'PeerController',
+			'method': 'requestPeerLink',
+			'arguments': {
+				'peerId': peerId,
+				'appName': appName
+			}
+		}).load([function(resp) {
+			op.setCompleted();
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	};
+
+	Webos.Peer.confirmPeerLink = function(peerLinkId) {
+		var op = new Webos.Operation();
+
+		new Webos.ServerCall({
+			'class': 'PeerController',
+			'method': 'confirmPeerLink',
+			'arguments': {
+				'peerLinkId': peerLinkId
+			}
+		}).load([function(resp) {
+			op.setCompleted();
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	};
+
+	Webos.Peer.revokePeerLink = function(peerLinkId) {
+		var op = new Webos.Operation();
+
+		new Webos.ServerCall({
+			'class': 'PeerController',
+			'method': 'revokePeerLink',
+			'arguments': {
+				'peerLinkId': peerLinkId
+			}
+		}).load([function(resp) {
+			op.setCompleted();
 		}, function (resp) {
 			op.setCompleted(resp);
 		}]);

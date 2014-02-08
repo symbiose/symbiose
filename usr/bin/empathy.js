@@ -107,8 +107,8 @@ Webos.require([
 
 	var $openBtn = $.w.button('Connect').click(function () {
 		peer = new Peer($peerIdEntry.textEntry('value'), {
-			host: window.location.hostname,
-			port: 9000,
+			host: window.location.hostname, //TODO: replace by config from Webos.websocket
+			port: 9000, //TODO: replace by config from Webos.websocket
 			debug: 3
 		});
 

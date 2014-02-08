@@ -5,11 +5,11 @@ use \lib\Entity;
 use \InvalidArgumentException;
 
 class PeerLink extends Entity {
-	protected $leftPeer, $rightPeer;
+	protected $leftPeer, $rightPeer, $confirmed;
 
 	// SETTERS
 
-	public function setLeftPeer($leftPeer) {
+	public function setLeftPeer($leftPeer) { //Link requester
 		if (!is_int($leftPeer)) {
 			throw new InvalidArgumentException('Invalid peer link peer id "'.$leftPeer.'"');
 		}
@@ -20,7 +20,7 @@ class PeerLink extends Entity {
 		$this->leftPeer = $leftPeer;
 	}
 
-	public function setRightPeer($rightPeer) {
+	public function setRightPeer($rightPeer) { //Link confirmer
 		if (!is_int($rightPeer)) {
 			throw new InvalidArgumentException('Invalid peer link peer id "'.$rightPeer.'"');
 		}
@@ -31,6 +31,14 @@ class PeerLink extends Entity {
 		$this->rightPeer = $rightPeer;
 	}
 
+	public function setConfirmed($confirmed) {
+		if (!is_bool($confirmed)) {
+			throw new InvalidArgumentException('Invalid peer link confirmed value "'.$confirmed.'"');
+		}
+
+		$this->confirmed = $confirmed;
+	}
+
 	// GETTERS
 
 	public function leftPeer() {
@@ -39,5 +47,9 @@ class PeerLink extends Entity {
 
 	public function rightPeer() {
 		return $this->rightPeer;
+	}
+
+	public function confirmed() {
+		return ($this->confirmed) ? true : false;
 	}
 }

@@ -14,7 +14,7 @@ abstract class PeerLinkManager extends Manager {
 	// GETTERS
 
 	/**
-	 * Get peer link by id.
+	 * Get a peer link by id.
 	 * @param  int $linkId The link id.
 	 * @return PeerLink    The peer link.
 	 */
@@ -42,6 +42,14 @@ abstract class PeerLinkManager extends Manager {
 	 * @return bool             True if the link exists, false otherwise.
 	 */
 	abstract public function existsByPeers($leftPeerId, $rightPeerId);
+
+	/**
+	 * Check if a confirmed link between two peers exists.
+	 * @param  int $leftPeerId  The first peer id.
+	 * @param  int $rightPeerId The second peer id.
+	 * @return bool             True if the link exists and is confirmed, false otherwise.
+	 */
+	abstract public function confirmedByPeers($leftPeerId, $rightPeerId);
 
 	// SETTERS
 

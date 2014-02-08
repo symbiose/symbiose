@@ -5,7 +5,7 @@ use \lib\Entity;
 use \InvalidArgumentException;
 
 class OnlinePeer extends Entity {
-	protected $ressourceId, $userId, $token;
+	protected $ressourceId, $userId, $token, $app;
 
 	// SETTERS
 
@@ -41,6 +41,14 @@ class OnlinePeer extends Entity {
 		$this->token = $token;
 	}
 
+	public function setApp($app) {
+		if (!is_string($app) || empty($app)) {
+			throw new InvalidArgumentException('Invalid peer app "'.$app.'"');
+		}
+
+		$this->app = $app;
+	}
+
 	// GETTERS
 
 	public function connectionId() {
@@ -53,5 +61,9 @@ class OnlinePeer extends Entity {
 
 	public function token() {
 		return $this->token;
+	}
+
+	public function app() {
+		return $this->app;
 	}
 }

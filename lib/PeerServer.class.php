@@ -304,6 +304,17 @@ class PeerServer implements MessageComponentInterface {
 		return array_values($this->peers);
 	}
 
+	public function listPeersByUser($userId) {
+		$list = array();
+		foreach ($this->peers as $peer) {
+			if ($peer['userId'] == $userId) {
+				$list[] = $peer;
+			}
+		}
+
+		return $list;
+	}
+
 	public function insertPeer($peer) {
 		$this->peers[$peer['connectionId']] = $peer;
 	}

@@ -60,8 +60,14 @@ class PeerLinkManager_jsondb extends PeerLinkManager {
 
 	public function existsByPeers($leftPeerId, $rightPeerId) {
 		$link = $this->getByPeers($leftPeerId, $rightPeerId);
-return true;
+
 		return (!empty($link));
+	}
+
+	public function confirmedByPeers($leftPeerId, $rightPeerId) {
+		$link = $this->getByPeers($leftPeerId, $rightPeerId);
+
+		return (!empty($link) && $link['confirmed']);
 	}
 
 	// SETTERS
