@@ -58,6 +58,32 @@ ul.menu ul:before {
 	margin-left: -11px;
 }
 
+/* Fleche a droite */
+.menu-container-right ul.menu ul:after,
+.menu-container-right ul.menu ul:before {
+	bottom: 100%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+.menu-container-right ul.menu ul:after {
+	border-bottom-color: #f6f6f6;
+	border-width: 10px;
+	right: 30px;
+	left: auto;
+	margin-right: -10px;
+}
+.menu-container-right ul.menu ul:before {
+	border-bottom-color: rgba(111, 111, 111, 0.7);
+	border-width: 11px;
+	right: 30px;
+	left: auto;
+	margin-right: -11px;
+}
+
 /* Menu de fenetre */
 .webos-menuwindowheader ul {
 	position: relative;
@@ -71,8 +97,14 @@ ul.menu ul,
 .webos-menuwindowheader ul {
 	position: absolute; /* Position absolue */
 	display: none;
+	-webkit-transform: scale(0.9);
+	-moz-transform: scale(0.9);
 	transform: scale(0.9);
-	transition: transform 0.5s, opacity 0.5s;
+	-webkit-transition: -webkit-transform 0.3s, opacity 0.3s;
+	-webkit-transition: transform 0.3s, opacity 0.3s;
+	-moz-transition: -moz-transform 0.3s, opacity 0.3s;
+	-moz-transition: transform 0.3s, opacity 0.3s;
+	transition: transform 0.3s, opacity 0.3s;
 }
 
 ul.menu ul.opened,
@@ -80,6 +112,8 @@ ul.menu ul.opened,
 .webos-menuwindowheader li.hover > ul {
 	display: block;
 	opacity: 1;
+	-webkit-transform: scale(1);
+	-moz-transform: scale(1);
 	transform: scale(1);
 }
 
@@ -116,6 +150,8 @@ ul.menu li a,
 }
 ul.menu li, ul.menu li a {
 	color: #cccccc;
+	padding-left: 3px;
+	padding-right: 3px;
 }
 .webos-menuwindowheader .webos-menuitem, .webos-menuwindowheader .webos-menuitem a {
 	color: black;

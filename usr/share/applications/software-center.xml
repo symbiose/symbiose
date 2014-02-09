@@ -7,7 +7,7 @@
 	<attribute name="description" lang="fr_FR" value="Gérer les logiciels installés"/>
 	<attribute name="description" lang="es_ES" value="Gestionar los programas instalados"/>
 	<attribute name="command" value="software-center"/>
-	<attribute name="icon" value="applications/software-center"/>
+	<attribute name="icon" value="apps/software-center"/>
 	<attribute name="menu" value="applications"/>
 	<attribute name="category" value="administration"/>
 </shortcut>

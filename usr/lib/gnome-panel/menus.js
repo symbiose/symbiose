@@ -1,5 +1,7 @@
+var $rootEl = Webos.UserInterface.Booter.current().element();
+
 //Lors du clic sur un item de menu
-$('ul.menu > li').die('click').live('click', function(event) {
+$rootEl.on('click', 'ul.menu > li', function (event) {
 	//On selectionne cet item
 	$(this).addClass('hover');
 	
@@ -17,7 +19,7 @@ $('ul.menu > li').die('click').live('click', function(event) {
 	};
 	
 	//Lorsque l'on clique sur la page
-	var clickFn = function(event) {
+	var clickFn = function (event) {
 		//On enleve le callback
 		$(document).unbind('click', clickFn);
 		
@@ -54,7 +56,7 @@ $('ul.menu > li').die('click').live('click', function(event) {
 });
 
 //Si on survolle un item d'un sous-menu
-$('ul.menu > li li').die('mouseenter mouseleave').live('mouseenter', function() {
+$rootEl.on('mouseenter', 'ul.menu > li li', function () {
 	//On selectionne l'item du sous-menu
 	$(this).addClass('hover');
 	
@@ -63,7 +65,7 @@ $('ul.menu > li li').die('mouseenter mouseleave').live('mouseenter', function() 
 		//On l'affiche
 		$(this).children('ul').first().show();
 	}
-}).live('mouseleave', function() { //Quand la souris sort de l'item
+}).on('mouseleave', 'ul.menu > li li', function () { //Quand la souris sort de l'item
 	//On deselectionne l'item
 	$(this).removeClass('hover');
 	

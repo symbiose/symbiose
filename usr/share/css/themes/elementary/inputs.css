@@ -39,6 +39,8 @@ input[type="button"], input[type="submit"], .webos-button {
 	text-align: center;
 	background-color: #fcfcfc;
 	background: -moz-linear-gradient(white, #e8e8e8);
+	background: -webkit-linear-gradient(white, #e8e8e8);
+	background: linear-gradient(white, #e8e8e8);
 	-moz-border-radius: 2px;
 	-webkit-border-radius: 2px;
 	border-radius: 2px;
@@ -52,10 +54,14 @@ input[type="button"], input[type="submit"], .webos-button {
 }
 input[type="button"]:hover, input[type="submit"]:hover, .webos-button:hover {
 	background: -moz-linear-gradient(white, #dddddd);
+	background: -webkit-linear-gradient(white, #dddddd);
+	background: linear-gradient(white, #dddddd);
 }
 input[type="button"]:active, input[type="submit"]:active, .webos-button:active,
 input[type="button"].active, input[type="submit"].active, .webos-button.active {
 	background: -moz-linear-gradient(#b6b6b6, #a0a0a0);
+	background: -webkit-linear-gradient(#b6b6b6, #a0a0a0);
+	background: linear-gradient(#b6b6b6, #a0a0a0);
 	border-color: #636363;
 	color: #4f5054;
 }
