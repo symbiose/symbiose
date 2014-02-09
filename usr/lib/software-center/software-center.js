@@ -27,7 +27,7 @@ Webos.require([
 			
 			this._window = $.w.window.main({
 				title: t.get('Software center'),
-				icon: new W.Icon('applications/software-center'),
+				icon: new W.Icon('apps/software-center'),
 				width: 650,
 				height: 250,
 				stylesheet: 'usr/share/css/software-center/main.css'
