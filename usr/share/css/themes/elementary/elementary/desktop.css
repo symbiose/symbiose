@@ -135,7 +135,10 @@ body {
 }
 #elementary-apps li .app-title {
 	height: 38px;
+	width: 80px;
 	overflow: hidden;
+	-o-text-overflow: ellipsis;
+	text-overflow: ellipsis;
 }
 #elementary-apps li .app-description {
 	display: none;
@@ -179,6 +182,7 @@ body {
 }
 #elementary-apps .apps-view-search .apps-list li img.app-icon {
 	float: left;
+	margin-right: 5px;
 }
 #elementary-apps .apps-view-search li .app-title,
 #elementary-apps .apps-view-search li .app-description {
