@@ -1,7 +1,7 @@
 var GnomeTranslateWindow = function GnomeTranslateWindow(file) {
 	var that = this;
 	
-	this._window = $.w.window({
+	this._window = $.w.window.main({
 		title: 'Traduction d\'applications',
 		icon: 'apps/translate',
 		width: 600,

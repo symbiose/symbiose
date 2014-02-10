@@ -5,7 +5,7 @@
 		this.bind('translationsloaded', function() {
 			var that = this, t = this._translations;
 
-			this._window = $.w.window({
+			this._window = $.w.window.main({
 				title: t.get('Google documents'),
 				icon: new W.Icon('applications/google-docs'),
 				width: 600,

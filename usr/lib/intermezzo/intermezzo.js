@@ -276,7 +276,7 @@ window.IntermezzoWindow = function IntermezzoWindow(options) {
 	this.bind('translationsloaded', function() {
 		var that = this, t = this._translations;
 
-		this.window = $.w.window({
+		this.window = $.w.window.main({
 			title : t.get('Intermezzo multimedia player'),
 			icon: new W.Icon('applications/intermezzo')
 		});

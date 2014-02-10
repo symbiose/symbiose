@@ -10,7 +10,7 @@ Webos.require([
 		
 			this.updates = {};
 			
-			this.window = $.w.window({
+			this.window = $.w.window.main({
 				title: t.get('Update manager'),
 				icon: new W.Icon('apps/update-manager'),
 				width: 600,
