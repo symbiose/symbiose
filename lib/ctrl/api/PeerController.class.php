@@ -337,7 +337,7 @@ class PeerController extends ApiBackController {
 	}
 
 	public function executeRevokePeerLink($peerLinkId) {
-		/*$manager = $this->managers()->getManagerOf('peer');
+		$manager = $this->managers()->getManagerOf('peer');
 		$peerLinkManager = $this->managers()->getManagerOf('peerLink');
 		$user = $this->app()->user();
 
@@ -353,13 +353,11 @@ class PeerController extends ApiBackController {
 
 		$peerLink = $peerLinkManager->getById((int) $peerLinkId);
 
-		if (empty($peerLink) || $peerLink['rightPeer'] != $userPeer['id']) {
+		if (empty($peerLink) || ($peerLink['leftPeer'] != $userPeer['id'] && $peerLink['rightPeer'] != $userPeer['id'])) {
 			throw new RuntimeException('Cannot find a peer link with id "'.$peerLinkId.'"', 404);
 		}
 
-		$peerLink['confirmed'] = true; // Confirm the link
-
-		$peerLinkManager->update($peerLink);*/
+		$peerLinkManager->delete($peerLink['id']);
 	}
 
 	// PEER SERVER

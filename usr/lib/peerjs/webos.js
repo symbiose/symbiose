@@ -10,6 +10,14 @@
 
 	// Peers
 
+	Webos.Peer.connect = function(peerId) {
+		return new Peer(peerId || '', {
+			host: window.location.hostname, //TODO: replace by config from Webos.websocket
+			port: 9000, //TODO: replace by config from Webos.websocket
+			debug: 3
+		});
+	};
+
 	Webos.Peer.listAll = function() {
 		return Webos.Peer.listByApp(null);
 	};
