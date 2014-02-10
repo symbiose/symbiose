@@ -197,7 +197,7 @@ function FirefoxWindow(url) {
 			}
 		}).error(function() {
 			that._window.window('loading', false);
-			W.Error.trigger('Cannot open page: internal error (most of the time that\'s due to security restrictions: see https://github.com/symbiose/symbiose/wiki/Proxy)');
+			W.Error.trigger('Cannot open page: internal error', 'most of the time that\'s due to security restrictions: see https://github.com/symbiose/symbiose/wiki/Proxy', 403);
 		});
 	};
 
