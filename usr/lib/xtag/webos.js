@@ -5,6 +5,7 @@ Webos.require('/usr/lib/xtag/core.min.js', function() {
 		window.xtag.register('x-' + widgetName, options);
 	};
 
+	xtag._pid = null;
 	xtag.registerFromWidget = function(widgetName, widgetOptions) {
 		xtag.register(widgetName.replace('.', '-'), {
 			lifecycle: {
@@ -33,6 +34,10 @@ Webos.require('/usr/lib/xtag/core.min.js', function() {
 						options[key] = value;
 					}
 
+					if (xtag._pid) {
+						options.pid = xtag._pid;
+					}
+
 					$(this)[widgetName](options);
 				}
 			}
@@ -48,7 +53,8 @@ Webos.require('/usr/lib/xtag/core.min.js', function() {
 	};
 
 	xtag.parse = function(contents) {
-		var $container = $('<div></div>').hide().appendTo('body').html(contents);
+		var $container = $('<div></div>').html(contents);
+		window.xtag.innerHTML($container[0], contents);
 
 		var $els = $container.children();
 
@@ -62,11 +68,9 @@ Webos.require('/usr/lib/xtag/core.min.js', function() {
 		file.readAsText(function(contents) {
 			var $elements = xtag.parse(contents);
 
-			setTimeout(function() { //Waiting for the DOM to be ready
-				$elements.detach();
-				$elements.parent().empty().remove();
-				callback.success($elements);
-			}, 0);
+			$elements.detach();
+			$elements.parent().empty().remove();
+			callback.success($elements);
 		});
 	};
 
