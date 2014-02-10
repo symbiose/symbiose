@@ -2,16 +2,18 @@
 	var CameleonWindow = function CameleonWindow() {
 		Webos.Observable.call(this);
 
+		this._window = $.w.window.main({
+			title: 'Cameleon interface switcher',
+			icon: new W.Icon('actions/interface'),
+			width: 400,
+			resizable: false,
+			dialog: true
+		});
+
 		this.bind('translationsloaded', function() {
 			var that = this, t = this._translations;
 
-			this._window = $.w.window.main({
-				title: t.get('Cameleon interface switcher'),
-				icon: new W.Icon('actions/interface'),
-				width: 400,
-				resizable: false,
-				dialog: true
-			});
+			this._window.window('option', 'title', t.get('Cameleon interface switcher'));
 
 			var content = this._window.window('content');
 
