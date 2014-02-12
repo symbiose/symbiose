@@ -5,9 +5,11 @@ Webos.require([
 ], function() {
 	Webos.xmpp = {
 		config: {
-			boshHttpUrl: 'http://'+window.location.hostname+':5280/http-bind',
-			//boshUrl: 'http://bosh.metajack.im:5280/xmpp-httpbind',
-			boshWsUrl: 'ws://'+window.location.hostname+':5280'
+			//boshHttpUrl: 'http://'+window.location.hostname+':5280/http-bind',
+			//boshHttpUrl: 'http://bosh.metajack.im:5280/xmpp-httpbind',
+			boshHttpUrl: 'https://jwchat.org/http-bind/',
+			//boshWsUrl: 'ws://'+window.location.hostname+':5280'
+			boshWsUrl: 'ws://raspberrypi:5280/'
 		},
 		initialize: function () {
 			var boshUrl = this.config.boshHttpUrl;
@@ -118,6 +120,10 @@ Webos.require([
 					jid = $win.find('.view-login .login-username').val(),
 					password = $win.find('.view-login .login-password').val();
 
+				if (!jid) {
+					return;
+				}
+
 				if (server && jid.indexOf('@') == -1) {
 					jid += '@'+server;
 				}
@@ -132,7 +138,21 @@ Webos.require([
 				});
 
 				var jid = data.jid;
-				this.once('connected', function (data) {
+				this.once('connected connecterror autherror', function (data) {
+					if (that.getSubJid(data.jid) == jid) {
+						$win.window('loading', false);
+					}
+				});
+			});
+
+			this.on('disconnecting', function (data) {
+				$win.window('loading', true, {
+					message: 'Disconnecting '+data.jid,
+					lock: (that.countConnections() <= 1)
+				});
+
+				var jid = data.jid;
+				this.once('disconnected', function (data) {
 					if (that.getSubJid(data.jid) == jid) {
 						$win.window('loading', false);
 					}
@@ -278,29 +298,68 @@ Webos.require([
 				return this._conns[jid];
 			}
 
+			if (!jid) {
+				return false;
+			}
+
 			var conn = Webos.xmpp.initialize();
 
 			conn.connect(jid, password, function (status) {
-				if (status == Strophe.Status.CONNECTING) {
-					console.log('Strophe is connecting...');
-				} else if (status == Strophe.Status.CONNFAIL) {
-					console.log('Strophe failed to connect.');
-				} else if (status == Strophe.Status.DISCONNECTING) {
-					console.log('Disconnecting...');
-				} else if (status == Strophe.Status.DISCONNECTED) {
-					console.log('Disconnected.');
-				} else if (status == Strophe.Status.CONNECTED) {
-					console.log('Connected!');
-					
-					that._connected(conn);
-				} else {
-					console.log('Status: '+status);
-				}
-			});
+				switch (status) {
+					case Strophe.Status.CONNECTING:
+						that.trigger('connecting', {
+							jid: jid,
+							connection: conn
+						});
+						break;
+					case Strophe.Status.CONNFAIL:
+						that.trigger('connecterror', {
+							jid: jid,
+							connection: conn
+						});
 
-			this.trigger('connecting', {
-				jid: jid,
-				connection: conn
+						Webos.Error.trigger('Failed to connect to server with username "'+jid+'"', '', 400);
+						break;
+					case Strophe.Status.CONNECTED:
+						that._connected(conn);
+						break;
+					case Strophe.Status.DISCONNECTING:
+						that.trigger('disconnecting', {
+							jid: jid,
+							connection: conn
+						});
+						break;
+					case Strophe.Status.DISCONNECTED:
+						that.trigger('disconnected', {
+							jid: jid,
+							connection: conn
+						});
+						break;
+					case Strophe.Status.AUTHENTICATING:
+						that.trigger('authenticating', {
+							jid: jid,
+							connection: conn
+						});
+						break;
+					case Strophe.Status.AUTHFAIL:
+						that.trigger('autherror', {
+							jid: jid,
+							connection: conn
+						});
+
+						Webos.Error.trigger('Failed to authenticate with username "'+jid+'"', '', 401);
+						break;
+					case Strophe.Status.ERROR:
+						that.trigger('connerror', {
+							jid: jid,
+							connection: conn
+						});
+
+						Webos.Error.trigger('An error occured with connection "'+jid+'"', '', 400);
+						break;
+					default:
+						console.log('Strophe: unknown connection status: '+status);
+				}
 			});
 		},
 		disconnect: function () {
