@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Empathy"/>
+	<attribute name="description" value="Chat with friends on Facebook, Google or XMPP"/>
+	<attribute name="description" lang="fr_FR" value="Discuter avec des amis sur Facebook, Google ou XMPP"/>
+	<attribute name="command" value="empathy"/>
+	<attribute name="icon" value="apps/chat"/>
+	<attribute name="category" value="internet"/>
+	<attribute name="menu" value="applications"/>
+</shortcut>
