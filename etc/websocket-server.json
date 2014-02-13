@@ -1,1 +1,1 @@
-{"enabled":true,"autoStart":false,"hostname":"localhost","port":9000,"protocol":"ws"}
+{"enabled":false,"autoStart":false,"hostname":"localhost","port":9000,"protocol":"ws"}
