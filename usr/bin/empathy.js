@@ -10,7 +10,7 @@ Webos.require([
 			boshHttpUrl: 'https://jwchat.org/http-bind/',
 			//boshHttpUrl: 'http://raspberrypi:5280/http-bind/',
 			//boshWsUrl: 'ws://'+window.location.hostname+':5280'
-			boshWsUrl: 'ws://raspberrypi:5280/'
+			boshWsUrl: 'ws://emersion.fr:5280/'
 		},
 		initialize: function () {
 			var boshUrl = this.config.boshHttpUrl;
