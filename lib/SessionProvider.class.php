@@ -10,6 +10,12 @@ use Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeSessionHandle
 class SessionProvider {
 	const CONFIG_FILE = '/etc/sessions.json';
 
+	protected $handler;
+	protected $storage;
+	protected $session;
+
+	protected static $provider;
+
 	/**
 	 * Get sessions configuration.
 	 * @return Config
@@ -21,36 +27,67 @@ class SessionProvider {
 	}
 
 	public function handler() {
-		$config = $this->_getConfig()->read();
+		if (!empty($this->storage)) {
+			$handler = $this->handler;
+		} else {
+			$config = $this->_getConfig()->read();
 
-		$handler = $config['handler'];
-		$handlerConfig = (isset($config['config'])) ? $config['config'] : array();
+			$handlerName = $config['handler'];
+			$handlerConfig = (isset($config['config'])) ? $config['config'] : array();
 
-		switch ($handler) {
-			case 'memcache':
-				if (!isset($handlerConfig['host']) || !isset($handlerConfig['port'])) {
-					throw new RuntimeException('You must specify memcache host and port in handler config in "'.self::CONFIG_FILE.'"');
-				}
+			switch ($handlerName) {
+				case 'memcache':
+					if (!isset($handlerConfig['host']) || !isset($handlerConfig['port'])) {
+						throw new RuntimeException('You must specify memcache host and port in handler config in "'.self::CONFIG_FILE.'"');
+					}
 
-				$memcache = new \Memcache;
-				$memcache->addServer($handlerConfig['host'], (int) $handlerConfig['port']);
+					$memcache = new \Memcache;
+					$memcache->addServer($handlerConfig['host'], (int) $handlerConfig['port']);
 
-				return new MemcacheSessionHandler($memcache);
-			case 'native':
-			default:
-				return new NativeSessionHandler;
+					$handler = new MemcacheSessionHandler($memcache);
+				case 'native':
+				default:
+					$handler = new NativeSessionHandler;
+			}
 		}
+
+		return $handler;
 	}
 
 	public function storage() {
-		$handler = $this->handler();
+		if (!empty($this->storage)) {
+			$storage = $this->storage;
+		} else {
+			$handler = $this->handler();
 
-		return new NativeSessionStorage(array(), $handler);
+			$storage = new NativeSessionStorage(array(), $handler);
+			$this->storage = $storage;
+		}
+
+		return $storage;
 	}
 
 	public function session() {
-		$storage = $this->storage();
+		if (!empty($this->session)) {
+			$session = $this->session;
+		} else {
+			$storage = $this->storage();
 
-		return new Session($storage);
+			$session = new Session($storage);
+			$this->session = $session;
+		}
+
+		return $session;
+	}
+
+	public static function get() {
+		if (!empty(self::$provider)) {
+			$provider = self::$provider;
+		} else {
+			$provider = new self;
+			self::$provider = $provider;
+		}
+
+		return $provider;
 	}
 }
