@@ -2,7 +2,6 @@
 namespace lib;
 
 use \RuntimeException;
-use \Memcache;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\MemcacheSessionHandler;
@@ -33,7 +32,7 @@ class SessionProvider {
 					throw new RuntimeException('You must specify memcache host and port in handler config in "'.self::CONFIG_FILE.'"');
 				}
 
-				$memcache = new Memcache;
+				$memcache = new \Memcache;
 				$memcache->addServer($handlerConfig['host'], (int) $handlerConfig['port']);
 
 				return new MemcacheSessionHandler($memcache);
