@@ -138,9 +138,5 @@ function fatalErrorHandler() {
 
 register_shutdown_function('fatalErrorHandler');
 
-//Session handler
-$handler = new SessionHandler;
-session_set_save_handler($handler, true);
-
 //Composer
 $loader = require(dirname(__DIR__) . '/lib/vendor/autoload.php');
