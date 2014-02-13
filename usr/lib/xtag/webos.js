@@ -5,7 +5,6 @@ Webos.require('/usr/lib/xtag/core.min.js', function() {
 		window.xtag.register('x-' + widgetName, options);
 	};
 
-	xtag._pid = null;
 	xtag.registerFromWidget = function(widgetName, widgetOptions) {
 		xtag.register(widgetName.replace('.', '-'), {
 			lifecycle: {
@@ -32,10 +31,6 @@ Webos.require('/usr/lib/xtag/core.min.js', function() {
 						}
 
 						options[key] = value;
-					}
-
-					if (xtag._pid) {
-						options.pid = xtag._pid;
 					}
 
 					$(this)[widgetName](options);

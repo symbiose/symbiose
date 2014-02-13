@@ -1,5 +1,4 @@
 Webos.require([
-	'/usr/lib/xtag/webos.js',
 	'/usr/lib/strophejs/strophe.js',
 	'/usr/lib/strophejs/strophe.vcard.js',
 	'/usr/lib/strophejs/strophe.chatstates.js'

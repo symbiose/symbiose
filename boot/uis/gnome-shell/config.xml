@@ -28,6 +28,8 @@
 		<file path="/usr/lib/nautilus/nautilus.js"/>
 		<file path="/usr/lib/gnome-screensaver/webos.js"/>
 
+		<file path="/usr/lib/xtag/webos.js"/>
+
 		<file path="/usr/lib/gnome-shell/shell.js"/>
 	</includes>
 </userinterface>

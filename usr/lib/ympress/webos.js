@@ -1,4 +1,4 @@
-Webos.require(['/usr/lib/ympress/impress.js','/usr/lib/xtag/webos.js','/usr/lib/webos/fullscreen.js'], function() {
+Webos.require(['/usr/lib/ympress/impress.js','/usr/lib/webos/fullscreen.js'], function() {
 	if (window.Ympress) {
 		return;
 	}

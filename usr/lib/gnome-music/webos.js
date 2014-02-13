@@ -1,5 +1,4 @@
 Webos.require([
-	'/usr/lib/xtag/webos.js',
 	'/usr/lib/webos/md5.js', //LastFM requires MD5
 	'/usr/lib/lastfm/lastfm.js'
 ], function () {

@@ -1,6 +1,4 @@
-Webos.require([
-	'/usr/lib/xtag/webos.js'
-], function () {
+Webos.require([], function () {
 	W.xtag.loadUI('/usr/share/templates/symersion/main.html', function(mainWindow) {
 		var $win = $(mainWindow);
 		$win.window('open').window('loading', true);

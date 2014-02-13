@@ -1,6 +1,5 @@
 Webos.require([
 	'/usr/lib/webos/data.js',
-	'/usr/lib/xtag/webos.js',
 	'/usr/lib/apt/apt.js'
 ], function() {
 	var FirefoxMarketplace = {};
