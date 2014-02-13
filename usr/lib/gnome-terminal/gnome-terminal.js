@@ -94,6 +94,10 @@ $.webos.widget('terminal', 'container', {
 						case 13: //Enter
 							var cmd = $(this).textEntry('value');
 							that.enterCmd(cmd);
+
+							that.options._components.out = $();
+							that.options._components.prompt = $();
+
 							e.preventDefault();
 							break;
 						case 38: //Up
@@ -132,12 +136,23 @@ $.webos.widget('terminal', 'container', {
 	_print: function (contents) {
 		var out = $();
 		if (!this.options._components.out.length) {
-			this.options._components.out = out = $('<p></p>').appendTo(this.element);
+			this.options._components.out = out = $('<p></p>');
+
+			if (this.options._components.prompt.length) {
+				out.insertBefore(this.options._components.prompt);
+			} else {
+				out.appendTo(this.element);
+			}
 		} else {
 			out = this.options._components.out;
 		}
 
-		out.append(contents);
+		var $input = this.options._components.out.find('input');
+		if ($input.length) {
+			$input.before(contents);
+		} else {
+			out.append(contents);
+		}
 
 		if (out.find('input').length) {
 			out.find('input').last().focus();

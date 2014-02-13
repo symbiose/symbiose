@@ -55,9 +55,13 @@ class Api extends \lib\Application {
 	 * Emulate this API.
 	 * @param  array $data The data.
 	 */
-	public function emulate(array $data) {
+	public function emulate(array $data, HTTPRequest $httpRequest = null) {
 		$this->emulated = true;
 		$this->emulatedData = $data;
+
+		if (!empty($httpRequest)) {
+			$this->httpRequest = $httpRequest;
+		}
 	}
 
 	/**

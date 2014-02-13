@@ -11,9 +11,11 @@ class ApiWebSocketServer implements MessageComponentInterface {
 		$this->clients = new \SplObjectStorage;
 	}
 
-	protected function _handleRequest($reqData) {
+	protected function _handleRequest(ConnectionInterface $from, $reqData) {
+		$request = new HTTPRequest($from->Session);
+
 		$apiCall = new Api;
-		$apiCall->emulate($reqData);
+		$apiCall->emulate($reqData, $request);
 		$apiCall->run();
 
 		$resp = $apiCall->httpResponse()->content();
@@ -21,11 +23,11 @@ class ApiWebSocketServer implements MessageComponentInterface {
 		return $resp;
 	}
 
-	protected function _handleRequestGroup($reqsData) {
+	protected function _handleRequestGroup(ConnectionInterface $from, $reqsData) {
 		$responses = array();
 
 		foreach($reqsData as $reqData) {
-			$responses[] = $this->_handleRequest($reqData);
+			$responses[] = $this->_handleRequest($from, $reqData);
 		}
 
 		$resp = new ApiGroupResponse;
@@ -47,9 +49,10 @@ class ApiWebSocketServer implements MessageComponentInterface {
 		try {
 			$req = json_decode($msg, true);
 
-			if (empty($req) || $req === false) {
-				throw new \RuntimeException('Bad request: invalid JSON: '.$input);
+			if (json_last_error() !== JSON_ERROR_NONE || empty($req)) {
+				throw new \RuntimeException('Bad request: invalid JSON (#'.json_last_error().'): '.$input);
 			}
+
 			if (!isset($req['id']) || !is_int($req['id'])) {
 				throw new \RuntimeException('Bad request: invalid request id');
 			}
@@ -65,9 +68,9 @@ class ApiWebSocketServer implements MessageComponentInterface {
 			$reqId = $req['id'];
 
 			if (isset($req['groupped']) && $req['groupped'] == true) {
-				$resp = $this->_handleRequestGroup($req['data']);
+				$resp = $this->_handleRequestGroup($from, $req['data']);
 			} else {
-				$resp = $this->_handleRequest($req['data']);
+				$resp = $this->_handleRequest($from, $req['data']);
 			}
 
 			$resp->setId($reqId);
@@ -100,7 +103,7 @@ class ApiWebSocketServer implements MessageComponentInterface {
 	}
 
 	public function run() {
-		echo "Starting server...\n";
+		echo "Starting API WebSocket server...\n";
 
 		$this->server->run();
 	}

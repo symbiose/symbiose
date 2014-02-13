@@ -1,61 +1,55 @@
 <?php
 namespace lib\manager;
 
+use \lib\Manager;
 use \lib\entities\Terminal;
-
-if (!isset($_SESSION)) {
-	session_start();
-}
-if (!isset($_SESSION['terminals'])) {
-	$_SESSION['terminals'] = array();
-}
+use \lib\entities\Cmd;
 
 /**
  * Manage terminals.
  * @author $imon
  */
-abstract class TerminalManager extends \lib\Manager {
-	public function isTerminal($terminalId) {
-		return isset($_SESSION['terminals'][$terminalId]);
+abstract class TerminalManager extends Manager {
+	/**
+	 * Build a new command.
+	 * @param  string $rawCmd     The command string.
+	 * @param  int    $terminalId The terminal ID.
+	 * @return Cmd                The new command.
+	 */
+	public function buildCmd($rawCmd, $terminalId) {
+		return new Cmd(array('cmd' => $rawCmd));
 	}
 
-	public function getTerminal($terminalId) {
-		if (!$this->isTerminal($terminalId)) {
-			throw new \RuntimeException('Terminal with id "'.$terminalId.'" doesn\'t exist');
-		}
+	/**
+	 * Check if a terminal exists.
+	 * @param  int  $terminalId The terminal ID.
+	 * @return boolean          True if the terminal exists, false otherwise.
+	 */
+	abstract public function isTerminal($terminalId);
 
-		$terminal = unserialize($_SESSION['terminals'][$terminalId]);
+	/**
+	 * Get a terminal.
+	 * @param  int $terminalId The terminal ID.
+	 * @return Terminal        The terminal.
+	 */
+	abstract public function getTerminal($terminalId);
 
-		return $terminal;
-	}
+	/**
+	 * Build a new terminal.
+	 * @param  int $terminalId The new terminal ID.
+	 * @return Terminal        The new terminal.
+	 */
+	abstract public function buildTerminal($terminalId);
 
-	public function buildTerminal($terminalId) {
-		if ($this->isTerminal($terminalId)) {
-			throw new \RuntimeException('Terminal with id "'.$terminalId.'" already exists');
-		}
+	/**
+	 * Update a terminal.
+	 * @param  Terminal $terminal The terminal with updated data.
+	 */
+	abstract public function updateTerminal(Terminal $terminal);
 
-		$terminal = new Terminal(array(
-			'id' => $terminalId
-		));
-
-		$_SESSION['terminals'][$terminalId] = serialize($terminal);
-
-		return $terminal;
-	}
-
-	public function updateTerminal(Terminal $terminal) {
-		if (!$this->isTerminal($terminal['id'])) {
-			throw new \RuntimeException('Terminal with id "'.$terminal['id'].'" doesn\'t exist');
-		}
-
-		$_SESSION['terminals'][$terminal['id']] = serialize($terminal);
-	}
-
-	public function closeTerminal($terminalId) {
-		if (!$this->isTerminal($terminalId)) {
-			throw new \RuntimeException('Terminal with id "'.$terminalId.'" doesn\'t exist');
-		}
-
-		unset($_SESSION['terminals'][$terminalId]);
-	}
+	/**
+	 * Close a terminal.
+	 * @param  int $terminalId The terminal ID.
+	 */
+	abstract public function closeTerminal($terminalId);
 }

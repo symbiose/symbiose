@@ -6,3 +6,4 @@
 /var/lib/jsondb/core/users_permissions.json
 /.git-ftp-ignore
 /composer.phar
+.git.sav

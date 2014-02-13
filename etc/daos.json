@@ -26,5 +26,11 @@
             "bindRdn":"cn=Manager,dc=example,dc=org",
             "bindPassword":"secret"
         }
+    },
+    "session": {
+        "callback": [
+            "\\lib\\dao\\SessionProvider",
+            "getSession"
+        ]
     }
 }

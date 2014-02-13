@@ -1,6 +1,6 @@
 <?php
 $terminalManager = $this->managers()->getManagerOf('terminal');
-$authManager = $this->managers()->getManagerOf('authorization');
+$authManager = $this->managers()->getManagerOf('processAuthorization');
 $fileManager = $this->managers()->getManagerOf('file');
 $params = $this->cmd->params();
 

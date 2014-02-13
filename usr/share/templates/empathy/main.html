@@ -1,0 +1,36 @@
+<x-window-main width="700" height="500" icon="apps/chat" stylesheet="/usr/share/css/empathy/main.css">
+	<h1>Empathy</h1>
+
+	<header>
+		<div class="search-entry-ctn">
+			<x-searchEntry class="search-entry"></x-searchEntry>
+		</div>
+	</header>
+
+	<div class="views">
+		<div class="view-login">
+			<div class="view-login-inner">
+				<h2>Chat</h2>
+				<p class="lead">Log in to your <select class="login-server"></select> account to chat with friends.</p>
+				<form>
+					<input type="text" class="login-username" placeholder="Username"><br />
+					<input type="password" class="login-password" placeholder="Password"><br />
+					<input type="submit" value="Log in">
+				</form>
+			</div>
+		</div>
+		<div class="view-conversations">
+			<div class="friends-list">
+				<ul></ul>
+			</div>
+			<div class="conversation">
+				<ul></ul>
+				<div class="conversation-compose">
+					<x-button class="compose-attach">+</x-button>
+					<img src="" alt="" class="compose-contact-picture">
+					<div class="compose-msg-ctn"><input type="text" class="compose-msg"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</x-window-main>

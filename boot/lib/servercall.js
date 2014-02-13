@@ -696,7 +696,7 @@
 			};
 
 			var connectSocket = function(serverStatus) {
-				var websocketUrl = serverStatus.protocol+'://'+document.location.host+':'+serverStatus.port;
+				var websocketUrl = serverStatus.protocol+'://'+document.location.host+':'+serverStatus.port+'/api';
 
 				console.log('Connecting WebSocket '+websocketUrl+'...');
 

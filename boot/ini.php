@@ -7,8 +7,6 @@ if (!ini_get('display_errors')) {
 }
 error_reporting(E_ALL);
 
-session_start(); //Start sessions
-
 chdir(dirname(__FILE__).'/..'); //Change directory to /
 
 //Set default locale/timezone
@@ -139,6 +137,10 @@ function fatalErrorHandler() {
 }
 
 register_shutdown_function('fatalErrorHandler');
+
+//Session handler
+$handler = new SessionHandler;
+session_set_save_handler($handler, true);
 
 //Composer
 $loader = require(dirname(__DIR__) . '/lib/vendor/autoload.php');

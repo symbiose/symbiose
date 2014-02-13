@@ -1,0 +1,10 @@
+{
+	"executeListPeers":[],
+	"executeGetPeer":[],
+	"executeGetPeerByUserAndApp":[],
+	"executeListPeersLinks":[],
+	"executeListLinkedPeers":[],
+	"executeRegisterPeer":[],
+	"executeRequestPeerLink":[],
+	"executeConfirmPeerLink":[]
+}
