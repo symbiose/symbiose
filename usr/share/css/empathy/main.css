@@ -25,6 +25,13 @@
 	margin: 5px;
 	width: 100%;
 }
+.view-login h2 {
+	font-size: 32px;
+	font-weight: bold;
+}
+.view-login .lead {
+	font-size: 20px;
+}
 
 .view-conversations .friends-list {
 	float: left;

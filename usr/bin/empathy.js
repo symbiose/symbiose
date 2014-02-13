@@ -1,7 +1,8 @@
 Webos.require([
 	'/usr/lib/xtag/webos.js',
 	'/usr/lib/strophejs/strophe.js',
-	'/usr/lib/strophejs/strophe.vcard.js'
+	'/usr/lib/strophejs/strophe.vcard.js',
+	'/usr/lib/strophejs/strophe.chatstates.js'
 ], function() {
 	Webos.xmpp = {
 		config: {
@@ -156,11 +157,15 @@ Webos.require([
 					if (that.getSubJid(data.jid) == jid) {
 						$win.window('loading', false);
 					}
+
+					if (!that.countConnections()) {
+						that.switchView('login');
+					}
 				});
 			});
 
 			this.once('connected', function () {
-				this.switchView('conversations');
+				that.switchView('conversations');
 			});
 
 			var $contactsCtn = $win.find('.view-conversations .friends-list ul');
@@ -257,6 +262,16 @@ Webos.require([
 					});
 					$contact.addClass('contact-conversation-unread').detach().prependTo($contactsCtn);
 				}
+			});
+
+			$(document).on('composing.chatstates', function (e) {
+				console.log('composing', e);
+			});
+			$(document).on('paused.chatstates', function (e) {
+				console.log('paused', e);
+			});
+			$(document).on('active.chatstates', function (e) {
+				console.log('active', e);
 			});
 
 			$win.find('.conversation-compose .compose-msg').keydown(function (e) {
@@ -384,8 +399,6 @@ Webos.require([
 			this._getRoster(conn);
 
 			conn.addHandler(function (msg) {
-				console.log(msg);
-
 				var to = msg.getAttribute('to');
 				var from = msg.getAttribute('from');
 				var type = msg.getAttribute('type');
@@ -446,8 +459,6 @@ Webos.require([
 						name: (jid != name) ? name : ''
 					});
 				});
-
-				console.log("Contacts for " + conn.jid + ':', that.contacts());
 			});
 
 			conn.addHandler(function (presence) {
@@ -456,8 +467,6 @@ Webos.require([
 
 				if (presence_type != 'error') {
 					if (presence_type === 'unavailable') {
-						console.log(from + " is offline (unavailable)");
-
 						that._setContact({
 							jid: from,
 							presence: 'offline'
@@ -466,7 +475,6 @@ Webos.require([
 						var show = $(presence).find("show").text(); // this is what gives away, dnd, etc.
 						if (show === 'chat' || !show){
 							// Mark contact as online
-							console.log(from + ' priority is "' + $(presence).find("priority").text()+ '" -> available to chat');
 
 							that._setContact({
 								jid: from,
@@ -586,7 +594,9 @@ Webos.require([
 			this.$conversation().append(this._$conversations[this._currentDst.jid]);
 			delete this._$conversations[this._currentDst.jid];
 		},
-		_switchConversation: function (dst, conn) {
+		_switchConversation: function (dst, src) {
+			var conn = this._conn(src);
+
 			this._detachCurrentConversation();
 			this._reattachConversation(dst);
 			this._currentDst = this.contact(dst);
