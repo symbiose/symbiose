@@ -9,6 +9,7 @@ Webos.require([
 			//boshHttpUrl: 'http://'+window.location.hostname+':5280/http-bind',
 			//boshHttpUrl: 'http://bosh.metajack.im:5280/xmpp-httpbind',
 			boshHttpUrl: 'https://jwchat.org/http-bind/',
+			//boshHttpUrl: 'http://raspberrypi:5280/http-bind/',
 			//boshWsUrl: 'ws://'+window.location.hostname+':5280'
 			boshWsUrl: 'ws://raspberrypi:5280/'
 		},
