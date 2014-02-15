@@ -1,4 +1,4 @@
-new W.ScriptFile('usr/lib/apt/apt.js');
+new W.ScriptFile('/usr/lib/apt/apt.js');
 
 /**
  * Quickly permet de creer rapidement et simplement des paquets.

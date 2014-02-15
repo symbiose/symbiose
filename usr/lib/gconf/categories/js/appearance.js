@@ -3,7 +3,7 @@ var content = confWindow.window('content');
 
 confWindow.window('dialog', true);
 
-confWindow.window('stylesheet', 'usr/share/css/gconf/categories/appearance.css');
+confWindow.window('stylesheet', '/usr/share/css/gconf/categories/appearance.css');
 
 var form = $.w.entryContainer().appendTo(content);
 

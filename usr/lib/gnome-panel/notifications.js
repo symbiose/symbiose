@@ -10,7 +10,7 @@ Cette Classe requiert les fichiers suivants:
 
 */
 
-new W.ScriptFile('usr/lib/gnome/jquery.jgrowl.js');
+new W.ScriptFile('/usr/lib/gnome/jquery.jgrowl.js');
 
 function SNotification (options) {
 

@@ -1,4 +1,4 @@
-new W.ScriptFile('usr/lib/firefox/firefox.js');
+new W.ScriptFile('/usr/lib/firefox/firefox.js');
 
 var url;
 if (args.isParam(0)) {

@@ -13,7 +13,7 @@
  * -lib/intermezzo.js
  * -lib/UniqueId.js
 */
-new W.ScriptFile('usr/lib/intermezzo/intermezzo.js');
+new W.ScriptFile('/usr/lib/intermezzo/intermezzo.js');
 
  // On récupère les arguments passées en paramètres (console, etc ...)
 var IntermezzoPlayerFile = args.getParam(0);

@@ -3,9 +3,9 @@
  * @author Doppelganger & $imon
  * @version 2.0
  */
-new W.ScriptFile('usr/lib/intermezzo/jquery.jplayer.min.js');
-new W.ScriptFile('usr/lib/webos/fullscreen.js');
-new W.Stylesheet('usr/share/css/intermezzo/main.css');
+new W.ScriptFile('/usr/lib/intermezzo/jquery.jplayer.min.js');
+new W.ScriptFile('/usr/lib/webos/fullscreen.js');
+new W.Stylesheet('/usr/share/css/intermezzo/main.css');
 
 $.webos.widget('intermezzo', 'container', {
 	_name: 'intermezzo',

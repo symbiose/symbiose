@@ -1,7 +1,7 @@
 var confWindow = args.getParam(0);
 var content = confWindow.window('content');
 
-confWindow.window('stylesheet', 'usr/share/css/gconf/categories/systemdata.css');
+confWindow.window('stylesheet', '/usr/share/css/gconf/categories/systemdata.css');
 
 var tabs = $.w.tabs().appendTo(content);
 

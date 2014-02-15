@@ -1,5 +1,5 @@
 //On charge la bibliotheque du terminal
-new W.ScriptFile('usr/lib/gnome-terminal/gnome-terminal.js');
+new W.ScriptFile('/usr/lib/gnome-terminal/gnome-terminal.js');
 
 //On ouvre la fenetre du terminal
 if (args.isParam(0)) {

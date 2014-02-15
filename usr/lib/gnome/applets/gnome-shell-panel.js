@@ -7,7 +7,7 @@
 Webos.Dashboard.Applet.GnomeShellPanel = function WGnomeShellPanelApplet(data) {
 	Webos.Dashboard.Applet.call(this, data); //Heritage de Webos.Dashboard.Applet
 	
-	new Webos.ScriptFile('usr/lib/gnome-shell/shell.js');
+	new Webos.ScriptFile('/usr/lib/gnome-shell/shell.js');
 	
 	var that = this;
 	
