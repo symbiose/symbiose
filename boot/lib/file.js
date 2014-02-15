@@ -510,7 +510,16 @@ Webos.File.get = function(file, data, disableCache) {
 	}
 
 	path = String(file);
-	
+
+	if (Webos.Process) {
+		var currentProc = Webos.Process.current();
+
+		if (Webos.isInstanceOf(currentProc, Webos.Cmd)) {
+			var term = currentProc.getTerminal();
+			path = term.absolutePath(path);
+		}
+	}
+
 	//Le fichier est-il dans un volume monte ?
 	var devices = Webos.File.mountedDevices();
 	for (var local in devices) {
@@ -526,7 +535,7 @@ Webos.File.get = function(file, data, disableCache) {
 			}
 		}
 	}
-	
+
 	if (Webos.File.isCached(path)) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
 	} else {

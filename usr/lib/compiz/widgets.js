@@ -16,6 +16,7 @@ $.webos.widget('window', 'container', {
 	options: {
 		title: 'Fen&ecirc;tre',
 		icon: undefined,
+		resizable: true,
 		closeable: true,
 		maximizable: true,
 		hideable: true,
@@ -1331,7 +1332,7 @@ $.webos.window.about = function(opts) {
 		resizable: false,
 		hideable: false,
 		width: 400,
-		stylesheet: 'usr/share/css/gnome/aboutwindow.css'
+		stylesheet: '/usr/share/css/gnome/aboutwindow.css'
 	});
 	
 	var windowContent = aboutWindow.window('content');

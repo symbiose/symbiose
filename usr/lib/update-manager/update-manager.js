@@ -14,7 +14,7 @@ Webos.require([
 				title: t.get('Update manager'),
 				icon: new W.Icon('apps/update-manager'),
 				width: 600,
-				stylesheet: 'usr/share/css/update-manager/main.css',
+				stylesheet: '/usr/share/css/update-manager/main.css',
 				resizable : false
 			});
 			

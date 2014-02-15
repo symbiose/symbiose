@@ -353,7 +353,7 @@ Webos.require([
 				width: 600,
 				height: 400,
 				icon: new W.Icon('apps/filemanager'),
-				stylesheet: 'usr/share/css/nautilus/window.css'
+				stylesheet: '/usr/share/css/nautilus/window.css'
 			});
 
 			var that = this;

@@ -57,7 +57,7 @@ LibreOffice.Writer = function LibreOfficeWriter(file, options) {
 			icon: new W.Icon('applications/libreoffice-writer'),
 			width: 550,
 			height: 400,
-			stylesheet: 'usr/share/css/libreoffice/writer.css',
+			stylesheet: '/usr/share/css/libreoffice/writer.css',
 			maximized: true
 		});
 		

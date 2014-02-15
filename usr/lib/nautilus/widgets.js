@@ -904,7 +904,7 @@ Webos.require([
 				icon: this._getFileIcon(file),
 				resizable: false,
 				width: 400,
-				stylesheet: 'usr/share/css/nautilus/properties.css'
+				stylesheet: '/usr/share/css/nautilus/properties.css'
 			});
 
 			var tabs = $.webos.tabs().appendTo(propertiesWindow.window('content'));
@@ -1120,7 +1120,7 @@ Webos.require([
 				title: t.get('Upload files to ${location}', { location: that.location() }),
 				width: 370,
 				resizable: false,
-				stylesheet: 'usr/share/css/nautilus/upload.css',
+				stylesheet: '/usr/share/css/nautilus/upload.css',
 				icon: new W.Icon('actions/document-save', 24)
 			});
 			
@@ -1342,7 +1342,10 @@ Webos.require([
 					
 					form.submit(function() {
 						exeWindow.window('close');
-						W.Cmd.execute('"'+file.get('path')+'"');
+
+						var terminal = Webos.Terminal.create();
+						terminal.setLocation(file.get('dirname'));
+						terminal.enterCmd('"'+file.get('path')+'"');
 					});
 					
 					exeWindow.window('open');

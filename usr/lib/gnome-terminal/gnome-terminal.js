@@ -230,7 +230,7 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 			icon: new W.Icon('apps/terminal'),
 			width: 400,
 			height: 250,
-			stylesheet: 'usr/share/css/gnome-terminal/main.css'
+			stylesheet: '/usr/share/css/gnome-terminal/main.css'
 		});
 		
 		var that = this;

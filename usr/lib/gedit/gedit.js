@@ -4,7 +4,7 @@
  * @author $imon
  */
 
-new W.ScriptFile('usr/lib/codemirror/codemirror.js');
+new W.ScriptFile('/usr/lib/codemirror/codemirror.js');
 new W.Stylesheet('/usr/share/css/codemirror/main.css');
 
 $.webos.widget('gedit', 'container', {
@@ -175,7 +175,7 @@ $.webos.gedit.loadMode = function(mode) {
 		}
 	}
 	
-	new W.ScriptFile('usr/lib/codemirror/mode/'+mode+'/'+mode+'.js');
+	new W.ScriptFile('/usr/lib/codemirror/mode/'+mode+'/'+mode+'.js');
 	$.webos.gedit.modesLoaded.push(mode);
 };
 
@@ -190,7 +190,7 @@ var GEditWindow = function (file) {
 			icon: new W.Icon('apps/text-editor'),
 			width: 500,
 			height: 300,
-			stylesheet: 'usr/share/css/gedit/main.css'
+			stylesheet: '/usr/share/css/gedit/main.css'
 		});
 		
 		this._refreshTitle = function() {

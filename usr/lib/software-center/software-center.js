@@ -30,7 +30,7 @@ Webos.require([
 				icon: new W.Icon('apps/software-center'),
 				width: 650,
 				height: 250,
-				stylesheet: 'usr/share/css/software-center/main.css'
+				stylesheet: '/usr/share/css/software-center/main.css'
 			});
 			
 			this.install = function(pkg) {

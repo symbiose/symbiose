@@ -82,7 +82,7 @@ Webos.inherit(Webos.Cmd, Webos.Process); //Heritage de Webos.Process
 Webos.Cmd.execute = function(cmd, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
-	var terminal = new Webos.Terminal();
+	var terminal = Webos.Terminal.create();
 	terminal.enterCmd(cmd, callback);
 };
 
@@ -93,7 +93,9 @@ Webos.Cmd.execute = function(cmd, callback) {
  * @constructor
  */
 Webos.Terminal = function WTerminal() {
-	this._data = {};
+	this._data = {
+		location: '~'
+	};
 	this._initialized = false;
 	this._output = '';
 	
@@ -123,6 +125,13 @@ Webos.Terminal.prototype = {
 	 */
 	get: function(key) {
 		return this._data[key];
+	},
+	/**
+	 * Set this terminal's location.
+	 * @param {String} path The new location.
+	 */
+	setLocation: function (path) {
+		this._data['location'] = path;
 	},
 	/**
 	 * Recuperer un chemin absolu depuis un chemin relatif par rapport au dossier courant.
@@ -339,6 +348,7 @@ Webos.inherit(Webos.Terminal, Webos.Observable);
  * @static
  */
 Webos.Terminal._list = [];
+
 /**
  * Ajouter un terminal a la liste interne des terminaux.
  * @param {Webos.Terminal} terminal Le terminal a ajouter.
@@ -348,6 +358,7 @@ Webos.Terminal._list = [];
 Webos.Terminal.register = function(terminal) {
 	return Webos.Terminal._list.push(terminal) - 1;
 };
+
 /**
  * Recuperer un terminal a partir de son identifiant.
  * @param {Number} id L'identifiant du terminal.
@@ -356,4 +367,8 @@ Webos.Terminal.register = function(terminal) {
  */
 Webos.Terminal.get = function(id) {
 	return Webos.Terminal._list[id];
+};
+
+Webos.Terminal.create = function() {
+	return new Webos.Terminal();
 };

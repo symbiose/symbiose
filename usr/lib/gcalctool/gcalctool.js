@@ -101,7 +101,7 @@ function GCalcTool() {
 			icon: new W.Icon('apps/calculator'),
 			width: 370,
 			height: 197,
-			stylesheet: 'usr/share/css/gcalctool/main.css',
+			stylesheet: '/usr/share/css/gcalctool/main.css',
 			resizable: false
 		});
 		

@@ -12,7 +12,7 @@ var GConf = function (category) {
 			title: t.get('System settings'),
 			resizable: false,
 			icon: new W.Icon('apps/administration'),
-			stylesheet: 'usr/share/css/gconf/main.css',
+			stylesheet: '/usr/share/css/gconf/main.css',
 			width: 740
 		});
 		
