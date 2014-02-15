@@ -393,15 +393,20 @@ class UserController extends \lib\ApiBackController {
 		//Get user data
 		$userData = $manager->getById($userId);
 
-		//Check password
+		//Check current password
 		if (!$cryptoManager->verifyPassword($currentPassword, $userData['password'])) {
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
 			throw new \RuntimeException('Bad password', 403);
 			return;
 		}
 
+		//Check new password
+		if (empty($newPassword)) {
+			throw new \InvalidArgumentException('Invalid new password (empty password)');
+		}
+
 		//Change password
-		$userData['password'] = $cryptoManager->hashPassword($password);
+		$userData['password'] = $cryptoManager->hashPassword($newPassword);
 		$manager->update($userData);
 	}
 

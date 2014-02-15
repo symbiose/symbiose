@@ -118,8 +118,8 @@ Webos.User.prototype = {
 			'class': 'UserController',
 			'method': 'setPassword',
 			'arguments': {
-				'actualPassword': actualPassword,
-				'newPassword': newPassword,
+				'actualPassword': actualPassword || '',
+				'newPassword': newPassword || '',
 				'user': this.id()
 			}
 		}).load(new Webos.Callback(function(response) {
