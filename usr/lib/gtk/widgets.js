@@ -49,6 +49,7 @@ $.webos.widget = function(widgetName) {
 	if (properties._translationsName) {
 		parentWidget = $[$.webos.widget.namespace()][widgetName];
 		$.widget(fullWidgetName, parentWidget, {
+			_translations: new Webos.Translation(),
 			_create: function() {
 				if (!this._translations) {
 					var that = this, args = arguments, superFn = this._super;
