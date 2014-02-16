@@ -51,7 +51,7 @@ $.webos.widget = function(widgetName) {
 		$.widget(fullWidgetName, parentWidget, {
 			_translations: new Webos.Translation(),
 			_create: function() {
-				if (!this._translations) {
+				if (this._translations.isEmpty()) {
 					var that = this, args = arguments, superFn = this._super;
 
 					Webos.Translation.load(function(t) {

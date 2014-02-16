@@ -147,6 +147,13 @@ Webos.Model.prototype = {
 		return false;
 	},
 	/**
+	 * Check if this model is empty.
+	 * @return {Boolean} True if it's empty, false otherwise.
+	 */
+	isEmpty: function () {
+		return (Object.keys(this._data).length == 0);
+	},
+	/**
 	 * Remove a value in the model's data.
 	 * @param key The key associated to the value.
 	 * @returns {Boolean} True if there was no error, false otherwise.
