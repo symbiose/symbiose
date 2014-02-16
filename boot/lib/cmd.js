@@ -148,7 +148,7 @@ Webos.Terminal.prototype = {
 	 */
 	absolutePath: function(path) {
 		var absPath = path;
-		if (path.substr(0, 1) != '/' && path.substr(0, 2) != '~/') { //Relative path
+		if (path.substr(0, 1) != '/' && path.substr(0, 2) != '~/' && path != '~') { //Relative path
 			absPath = this.get('location')+'/'+path;
 		}
 
