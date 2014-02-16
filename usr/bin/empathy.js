@@ -1,7 +1,8 @@
 Webos.require([
 	'/usr/lib/strophejs/strophe.js',
 	'/usr/lib/strophejs/strophe.vcard.js',
-	'/usr/lib/strophejs/strophe.chatstates.js'
+	'/usr/lib/strophejs/strophe.chatstates.js',
+	'/usr/lib/webos/data.js'
 ], function() {
 	Webos.xmpp = {
 		config: {
@@ -39,6 +40,9 @@ Webos.require([
 			'chat.facebook.com': 'Facebook',
 			'gmail.com': 'Google',
 			'': 'XMPP'
+		},
+		_config: {
+			accounts: []
 		},
 		_conn: function (jid) {
 			return this._conns[jid];
@@ -80,7 +84,20 @@ Webos.require([
 
 			var index = jid.indexOf('@');
 			if (index > 0) {
-				return jid.slice(index);
+				return jid.slice(index + 1);
+			} else {
+				return jid;
+			}
+		},
+		getJidUsername: function (jid) {
+			//for parsing JID: ramon@localhost/1234567
+			//to ramon
+
+			jid = this.getSubJid(jid);
+
+			var index = jid.indexOf('@');
+			if (index > 0) {
+				return jid.slice(0, index);
 			} else {
 				return jid;
 			}
@@ -93,6 +110,13 @@ Webos.require([
 				var $win = that._$win;
 
 				$win.window('open');
+
+				$win.window('loading', true);
+				that._loadConfig().on('complete', function (data) {
+					$win.window('loading', false);
+
+					that._autoConnect();
+				});
 
 				that._initUi();
 				that._initEvents();
@@ -264,14 +288,18 @@ Webos.require([
 				}
 			});
 
-			$(document).on('composing.chatstates', function (e) {
-				console.log('composing', e);
+			this.on('accountupdate accountremove', function () {
+				that._saveConfig();
 			});
-			$(document).on('paused.chatstates', function (e) {
-				console.log('paused', e);
+
+			$(document).on('composing.chatstates', function (e, data) {
+				console.log('composing', e, data);
 			});
-			$(document).on('active.chatstates', function (e) {
-				console.log('active', e);
+			$(document).on('paused.chatstates', function (e, data) {
+				console.log('paused', e, data);
+			});
+			$(document).on('active.chatstates', function (e, data) {
+				console.log('active', e, data);
 			});
 
 			$win.find('.conversation-compose .compose-msg').keydown(function (e) {
@@ -376,6 +404,11 @@ Webos.require([
 						console.log('Strophe: unknown connection status: '+status);
 				}
 			});
+
+			this._addAccount({
+				jid: jid,
+				password: password
+			});
 		},
 		disconnect: function () {
 			for (var jid in this._conns) {
@@ -383,6 +416,94 @@ Webos.require([
 			}
 
 			this._conns = {};
+		},
+		_addAccount: function (newAccount) {
+			var accounts = this._config.accounts;
+
+			newAccount.password = null; //Remove password!
+
+			for (var i = 0; i < accounts.length; i++) {
+				var account = accounts[i];
+
+				if (account.jid == newAccount.jid) {
+					if (account !== newAccount) {
+						this._config.accounts[i] = newAccount;
+						this.trigger('accountupdate', { account: newAccount });
+					}
+
+					return;
+				}
+			}
+
+			this._config.accounts.push(newAccount);
+			this.trigger('accountupdate', { account: newAccount });
+		},
+		_removeAccount: function (jid) {
+			var accounts = this._config.accounts;
+
+			for (var i = 0; i < accounts.length; i++) {
+				var account = accounts[i];
+
+				if (account.jid == jid) {
+					this.trigger('accountremove', { account: account });
+					this._config.accounts.splice(i, 1); //Remove item
+					return true;
+				}
+			}
+
+			return false;
+		},
+		_loadConfig: function () {
+			var that = this;
+			var op = new Webos.Operation();
+
+			Webos.DataFile.loadUserData('empathy', [function (dataFile) {
+				var config = dataFile.data();
+
+				if (Object.keys(config).length) {
+					that._config = config;
+				}
+
+				op.setCompleted();
+			}, function (resp) {
+				op.setCompleted(resp);
+			}]);
+
+			return op;
+		},
+		_saveConfig: function () {
+			var that = this;
+
+			Webos.User.getLogged(function(user) {
+				if (user) { //User logged in
+					Webos.DataFile.loadUserData('empathy', function (dataFile) {
+						dataFile.setData(that._config);
+						dataFile.sync();
+					});
+				}
+			});
+		},
+		_autoConnect: function () {
+			if (this._config.accounts.length == 1) {
+				var account = this._config.accounts[0];
+
+				if (account.password) {
+					this.connect(account.jid, account.password);
+				} else {
+					var jid = account.jid, serverHost = this.getJidDomain(account.jid);
+					if (!this._servers[serverHost]) {
+						serverHost = '';
+					}
+					if (serverHost) {
+						jid = this.getJidUsername(jid);
+					}
+
+					this._$win.find('.view-login .login-server').val(serverHost);
+					
+					this._$win.find('.view-login .login-username').val(jid);
+					this._$win.find('.view-login .login-password').focus();
+				}
+			}
 		},
 		_connected: function (conn) {
 			var that = this;

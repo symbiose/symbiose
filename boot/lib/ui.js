@@ -483,6 +483,8 @@ Webos.UserInterface.Booter.prototype = {
 		operation.addCallbacks(callback);
 		this._autoLoad = true;
 
+		Webos.UserInterface.Booter.notify('switch', { booter: this });
+
 		this.one('loadcomplete', function() {
 			operation.setCompleted();
 		});
@@ -579,6 +581,7 @@ Webos.UserInterface.Booter.prototype = {
 
 		this._loaded = true;
 		this.notify('loadcomplete');
+		Webos.UserInterface.Booter.notify('switched', { booter: this });
 	},
 	/**
 	 * Check if this UI is loaded.

@@ -1,8 +1,9 @@
-.search-entry-ctn {
-	/*float: right;*/
-	margin: 3px;
+.header-specific {
+	padding: 3px;
+}
 
-	display: none;
+.search-entry-ctn {
+	float: right;
 }
 
 .views, .views > div {
@@ -191,6 +192,9 @@
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAMCAYAAAC0qUeeAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gIMDDUca9xcugAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAABGElEQVQoz4XOO0vDUBiH8eecXEia9KJtbUVQrBcQBQfBTSdHZz+f38HZobsOFVpwkOCtgk3QWmvS1J7jIBVFND94t4c/L8fNju6Gz1oppbPIUs6lNxihtSaLLHg2vZcYpVR2XPZdLh/6xKM0c12WPIfaTJ7Tdpc0Tf+PFbCzWucmimldRyRJ8udLIojeNEB/OKLZvqPiWRxs1ijkHEzTxDAMhBA/46mLoEfnNmSp7LNW92lUffKei2VZv+OpVhByfvXIcjXH0e4inudh3odD4vEYQwiEEAziMU/DhLvolY15n731CpZlAWCenAVsLRR5VxOU1hQdi8asw/5KiWrRxXVdpJSf8WSiONyew7ZttNZIKTEM4+u++wAK0o+AnB+C6wAAAABJRU5ErkJggg==);
 	width: 11px;
 	height: 12px;
+}
+.conversation .msg.msg-received.msg-typing .msg-content {
+	background-color: #f1f1f1;
 }
 .conversation .conversation-compose {
 	position: absolute;

@@ -37,7 +37,7 @@ Webos.require([
 			};
 
 			//On stocke la correspondance commande <-> fenetre lors de l'ouverture des fenetres
-			$(document).on('windowopen', function(event, ui) {
+			$(document).on('windowopen.launcher.elementary', function(event, ui) {
 				var process = Webos.Process.get(ui.window.window('pid'));
 				if (typeof process != 'undefined') {
 					if (that._cmds2Windows[process.cmd]) {
@@ -46,7 +46,7 @@ Webos.require([
 						that._cmds2Windows[process.cmd] = ui.window;
 					}
 				}
-			}).on('windowclose', function(event, ui) { //Lors de leur fermeture, on detruit cette relation
+			}).on('windowclose.launcher.elementary', function(event, ui) { //Lors de leur fermeture, on detruit cette relation
 				var process = Webos.Process.get(ui.window.window('pid'));
 				if (typeof process != 'undefined' && that._cmds2Windows[process.cmd]) {
 					if (that._cmds2Windows[process.cmd].length > 1) {
@@ -55,14 +55,14 @@ Webos.require([
 						delete that._cmds2Windows[process.cmd];
 					}
 				}
-			}).on('windowafteropen windowclose', function() {
+			}).on('windowafteropen.launcher.elementary windowclose.launcher.elementary', function() {
 				//On met a jour l'affichage des fenetres lors de leur ouverture ou fermeture
 				that.renderLauncher();
-			}).on('windowmaximize', function (e) {
+			}).on('windowmaximize.launcher.elementary', function (e) {
 				onMaximized($(e.target));
-			}).on('windowminimize', function (e) {
+			}).on('windowminimize.launcher.elementary', function (e) {
 				onMinimized($(e.target));
-			}).on('windowhide windowtobackground', function (e) {
+			}).on('windowhide.launcher.elementary windowtobackground.launcher.elementary', function (e) {
 				if ($(e.target).window('is', 'maximized')) {
 					setTimeout(function () {
 						if ($(e.target).window('is', 'maximized') && (!$(e.target).window('is', 'visible') || !$(e.target).window('is', 'foreground'))) {
@@ -70,11 +70,11 @@ Webos.require([
 						}
 					}, 500);
 				}
-			}).on('windowclose', function (e) {
+			}).on('windowclose.launcher.elementary', function (e) {
 				if ($(e.target).window('is', 'maximized')) {
 					onMinimized($(e.target));
 				}
-			}).on('windowshow windowtoforeground', function (e) {
+			}).on('windowshow.launcher.elementary windowtoforeground.launcher.elementary', function (e) {
 				if ($(e.target).window('is', 'maximized')) {
 					setTimeout(function () {
 						if ($(e.target).window('is', 'maximized') && $(e.target).window('is', 'foreground') && $(e.target).window('is', 'visible')) {
@@ -111,10 +111,14 @@ Webos.require([
 				};
 			});
 
-			$.w.window.workspace.on('switch', function() {
+			$.w.window.workspace.on('switch.launcher.elementary', function() {
 				//On met a jour l'affichage des fenetres
 				that.renderLauncher();
 			});
+		},
+		destroyWindowsEvents: function () {
+			$(document).off('.launcher.elementary');
+			$.w.window.workspace.off('switch.launcher.elementary');
 		},
 		renderLauncher: function () {
 			var that = this, t = this.translations();
@@ -705,6 +709,9 @@ Webos.require([
 				that._renderMeMenu(data.user);
 			});
 		},
+		destroyMeMenu: function () {
+			Webos.User.off('login.memenu.elementary logout.memenu.elementary');
+		},
 		init: function () {
 			var that = this;
 
@@ -725,6 +732,19 @@ Webos.require([
 
 				that.trigger('ready');
 			}, 'elementary');
+
+			Webos.UserInterface.Booter.once('switch', function () {
+				that.destroy();
+			});
+		},
+		destroy: function () {
+			this.destroyWindowsEvents();
+			this.destroyMeMenu();
+
+			Webos.Theme.off('load.elementary');
+
+			this.trigger('destroy');
+			delete window.Elementary;
 		}
 	};
 

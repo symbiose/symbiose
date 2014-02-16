@@ -1,75 +1,81 @@
-Webos.require('/usr/lib/xtag/core.min.js', function() {
-	var xtag = {};
+(function () {
+	if (Webos.xtag) { //Library already loaded
+		return;
+	}
 
-	xtag.register = function(widgetName, options) {
-		window.xtag.register('x-' + widgetName, options);
-	};
+	Webos.require('/usr/lib/xtag/core.min.js', function() {
+		var xtag = {};
 
-	xtag.registerFromWidget = function(widgetName, widgetOptions) {
-		xtag.register(widgetName.replace('.', '-'), {
-			lifecycle: {
-				created: function() {
-					var options = {};
+		xtag.register = function(widgetName, options) {
+			window.xtag.register('x-' + widgetName, options);
+		};
 
-					for (var i = 0; i < this.attributes.length; i++) {
-						var attr = this.attributes[i],
-						key = attr.nodeName,
-						value = attr.value;
+		xtag.registerFromWidget = function(widgetName, widgetOptions) {
+			xtag.register(widgetName.replace('.', '-'), {
+				lifecycle: {
+					created: function() {
+						var options = {};
 
-						if (typeof widgetOptions.options[key] == 'boolean') {
-							if (value == 'false' || value == '0') {
-								value = false;
-							} else {
-								value = true;
+						for (var i = 0; i < this.attributes.length; i++) {
+							var attr = this.attributes[i],
+							key = attr.nodeName,
+							value = attr.value;
+
+							if (typeof widgetOptions.options[key] == 'boolean') {
+								if (value == 'false' || value == '0') {
+									value = false;
+								} else {
+									value = true;
+								}
+							} else if (typeof widgetOptions.options[key] == 'number') {
+								var numericValue = Number(value);
+
+								if (!isNaN(numericValue)) {
+									value = numericValue;
+								}
 							}
-						} else if (typeof widgetOptions.options[key] == 'number') {
-							var numericValue = Number(value);
 
-							if (!isNaN(numericValue)) {
-								value = numericValue;
-							}
+							options[key] = value;
 						}
 
-						options[key] = value;
+						$(this)[widgetName](options);
 					}
-
-					$(this)[widgetName](options);
 				}
+			});
+		};
+
+		xtag.importWidgets = function() {
+			var widgets = $.webos.widget.list();
+
+			for (var widgetName in widgets) {
+				xtag.registerFromWidget(widgetName, widgets[widgetName].prototype);
 			}
-		});
-	};
+		};
 
-	xtag.importWidgets = function() {
-		var widgets = $.webos.widget.list();
+		xtag.parse = function(contents) {
+			var $container = $('<div></div>').html(contents);
+			window.xtag.innerHTML($container[0], contents);
 
-		for (var widgetName in widgets) {
-			xtag.registerFromWidget(widgetName, widgets[widgetName].prototype);
-		}
-	};
+			var $els = $container.children();
 
-	xtag.parse = function(contents) {
-		var $container = $('<div></div>').html(contents);
-		window.xtag.innerHTML($container[0], contents);
+			return $els;
+		};
 
-		var $els = $container.children();
+		xtag.loadUI = function(file, callback) {
+			file = W.File.get(file);
+			callback = W.Callback.toCallback(callback);
 
-		return $els;
-	};
+			file.readAsText(function(contents) {
+				var $elements = xtag.parse(contents);
 
-	xtag.loadUI = function(file, callback) {
-		file = W.File.get(file);
-		callback = W.Callback.toCallback(callback);
+				$elements.detach();
+				$elements.parent().empty().remove();
+				callback.success($elements);
+			});
+		};
 
-		file.readAsText(function(contents) {
-			var $elements = xtag.parse(contents);
+		Webos.xtag = xtag;
 
-			$elements.detach();
-			$elements.parent().empty().remove();
-			callback.success($elements);
-		});
-	};
-
-	Webos.xtag = xtag;
-
-	xtag.importWidgets();
-});
+		xtag.importWidgets();
+	});
+})();
