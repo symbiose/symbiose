@@ -1,4 +1,4 @@
-.header-specific {
+.empathy-header {
 	padding: 3px;
 }
 
@@ -56,6 +56,8 @@
 }
 .friends-list li {
 	display: block;
+	max-width: 100%;
+	overflow: hidden;
 	position: relative;
 	padding: 12px;
 	line-height: 32px;
@@ -80,6 +82,12 @@
 	background-image: -moz-linear-gradient(#6bcaee, #3583db);
 	border-radius: 10px;
 }
+.friends-list .contact-picture,
+.friends-list .contact-name,
+.friends-list .contact-server,
+.friends-list .contact-status {
+	vertical-align: middle;
+}
 .friends-list .contact-picture {
 	float: left;
 	width: 32px;
@@ -96,10 +104,25 @@
 	-o-text-overflow: ellipsis;
 	text-overflow: ellipsis;
 }
+.friends-list .contact-server {
+	display: inline-block;
+	margin-left: 5px;
+	font-size: 10px;
+	color: #808080;
+}
+.friends-list .item-active .contact-server {
+	color: #8cbee6;
+}
+.hide-contact-server .contact-server {
+	display: none;
+}
 .friends-list .contact-status {
 	float: right;
 	font-size: 10px;
 	color: #808080;
+}
+.friends-list .contact-status .status-inner {
+	display: none; /* hide status text */
 }
 .friends-list .item-active .contact-status {
 	color: #8cbee6;
@@ -226,4 +249,14 @@
 	width: 24px;
 	height: 24px;
 	border-radius: 2px;
+}
+
+.accounts-list {
+	display: block;
+	width: 250px;
+	float: left;
+}
+.account-settings {
+	margin-left: 250px;
+	padding: 5px;
 }

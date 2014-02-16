@@ -2,17 +2,19 @@
 	<h1>Empathy</h1>
 
 	<header>
-		<div class="pull-right">
-			<div class="search-entry-ctn">
-				<x-searchEntry class="search-entry"></x-searchEntry>
+		<div class="empathy-header">
+			<div class="pull-right">
+				<div class="search-entry-ctn">
+					<x-searchEntry class="search-entry" disabled></x-searchEntry>
+				</div>
+
+				<div class="btns-ctn">
+					<x-button class="btn-accounts"><x-icon src="actions/document-properties-symbolic" size="16"></x-icon></x-button>
+				</div>
 			</div>
 
-			<div class="btns-ctn">
-				<x-button class="btn-accounts">Accounts</x-button>
-			</div>
+			<span class="clearfix"></span>
 		</div>
-
-		<span class="clearfix"></span>
 	</header>
 
 	<div class="views">
@@ -42,3 +44,20 @@
 		</div>
 	</div>
 </x-window-main>
+
+<x-window dialog width="600" resizable="false" stylesheet="/usr/share/css/empathy/main.css">
+	<h1>Settings</h1>
+
+	<x-list class="accounts-list"></x-list>
+	<div class="account-settings">
+		<form>
+			<label>Service : <select class="account-server"></select></label><br />
+			<label>Username : <input type="text" class="account-username"></label><br />
+			<label>Password : <input type="password" class="account-password"></label><br />
+			<x-buttonContainer>
+				<x-button class="acount-remove">Remove account</x-button>
+				<x-button submit>Apply</x-button>
+			</x-buttonContainer>
+		</form>
+	</div>
+</x-window>

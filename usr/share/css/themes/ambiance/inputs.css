@@ -70,6 +70,10 @@ input[type="submit"][disabled]:active,
 	-webkit-box-shadow: none;
 	box-shadow: none;
 }
+.webos-button x-icon {
+	display: inline-block;
+	margin-top: 4px;
+}
 
 .webos-entry-container input[type="submit"].fake-submit {
 	width: 0;

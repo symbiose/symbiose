@@ -34,7 +34,7 @@ input[type="button"], input[type="submit"], .webos-button {
 	position: relative;
 	margin-left: .1em;
 	margin-right: .1em;
-	padding: 0 16px;
+	padding: 0 8px;
 	text-decoration: none !important;
 	text-align: center;
 	background-color: #fcfcfc;
@@ -81,6 +81,11 @@ input[type="submit"][disabled]:active,
 	-webkit-box-shadow: none;
 	box-shadow: none;
 }
+.webos-button x-icon {
+	display: inline-block;
+	margin-top: 4px;
+}
+
 
 .webos-entry-container input[type="submit"].fake-submit {
 	width: 0;
@@ -160,6 +165,7 @@ input[type="submit"][disabled]:active,
 .webos-button-container {
 	padding: 2px;
 	text-align: right;
+	display: block;
 }
 
 .webos-spoiler {

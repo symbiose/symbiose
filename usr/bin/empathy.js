@@ -30,6 +30,7 @@ Webos.require([
 	};
 	Empathy.prototype = {
 		_$win: $(),
+		_$settingsWin: $(),
 		_$conversations: {},
 		_conns: {},
 		_loggedInUsers: {},
@@ -68,7 +69,7 @@ Webos.require([
 		getSubJid: function (jid) {
 			//for parsing JID: ramon@localhost/1234567
 			//to ramon@localhost
-			
+
 			var index = jid.indexOf('/');
 			if (index > 0) {
 				return jid.slice(0, index);
@@ -105,8 +106,10 @@ Webos.require([
 		initialize: function () {
 			var that = this;
 
-			W.xtag.loadUI('/usr/share/templates/empathy/main.html', function(mainWindow) {
-				that._$win = $(mainWindow);
+			W.xtag.loadUI('/usr/share/templates/empathy/main.html', function(windows) {
+				that._$win = $(windows).filter(':eq(0)');
+				that._$settingsWin = $(windows).filter(':eq(1)');
+
 				var $win = that._$win;
 
 				$win.window('open');
@@ -159,7 +162,7 @@ Webos.require([
 			this.on('connecting', function (data) {
 				$win.window('loading', true, {
 					message: 'Logging in '+data.jid,
-					lock: (that.countConnections() <= 1)
+					lock: (that.countConnections() == 0)
 				});
 
 				var jid = data.jid;
@@ -190,6 +193,14 @@ Webos.require([
 
 			this.once('connected', function () {
 				that.switchView('conversations');
+
+				$win.find('.search-entry').searchEntry('option', 'disabled', false);
+			});
+
+			$win.find('.search-entry').keyup(function () {
+				var searchQuery = $win.find('.search-entry').searchEntry('value');
+
+				that.searchContacts(searchQuery);
 			});
 
 			var $contactsCtn = $win.find('.view-conversations .friends-list ul');
@@ -202,6 +213,7 @@ Webos.require([
 					$contact.append('<span class="contact-status"></span>');
 					$contact.append('<img alt="" class="contact-picture"/>');
 					$contact.append('<span class="contact-name"></span>');
+					$contact.append('<span class="contact-server"></span>');
 				}
 
 				var readablePresence = '';
@@ -241,31 +253,55 @@ Webos.require([
 				$contact.removeClass('contact-online contact-offline contact-away').addClass('contact-'+contact.presence);
 
 				$contact.find('.contact-name').text(contact.name);
-				$contact.find('.contact-status').html(readablePresence);
+				$contact.find('.contact-status').html('<span class="status-inner">'+readablePresence+'</span>');
 				$contact.find('.contact-picture').attr('src', contact.picture);
 
+				if (contact.conn) {
+					var serverName = that.getJidDomain(contact.conn);
+					if (that._servers[serverName]) {
+						serverName = that._servers[serverName];
+					}
+
+					$contact.find('.contact-server').text(serverName);
+				}
+
 				$contact.off('click.empathy').on('click.empathy', function () {
-					$contactsCtn.children('.item-active').removeClass('item-active');
-					$(this).addClass('item-active').removeClass('contact-conversation-unread');
+					if (!contact.conn) {
+						return;
+					}
+
 					that._switchConversation(contact.jid, contact.conn);
 				});
+
+				$contactsCtn.toggleClass('hide-contact-server', (that.countConnections() <= 1));
 			});
 
 			this.on('userupdated', function (contact) {
 				$win.find('.conversation-compose .compose-contact-picture').attr('src', contact.picture);
 			});
 
+			var scrollToConversationBottom = function () {
+				var conversationHeight = 0;
+				$win.find('.conversation ul').children().each(function () {
+					conversationHeight += $(this).outerHeight(true);
+				});
+
+				$win.find('.conversation ul').scrollTop(conversationHeight);
+			};
 			this.on('messagesent', function (msg) {
 				var dst = that.contact(msg.to), src = that.loggedInUser(msg.from);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-sent' });
 				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
-				$msg.append($('<span></span>', { 'class': 'msg-content' }).text(msg.message));
+				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 
 				if (that.currentDst() && that.currentDst().jid == msg.to) {
 					$msg.appendTo($win.find('.conversation ul'));
+					scrollToConversationBottom();
 				} else if (that._isConversationDetached(msg.to)) {
-					$msg.appendTo(that._$conversations[msg.to]);
+					that._$conversations[msg.to] = that._$conversations[msg.to].add($msg);
+				} else {
+					that._$conversations[msg.to] = $msg;
 				}
 			});
 			this.on('messagereceived', function (msg) {
@@ -273,18 +309,49 @@ Webos.require([
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received' });
 				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
-				$msg.append($('<span></span>', { 'class': 'msg-content' }).text(msg.message));
+				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 
 				if (that.currentDst() && that.currentDst().jid == msg.from) {
 					$msg.appendTo($win.find('.conversation ul'));
-				} else if (that._isConversationDetached(msg.from)) {
-					that._$conversations[msg.from] = that._$conversations[msg.from].add($msg);
+					scrollToConversationBottom();
+				} else {
+					if (that._isConversationDetached(msg.from)) {
+						that._$conversations[msg.from] = that._$conversations[msg.from].add($msg);
+					} else {
+						that._$conversations[msg.from] = $msg;
+					}
 
 					//Set conversation as unread
 					var $contact = $contactsCtn.children('li').filter(function () {
 						return ($(this).data('jid') == msg.from);
 					});
 					$contact.addClass('contact-conversation-unread').detach().prependTo($contactsCtn);
+
+					//Show a little notification
+					var $replyEntry = $('<input />', { type: 'text', placeholder: 'Reply...' })
+						.css({ 'float': 'left' })
+						.keydown(function (e) {
+							if (e.keyCode == 13) {
+								var msg = {
+									from: src.conn,
+									to: src.jid,
+									message: $replyEntry.val()
+								};
+								that.sendMessage(msg);
+
+								$replyEntry.val('');
+							}
+						});
+					var $talkBtn = $.w.button('Talk').click(function() {
+						that._switchConversation(src.jid, src.conn);
+					});
+
+					$.w.notification({
+						title: 'New message from '+src.name,
+						icon: 'apps/chat',
+						message: msg.message,
+						widgets: [$replyEntry, $talkBtn]
+					});
 				}
 			});
 
@@ -312,6 +379,10 @@ Webos.require([
 
 					var msgContent = $(this).val();
 
+					if (!msgContent) {
+						return;
+					}
+
 					var msg = {
 						from: dst.conn,
 						to: dst.jid,
@@ -321,6 +392,10 @@ Webos.require([
 
 					$(this).val('').focus();
 				}
+			});
+
+			$win.find('.btn-accounts').click(function () {
+				that.openSettings();
 			});
 
 			$win.on('windowclose', function () {
@@ -410,12 +485,17 @@ Webos.require([
 				password: password
 			});
 		},
-		disconnect: function () {
-			for (var jid in this._conns) {
-				this._conns[jid].disconnect();
-			}
+		disconnect: function (jid) {
+			if (typeof jid == 'undefined') {
+				for (var currentJid in this._conns) {
+					this._conns[currentJid].disconnect();
+				}
 
-			this._conns = {};
+				this._conns = {};
+			} else {
+				this._conns[jid].disconnect();
+				delete this._conns[jid];
+			}
 		},
 		_addAccount: function (newAccount) {
 			var accounts = this._config.accounts;
@@ -445,8 +525,8 @@ Webos.require([
 				var account = accounts[i];
 
 				if (account.jid == jid) {
-					this.trigger('accountremove', { account: account });
 					this._config.accounts.splice(i, 1); //Remove item
+					this.trigger('accountremove', { account: account });
 					return true;
 				}
 			}
@@ -484,6 +564,8 @@ Webos.require([
 			});
 		},
 		_autoConnect: function () {
+			var that = this;
+
 			if (this._config.accounts.length == 1) {
 				var account = this._config.accounts[0];
 
@@ -502,6 +584,47 @@ Webos.require([
 					
 					this._$win.find('.view-login .login-username').val(jid);
 					this._$win.find('.view-login .login-password').focus();
+				}
+			} else {
+				var accounts = this._config.accounts;
+				for (var i = 0; i < accounts.length; i++) {
+					(function (account) {
+						if (account.password) {
+							this.connect(account.jid, account.password);
+						} else {
+							var $askPasswordWin = $.w.window({
+								title: 'Connecting '+account.jid,
+								dialog: true,
+								resizable: false,
+								width: 350
+							});
+
+							var $form = $.w.entryContainer().appendTo($askPasswordWin.window('content'));
+
+							$.w.label('Please enter your password for '+account.jid+'.').appendTo($form);
+							var $passwordEntry = $.w.passwordEntry('Password: ');
+							$passwordEntry.appendTo($form);
+
+							var $btns = $.w.buttonContainer().appendTo($form);
+							var $cancelBtn = $.w.button('Cancel').click(function () {
+								$askPasswordWin.window('close');
+							}).appendTo($btns);
+							var $submitBtn = $.w.button('Login', true).appendTo($btns);
+
+							$form.submit(function () {
+								var password = $passwordEntry.passwordEntry('value');
+
+								if (!password) {
+									return;
+								}
+
+								that.connect(account.jid, password);
+								$askPasswordWin.window('close');
+							});
+
+							$askPasswordWin.window('open');
+						}
+					})(accounts[i]);
 				}
 			}
 		},
@@ -724,6 +847,13 @@ Webos.require([
 
 			this._$win.find('.conversation .conversation-compose').show();
 			this._$win.find('.conversation .conversation-compose .compose-msg').focus();
+
+			var $contactsCtn = this._$win.find('.view-conversations .friends-list ul');
+			var $contact = $contactsCtn.children('li').filter(function () {
+				return ($(this).data('jid') == dst);
+			});
+			$contactsCtn.children('.item-active').removeClass('item-active');
+			$contact.addClass('item-active').removeClass('contact-conversation-unread');
 		},
 		sendMessage: function (msg) {
 			var conn = this._conn(msg.from);
@@ -742,7 +872,143 @@ Webos.require([
 				to: msg.to,
 				message: msg.message
 			});
-			console.log('I sent to ' + msg.to + ': ' + msg.message);
+		},
+		searchContacts: function (searchQuery) {
+			var that = this;
+
+			var searchAttrs = ['jid', 'name'];
+
+			var $contactsCtn = this._$win.find('.view-conversations .friends-list ul');
+
+			if (!searchQuery) {
+				$contactsCtn.children().show();
+			} else {
+				$contactsCtn.children().each(function () {
+					var contact = that.contact($(this).data('jid'));
+
+					for (var i = 0; i < searchAttrs.length; i++) {
+						var val = contact[searchAttrs[i]];
+						if (!~val.toLowerCase().indexOf(searchQuery.toLowerCase())) {
+							$(this).hide();
+						} else {
+							$(this).show();
+							break;
+						}
+					}
+				});
+			}
+		},
+		openSettings: function () {
+			var that = this;
+
+			var $settingsWin = this._$settingsWin;
+
+			if (!$settingsWin.window('is', 'opened')) {
+				$settingsWin.window('option', 'parentWindow', this._$win).window('open');
+
+				this.on('accountupdate.settings.empathy accountremove.settings.empathy', function () {
+					that.openSettings();
+				});
+				$settingsWin.one('windowclose', function () {
+					that.off('accountupdate.settings.empathy accountremove.settings.empathy');
+				});
+			}
+			$settingsWin.window('toForeground');
+
+			var $form = $settingsWin.find('form'),
+				$serverEntry = $settingsWin.find('.account-server'),
+				$usernameEntry = $settingsWin.find('.account-username'),
+				$passwordEntry = $settingsWin.find('.account-password'),
+				$removeAccountBtn = $settingsWin.find('.acount-remove');
+
+			$serverEntry.empty();
+			for (var servHost in this._servers) {
+				var servName = this._servers[servHost];
+
+				$serverEntry.append('<option value="'+servHost+'">'+servName+'</option>');
+			}
+
+			var editedAccount = -1;
+
+			var $accountsList = $settingsWin.find('.accounts-list').list('content').empty();
+			var accounts = this._config.accounts;
+			for (var i = 0; i < accounts.length; i++) {
+				(function (i, account) {
+					var $item = $.w.listItem(account.jid);
+					$item.on('listitemselect', function () {
+						editedAccount = i;
+
+						var jid = account.jid, serverHost = that.getJidDomain(account.jid);
+						if (!that._servers[serverHost]) {
+							serverHost = '';
+						}
+						if (serverHost) {
+							jid = that.getJidUsername(jid);
+						}
+
+						$serverEntry.val(serverHost);
+						$usernameEntry.val(jid);
+						$passwordEntry.val(account.password || '');
+
+						$removeAccountBtn.button('option', 'disabled', false);
+					});
+
+					if (i == 0) { //Select first item
+						$item.listItem('option', 'active', true);
+					}
+
+					$item.appendTo($accountsList);
+				})(i, accounts[i]);
+			}
+
+			var $newItem = $.w.listItem('New account').appendTo($accountsList);
+			$newItem.on('listitemselect', function () {
+				editedAccount = -1;
+
+				$serverEntry.val('');
+				$usernameEntry.val('');
+				$passwordEntry.val('');
+
+				$removeAccountBtn.button('option', 'disabled', true);
+			});
+			if (i == 0) { //Select first item
+				$newItem.listItem('option', 'active', true);
+			}
+
+			$form.off('submit.settings.empathy').on('submit.settings.empathy', function (e) {
+				e.preventDefault();
+
+				var server = $serverEntry.val(),
+					jid = $usernameEntry.val(),
+					password = $passwordEntry.val();
+
+				if (server && !~jid.indexOf('@')) {
+					jid = jid+'@'+server;
+				}
+
+				if (~editedAccount && that._config.accounts[editedAccount].jid != jid) {
+					that._removeAccount(that._config.accounts[editedAccount].jid);
+				}
+
+				if (that.connection(jid)) {
+					that.disconnect(jid);
+				}
+				that.connect(jid, password);
+			});
+
+			$removeAccountBtn.off('click.settings.empathy').on('click.settings.empathy', function () {
+				if (editedAccount == -1) {
+					return;
+				}
+
+				var jid = that._config.accounts[editedAccount].jid;
+
+				if (that.connection(jid)) {
+					that.disconnect(jid);
+				}
+
+				that._removeAccount(jid);
+			});
 		}
 	};
 	Webos.inherit(Empathy, Webos.Observable);

@@ -945,6 +945,12 @@ $.webos.widget('image', 'widget', {
 		parent: $()
 	},
 	_create: function() {
+		if (!this.element.is('img')) {
+			var $newEl = $('<img />');
+			this.element.empty().append($newEl);
+			this.element = $newEl;
+		}
+
 		this._super('_create');
 		
 		this.option('title', this.options.title);
@@ -960,7 +966,7 @@ $.webos.widget('image', 'widget', {
 
 		//Transparent image (1x1 px)
 		this.element.attr('src','data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3QEMDAMRXUW5DAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAANSURBVAjXY/j//z8DAAj8Av5cn8/aAAAAAElFTkSuQmCC');
-		
+
 		if (!this.options.loadHidden) {
 			if (this.element.is(':hidden')) {
 				return;
@@ -1019,13 +1025,14 @@ $.webos.widget('image', 'widget', {
 		
 		var that = this;
 
+		var src = String(this.options.src);
 		this.options.img = new Image();
 		this.options.img.onload = function() {
 			if (that.options.animate) {
 				that.element.css('opacity', 0);
 			}
 
-			that.element.attr('src', that.options.src);
+			that.element.attr('src', src);
 
 			if (that.options.animate) {
 				that.element.animate({ opacity: 1 }, 'fast');
@@ -1039,7 +1046,7 @@ $.webos.widget('image', 'widget', {
 		this.options.img.onabort = function() {
 			that._trigger('abort', { type: 'abort' }, { img: that.options.img });
 		};
-		this.options.img.src = String(this.options.src);
+		this.options.img.src = src;
 	},
 	/**
 	 * Check if the image is loaded.
@@ -1353,47 +1360,47 @@ $.webos.widget('list', 'container', {
 			column = 0;
 		}
 		
-	    var items = this.content().children();
-	    var itemsArray = $.makeArray(items);
-	    itemsArray.sort(function(a, b) {
-	    	a = $(a).text();
-	    	b = $(b).text();
-	    	for (var i = 0, aa, bb; (aa = a[i]) && (bb = b[i]); i++) {
-	    		if (aa !== bb) {
-	    			var c = Number(aa), d = Number(bb);
-	    			if (c == aa && d == bb) {
-	    				return c - d;
-	    			} else {
-	    				return (aa > bb) ? 1 : -1;
-	    			}
-	    		}
-	    	}
-	    	return a.length - b.length;
-	    });
-	    
-	    if (invert) {
-	    	itemsArray.reverse();
-	    }
-	    
-	    var that = this;
-	    
-	    var sortedItems = [];
-	    
-	    items.each(function() {
-	    	var item = $(this);
-	    	var currentIndex = item.index(), index = jQuery.inArray(this, itemsArray);
-	    	item.detach();
-	    	
-    		for (var i = index - 1; i >= 0; i--) {
-    			if (jQuery.inArray(i, sortedItems) != -1) {
-    				item.insertAfter(itemsArray[i]);
-    				sortedItems.push(index);
-    				return;
-    			}
-    		}
-    		item.prependTo(that.content());
-    		sortedItems.push(index);
-	    });
+		var items = this.content().children();
+		var itemsArray = $.makeArray(items);
+		itemsArray.sort(function(a, b) {
+			a = $(a).text();
+			b = $(b).text();
+			for (var i = 0, aa, bb; (aa = a[i]) && (bb = b[i]); i++) {
+				if (aa !== bb) {
+					var c = Number(aa), d = Number(bb);
+					if (c == aa && d == bb) {
+						return c - d;
+					} else {
+						return (aa > bb) ? 1 : -1;
+					}
+				}
+			}
+			return a.length - b.length;
+		});
+
+		if (invert) {
+			itemsArray.reverse();
+		}
+
+		var that = this;
+
+		var sortedItems = [];
+
+		items.each(function() {
+			var item = $(this);
+			var currentIndex = item.index(), index = jQuery.inArray(this, itemsArray);
+			item.detach();
+			
+			for (var i = index - 1; i >= 0; i--) {
+				if (jQuery.inArray(i, sortedItems) != -1) {
+					item.insertAfter(itemsArray[i]);
+					sortedItems.push(index);
+					return;
+				}
+			}
+			item.prependTo(that.content());
+			sortedItems.push(index);
+		});
 	},
 	addButton: function(button) {
 		if (typeof this.options._components.buttonContainer == 'undefined') {
@@ -1475,7 +1482,11 @@ $.webos.widget('listItem', 'container', {
 	_name: 'list-item',
 	_create: function() {
 		this._super('_create');
-		
+
+		if (!(this.options.columns instanceof Array)) {
+			this.options.columns = [this.options.columns];
+		}
+
 		for (var i = 0; i < this.options.columns.length; i++) {
 			this.addColumn(this.options.columns[i]);
 		}
