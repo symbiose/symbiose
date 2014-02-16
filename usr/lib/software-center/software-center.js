@@ -316,7 +316,7 @@ Webos.require([
 			if (typeof this._views.error == 'undefined') {
 				this._views.error = $.w.container().addClass('error');
 
-				$.w.image(new W.Icon('status/error', 48)).addClass('error-icon').appendTo(this._views.error);
+				$.w.icon('status/error', 48).addClass('error-icon').appendTo(this._views.error);
 				$('<h1></h1>').html('Erreur').appendTo(this._views.error);
 				$('<p></p>').appendTo(this._views.error);
 

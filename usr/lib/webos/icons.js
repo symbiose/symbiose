@@ -81,7 +81,7 @@
 			this.type = type;
 		},
 		setSize: function (size) {
-			this.size = parseInt(size);
+			this.size = parseInt(size) || 48;
 		},
 		setTheme: function (theme) {
 			this.theme = theme;

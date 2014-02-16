@@ -507,8 +507,9 @@ Webos.require([
 						});
 					}
 					
-					var img = $.w.image(new W.Icon(app.get('icon'), 92), app.get('title'), false).appendTo(item);
-					img.image('option', {
+					var img = $.w.icon(app.get('icon'), 92).appendTo(item);
+					img.icon('option', {
+						loadHidden: false,
 						animate: true,
 						parent: $list
 					});
@@ -538,7 +539,7 @@ Webos.require([
 			
 			$list.scrollPane('reload');
 			
-			$icons.image('load');
+			$icons.icon('load');
 		},
 		/**
 		 * Simuler un clic sur le premier raccourci (utile lors d'un recherche, si l'utilisateur appuie sur la touche entree).

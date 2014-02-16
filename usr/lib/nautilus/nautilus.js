@@ -279,7 +279,7 @@ Webos.require([
 				
 				for (var name in this._drivers) {
 					(function(name, driverData) {
-						var item = $.w.iconsListItem(Webos.Icon.toIcon(driverData.icon), driverData.title)
+						var item = $.w.iconsListItem(driverData.icon, driverData.title)
 							.click(function() {
 								selectDriverFn(name);
 							})

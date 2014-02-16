@@ -1322,7 +1322,7 @@ Webos.require([
 					
 					var form = $.w.entryContainer().appendTo(exeWindow.window('content'));
 					
-					$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
+					$.w.icon('actions/help').css('float', 'left').appendTo(form);
 					$('<strong></strong>').html(t.get('Do you want to execute « ${name} » or to display his contents ?', { name: file.get('basename') })).appendTo(form);
 					form.append('<p>'+t.get('« ${name} » is an executable text file.', { name: file.get('basename') })+'</p>');
 					

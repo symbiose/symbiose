@@ -101,13 +101,15 @@ $.webos.widget('contextMenu', 'container', {
 		});
 		
 		// Disable text selection
-		if( $.browser.mozilla ) {
-			this.element.each( function() { $(this).css({ 'MozUserSelect' : 'none' }); });
-		} else if( $.browser.msie ) {
-			this.element.each( function() { $(this).bind('selectstart.disableTextSelect', function() { return false; }); });
-		} else {
-			this.element.each(function() { $(this).bind('mousedown.disableTextSelect', function() { return false; }); });
-		}
+		this.element.each( function() {
+			$(this).css({
+				'-moz-user-select' : 'none',
+				'-webkit-user-select' : 'none',
+				'-ms-user-select' : 'none',
+				'-o-user-select' : 'none',
+				'user-select' : 'none'
+			});
+		});
 		
 		target.add('ul.webos-contextmenu').bind('contextmenu', function(event) {
 			event.preventDefault();

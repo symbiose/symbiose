@@ -214,7 +214,8 @@ W.UserInterface.Booter.current().disableAutoLoad();
 						Webos.Cmd.execute(app.get('command'));
 					});
 
-					var $img = $.w.image(new W.Icon(app.get('icon'), 48), app.get('description'))
+					var $img = $.w.icon(app.get('icon'), 48)
+						.attr('title', app.get('description'))
 						.addClass('app-icon')
 						.appendTo($item);
 

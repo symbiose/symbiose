@@ -536,7 +536,7 @@ Webos.UserInterface.Booter.prototype = {
 				that.notify('loadstateupdate', { state: 'scripts', item: index });
 
 				js = 'try {'+js+"\n"+'} catch(error) { Webos.Error.catchError(error); }';
-				Webos.Script.run(js); //On execute le code
+				Webos.Script.run(js, index); //On execute le code
 
 				i++;
 				operation.setProgress(20 + (i / scriptsNbr) * 70);

@@ -484,7 +484,7 @@ Webos.require([
 			});
 		},
 		_autoConnect: function () {
-			if (this._config.accounts.length == 1) {
+			blah();if (this._config.accounts.length == 1) {
 				var account = this._config.accounts[0];
 
 				if (account.password) {

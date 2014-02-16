@@ -115,7 +115,7 @@ Webos.require([
 
 				loadingWindowContent = loadingWindow.window('content');
 
-				$.w.image(new W.Icon('actions/update')).css('float', 'left').appendTo(loadingWindowContent);
+				$.w.image('actions/update').css('float', 'left').appendTo(loadingWindowContent);
 				$('<strong></strong>').html('Mise &agrave; jour du cache').appendTo(loadingWindowContent);
 				$.w.label('Le cache est en cours de mise &agrave; jour, veuillez patienter quelques instants...').appendTo(loadingWindowContent);
 

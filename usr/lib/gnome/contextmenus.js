@@ -163,13 +163,15 @@ if(jQuery)( function() {
 				});
 				
 				// Disable text selection
-				if( $.browser.mozilla ) {
-					o.menu.each( function() { $(this).css({ 'MozUserSelect' : 'none' }); });
-				} else if( $.browser.msie ) {
-					o.menu.each( function() { $(this).bind('selectstart.disableTextSelect', function() { return false; }); });
-				} else {
-					o.menu.each(function() { $(this).bind('mousedown.disableTextSelect', function() { return false; }); });
-				}
+				o.menu.each( function() {
+					$(this).css({
+						'-moz-user-select' : 'none',
+						'-webkit-user-select' : 'none',
+						'-ms-user-select' : 'none',
+						'-o-user-select' : 'none',
+						'user-select' : 'none'
+					});
+				});
 				// Disable browser context menu (requires both selectors to work in IE/Safari + FF/Chrome)
 				$(el).add('UL.contextMenu').bind('contextmenu', function() { return false; });
 				

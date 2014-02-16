@@ -3,11 +3,12 @@
  * @param {String}           js     The Javascript code.
  * @param {Webos.Arguments}  [args] Arguments to provide to the script.
  * @constructor
+ * @deprecated  Use Webos.Script.create() instead.
  */
-Webos.Script = function WScript(js, args) {
+Webos.Script = function (js, args, url) {
 	this.js = js;
 	this.args = args;
-	
+
 	if (typeof args == 'undefined') { //Si les arguments sont vides
 		args = new Webos.Arguments({});
 	}
@@ -15,22 +16,41 @@ Webos.Script = function WScript(js, args) {
 	var options = args.getOptions(), params = args.getParams();
 
 	if (js != '' && js != null) {
-		js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
+		js = 'try { '+js+' \n} catch(error) { W.Error.catchError(error); }';
 	}
 	
 	//On ajoute la sandbox
 	js = '(function(args) { '+js+"\n"+' })(new W.Arguments({ options: '+JSON.stringify(options)+', params: '+JSON.stringify(params)+' }));';
-	Webos.Script.run(js); //On execute le tout
+
+	Webos.Script.run(js, url); //On execute le tout
+};
+
+/**
+ * Execute a script in a sandbox.
+ * @param {String}           js     The Javascript code.
+ * @param {Webos.Arguments}  [args] Arguments to provide to the script.
+ */
+Webos.Script.create = function (js, args, url) {
+	return new Webos.Script(js, args, url);
 };
 
 /**
  * Run a script.
- * @param  {String} js The Javascript code.
+ * @param  {String} js  The Javascript code.
+ * @param  {String} url The script URL (for debugging).
  * @static
  */
-Webos.Script.run = function $_WScript_run(js) {
-	js = js.replace(/\/\*([\s\S]*?)\*\//g, ''); //On enleve les commentaires
-	$.globalEval(js);
+Webos.Script.run = function (js, url) {
+	//Not good for debugging
+	//js = js.replace(/\/\*([\s\S]*?)\*\//g, ''); //Remove comments
+
+	if (url && /^\s*(\S*?)\s*$/m.test(url)) { //Set source URL for debugging
+		js += '\n//# sourceURL='+url;
+	}
+
+	var s = document.createElement('script');
+	s.innerHTML = '\n'+js;
+	document.head.appendChild(s);
 };
 
 /**
@@ -39,7 +59,7 @@ Webos.Script.run = function $_WScript_run(js) {
  * @param  {String} path The file's path.
  * @static
  */
-Webos.Script.load = function $_WScript_load(path) {
+Webos.Script.load = function (path) {
 	$.ajax({
 		url: path,
 		dataType: "script",
@@ -53,7 +73,7 @@ Webos.Script.load = function $_WScript_load(path) {
  * @param {String} path The file's path.
  * @constructor
  */
-Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Javascript
+Webos.ScriptFile = function (path) { //Permet d'inclure un fichier Javascript
 	if (!/^(\/|~\/)/.test(path)) {
 		path = '/'+path;
 	}
@@ -62,7 +82,8 @@ Webos.ScriptFile = function WScriptFile(path) { //Permet d'inclure un fichier Ja
 		Webos.ScriptFile._cache[this.path] = this._js;
 		if (this._js) {
 			var js = 'try {'+this._js+"\n"+'} catch(error) { W.Error.catchError(error); }';
-			Webos.Script.run(js);
+
+			Webos.Script.run(js, path);
 		}
 	};
 	
@@ -105,24 +126,26 @@ Webos.ScriptFile._cache = {};
  * Arguments are strings containing file's path.
  * @returns {Webos.ServerCall.Group}
  */
-Webos.ScriptFile.load = function $_WScriptFile_load() {
+Webos.ScriptFile.load = function () {
 	var group = new Webos.ServerCall.Group([], { async: false });
 	for (var i = 0; i < arguments.length; i++) {
-		group.add(new Webos.ServerCall({
-			'class': 'FileController',
-			'method': 'getContents',
-			'arguments': {
-				file: arguments[i]
-			},
-			async: false
-		}), function(response) {
-			var js = response.getStandardChannel();
-			
-			if (js) {
-				js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
-				Webos.Script.run(js);
-			}
-		});
+		(function (path) {
+			group.add(new Webos.ServerCall({
+				'class': 'FileController',
+				'method': 'getContents',
+				'arguments': {
+					file: path
+				},
+				async: false
+			}), function(response) {
+				var js = response.getStandardChannel();
+
+				if (js) {
+					js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
+					Webos.Script.run(js, path);
+				}
+			});
+		})(arguments[i]);
 	}
 	
 	group.load();
@@ -162,7 +185,7 @@ function include(path, args, thisObj) {
  * @param  {Object}         [options]  Options.
  * @static
  */
-Webos.require = function Wrequire(files, callback, options) {
+Webos.require = function (files, callback, options) {
 	callback = Webos.Callback.toCallback(callback);
 	options = $.extend({
 		styleContainer: null,
@@ -218,12 +241,8 @@ Webos.require = function Wrequire(files, callback, options) {
 						contents += '\n'+exportApiCode;
 					}
 
-					try {
-						var fn = new Function(contents);
-						fn();
-					} catch(error) {
-						W.Error.catchError(error);
-					}
+					contents = 'try { '+contents+' \n} catch(error) { W.Error.catchError(error); }';
+					Webos.Script.run(contents, file.get('path'));
 
 					Webos.require._currentFile = previousFile;
 
@@ -279,7 +298,7 @@ Webos.require._currentOperation = null;
  * @param  {Object}         [options]  Options.
  * @static
  */
-Webos.eval = function Weval(scripts, callback, options) {
+Webos.eval = function (scripts, callback, options) {
 	callback = Webos.Callback.toCallback(callback);
 	options = $.extend({
 		styleContainer: null

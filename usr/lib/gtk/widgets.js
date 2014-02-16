@@ -1039,7 +1039,7 @@ $.webos.widget('image', 'widget', {
 		this.options.img.onabort = function() {
 			that._trigger('abort', { type: 'abort' }, { img: that.options.img });
 		};
-		this.options.img.src = this.options.src;
+		this.options.img.src = String(this.options.src);
 	},
 	/**
 	 * Check if the image is loaded.
@@ -1127,13 +1127,21 @@ $.webos.widget('icon', 'image', {
 	_create: function() {
 		this._super('_create');
 
-		this.option('size', this.options.size);
+		if (this.options.size) {
+			this.option('size', this.options.size);
+		}
 	},
 	_update: function(key, value) {
 		switch(key) {
 			case 'src':
-				this.options.src = W.Icon.toIcon(value);
-				this.options.src.setSize(this.options.size);
+				//TODO: that's ugly!
+				if (typeof value == 'string' && (value.indexOf('sbin/') == 0 || value.indexOf('usr/') == 0)) {
+					this.options.src = value;
+				} else {
+					this.options.src = W.Icon.toIcon(value);
+					this.options.src.setSize(this.options.size);
+				}
+
 				this.load();
 				break;
 			case 'size':
@@ -1582,16 +1590,16 @@ $.webos.widget('iconsListItem', 'container', {
 	_name: 'iconslistitem',
 	_create: function() {
 		this._super('_create');
-		
-		this.options._components.icon = $('<img />').appendTo(this.element);
+
+		this.options._components.icon = $.w.icon().appendTo(this.element);
 		this.options._components.title = $('<span></span>').appendTo(this.element);
-		
+
 		var that = this;
-		
+
 		this.element.mousedown(function() {
 			that.active(true);
 		});
-		
+
 		this._setIcon(this.options.icon);
 		this._setTitle(this.options.title);
 		this.active(this.options.active);
@@ -1600,7 +1608,7 @@ $.webos.widget('iconsListItem', 'container', {
 		if (typeof icon == 'undefined') {
 			return this.options.icon;
 		} else {
-			this.options._components.icon.attr('src', icon);
+			this.options._components.icon.icon('option', 'src', icon);
 		}
 	},
 	_setTitle: function(title) {

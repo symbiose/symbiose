@@ -252,8 +252,8 @@ Webos.Translation.load(function(t) {
 							W.Cmd.execute(app.get('command'));
 						});
 						
-						var img = $.w.image(new W.Icon(app.get('icon'), 32), app.get('title')).appendTo(contents);
-						img.image('option', 'loadHidden', false);
+						var img = $.w.icon(app.get('icon'), 32).appendTo(contents);
+						img.icon('option', 'loadHidden', false);
 						$('<span></span>', { 'class': 'title' }).html(app.get('title')).appendTo(contents);
 
 						item.appendTo($applications);

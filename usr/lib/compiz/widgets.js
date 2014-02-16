@@ -1404,7 +1404,7 @@ $.webos.window.confirm = function(opts) {
 	
 	var form = $.w.entryContainer().appendTo(confirm.window('content'));
 	
-	$.w.image(new W.Icon('actions/help')).css('float', 'left').appendTo(form);
+	$.w.icon('actions/help').css('float', 'left').appendTo(form);
 	$('<strong></strong>').html(options.label).appendTo(form);
 
 	if (options.details) {
@@ -1478,7 +1478,7 @@ $.webos.window.messageDialog = function(opts) {
 	
 	var contents = dialog.window('content');
 	
-	$.w.image(icon).css('float', 'left').appendTo(contents);
+	$.w.icon(icon).css('float', 'left').appendTo(contents);
 	$('<strong></strong>').html(options.label).appendTo(contents);
 	
 	if (options.details) {

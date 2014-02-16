@@ -31,9 +31,7 @@ var GConf = function (category) {
 			};
 			
 			var generateItemFn = function(data) {
-				var icon = new W.Icon(data.icon);
-				
-				var item = $.w.iconsListItem(icon, data.title)
+				var item = $.w.iconsListItem(data.icon, data.title)
 					.attr('title', data.description)
 					.click(function() {
 						that._window.window('option', 'title', data.title);

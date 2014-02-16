@@ -340,9 +340,9 @@ Webos.require([
 					W.Cmd.execute(app.get('command'));
 				});
 				
-				var img = $.w.image(new W.Icon(app.get('icon'), 48), app.get('title'))
+				var img = $.w.icon(app.get('icon'), 48)
+					.icon('option', { animate: true })
 					.addClass('app-icon')
-					.image('option', { animate: true })
 					.appendTo(item);
 				$('<div></div>', { 'class': 'app-title' })
 					.html(app.get('title'))

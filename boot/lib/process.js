@@ -8,9 +8,10 @@
 	 * @augments {Webos.Observable}
 	 * @since  1.0alpha1
 	 */
-	Webos.Process = function WProcess(options) {
+	Webos.Process = function (options) {
+		var that = this;
+
 		this.pid = options.pid;
-		//var key = options.key;
 		this.authorizations = options.authorizations;
 		if (options.args) {
 			this.args = options.args;
@@ -22,7 +23,19 @@
 
 		this._state = 0; // 0 -> ready; 1 -> running; 2 -> idle; 3 -> killed.
 
-		this.main = new Function('args', options.fn);
+		//this.main = new Function('args', options.fn);
+		this.main = function () {
+			var js = options.fn;
+
+			var url = '';
+			if (that.cmd) {
+				url = that.cmd+'.js';
+			}
+
+			js = '(function (args) { '+js+'\n }).call(Webos.Process.get('+that.getPid()+'), args);';
+
+			Webos.Script.create(js, this.args, url);
+		};
 
 		if (typeof this.pid != 'undefined') {
 			Webos.Process.list[this.pid] = this;
@@ -33,11 +46,12 @@
 	Webos.Process.prototype = {
 		/**
 		 * The code of the process.
+		 * @deprecated For security reasons.
 		 */
 		main: function () {},
 		/**
 		 * Get this process' ID.
-		 * @returns {Number} The PID.
+		 * @return {Number} The PID.
 		 */
 		getPid: function () {
 			return this.pid;
@@ -51,7 +65,7 @@
 		},
 		/**
 		 * Get this process' authorizations.
-		 * @returns {Webos.Authorizations} The authorizations.
+		 * @return {Webos.Authorizations} The authorizations.
 		 */
 		getAuthorizations: function () {
 			return this.authorizations;
@@ -95,7 +109,7 @@
 			};
 
 			try {
-				this.main(args);
+				this.main.apply(this, [args]);
 			} catch(error) {
 				// Safer to do this before calling Webos.Error.catchError()
 				// This method could throw an error and thus the key would not be unset.
@@ -157,7 +171,7 @@
 		},
 		/**
 		 * Get this process' state.
-		 * @returns {String} This process' state (e.g. "ready", "running", "idle", "killed").
+		 * @return {String} This process' state (e.g. "ready", "running", "idle", "killed").
 		 */
 		state: function () {
 			var states = ['ready', 'running', 'idle', 'killed'];
@@ -173,7 +187,7 @@
 		},
 		/**
 		 * Check if this process is currently running.
-		 * @returns {Boolean} True if this process is running, false otherwise.
+		 * @return {Boolean} True if this process is running, false otherwise.
 		 */
 		isRunning: function () {
 			return (this._state == 1 || this._state == 2);
@@ -201,7 +215,7 @@
 	/**
 	 * Get a process.
 	 * @param   {Number} pid The process' ID.
-	 * @returns {Webos.Process} The process.
+	 * @return {Webos.Process} The process.
 	 */
 	Webos.Process.get = function (pid) {
 		return Webos.Process.list[pid];
@@ -209,7 +223,7 @@
 
 	/**
 	 * Get the current process.
-	 * @returns {Webos.Process} The current process.
+	 * @return {Webos.Process} The current process.
 	 */
 	Webos.Process.current = function () {
 		return Webos.Process.stack[Webos.Process.stack.length - 1];
@@ -217,7 +231,7 @@
 
 	/**
 	 * Get a list of all processes.
-	 * @returns {Webos.Process[]} A list of all processes.
+	 * @return {Webos.Process[]} A list of all processes.
 	 */
 	Webos.Process.listAll = function () {
 		var list = [];
@@ -243,7 +257,7 @@
 		/**
 		 * Check if an authorization is in this set.
 		 * @param   {String} auth The authorization's name.
-		 * @returns {Boolean}     True if the authorization is in this set, false otherwise.
+		 * @return {Boolean}     True if the authorization is in this set, false otherwise.
 		 */
 		can: function $_WAuthorizations_can(auth) {
 			for (var i = 0; i < this.authorizations.length; i++) {
@@ -255,7 +269,7 @@
 		},
 		/**
 		 * Get a list of all authorizations in this set.
-		 * @returns {Array} The list of authorizations.
+		 * @return {Array} The list of authorizations.
 		 */
 		get: function $_WAuthorizations_get() {
 			return this.authorizations;
@@ -296,7 +310,7 @@
 		/**
 		 * Get/set this set's model.
 		 * @param   {String} [value] The new authorizations model for this set.
-		 * @returns {String|Boolean} The current set's model or false if there was an error.
+		 * @return {String|Boolean} The current set's model or false if there was an error.
 		 */
 		model: function $_WAuthorizations_model(value) {
 			var compareArraysFn = function(a, b) {
