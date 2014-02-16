@@ -2,8 +2,15 @@
 	padding: 3px;
 }
 
-.search-entry-ctn {
+.pull-right {
 	float: right;
+}
+.pull-right > div {
+	display: inline-block;
+}
+.clearfix {
+	display: block;
+	clear: both;
 }
 
 .views, .views > div {
