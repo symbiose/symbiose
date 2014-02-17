@@ -1960,13 +1960,27 @@ $.webos.iconsListHeader.prototype = {
 };
 $.webos.widget('iconsListHeader', 'container');
 
-/*!
- * @TODO Below is undocumented source code.
+/**
+ * A spoiler.
+ * @param  {String} label The spoiler label.
+ * @constructor
+ * @augments $.webos.container
  */
-
-//Spoiler
-$.webos.widget('spoiler', 'container', {
+$.webos.spoiler = function(label) {
+	return $('<div></div>').spoiler({
+		label: label
+	});
+};
+/**
+ * A spoiler.
+ */
+$.webos.spoiler.prototype = {
 	_name: 'spoiler',
+	/**
+	 * Options:
+	 *  - `label`: the spoiler label
+	 *  - `shown`: true to show the spoiler's content, false otherwise
+	 */
 	options: {
 		label: 'Plus',
 		shown: false
@@ -1994,18 +2008,27 @@ $.webos.widget('spoiler', 'container', {
 			this.content().hide();
 		}
 	},
+	/**
+	 * Show this spoiler's content.
+	 */
 	show: function() {
 		this.content().slideDown();
 		this.element.addClass('shown');
 		this.options.shown = true;
 		this._trigger('show');
 	},
+	/**
+	 * Hide this spoiler's content.
+	 */
 	hide: function() {
 		this.content().slideUp();
 		this.element.removeClass('shown');
 		this.options.shown = false;
 		this._trigger('hide');
 	},
+	/**
+	 * Toggle this spoiler (show if hidden, hide if shown).
+	 */
 	toggle: function() {
 		if (this.options.shown) {
 			this.hide();
@@ -2030,16 +2053,21 @@ $.webos.widget('spoiler', 'container', {
 				break;
 		}
 	}
-});
-$.webos.spoiler = function(label) {
-	return $('<div></div>').spoiler({
-		label: label
-	});
 };
+$.webos.widget('spoiler', 'container');
 
-
-//EntryContainer
-$.webos.widget('entryContainer', 'container', {
+/**
+ * An entry container (a form).
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.entryContainer = function() {
+	return $('<form></form>').entryContainer();
+};
+/**
+ * An entry container.
+ */
+$.webos.entryContainer = {
 	_name: 'entry-container',
 	_create: function() {
 		this._super('_create');
@@ -2049,14 +2077,25 @@ $.webos.widget('entryContainer', 'container', {
 		});
 		$('<input />', { type: 'submit', 'class': 'fake-submit' }).appendTo(this.content());
 	}
-});
-$.webos.entryContainer = function() {
-	return $('<form></form>').entryContainer();
 };
+$.webos.widget('entryContainer', 'container');
 
-
-//Entry
-$.webos.widget('entry', 'container', {
+/**
+ * An entry.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.entry = function () {};
+/**
+ * An entry.
+ */
+$.webos.entry.prototype = {
+	/**
+	 * Options:
+	 *  - `label`: the entry label
+	 *  - `value`: the entry default value
+	 *  - `disabled`: true to disable the entry, false otherwise
+	 */
 	options: {
 		label: '',
 		value: '',
@@ -2079,6 +2118,11 @@ $.webos.widget('entry', 'container', {
 			that._trigger('change', { type: 'change' }, { entry: that.element, value: that.value() });
 		});
 	},
+	/**
+	 * Get/set this entry value.
+	 * @param  {String} [value] The new value.
+	 * @return {String}         The entry value.
+	 */
 	value: function(value) {
 		if (typeof value == 'undefined') {
 			return this.content().val();
@@ -2086,6 +2130,10 @@ $.webos.widget('entry', 'container', {
 			this.content().val(value);
 		}
 	},
+	/**
+	 * Enable/disable this entry.
+	 * @deprecated Use option `disabled` instead.
+	 */
 	disabled: function(value) {
 		if (typeof value == 'undefined') {
 			return this.content().prop('disabled');
@@ -2099,8 +2147,19 @@ $.webos.widget('entry', 'container', {
 			}
 		}
 	},
+	/**
+	 * Get this entry label container.
+	 * @return {jQuery} The label container.
+	 */
 	label: function() {
 		return this.options._components.label;
+	},
+	/**
+	 * Get this entry input.
+	 * @return {jQuery} The input.
+	 */
+	input: function() {
+		return this.content();
 	},
 	_update: function(key, value) {
 		switch(key) {
@@ -2114,14 +2173,25 @@ $.webos.widget('entry', 'container', {
 				this.value(value);
 				break;
 		}
-	},
-	input: function() {
-		return this.content();
 	}
-});
+};
+$.webos.widget('entry', 'container');
 
-
-$.webos.widget('checkableEntry', 'entry', {
+/**
+ * A checkable entry.
+ * @constructor
+ * @augments $.webos.entry
+ */
+$.webos.checkableEntry = function () {};
+/**
+ * A checkable entry.
+ */
+$.webos.checkableEntry.prototype = {
+	/**
+	 * Options:
+	 *  - `autoCheck`: true to auto check the entry's value as the user types
+	 *  - `check`: a callback which takes the entry's value as argument and returns true if this value is valid, false otherwise
+	 */
 	options: {
 		autoCheck: true,
 		check: null
@@ -2148,6 +2218,10 @@ $.webos.widget('checkableEntry', 'entry', {
 				break;
 		}
 	},
+	/**
+	 * Check if the entry's value is valid.
+	 * @return {Boolean} True if the value is valid, false otherwise.
+	 */
 	isValid: function() {
 		if (typeof this.options.check == 'function') {
 			return (this.options.check(this.value())) ? true : false;
@@ -2155,6 +2229,10 @@ $.webos.widget('checkableEntry', 'entry', {
 		
 		return true;
 	},
+	/**
+	 * Check if the entry's value is valid. If not, set this entry as invalid.
+	 * @return {Boolean} True if the value is valid, false otherwise.
+	 */
 	check: function() {
 		var message = null, valid = true;
 		if (typeof this.options.check == 'function') {
@@ -2173,32 +2251,53 @@ $.webos.widget('checkableEntry', 'entry', {
 		
 		return valid;
 	}
-});
+};
+$.webos.widget('checkableEntry', 'entry');
 
+//TODO: implement $.webos.stringEntry with placeholder support
 
-//TextEntry
-$.webos.widget('textEntry', 'checkableEntry', {
-	_name: 'text-entry',
-	_create: function() {
-		this._super('_create');
-		
-		this.options._content = $('<input />', { type: 'text' });
-		this.element.append(this.options._content);
-
-		this.value(this.options.value);
-		this.option('disabled', this.options.disabled);
-	}
-});
+/**
+ * A text entry.
+ * @param  {String} label The entry label.
+ * @param  {String} value The entry default value.
+ * @constructor
+ * @augments $.webos.checkableEntry
+ */
 $.webos.textEntry = function(label, value) {
 	return $('<div></div>').textEntry({
 		label: label,
 		value: value
 	});
 };
+/**
+ * A text entry.
+ */
+$.webos.textEntry.prototype = {
+	_name: 'text-entry',
+	_create: function() {
+		this._super('_create');
 
+		this.options._content = $('<input />', { type: 'text' });
+		this.element.append(this.options._content);
 
-//CaptchaEntry
-$.webos.widget('captchaEntry', 'container', {
+		this.value(this.options.value);
+		this.option('disabled', this.options.disabled);
+	}
+};
+$.webos.widget('textEntry', 'checkableEntry');
+
+/**
+ * A captcha.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.captchaEntry = function() {
+	return $('<div></div>').captchaEntry();
+};
+/**
+ * A captcha.
+ */
+$.webos.captchaEntry.prototype = {
 	_name: 'captcha-entry',
 	_create: function() {
 		this._super('_create');
@@ -2215,6 +2314,9 @@ $.webos.widget('captchaEntry', 'container', {
 		
 		this.loadCaptcha();
 	},
+	/**
+	 * Load this captcha.
+	 */
 	loadCaptcha: function() {
 		var that = this;
 
@@ -2248,6 +2350,10 @@ $.webos.widget('captchaEntry', 'container', {
 			that.options._components.reload.button('option', 'disabled', false);
 		}]);
 	},
+	/**
+	 * Get this captcha id.
+	 * @return {Number} The captcha id.
+	 */
 	captchaId: function() {
 		return this.options._captchaId;
 	},
@@ -2257,17 +2363,31 @@ $.webos.widget('captchaEntry', 'container', {
 	check: function() {
 		return this.options._components.input.textEntry('check');
 	},
+	/**
+	 * Get this captcha value.
+	 * @return {String} The captcha value.
+	 */
 	value: function() {
 		return this.options._components.input.textEntry('value');
 	}
-});
-$.webos.captchaEntry = function() {
-	return $('<div></div>').captchaEntry();
 };
+$.webos.widget('captchaEntry', 'container');
 
-
-//SearchEntry
-$.webos.widget('searchEntry', 'entry', {
+/**
+ * A search entry.
+ * @param  {String} label The entry label.
+ * @constructor
+ * @augments $.webos.entry
+ */
+$.webos.searchEntry = function(label) {
+	return $('<div></div>').searchEntry({
+		label: label
+	});
+};
+/**
+ * A search entry.
+ */
+$.webos.searchEntry.prototype = {
 	_name: 'search-entry',
 	_create: function() {
 		this._super('_create');
@@ -2278,16 +2398,24 @@ $.webos.widget('searchEntry', 'entry', {
 		this.value(this.options.value);
 		this.option('disabled', this.options.disabled);
 	}
-});
-$.webos.searchEntry = function(label) {
-	return $('<div></div>').searchEntry({
+};
+$.webos.widget('searchEntry', 'entry');
+
+/**
+ * A password entry.
+ * @param  {String} label The entry label.
+ * @constructor
+ * @augments $.webos.checkableEntry
+ */
+$.webos.passwordEntry = function(label) {
+	return $('<div></div>').passwordEntry({
 		label: label
 	});
 };
-
-
-//PasswordEntry
-$.webos.widget('passwordEntry', 'checkableEntry', {
+/**
+ * A password entry.
+ */
+$.webos.passwordEntry.prototype = {
 	_name: 'password-entry',
 	_create: function() {
 		this._super('_create');
@@ -2297,17 +2425,37 @@ $.webos.widget('passwordEntry', 'checkableEntry', {
 
 		this.option('disabled', this.options.disabled);
 	}
-});
-$.webos.passwordEntry = function(label) {
-	return $('<div></div>').passwordEntry({
-		label: label
+};
+$.webos.widget('passwordEntry', 'checkableEntry');
+
+/**
+ * A number entry.
+ * @param  {String} label The entry label.
+ * @param  {Number} value The entry value.
+ * @param  {Number} min   The minimum value.
+ * @param  {Number} max   The maximum value.
+ * @constructor
+ * @augments $.webos.checkableEntry
+ */
+$.webos.numberEntry = function(label, value, min, max) {
+	return $('<div></div>').numberEntry({
+		label: label,
+		value: value,
+		min: min,
+		max: max
 	});
 };
-
-
-//NumberEntry
-$.webos.widget('numberEntry', 'checkableEntry', {
+/**
+ * A number entry.
+ */
+$.webos.numberEntry.prototype = {
 	_name: 'number-entry',
+	/**
+	 * Options:
+	 *  - `min`: the minimum value
+	 *  - `max`: the maximum value
+	 *  - `step`: the step
+	 */
 	options: {
 		min: null,
 		max: null,
@@ -2351,18 +2499,26 @@ $.webos.widget('numberEntry', 'checkableEntry', {
 				break;
 		}
 	}
-});
-$.webos.numberEntry = function(label, value, min, max) {
-	return $('<div></div>').numberEntry({
+};
+$.webos.widget('numberEntry', 'checkableEntry');
+
+/**
+ * An e-mail entry.
+ * @param  {String} label The entry label.
+ * @param  {String} value The entry default value.
+ * @constructor
+ * @augments $.webos.checkableEntry
+ */
+$.webos.emailEntry = function(label, value) {
+	return $('<div></div>').emailEntry({
 		label: label,
-		value: value,
-		min: min,
-		max: max
+		value: value
 	});
 };
-
-//EmailEntry
-$.webos.widget('emailEntry', 'checkableEntry', {
+/**
+ * An e-mail entry.
+ */
+$.webos.emailEntry.prototype = {
 	_name: 'email-entry',
 	_create: function() {
 		this._super('_create');
@@ -2373,14 +2529,12 @@ $.webos.widget('emailEntry', 'checkableEntry', {
 		this.value(this.options.value);
 		this.option('disabled', this.options.disabled);
 	}
-});
-$.webos.emailEntry = function(label, value) {
-	return $('<div></div>').emailEntry({
-		label: label,
-		value: value
-	});
 };
+$.webos.widget('emailEntry', 'checkableEntry');
 
+/*!
+ * @TODO Below is undocumented source code.
+ */
 
 //TextAreaEntry
 $.webos.widget('textAreaEntry', 'checkableEntry', {
