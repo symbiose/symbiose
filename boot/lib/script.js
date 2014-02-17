@@ -37,19 +37,47 @@ Webos.Script.create = function (js, args, url) {
 /**
  * Run a script.
  * @param  {String} js  The Javascript code.
- * @param  {String} url The script URL (for debugging).
+ * @param  {String|Object} options The script URL (for debugging), or options.
  * @static
  */
-Webos.Script.run = function (js, url) {
+Webos.Script.run = function (js, options) {
+	if (typeof options == 'string') {
+		options = { sourceUrl: options };
+	}
+	options = $.extend({
+		sourceUrl: '',
+		context: null,
+		arguments: null
+	}, options);
+
 	//Not good for debugging
 	//js = js.replace(/\/\*([\s\S]*?)\*\//g, ''); //Remove comments
 
-	if (url && /^\s*(\S*?)\s*$/m.test(url)) { //Set source URL for debugging
-		js += '\n//# sourceURL='+url;
+	//Set source URL for debugging
+	if (options.sourceUrl && /^\s*(\S*?)\s*$/m.test(options.sourceUrl)) {
+		js += '\n//# sourceURL='+options.sourceUrl;
+	}
+
+	if (options.context || options.arguments) {
+		Webos.Script.run._ctx = options.context || window;
+		Webos.Script.run._args = options.arguments || [];
+
+		var argsNames = '';
+		if (!(options.arguments instanceof Array)) {
+			argsNames = Object.keys(options.arguments).join(', ');
+
+			var argsValues = [];
+			for (var arg in options.arguments) {
+				argsValues.push(options.arguments[arg]);
+			}
+			Webos.Script.run._args = argsValues;
+		}
+
+		js = '(function ('+argsNames+') { '+js+'\n }).apply(Webos.Script.run._ctx, Webos.Script.run._args);';
 	}
 
 	var s = document.createElement('script');
-	s.innerHTML = '\n'+js;
+	s.innerHTML = '\n'+js+'\n';
 	document.head.appendChild(s);
 };
 
@@ -205,7 +233,7 @@ Webos.require = function (files, callback, options) {
 		}
 		list = files;
 	} else {
-		list = [String(files)];
+		list = [files];
 	}
 
 	var loadOperation = new Webos.Operation();
@@ -222,9 +250,17 @@ Webos.require = function (files, callback, options) {
 	};
 
 	for (var i = 0; i < list.length; i++) {
-		(function(path) {
-			var file = W.File.get(path);
+		(function(requiredFile) {
+			if (typeof requiredFile != 'object') {
+				requiredFile = { path: requiredFile };
+			}
+			requiredFile = $.extend({
+				path: '',
+				context: null,
+				arguments: []
+			}, requiredFile);
 
+			var file = W.File.get(requiredFile.path);
 			var call = file.readAsText([function(contents) {
 				if (file.get('extension') == 'js') {
 					var previousFile = Webos.require._currentFile;
@@ -242,7 +278,11 @@ Webos.require = function (files, callback, options) {
 					}
 
 					contents = 'try { '+contents+' \n} catch(error) { W.Error.catchError(error); }';
-					Webos.Script.run(contents, file.get('path'));
+					Webos.Script.run(contents, {
+						scourceUrl: file.get('path'),
+						context: requiredFile.context,
+						arguments: requiredFile.arguments
+					});
 
 					Webos.require._currentFile = previousFile;
 
@@ -262,7 +302,7 @@ Webos.require = function (files, callback, options) {
 					Webos.Stylesheet.insertCss(contents, options.styleContainer);
 					onLoadFn(file);
 				} else {
-					callback.error(Webos.Callback.Result.error('Unknown file type : "'+file.get('extension')+'" (file path: "'+file.get('path')+'")'));
+					callback.error(Webos.Callback.Result.error('Unknown file type: "'+file.get('extension')+'" (file path: "'+file.get('path')+'")'));
 				}
 			}, callback.error]);
 		})(list[i]);

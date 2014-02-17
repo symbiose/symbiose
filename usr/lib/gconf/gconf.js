@@ -136,9 +136,23 @@ var GConf = function (category) {
 			this._window.window('content').empty();
 			this._buttons.home.show();
 			this._buttons.search.hide();
-			include('usr/lib/gconf/categories/js/'+name+'.js', new W.Arguments({
-				params: [that._window]
-			}), thisProcess);
+
+			this._window.window('loading', true);
+
+			Webos.require({
+				path: '/usr/lib/gconf/categories/js/'+name+'.js',
+				context: thisProcess,
+				arguments: {
+					args: new W.Arguments({
+						params: [that._window]
+					})
+				}
+			}, [function () {
+				that._window.window('loading', false);
+			}, function (resp) {
+				that._window.window('loading', false);
+				resp.triggerError();
+			}]);
 		};
 		
 		this.search = function(value) {
