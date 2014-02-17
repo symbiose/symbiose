@@ -144,6 +144,7 @@ $.webos.widget.namespace = function() {
  * Get a widget selector.
  * @param {String} widgetName The widget's name.
  * @return {String}
+ * @private
  */
 $.webos.widget._widgetSelector = function(widgetName) {
 	return ':data(\'' + $.webos.widget.namespace() + '-' + widgetName +'\')';
@@ -172,6 +173,9 @@ $.webos.widget.filter = function(element, widgetName) {
 };
 
 /**
+ * Get an element's widget name.
+ * @param {jQuery} element The element.
+ * @return {String} The widget name.
  * @deprecated Manipulates a large number of elements.
  */
 $.webos.widget.get = function(element) {
@@ -186,6 +190,8 @@ $.webos.widget.get = function(element) {
 };
 
 /**
+ * List all widgets.
+ * @return {jQuery}
  * @deprecated Manipulates a large number of elements.
  */
 $.webos.widget.listAll = function() {
@@ -193,6 +199,7 @@ $.webos.widget.listAll = function() {
 };
 
 /**
+ * List all widgets.
  * @deprecated Use $.webos.widget.listAll() instead.
  */
 $.webos.widget.list = function() {
@@ -1423,6 +1430,7 @@ $.webos.button.prototype = {
 		}
 	},
 	/**
+	 * Get/set this button disabled value.
 	 * @deprecated Use option `disabled` instead.
 	 */
 	disabled: function(value) {
