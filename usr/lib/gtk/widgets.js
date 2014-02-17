@@ -24,12 +24,24 @@ $.webos.widget = function(widgetName) {
 
 	var properties, parentWidgetName, parentWidget;
 
-	if (typeof arguments[2] != 'undefined') {
+	if (typeof arguments[1] == 'string') {
 		parentWidgetName = arguments[1];
-		parentWidget = $[$.webos.widget.namespace()][parentWidgetName];
-		properties = arguments[2];
-	} else {
+
+		if ($[$.webos.widget.namespace()][parentWidgetName]) {
+			parentWidget = $[$.webos.widget.namespace()][parentWidgetName];
+		}
+
+		if (typeof arguments[2] == 'object') {
+			properties = arguments[2];
+		} else if ($.webos[widgetName] && $.webos[widgetName].prototype) {
+			properties = $.webos[widgetName].prototype;
+		}
+	} else if (typeof arguments[1] == 'object') {
 		properties = arguments[1];
+	} else if (typeof arguments[1] == 'undefined') {
+		if ($.webos[widgetName] && $.webos[widgetName].prototype) {
+			properties = $.webos[widgetName].prototype;
+		}
 	}
 
 	if (typeof properties != 'object') {
@@ -38,6 +50,9 @@ $.webos.widget = function(widgetName) {
 
 	properties.widgetEventPrefix = widgetName.toLowerCase();
 	properties.widgetBaseClass = 'webos-' + widgetName.toLowerCase();
+
+	// Backup constructor
+	var originalConstructor = $.webos[widgetName];
 
 	var fullWidgetName = $.webos.widget.namespace() + '.' + widgetName;
 	if (parentWidget) {
@@ -66,6 +81,18 @@ $.webos.widget = function(widgetName) {
 				return this._translations;
 			}
 		});
+	}
+
+	//Restore constructor
+	if (typeof originalConstructor == 'function') {
+		var newConstructor = $.webos[widgetName];
+		var constrProperties = Object.keys(newConstructor);
+
+		for (var i = 0; i < constrProperties.length; i++) {
+			originalConstructor[constrProperties] = newConstructor[constrProperties];
+		}
+
+		$.webos[widgetName] = originalConstructor;
 	}
 };
 
@@ -190,17 +217,28 @@ $.webos.getWidgets = function(widgetName) {
 	return $($.webos.widgets);
 };
 
-
 /**
  * A widget.
- * @namespace $.webos.widget
  */
-$.webos.widget('widget', {
+$.webos.widget.prototype = {
+	/**
+	 * The widget's name.
+	 * @type {String}
+	 * @private
+	 */
 	_name: 'widget',
+	/**
+	 * The widget's options.
+	 * @type {Object}
+	 */
 	options: {
 		id: 0,
 		pid: null
 	},
+	/**
+	 * Initialize the widget.
+	 * @private
+	 */
 	_create: function() {
 		this._super('_create');
 		
@@ -246,6 +284,7 @@ $.webos.widget('widget', {
 		this._super('destroy');
 	},
 	/**
+	 * Internal handler called when an option is updated.
 	 * @private
 	 */
 	_setOption: function(key, value) {
@@ -254,21 +293,32 @@ $.webos.widget('widget', {
 	},
 	/**
 	 * Get a selector for this widget.
+	 * @return {String} The selector.
 	 */
 	selector: function() {
 		return '#'+this.element.attr('id');
 	},
 	/**
+	 * Callback for option changes.
 	 * @private
 	 */
 	_update: function() {}
-});
+};
+$.webos.widget('widget');
 
 /**
  * A container.
- * @namespace $.webos.container
+ * @return {jQuery} The container.
+ * @constructor
+ * @augments $.webos.widget
  */
-$.webos.widget('container', 'widget', {
+$.webos.container = function() {
+	return $('<div></div>').container();
+};
+/**
+ * A container.
+ */
+$.webos.container.prototype = {
 	_name: 'container',
 	options: {
 		_content: undefined,
@@ -302,16 +352,22 @@ $.webos.widget('container', 'widget', {
 	component: function(component) {
 		return this.options._components[component];
 	}
-});
-$.webos.container = function() {
-	return $('<div></div>').container();
 };
+$.webos.widget('container', 'widget');
 
 /**
  * A container with a scrollbar.
- * @namespace $.webos.scrollPane
+ * @param {Object} options The widget's options.
+ * @constructor
+ * @augments $.webos.container
  */
-$.webos.widget('scrollPane', 'container', {
+$.webos.scrollPane = function(options) {
+	return $('<div></div>').scrollPane(options);
+};
+/**
+ * A container with a scrollbar.
+ */
+$.webos.scrollPane.prototype = {
 	_name: 'scrollpane',
 	/**
 	 * Options :
@@ -891,16 +947,28 @@ $.webos.widget('scrollPane', 'container', {
 			that._trigger('reload', { type: 'reload' }, data);
 		}, 5);
 	}
-});
-$.webos.scrollPane = function(options) {
-	return $('<div></div>').scrollPane(options);
 };
+$.webos.widget('scrollPane', 'container');
 
 /**
  * A text container.
- * @namespace $.webos.label
+ * @param {String} text The text.
+ * @constructor
+ * @augments $.webos.container
  */
-$.webos.widget('label', 'container', {
+$.webos.label = function(text) {
+	return $('<div></div>').label({
+		text: text
+	});
+};
+/**
+ * A text container.
+ */
+$.webos.label.prototype = {
+	/**
+	 * Options:
+	 *  - `text`: the label's text
+	 */
 	options: {
 		text: ''
 	},
@@ -917,18 +985,28 @@ $.webos.widget('label', 'container', {
 				break;
 		}
 	}
-});
-$.webos.label = function(text) {
-	return $('<div></div>').label({
-		text: text
-	});
 };
+$.webos.widget('label', 'container');
 
 /**
  * An image.
- * @namespace $.webos.image
+ * @param {String} [src] The image's source path.
+ * @param {String} [title] The image's title.
+ * @param {Boolean} [loadHidden] Set to false to don't load the image if it's hidden.
+ * @constructor
+ * @augments $.webos.widget
  */
-$.webos.widget('image', 'widget', {
+$.webos.image = function(src, title, loadHidden) {
+	return $('<img />').image({
+		src: src,
+		title: title,
+		loadHidden: loadHidden
+	});
+};
+/**
+ * An image.
+ */
+$.webos.image.prototype = {
 	/**
 	 * Options:
 	 *  - `src`: the image's source path
@@ -1059,7 +1137,10 @@ $.webos.widget('image', 'widget', {
 		switch(key) {
 			case 'src':
 				this.options.src = String(value);
-				this.load();
+
+				if (this.options.src) {
+					this.load();
+				}
 				break;
 			case 'title':
 				this.element.attr('alt', value).attr('title', value);
@@ -1109,26 +1190,33 @@ $.webos.widget('image', 'widget', {
 				break;
 		}
 	}
-});
-$.webos.image = function(src, title, loadHidden) {
-	return $('<img />').image({
-		src: src,
-		title: title,
-		loadHidden: loadHidden
-	});
 };
+$.webos.widget('image', 'widget');
 
 /**
  * An icon.
+ * @param  {String} [src]  The icon's name.
+ * @param  {Number} [size] The icon's size.
+ * @constructor
+ * @augments $.webos.image
  */
-$.webos.widget('icon', 'image', {
+$.webos.icon = function(src, size) {
+	return $('<img />').icon({
+		src: src,
+		size: size
+	});
+};
+/**
+ * An icon.
+ */
+$.webos.icon.prototype = {
 	/**
 	 * Options:
-	 *  - _Webos.Icon_ `src`: the icon
+	 *  - `src`: the icon's name
 	 *  - `size`: the icon's size
 	 */
 	options: {
-		src: new Webos.Icon(),
+		src: '',
 		size: undefined
 	},
 	_create: function() {
@@ -1141,12 +1229,18 @@ $.webos.widget('icon', 'image', {
 	_update: function(key, value) {
 		switch(key) {
 			case 'src':
+				if (!value) {
+					return;
+				}
+
 				//TODO: that's ugly!
 				if (typeof value == 'string' && (value.indexOf('sbin/') == 0 || value.indexOf('usr/') == 0)) {
 					this.options.src = value;
 				} else {
 					this.options.src = W.Icon.toIcon(value);
-					this.options.src.setSize(this.options.size);
+					if (this.options.size) {
+						this.options.src.setSize(this.options.size);
+					}
 				}
 
 				this.load();
@@ -1162,18 +1256,30 @@ $.webos.widget('icon', 'image', {
 				break;
 		}
 	}
-});
-$.webos.icon = function(src, size) {
-	return $('<img />').icon({
-		src: src,
-		size: size
+};
+$.webos.widget('icon', 'image');
+
+/**
+ * A progress bar.
+ * @param {Number} [value] The progress bar value.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.progressbar = function(value) {
+	return $('<div></div>').progressbar({
+		value: value
 	});
 };
-
-
-//Progressbar
-$.webos.widget('progressbar', 'container', {
+/**
+ * An progress bar.
+ */
+$.webos.progressbar.prototype = {
 	_name: 'progressbar',
+	/**
+	 * Options:
+	 *  - _Number_ `value`: the progress bar value
+	 * @type {Object}
+	 */
 	options: {
 		value: 0
 	},
@@ -1191,6 +1297,12 @@ $.webos.widget('progressbar', 'container', {
 				break;
 		}
 	},
+	/**
+	 * Get/set this progress bar value.
+	 * @param  {Number} value The new value.
+	 * @return {Number}       If `value` is not specified, returns the progress bar value.
+	 * @deprecated Use option `value` instead.
+	 */
 	value: function(value) {
 		if (typeof value == 'undefined') {
 			return this.options.value;
@@ -1209,25 +1321,49 @@ $.webos.widget('progressbar', 'container', {
 			this.content().css('width', value+'%');
 		}
 	}
-});
-$.webos.progressbar = function(value) {
-	return $('<div></div>').progressbar({
-		value: value
-	});
 };
+$.webos.widget('progressbar', 'container');
 
-
-//ButtonContainer
-$.webos.widget('buttonContainer', 'container', {
-	_name: 'button-container'
-});
+/**
+ * A button container.
+ * @constructor
+ * @augments $.webos.container
+ */
 $.webos.buttonContainer = function() {
 	return $('<div></div>').buttonContainer();
 };
+/**
+ * A button container.
+ */
+$.webos.buttonContainer.prototype = {
+	_name: 'button-container'
+};
+$.webos.widget('buttonContainer', 'container');
 
-
-//Button
-$.webos.widget('button', 'container', {
+/**
+ * A button.
+ * @param  {String} label  The button label.
+ * @param  {Boolean} submit True if it's a submit button.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.button = function(label, submit) {
+	return $('<span></span>').button({
+		label: label,
+		submit: submit
+	});
+};
+/**
+ * A buton.
+ */
+$.webos.button.prototype = {
+	/**
+	 * Options:
+	 *  - `label`: the button's label
+	 *  - _Boolean_ `submit`: true if it's a submit button
+	 *  - _Boolean_ `disabled`: true if this button is disabled
+	 *  - _Boolean_ `activated`: true if this button is activated
+	 */
 	options: {
 		label: '',
 		icon: undefined,
@@ -1286,6 +1422,9 @@ $.webos.widget('button', 'container', {
 				break;
 		}
 	},
+	/**
+	 * @deprecated Use option `disabled` instead.
+	 */
 	disabled: function(value) {
 		if (typeof value == 'undefined') {
 			return this.options.disabled;
@@ -1299,17 +1438,32 @@ $.webos.widget('button', 'container', {
 			}
 		}
 	}
-});
-$.webos.button = function(label, submit) {
-	return $('<span></span>').button({
-		label: label,
-		submit: submit
+};
+$.webos.widget('button', 'container');
+
+/**
+ * A list.
+ * @param  {String|Array} columns The contents of one/all column(s).
+ * @param  {Array} buttons The list's buttons.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.list = function(columns, buttons) {
+	return $('<div></div>').list({
+		columns: columns,
+		buttons: buttons
 	});
 };
-
-
-//List
-$.webos.widget('list', 'container', {
+/**
+ * A list.
+ */
+$.webos.list.prototype = {
+	/**
+	 * Options:
+	 *  - _Array_ `columns`: the list's columns
+	 *  - _Array_ `buttons`: the list's buttons
+	 *  - _Boolean_ `multipleSelection=true`: true to enable multiple selection
+	 */
 	options: {
 		columns: [],
 		buttons: [],
@@ -1331,13 +1485,24 @@ $.webos.widget('list', 'container', {
 			this.addButton(this.options.buttons[i]);
 		}
 	},
+	/**
+	 * Add a new column.
+	 * @param {String} [value] The new column's content.
+	 * @return {jQuery} The new column.
+	 */
 	addColumn: function(value) {
 		if (this.options._components.head.children('tr').length == 0) {
 			this.options._components.head.append($('<tr></tr>'));
 		}
 		
-		return $('<td></td>').html(value).appendTo(this.options._components.head.children('tr'));
+		return $('<td></td>').html(value || '').appendTo(this.options._components.head.children('tr'));
 	},
+	/**
+	 * Get/set a column.
+	 * @param  {Number} id      The column id.
+	 * @param  {String} [content] The column's content.
+	 * @return {jQuery} The column.
+	 */
 	column: function(id, content) {
 		var column;
 		if (typeof id == 'undefined') {
@@ -1355,6 +1520,11 @@ $.webos.widget('list', 'container', {
 		
 		return column;
 	},
+	/**
+	 * Sort this list by column.
+	 * @param  {Number} column The column id.
+	 * @param  {Boolean} invert True to invert sorting.
+	 */
 	sort: function(column, invert) {
 		if (!column) {
 			column = 0;
@@ -1402,6 +1572,10 @@ $.webos.widget('list', 'container', {
 			sortedItems.push(index);
 		});
 	},
+	/**
+	 * Add a new button to this list.
+	 * @param {jQuery} button The button.
+	 */
 	addButton: function(button) {
 		if (typeof this.options._components.buttonContainer == 'undefined') {
 			this.options._components.buttonContainer = $.w.buttonContainer().appendTo(this.element);
@@ -1409,9 +1583,18 @@ $.webos.widget('list', 'container', {
 		
 		this.options._components.buttonContainer.append(button);
 	},
+	/**
+	 * Get this list's items.
+	 * @return {jQuery} Items.
+	 */
 	items: function() {
 		return this.content().children();
 	},
+	/**
+	 * Get/set this current list's selection.
+	 * @param  {String|Number} selection The selection range. Can be `4` or `0-9`.
+	 * @return {jQuery}           The current selection.
+	 */
 	selection: function(selection) {
 		if (typeof selection == 'undefined') {
 			return this.items().filter('.active');
@@ -1465,16 +1648,28 @@ $.webos.widget('list', 'container', {
 				break;
 		}
 	}
-});
-$.webos.list = function(columns, buttons) {
-	return $('<div></div>').list({
-		columns: columns,
-		buttons: buttons
+};
+$.webos.widget('list', 'container');
+
+/**
+ * A list item.
+ * @see $.webos.list
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.listItem = function(columns) {
+	return $('<tr></tr>').listItem({
+		columns: columns
 	});
 };
-
-//ListItem
-$.webos.widget('listItem', 'container', {
+/**
+ * A list item.
+ */
+$.webos.listItem.prototype = {
+	/**
+	 * Options:
+	 *  - _Array_ `columns`: the list's columns
+	 */
 	options: {
 		columns: [],
 		active: false
@@ -1520,6 +1715,11 @@ $.webos.widget('listItem', 'container', {
 		
 		this.active(this.options.active);
 	},
+	/**
+	 * Add a new column.
+	 * @param {String} [value] The new column's content.
+	 * @return {jQuery} The new column.
+	 */
 	addColumn: function(value) {
 		var column = $('<td></td>');
 		if (typeof value != 'undefined') {
@@ -1528,6 +1728,12 @@ $.webos.widget('listItem', 'container', {
 		this.content().append(column);
 		return column;
 	},
+	/**
+	 * Get/set a column.
+	 * @param  {Number} id      The column id.
+	 * @param  {String} [content] The column's content.
+	 * @return {jQuery} The column.
+	 */
 	column: function(id, content) {
 		var column;
 		if (typeof id == 'undefined') {
@@ -1545,6 +1751,12 @@ $.webos.widget('listItem', 'container', {
 		
 		return column;
 	},
+	/**
+	 * Get/set this item active value.
+	 * @param  {Boolean} value          True to set this item active, false to set it inactive.
+	 * @param  {Boolean} unactiveOthers Unactive all other items.
+	 * @return {Boolean}                True if this item is active, false otherwise.
+	 */
 	active: function(value, unactiveOthers) {
 		if (typeof value == 'undefined') {
 			return (this.options.active) ? true : false;
@@ -1563,6 +1775,10 @@ $.webos.widget('listItem', 'container', {
 			}
 		}
 	},
+	/**
+	 * Get this item's parent list.
+	 * @return {jQuery} The list.
+	 */
 	parentList: function() {
 		return this.options._content.parents('table').first().parent();
 	},
@@ -1573,26 +1789,48 @@ $.webos.widget('listItem', 'container', {
 				break;
 		}
 	}
-});
-$.webos.listItem = function(columns) {
-	return $('<tr></tr>').listItem({
-		columns: columns
-	});
 };
+$.webos.widget('listItem', 'container');
 
-
-//IconsList
-$.webos.widget('iconsList', 'container', {
-	_name: 'iconslist'
-});
+/**
+ * An icons list.
+ * @constructor
+ * @augments $.webos.container
+ */
 $.webos.iconsList = function() {
 	return $('<ul></ul>').iconsList();
 };
+/**
+ * An icons list.
+ */
+$.webos.iconsList.prototype ={
+	_name: 'iconslist'
+};
+$.webos.widget('iconsList', 'container');
 
-
-
-//IconsListItem
-$.webos.widget('iconsListItem', 'container', {
+/**
+ * An icons list item.
+ * @param  {String} icon  The icon's name.
+ * @param  {String} title The item's title.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.iconsListItem = function(icon, title) {
+	return $('<li></li>').iconsListItem({
+		icon: icon,
+		title: title
+	});
+};
+/**
+ * An icons list item.
+ */
+$.webos.iconsListItem.prototype = {
+	/**
+	 * Options:
+	 *  - `icon`: the icon's name
+	 *  - `title`: the item's title
+	 *  - `active`: true if this item is active
+	 */
 	options: {
 		icon: '',
 		title: '',
@@ -1615,6 +1853,9 @@ $.webos.widget('iconsListItem', 'container', {
 		this._setTitle(this.options.title);
 		this.active(this.options.active);
 	},
+	/**
+	 * @private
+	 */
 	_setIcon: function(icon) {
 		if (typeof icon == 'undefined') {
 			return this.options.icon;
@@ -1622,6 +1863,9 @@ $.webos.widget('iconsListItem', 'container', {
 			this.options._components.icon.icon('option', 'src', icon);
 		}
 	},
+	/**
+	 * @private
+	 */
 	_setTitle: function(title) {
 		if (typeof title == 'undefined') {
 			return this.options.title;
@@ -1634,6 +1878,12 @@ $.webos.widget('iconsListItem', 'container', {
 			this.options._components.title.html(title);
 		}
 	},
+	/**
+	 * Get/set this item active value.
+	 * @param  {Boolean} value          True to set this item active, false to set it inactive.
+	 * @param  {Boolean} unactiveOthers Unactive all other items.
+	 * @return {Boolean}                True if this item is active, false otherwise.
+	 */
 	active: function(value) {
 		if (typeof value == 'undefined') {
 			return (this.options.active) ? true : false;
@@ -1659,17 +1909,28 @@ $.webos.widget('iconsListItem', 'container', {
 				break;
 		}
 	}
-});
-$.webos.iconsListItem = function(icon, title) {
-	return $('<li></li>').iconsListItem({
-		icon: icon,
+};
+$.webos.widget('iconsListItem', 'container');
+
+/**
+ * An icons list header.
+ * @param {String} title The header's title.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.iconsListHeader = function(title) {
+	return $('<li></li>').iconsListHeader({
 		title: title
 	});
 };
-
-
-//IconsListHeader
-$.webos.widget('iconsListHeader', 'container', {
+/**
+ * An icons list header.
+ */
+$.webos.iconsListHeader.prototype = {
+	/**
+	 * Options:
+	 *  - `title`: the header's title
+	 */
 	options: {
 		title: ''
 	},
@@ -1688,13 +1949,12 @@ $.webos.widget('iconsListHeader', 'container', {
 				break;
 		}
 	}
-});
-$.webos.iconsListHeader = function(title) {
-	return $('<li></li>').iconsListHeader({
-		title: title
-	});
 };
+$.webos.widget('iconsListHeader', 'container');
 
+/*!
+ * @TODO Below is undocumented source code.
+ */
 
 //Spoiler
 $.webos.widget('spoiler', 'container', {
