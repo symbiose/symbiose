@@ -3043,16 +3043,30 @@ $.webos.tabs.prototype = {
 	},
 	_create: function() {
 		this._super('_create');
-		
+
 		var that = this;
-		
-		this.options._components.tabs = $('<ul></ul>', { 'class': 'tabs' }).appendTo(this.element);
-		this.options._components.content = $('<div></div>', { 'class': 'contents' }).appendTo(this.element);
-		
-		this.options._components.tabs.click(function(e) {
-			if ($(e.target).is('li')) {
-				that.option('selectedTab', $(e.target).index());
+
+		var activeTab = 0;
+		if (this.element.children('ul').length) {
+			this.options._components.tabs = this.element.children('ul').addClass('tabs');
+			
+			var $tabsTitles = this.options._components.tabs.children();
+			if ($tabsTitles.filter('.active').length) {
+				activeTab = $tabsTitles.filter('.active').index();
 			}
+		} else {
+			this.options._components.tabs = $('<ul></ul>', { 'class': 'tabs' }).prependTo(this.element);
+		}
+		if (this.element.children('.contents').length) {
+			this.options._components.content = this.element.children('.contents');
+
+			this.option('selectedTab', activeTab);
+		} else {
+			this.options._components.content = $('<div></div>', { 'class': 'contents' }).appendTo(this.element);
+		}
+
+		this.options._components.tabs.on('click', 'li', function(e) {
+			that.option('selectedTab', $(this).index());
 		});
 	},
 	/**
