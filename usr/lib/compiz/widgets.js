@@ -304,6 +304,7 @@ $.webos.widget('window', 'container', {
 		this.element.addClass('closing');
 		
 		this.options.states.opened = false;
+		this.options.states.foreground = false;
 		this._trigger('close', { type: 'close' }, { window: this.element });
 		
 		if (typeof this.options.childWindow != 'undefined' && this.options.childWindow.length > 0) {
