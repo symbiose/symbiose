@@ -2070,7 +2070,7 @@ $.webos.entryContainer = function() {
 /**
  * An entry container.
  */
-$.webos.entryContainer = {
+$.webos.entryContainer.prototype = {
 	_name: 'entry-container',
 	_create: function() {
 		this._super('_create');
