@@ -224,7 +224,12 @@
 	height: 12px;
 }
 .conversation .msg.msg-received.msg-typing .msg-content {
+	padding-left: 12px;
+	padding-right: 12px;
 	background-color: #f1f1f1;
+	background-image: -moz-linear-gradient(#ececec, #f7f7f7);
+	background-image: -webkit-linear-gradient(#ececec, #f7f7f7);
+	background-image: linear-gradient(#ececec, #f7f7f7);
 }
 .conversation .conversation-compose {
 	position: absolute;

@@ -9,7 +9,7 @@ Webos.require([
 			//boshHttpUrl: 'http://'+window.location.hostname+':5280/http-bind',
 			//boshHttpUrl: 'http://bosh.metajack.im:5280/xmpp-httpbind',
 			boshHttpUrl: 'https://jwchat.org/http-bind/',
-			//boshHttpUrl: 'http://raspberrypi:5280/http-bind/',
+			//boshHttpUrl: 'http://emersion.fr:5280/http-bind/',
 			//boshWsUrl: 'ws://'+window.location.hostname+':5280'
 			boshWsUrl: 'ws://emersion.fr:5280/'
 		},
@@ -43,7 +43,9 @@ Webos.require([
 			'': 'XMPP'
 		},
 		_config: {
-			accounts: []
+			accounts: [],
+			sendComposing: true,
+			sendActive: false
 		},
 		_conn: function (jid) {
 			return this._conns[jid];
@@ -123,6 +125,7 @@ Webos.require([
 
 				that._initUi();
 				that._initEvents();
+				that._initChatstates();
 				that.switchView('login');
 			});
 		},
@@ -203,7 +206,8 @@ Webos.require([
 				that.searchContacts(searchQuery);
 			});
 
-			var $contactsCtn = $win.find('.view-conversations .friends-list ul');
+			var $contactsCtn = $win.find('.view-conversations .friends-list ul'),
+				$conversationCtn = $win.find('.conversation ul');
 			this.on('contactupdated', function (contact) {
 				var $contact = $contactsCtn.children('li').filter(function () {
 					return ($(this).data('jid') == contact.jid);
@@ -265,14 +269,6 @@ Webos.require([
 					$contact.find('.contact-server').text(serverName);
 				}
 
-				$contact.off('click.empathy').on('click.empathy', function () {
-					if (!contact.conn) {
-						return;
-					}
-
-					that._switchConversation(contact.jid, contact.conn);
-				});
-
 				$contactsCtn.toggleClass('hide-contact-server', (that.countConnections() <= 1));
 			});
 
@@ -282,11 +278,11 @@ Webos.require([
 
 			var scrollToConversationBottom = function () {
 				var conversationHeight = 0;
-				$win.find('.conversation ul').children().each(function () {
+				$conversationCtn.children().each(function () {
 					conversationHeight += $(this).outerHeight(true);
 				});
 
-				$win.find('.conversation ul').scrollTop(conversationHeight);
+				$conversationCtn.scrollTop(conversationHeight);
 			};
 			this.on('messagesent', function (msg) {
 				var dst = that.contact(msg.to), src = that.loggedInUser(msg.from);
@@ -296,12 +292,14 @@ Webos.require([
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 
 				if (that.currentDst() && that.currentDst().jid == msg.to) {
-					$msg.appendTo($win.find('.conversation ul'));
+					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
-				} else if (that._isConversationDetached(msg.to)) {
-					that._$conversations[msg.to] = that._$conversations[msg.to].add($msg);
 				} else {
-					that._$conversations[msg.to] = $msg;
+					var $msgs = $();
+					if (that._isConversationDetached(msg.to)) {
+						$msgs = that._$conversations[msg.to];
+					}
+					that._$conversations[msg.to] = $msgs.add($msg);
 				}
 			});
 			this.on('messagereceived', function (msg) {
@@ -312,14 +310,14 @@ Webos.require([
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 
 				if (that.currentDst() && that.currentDst().jid == msg.from) {
-					$msg.appendTo($win.find('.conversation ul'));
+					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
+					var $msgs = $();
 					if (that._isConversationDetached(msg.from)) {
-						that._$conversations[msg.from] = that._$conversations[msg.from].add($msg);
-					} else {
-						that._$conversations[msg.from] = $msg;
+						$msgs = that._$conversations[msg.from];
 					}
+					that._$conversations[msg.from] = $msgs.add($msg);
 
 					//Set conversation as unread
 					var $contact = $contactsCtn.children('li').filter(function () {
@@ -355,29 +353,111 @@ Webos.require([
 				}
 			});
 
-			this.on('accountupdate accountremove', function () {
-				that._saveConfig();
+			this.on('contactcomposing', function (data) {
+				var src = that.contact(data.jid);
+
+				var $msg = $('<li></li>', { 'class': 'msg msg-received msg-typing' });
+				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
+				$msg.append($('<span></span>', { 'class': 'msg-content' }).html('...'));
+
+				if (that.currentDst() && that.currentDst().jid == data.jid) {
+					if (!$conversationCtn.find('.msg-typing').length) {
+						$msg.appendTo($conversationCtn);
+						scrollToConversationBottom();
+					}
+				} else {
+					var $msgs = $();
+					if (that._isConversationDetached(data.jid)) {
+						$msgs = that._$conversations[data.jid];
+					}
+
+					if (!$msgs.filter('.msg-typing').length) {
+						that._$conversations[data.jid] = $msgs.add($msg);
+					}
+				}
 			});
 
-			$(document).on('composing.chatstates', function (e, data) {
-				console.log('composing', e, data);
+			this.on('contactpaused', function (data) {
+				var src = that.contact(data.jid);
+
+				if (that.currentDst() && that.currentDst().jid == data.jid) {
+					$conversationCtn.find('.msg-typing').remove();
+				} else {
+					if (that._isConversationDetached(data.jid)) {
+						that._$conversations[data.jid] = $msgs.not('.msg-typing');
+					}
+				}
 			});
-			$(document).on('paused.chatstates', function (e, data) {
-				console.log('paused', e, data);
-			});
-			$(document).on('active.chatstates', function (e, data) {
-				console.log('active', e, data);
+
+			/*!
+			 * True if the user is composing a message, false otherwise.
+			 * @type {Boolean}
+			 */
+			var isComposing = false;
+			var sendActive = function (dstJid) {
+				if (!that._config.sendActive) {
+					return;
+				}
+
+				var dst = that.contact(dstJid), conn = that.connection(dst.conn);
+
+				conn.chatstates.sendActive(dst.jid);
+			};
+			var sendComposing = function (dstJid) {
+				if (!that._config.sendComposing) {
+					return;
+				}
+
+				if (!isComposing) {
+					var dst = that.contact(dstJid), conn = that.connection(dst.conn);
+
+					conn.chatstates.sendComposing(dst.jid);
+					isComposing = true;
+				}
+			};
+			var sendPaused = function (dstJid) {
+				if (isComposing) {
+					var dst = that.contact(dstJid), conn = that.connection(dst.conn);
+
+					conn.chatstates.sendPaused(dst.jid);
+					isComposing = false;
+				}
+			};
+
+			$contactsCtn.on('click', 'li', function () {
+				var previousDst = that.currentDst();
+				if (previousDst) {
+					sendPaused(previousDst.jid);
+				}
+
+				var $contact = $(this),
+					contactJid = $contact.data('jid'),
+					contact = that.contact(contactJid);
+
+				if (!contact || !contact.conn) {
+					return;
+				}
+
+				that._switchConversation(contact.jid, contact.conn);
+				sendActive(contact.jid);
 			});
 
 			$win.find('.conversation-compose .compose-msg').keydown(function (e) {
+				var dst = that.currentDst(),
+					msgContent = $(this).val();
+
+				if (!dst) {
+					return;
+				}
+
+				if (msgContent) {
+					sendComposing(dst.jid);
+				} else {
+					sendPaused(dst.jid);
+				}
+
 				if (e.keyCode == 13) { //Enter
-					var dst = that.currentDst();
-
-					if (!dst) {
-						return;
-					}
-
-					var msgContent = $(this).val();
+					sendPaused(dst.jid);
 
 					if (!msgContent) {
 						return;
@@ -400,6 +480,29 @@ Webos.require([
 
 			$win.on('windowclose', function () {
 				that.disconnect();
+			});
+
+			this.on('accountupdate accountremove', function () {
+				that._saveConfig();
+			});
+		},
+		_initChatstates: function () {
+			var that = this;
+
+			$(document).on('composing.chatstates', function (e, jid) {
+				that.trigger('contactcomposing', {
+					jid: jid
+				});
+			});
+			$(document).on('paused.chatstates', function (e, jid) {
+				that.trigger('contactpaused', {
+					jid: jid
+				});
+			});
+			$(document).on('active.chatstates', function (e, jid) {
+				that.trigger('contactactive', {
+					jid: jid
+				});
 			});
 		},
 		switchView: function (newView) {
@@ -719,7 +822,6 @@ Webos.require([
 						var show = $(presence).find("show").text(); // this is what gives away, dnd, etc.
 						if (show === 'chat' || !show){
 							// Mark contact as online
-
 							that._setContact({
 								jid: from,
 								presence: 'online'
@@ -912,8 +1014,14 @@ Webos.require([
 				$settingsWin.one('windowclose', function () {
 					that.off('accountupdate.settings.empathy accountremove.settings.empathy');
 				});
+
+				$settingsWin.find('.settings-close').off('click.settings.empathy').on('click.settings.empathy', function () {
+					$settingsWin.window('close');
+				});
 			}
 			$settingsWin.window('toForeground');
+
+			// Accounts
 
 			var $form = $settingsWin.find('form'),
 				$serverEntry = $settingsWin.find('.account-server'),
@@ -1008,6 +1116,35 @@ Webos.require([
 				}
 
 				that._removeAccount(jid);
+			});
+
+			// Other settings
+			
+			$settingsWin.find('.settings-composing').find('input').each(function () {
+				var settingName = $(this).data('setting');
+
+				if (!settingName) {
+					return;
+				}
+
+				if (typeof that._config[settingName] != 'undefined') {
+					if ($(this).is('[type=checkbox]')) {
+						$(this).prop('checked', that._config[settingName]);
+					} else {
+						$(this).val(that._config[settingName]);
+					}
+				}
+			});
+
+			$settingsWin.find('.settings-composing').on('change', 'input', function () {
+				var val = $(this).val(), settingName = $(this).data('setting');
+
+				if ($(this).is('[type=checkbox]')) {
+					val = $(this).prop('checked');
+				}
+
+				that._config[settingName] = val;
+				that._saveConfig();
 			});
 		}
 	};
