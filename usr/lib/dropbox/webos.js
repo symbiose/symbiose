@@ -253,7 +253,7 @@ Webos.DropboxFile.copy = function(source, dest, point, callback) {
 	}, callback.error]);
 };
 
-Webos.DropboxFile.move = function(path, point, callback) {
+Webos.DropboxFile.move = function(source, dest, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 	
 	return dropbox.moveItem(point.getRelativePath(source), point.getRelativePath(dest), [function(data) {
