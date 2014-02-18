@@ -62,6 +62,8 @@ $.webos.widget = function(widgetName) {
 		$.widget(fullWidgetName, properties);
 	}
 
+	// Look to the created prototype because of inheritance
+	// If the parent widget has "_translationsName", the child too!
 	if ($[$.webos.widget.namespace()][widgetName].prototype._translationsName) {
 		parentWidget = $[$.webos.widget.namespace()][widgetName];
 		$.widget(fullWidgetName, parentWidget, {
