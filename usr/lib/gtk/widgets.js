@@ -2257,7 +2257,7 @@ $.webos.checkableEntry.prototype = {
 };
 $.webos.widget('checkableEntry', 'entry');
 
-//TODO: implement $.webos.stringEntry with placeholder support
+//TODO: implement $.webos.stringEntry with placeholder support. Maybe on $.webos.checkableEntry ?
 
 /**
  * A text entry.
@@ -2534,10 +2534,6 @@ $.webos.emailEntry.prototype = {
 	}
 };
 $.webos.widget('emailEntry', 'checkableEntry');
-
-/*!
- * @TODO Below is undocumented source code.
- */
 
 /**
  * A multi-line text entry.
