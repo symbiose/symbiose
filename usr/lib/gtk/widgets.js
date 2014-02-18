@@ -9,6 +9,7 @@
 
 /**
  * Global namespace for webos' widgets.
+ * @type {Object}
  */
 $.webos = {};
 
@@ -127,6 +128,7 @@ $.webos.subwidget = function(widgetName, subwidgetName, init) {
 
 /**
  * The widgets' namespace.
+ * @type {String}
  * @static
  * @private
  */
@@ -207,7 +209,8 @@ $.webos.widget.list = function() {
 };
 
 /**
- * A list of all widgets.
+ * A list of all widgets elements.
+ * @type {Array}
  * @private
  */
 $.webos.widgets = [];
@@ -2536,10 +2539,25 @@ $.webos.widget('emailEntry', 'checkableEntry');
  * @TODO Below is undocumented source code.
  */
 
-//TextAreaEntry
-$.webos.widget('textAreaEntry', 'checkableEntry', {
+/**
+ * A multi-line text entry.
+ * @param  {String} label The entry label.
+ * @constructor
+ * @augments $.webos.checkableEntry
+ */
+$.webos.textAreaEntry = function(label) {
+	return $('<div></div>').textAreaEntry({
+		label: label
+	});
+};
+/**
+ * A multi-line text entry.
+ */
+$.webos.textAreaEntry.prototype = {
 	_name: 'textarea-entry',
 	_create: function() {
+		var that = this;
+
 		this._super('_create');
 		
 		this.options._components.br = $('<br />').appendTo(this.element);
@@ -2557,20 +2575,30 @@ $.webos.widget('textAreaEntry', 'checkableEntry', {
 				this.options._components.br.toggle((value) ? true : false);
 		}
 	}
-});
-$.webos.textAreaEntry = function(label) {
-	return $('<div></div>').textAreaEntry({
-		label: label
+};
+$.webos.widget('textAreaEntry', 'checkableEntry');
+
+/**
+ * A checkbox.
+ * @param  {String} label The entry label.
+ * @param  {Boolean} value The entry value.
+ * @constructor
+ * @augments $.webos.entry
+ */
+$.webos.checkButton = function(label, value) {
+	return $('<div></div>').checkButton({
+		label: label,
+		value: value
 	});
 };
-
-
-//CheckButton
-$.webos.widget('checkButton', 'entry', {
+/**
+ * A checkbox.
+ */
+$.webos.checkButton.prototype = {
+	_name: 'checkbutton',
 	options: {
 		value: false
 	},
-	_name: 'checkbutton',
 	_create: function() {
 		this._super('_create');
 		
@@ -2583,6 +2611,14 @@ $.webos.widget('checkButton', 'entry', {
 		
 		this.value(this.options.value);
 		this.option('disabled', this.options.disabled);
+
+		this.label().click(function () { //Toggle the checkbox
+			if (that.options.disabled) {
+				return;
+			}
+
+			that.option('value', !that.options.value);
+		});
 	},
 	value: function(value) {
 		if (typeof value == 'undefined') {
@@ -2597,27 +2633,46 @@ $.webos.widget('checkButton', 'entry', {
 			this.content().prop('checked', this.options.value);
 		}
 	}
-});
-$.webos.checkButton = function(label, value) {
-	return $('<div></div>').checkButton({
+};
+$.webos.widget('checkButton', 'entry');
+
+/**
+ * A radio button container.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.radioButtonContainer = function() {
+	return $('<div></div>').radioButtonContainer();
+};
+/**
+ * A radio button container.
+ */
+$.webos.radioButtonContainer.prototype = {
+	_name: 'radiobutton-container'
+}
+$.webos.widget('radioButtonContainer', 'container');
+
+/**
+ * A radio button.
+ * @param  {String} label The entry label.
+ * @param  {Boolean} value The entry value.
+ * @constructor
+ * @augments $.webos.entry
+ */
+$.webos.radioButton = function(label, value) {
+	return $('<div></div>').radioButton({
 		label: label,
 		value: value
 	});
 };
-
-
-//RadioButtonContainer
-$.webos.widget('radioButtonContainer', 'container', {
-	_name: 'radiobutton-container'
-});
-$.webos.radioButtonContainer = function() {
-	return $('<div></div>').radioButtonContainer();
-};
-
-
-//RadioButton
-$.webos.widget('radioButton', 'entry', {
+/**
+ * A radio button.
+ */
+$.webos.radioButton.prototype = {
 	_name: 'radiobutton',
+	options: {
+		value: false
+	},
 	_create: function() {
 		this._super('_create');
 		
@@ -2628,6 +2683,14 @@ $.webos.widget('radioButton', 'entry', {
 		this.element.prepend(this.options._content);
 		this.value(this.options.value);
 		this.option('disabled', this.options.disabled);
+
+		this.label().click(function () { //Toggle the checkbox
+			if (that.options.disabled) {
+				return;
+			}
+
+			that.option('value', !that.options.value);
+		});
 	},
 	value: function(value) {
 		if (typeof value == 'undefined') {
@@ -2637,17 +2700,30 @@ $.webos.widget('radioButton', 'entry', {
 			this.content().prop('checked', this.options.value);
 		}
 	}
-});
-$.webos.radioButton = function(label, value) {
-	return $('<div></div>').radioButton({
+};
+$.webos.widget('radioButton', 'entry');
+
+/**
+ * A combo list.
+ * @param  {String} label   The entry label.
+ * @param  {Object} choices An object containing values associated with their label.
+ * @constructor
+ * @augments $.webos.entry
+ */
+$.webos.selectButton = function(label, choices) {
+	return $('<div></div>').selectButton({
 		label: label,
-		value: value
+		choices: choices
 	});
 };
-
-
-//SelectButton
-$.webos.widget('selectButton', 'entry', {
+/**
+ * A combo list.
+ */
+$.webos.selectButton.prototype = {
+	/**
+	 * Options:
+	 *  - _Object_ `choices`: an object containing values associated with their label
+	 */
 	options: {
 		choices: {}
 	},
@@ -2690,17 +2766,26 @@ $.webos.widget('selectButton', 'entry', {
 				break;
 		}
 	}
-});
-$.webos.selectButton = function(label, choices) {
-	return $('<div></div>').selectButton({
+};
+$.webos.widget('selectButton', 'entry');
+
+/**
+ * A switch.
+ * @param  {String} label The entry label.
+ * @param  {Boolean} value The entry value.
+ * @constructor
+ * @augments $.webos.entry
+ */
+$.webos.switchButton = function(label, value) {
+	return $('<div></div>').switchButton({
 		label: label,
-		choices: choices
+		value: value
 	});
 };
-
-
-//SwitchButton
-$.webos.widget('switchButton', 'entry', {
+/**
+ * A switch.
+ */
+$.webos.switchButton.prototype = {
 	options: {
 		value: false
 	},
@@ -2774,9 +2859,16 @@ $.webos.widget('switchButton', 'entry', {
 			}
 		}
 	},
+	/**
+	 * Toggle this switch.
+	 */
 	toggle: function() {
 		this.value(!this.value());
 	},
+	/**
+	 * Toggle this switch value, without updating the element.
+	 * @private
+	 */
 	_toggle: function() {
 		this._value(!this.value());
 	},
@@ -2793,24 +2885,49 @@ $.webos.widget('switchButton', 'entry', {
 			}
 		}
 	}
-});
-$.webos.switchButton = function(label, value) {
-	return $('<div></div>').switchButton({
+};
+$.webos.widget('switchButton', 'entry');
+
+/**
+ * A menu.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.menu = function() {};
+/**
+ * A menu.
+ */
+$.webos.menu.prototype = {
+	_name: 'menu'
+};
+$.webos.widget('menu', 'container');
+
+
+/**
+ * A menu item.
+ * @param  {String} label     The item label.
+ * @param  {Boolean} separator True to show a separator on the top of this item.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.menuItem = function(label, separator) {
+	return $('<li></li>').menuItem({
 		label: label,
-		value: value
+		separator: separator
 	});
 };
-
-
-//Menu
-$.webos.widget('menu', 'container', {
-	_name: 'menu'
-});
-
-
-//MenuItem
-$.webos.widget('menuItem', 'container', {
+/**
+ * A menu item.
+ */
+$.webos.menuItem.prototype = {
 	_name: 'menuitem',
+	/**
+	 * Options:
+	 *  - `label`: the item label
+	 *  - _Boolean_ `disabled`: true if this item is disabled
+	 *  - _Boolean_ `separator`: true to show a separator on the top of this item
+	 * @type {Object}
+	 */
 	options: {
 		label: '',
 		disabled: false,
@@ -2902,18 +3019,27 @@ $.webos.widget('menuItem', 'container', {
 				break;
 		}
 	},
-});
-$.webos.menuItem = function(label, separator) {
-	return $('<li></li>').menuItem({
-		label: label,
-		separator: separator
-	});
 };
+$.webos.widget('menuItem', 'container');
 
-
-//Tabs
-$.webos.widget('tabs', 'container', {
+/**
+ * A tab bar.
+ * @param  {Object} tabs An object associating the tab title and its contents.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.tabs = function(tabs) {
+	return $('<div></div>').tabs().tabs('setTabs', tabs);
+};
+/**
+ * A tab bar.
+ */
+$.webos.tabs.prototype = {
 	_name: 'tabs',
+	/**
+	 * Options:
+	 *  - - _Number_ `selectedTab`: the selected tab index
+	 */
 	options: {
 		selectedTab: null
 	},
@@ -2931,6 +3057,13 @@ $.webos.widget('tabs', 'container', {
 			}
 		});
 	},
+	/**
+	 * Get/set a tab.
+	 * @param  {String|Number} arg0 The tab title or the tab index.
+	 * @param  {String} arg1 The new tab contents or, if `arg0` is an index, the new tab title.
+	 * @param  {String} arg2 The new tab contents, if `arg1` is the new tab title.
+	 * @return {jQuery}      The tab contents container.
+	 */
 	tab: function(arg0, arg1, arg2) {
 		var index, title, contents;
 		
@@ -2977,6 +3110,10 @@ $.webos.widget('tabs', 'container', {
 		
 		return tabContents;
 	},
+	/**
+	 * Create some tabs.
+	 * @param {Object} tabs An object associating the tab title and its contents.
+	 */
 	setTabs: function(tabs) {
 		var i = 0;
 		for (var title in tabs) {
@@ -3002,15 +3139,31 @@ $.webos.widget('tabs', 'container', {
 				break;
 		}
 	}
-});
-$.webos.tabs = function(tabs) {
-	return $('<div></div>').tabs().tabs('setTabs', tabs);
 };
+$.webos.widget('tabs', 'container');
 
-
-//Draggable
-$.webos.widget('draggable', 'widget', {
+/**
+ * A draggable element.
+ * Use the widget `ui_draggable` for jQuery UI's draggable widget.
+ * @constructor
+ * @augments $.webos.widget
+ */
+$.webos.draggable = function () {};
+/**
+ * A draggable element.
+ */
+$.webos.draggable.prototype = {
 	_name: 'draggable',
+	/**
+	 * Options:
+	 *  - `data`: data associated with the draggable element
+	 *  - `dataType`: the data type
+	 *  - `sourceFile`: the source file
+	 *  - _jQuery_ `dragImage`: the image that will be dragged
+	 *  - `revert`: do not change the draggable position when dragged
+	 *  - `iframeFix`: allow the draggable to be dragged over iframes
+	 *  - `distance`: the minimum distance traveled before begining to drag this element
+	 */
 	options: {
 		data: null,
 		dataType: null,
@@ -3147,13 +3300,26 @@ $.webos.widget('draggable', 'widget', {
 			$(this.options.dragImage).show();
 		}
 	}
-});
+};
+$.webos.widget('draggable', 'widget');
 $.widget.bridge('ui_draggable', $.ui.draggable);
 
-
-//Droppable
-$.webos.widget('droppable', 'widget', {
+/**
+ * A droppable element.
+ * Use the widget `ui_draggable` for jQuery UI's droppable widget.
+ * @constructor
+ * @augments $.webos.widget
+ */
+$.webos.droppable = function () {};
+/**
+ * A droppable element.
+ */
+$.webos.droppable.prototype = {
 	_name: 'droppable',
+	/**
+	 * Options:
+	 *  - `accept`: the `dataType` accepted for this droppable
+	 */
 	options: {
 		accept: null
 	},
@@ -3191,6 +3357,11 @@ $.webos.widget('droppable', 'widget', {
 		var draggable = $.webos.ddmanager.current;
 		(draggable && this._trigger('drop', event, { draggable: draggable.element, droppable: this.element }));
 	},
+	/**
+	 * Check if this droppable accepts a given draggable element.
+	 * @param  {jQuery} el The draggable element.
+	 * @return {Boolean}    True if the draggable can be accepted, false otherwise.
+	 */
 	accept: function(el) {
 		if (!this.options.accept) {
 			return true;
@@ -3201,9 +3372,13 @@ $.webos.widget('droppable', 'widget', {
 		
 		return (el.draggable('option', 'dataType') == this.options.accept);
 	}
-});
+};
+$.webos.widget('droppable', 'widget');
 
-
+/*!
+ * The drag'n'drop manager.
+ * @type {Object}
+ */
 $.webos.ddmanager = {
 	current: null,
 	droppables: [],
@@ -3288,9 +3463,23 @@ $.webos.ddmanager = {
 	}
 };
 
-//Keyboard
+/**
+ * The keyboard manager.
+ * @type {Object}
+ * @static
+ */
 $.webos.keyboard = {};
+/**
+ * The webos system key.
+ * @type {String}
+ * @private
+ */
 $.webos.keyboard.systemKey = 'shift';
+/**
+ * Keycodes.
+ * @type {Object}
+ * @private
+ */
 $.webos.keyboard.keycodes = {
 	down: 40,
 	up: 38,
@@ -3345,6 +3534,11 @@ $.webos.keyboard.keycodes = {
 	f7: 118,
 	f8: 119
 };
+/**
+ * Currently pressed keys.
+ * @type {Array}
+ * @private
+ */
 $.webos.keyboard._keys = [];
 $(document)
 	.keydown(function(e) {
@@ -3358,6 +3552,12 @@ $(document)
 			delete $.webos.keyboard._keys[position];
 		}
 	});
+
+/**
+ * Check if some keys are currently pressed.
+ * @param  {String|Array} keys Keys. For multiple keys, you can either give an array or separate keys by a plus sign (e.g. `ctrl+alt+del`).
+ * @return {Boolean}      True if these keys are pressed, false otherwise.
+ */
 $.webos.keyboard.pressed = function(keys) {
 	if (typeof keys == 'undefined') {
 		return $.webos.keyboard._keys;
@@ -3377,9 +3577,18 @@ $.webos.keyboard.pressed = function(keys) {
 	}
 	return true;
 };
+/**
+ * Check if the system key is pressed.
+ * @return {Boolean}      True if this key is pressed, false otherwise.
+ */
 $.webos.keyboard.systemKeyDown = function() {
 	return $.webos.keyboard.pressed($.webos.keyboard.systemKey);
 };
+/**
+ * Translate a key code to a key name.
+ * @param  {Number} keycode The key code.
+ * @return {String}         The key name.
+ */
 $.webos.keyboard.keycode2Name = function(keycode) {
 	for (var name in $.webos.keyboard.keycodes) {
 		if (keycode === $.webos.keyboard.keycodes[name]) {
@@ -3388,6 +3597,11 @@ $.webos.keyboard.keycode2Name = function(keycode) {
 	}
 	return keycode;
 };
+/**
+ * Translate a key name to a key code.
+ * @param  {String} name The key name.
+ * @return {Number}      The key code.
+ */
 $.webos.keyboard.name2Keycode = function(name) {
 	name = name.toLowerCase();
 	if (typeof $.webos.keyboard.keycodes[name] != 'undefined') {
@@ -3395,7 +3609,13 @@ $.webos.keyboard.name2Keycode = function(name) {
 	}
 	return name;
 };
-$.webos.keyboard.keycodes.system = $.webos.keyboard.name2Keycode($.webos.keyboard.systemKey);
+
+/**
+ * Listen when a key is pressed.
+ * @param  {jQuery}   el       Check if the window containing this element is active.
+ * @param  {String}   keycode  The keys sequence. See `$.webos.keyboard.pressed`.
+ * @param  {Function} callback The callback function.
+ */
 $.webos.keyboard.bind = function(el, keycode, callback) {
 	el = $(el);
 	
@@ -3429,8 +3649,20 @@ $.webos.keyboard.bind = function(el, keycode, callback) {
 	});
 };
 
+/*!
+ * @TODO $.webos.keyboard.unbind()
+ */
 
-//Raccourci
+/*!
+ * The system key code.
+ * @type {Number}
+ */
+$.webos.keyboard.keycodes.system = $.webos.keyboard.name2Keycode($.webos.keyboard.systemKey);
+
+/*!
+ * Shortcut for $.webos.
+ * @type {Object}
+ */
 $.w = $.webos;
 
 })(jQuery);
