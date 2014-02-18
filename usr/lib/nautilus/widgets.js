@@ -1898,8 +1898,12 @@ Webos.require([
 			
 			for (var local in mountedDevices) {
 				(function(local, point) {
+					if (point.get('driver') == 'WebosFile') { // Ignore webos volumes
+						return;
+					}
+
 					var driverData = Webos.File.getDriverData(point.get('driver'));
-					
+
 					var $item = that._createItem(local, t.get('${driver} on ${local}', { driver: driverData.title, local: local }), driverData.icon);
 
 					$item
@@ -1917,11 +1921,16 @@ Webos.require([
 							
 							that.options.open(local);
 						});
-					$('<img />', { src: new W.Icon('actions/umount', 16), alt: '', title: t.get('Unmount volume') }).addClass('umount').prependTo(item.listItem('column', 0));
+					$('<img />', {
+						src: new W.Icon('actions/umount', 16),
+						alt: '',
+						title: t.get('Unmount volume')
+					}).addClass('umount').prependTo($item.listItem('column', 0));
 					
 					$item.appendTo(devicesShortcuts.list('content'));
+
+					i++;
 				})(local, mountedDevices[local]);
-				i++;
 			}
 
 			devicesShortcuts.appendTo(this.options._devices);

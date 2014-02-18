@@ -175,21 +175,33 @@ Webos.require([
 					'lib': '/usr/lib/google-api/webos.js'
 				}
 			};
+
+			for (var name in this._drivers) {
+				this._drivers[name] = $.extend({
+					title: 'Unknown driver',
+					icon: 'places/folder-remote',
+					lib: null
+				}, this._drivers[name]);
+			}
 			
 			this.showDrivers = function(driver) {
 				var that = this;
 
 				var form = $.w.entryContainer().submit(function() {
-					that._window.window('loading', true, {
-						message: t.get('Loading of ${driver} library in progress...', { driver: that._drivers[selectedDriver].title })
-					});
-					W.ScriptFile(that._drivers[selectedDriver].lib);
-					var local = localEntry.nautilusFileEntry('value'), remote = remoteEntry.textEntry('value'), permanent = permanentEntry.switchButton('value');
-					var point = new Webos.File.MountPoint({
-						remote: remote,
-						driver: selectedDriver
-					}, local);
-					
+					if (that._drivers[selectedDriver].lib) {
+						that._window.window('loading', true, {
+							message: t.get('Loading of ${driver} library in progress...', { driver: that._drivers[selectedDriver].title })
+						});
+
+						W.ScriptFile(that._drivers[selectedDriver].lib);
+						
+						var local = localEntry.nautilusFileEntry('value'), remote = remoteEntry.textEntry('value'), permanent = permanentEntry.switchButton('value');
+						var point = new Webos.File.MountPoint({
+							remote: remote,
+							driver: selectedDriver
+						}, local);
+					}
+
 					var mountFn = function() {
 						that._window.window('loading', true, {
 							message: t.get('Mounting of ${driver} volume in progress...', { driver: that._drivers[selectedDriver].title })

@@ -174,12 +174,17 @@ Webos.base64 = {
  * ```
  * 
  * @param {Object} data The file's data.
+ * @param {Webos.File.MountPoint} point The file's mount point.
  * @constructor
  * @augments {Webos.Model}
  * @since 1.0alpha1
  */
-Webos.File = function WFile(data) {
+Webos.File = function (data, point) {
 	Webos.Model.call(this, data); //Inherits from Webos.Model
+
+	if (point) { //Do not override an existing point -- legacy mode
+		this._mountPoint = point;
+	}
 };
 /**
  * Webos.File's prototype.
@@ -235,6 +240,13 @@ Webos.File.prototype = {
 		}
 
 		return Webos.Model.prototype.hydrate.call(this, data);
+	},
+	/**
+	 * Get this file's mount point.
+	 * @return {Webos.File.MountPoint} The mount point.
+	 */
+	mountPoint: function() {
+		return this._mountPoint;
 	},
 	/**
 	 * Update file's data.
@@ -520,13 +532,13 @@ Webos.File.get = function(file, data, disableCache) {
 		}
 	}
 
-	//Le fichier est-il dans un volume monte ?
-	var devices = Webos.File.mountedDevices();
-	for (var local in devices) {
-		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			if (Webos.File.isCached(path)) { //Si le fichier est dans le cache
-				return Webos.File._cache[path];
-			} else {
+	if (Webos.File.isCached(path)) { //Si le fichier est dans le cache, on le retourne
+		return Webos.File._cache[path];
+	} else {
+		//Le fichier est-il dans un volume monte ?
+		var devices = Webos.File.mountedDevices();
+		for (var local in devices) {
+			if (Webos.File.cleanPath(path).indexOf(local) == 0) {
 				file = Webos[devices[local].get('driver')].get(path, devices[local], data);
 				if (!disableCache) {
 					Webos.File._cache[file.get('path')] = file;
@@ -534,11 +546,7 @@ Webos.File.get = function(file, data, disableCache) {
 				return file;
 			}
 		}
-	}
 
-	if (Webos.File.isCached(path)) { //Si le fichier est dans le cache, on le retourne
-		return Webos.File._cache[path];
-	} else {
 		//Sinon, on crée un nouvel objet
 		file = new Webos.WebosFile($.extend({}, data, {
 			path: path
@@ -559,7 +567,7 @@ Webos.File.get = function(file, data, disableCache) {
 Webos.File.load = function(path, callback) {
 	path = String(path);
 	callback = Webos.Callback.toCallback(callback);
-	
+
 	//Ajouter un fichier au cache
 	var addFileToCacheFn = function(file) {
 		if (typeof Webos.File._cache[file.get('path')] != 'undefined') {
@@ -570,33 +578,40 @@ Webos.File.load = function(path, callback) {
 			Webos.File._cache[file.get('path')] = file;
 		}
 	};
-	
+
 	//Le fichier est-il dans un volume monte ?
 	var devices = Webos.File.mountedDevices();
 	for (var local in devices) {
 		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
 			(function(point) {
-				Webos[point.get('driver')].load(path, point, [function(file) {
-					addFileToCacheFn(file);
-					callback.success(file);
-				}, callback.error]);
+				if (Webos[point.get('driver')].load) {
+					Webos[point.get('driver')].load(path, point, [function(file) {
+						addFileToCacheFn(file);
+						callback.success(file);
+					}, callback.error]);
+				} else {
+					var file = Webos[point.get('driver')].get(path, devices[local], data);
+
+					file.load([function() {
+						//On le stocke dans le cache
+						addFileToCacheFn(file);
+						
+						callback.success(file);
+					}, callback.error]);
+				}
 			})(devices[local]);
 			return;
 		}
 	}
-	
-	if (Webos.File.isCached(path)) { //Si le fichier est déja dans le cache, on le retourne
-		callback.success(Webos.File._cache[path]);
-	} else { //Sinon, on le charge
-		var file = Webos.File.get(path, {}, false);
+
+	var file = Webos.File.get(path, {}, false);
+
+	file.load([function() {
+		//On le stocke dans le cache
+		addFileToCacheFn(file);
 		
-		file.load(new Webos.Callback(function() {
-			//On le stocke dans le cache
-			addFileToCacheFn(file);
-			
-			callback.success(file);
-		}, callback.error));
-	}
+		callback.success(file);
+	}, callback.error]);
 };
 
 /**
@@ -712,22 +727,6 @@ Webos.File.copy = function(source, dest, callback) {
 		
 		return file;
 	};
-
-	//Copie cote serveur entre fichiers du webos
-	if (Webos.isInstanceOf(source, Webos.WebosFile) && Webos.isInstanceOf(dest, Webos.WebosFile)) {
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'copy',
-			arguments: {
-				source: source.get('path'),
-				dest: dest.get('path')
-			}
-		}).load([function(response) {
-			var file = updateMetadataFn(source, dest, response.getData());
-
-			callback.success(file);
-		}, callback.error]);
-	}
 
 	//Copie cote serveur entre fichiers du meme volume
 	if (source.get('mountPoint') && dest.get('mountPoint')) {
@@ -881,22 +880,6 @@ Webos.File.move = function(source, dest, callback) {
 		
 		return file;
 	};
-
-	//Deplacement cote serveur entre fichiers du webos
-	if (Webos.isInstanceOf(source, Webos.WebosFile) && Webos.isInstanceOf(dest, Webos.WebosFile)) {
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'move',
-			arguments: {
-				source: source.get('path'),
-				dest: dest.get('path')
-			}
-		}).load([function(response) {
-			var file = updateMetadataFn(source, dest, response.getData());
-
-			callback.success(file);
-		}, callback.error]);
-	}
 
 	//Deplacement cote serveur entre fichiers du meme volume
 	if (source.get('mountPoint') && dest.get('mountPoint')) {
@@ -1179,7 +1162,7 @@ Webos.inherit(Webos.File.MountPoint, Webos.Model);
  */
 Webos.File.mount = function(point, callback) {
 	callback = Webos.Callback.toCallback(callback);
-	
+
 	if (!Webos[point.get('driver')]) {
 		callback.error();
 		return;
@@ -1295,12 +1278,13 @@ Webos.File.getDriverData = function(driverName) {
 /**
  * A file on the webos's file system.
  * @param {Object} data The file's data.
+ * @param {Webos.File.MountPoint} point The file's mount point.
  * @augments {Webos.File}
  * @constructor
  * @since 1.0beta1
  */
-Webos.WebosFile = function WWebosFile(data) {
-	Webos.File.call(this, data); //On appelle la classe parente
+Webos.WebosFile = function (data, point) {
+	Webos.File.call(this, data, point); //On appelle la classe parente
 };
 /**
  * Webos.WebosFile's prototype.
@@ -1634,6 +1618,93 @@ Webos.WebosFile.prototype = {
 	}
 };
 Webos.inherit(Webos.WebosFile, Webos.File); //Héritage de Webos.File
+
+Webos.WebosFile.get = function (file, point, data) {
+	path = String(file);
+	
+	if (file instanceof Webos.WebosFile) { //Already a WebosFile object?
+		return file;
+	} else {
+		return new Webos.WebosFile($.extend({}, data, {
+			path: point.getRelativePath(path)
+		}), point);
+	}
+};
+
+Webos.WebosFile.createFile = function(path, point, callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	return new Webos.ServerCall({
+		'class': 'FileController',
+		method: 'createFile',
+		arguments: {
+			file: point.getRelativePath(path)
+		}
+	}).load([function(resp) {
+		var file = Webos.File.get(path);
+		file._updateData(resp.getData());
+		callback.success(file);
+	}, callback.error]);
+};
+
+Webos.WebosFile.createFolder = function(path, point, callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	return new Webos.ServerCall({
+		'class': 'FileController',
+		method: 'createFolder',
+		arguments: {
+			file: point.getRelativePath(path)
+		}
+	}).load([function(resp) {
+		var file = Webos.File.get(path);
+		file._updateData(resp.getData());
+		callback.success(file);
+	}, callback.error]);
+};
+
+Webos.WebosFile.copy = function(source, dest, point, callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	return new Webos.ServerCall({
+		'class': 'FileController',
+		method: 'copy',
+		arguments: {
+			source: point.getRelativePath(source),
+			dest: point.getRelativePath(dest)
+		}
+	}).load([function(resp) {
+		callback.success(resp.getData());
+	}, callback.error]);
+};
+
+Webos.WebosFile.move = function(source, dest, point, callback) {
+	callback = Webos.Callback.toCallback(callback);
+	
+	return new Webos.ServerCall({
+		'class': 'FileController',
+		method: 'move',
+		arguments: {
+			source: point.getRelativePath(source),
+			dest: point.getRelativePath(dest)
+		}
+	}).load([function(resp) {
+		callback.success(resp.getData());
+	}, callback.error]);
+};
+
+// Mount / and ~
+Webos.File.registerDriver('WebosFile', { title: 'Webos' });
+var rootPoint = new Webos.File.MountPoint({
+	remote: '/',
+	driver: 'WebosFile'
+}, '/');
+Webos.File.mount(rootPoint);
+var homePoint = new Webos.File.MountPoint({
+	remote: '~',
+	driver: 'WebosFile'
+}, '~');
+Webos.File.mount(homePoint);
 
 /**
  * A local file (i.e. a file which is on the user's computer).
