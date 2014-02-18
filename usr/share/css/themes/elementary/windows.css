@@ -5,7 +5,7 @@
 	-moz-border-radius: 5px 5px 0px 0px;
 	-webkit-border-radius: 5px 5px 0px 0px;
 	border-radius: 5px 5px 0px 0px;
-	-moz-box-shadow:0px 0px 15px black; 
+	-moz-box-shadow:0px 0px 15px black;
 	-webkit-box-shadow:0px 0px 15px black;
 	box-shadow: 0px 0px 15px black;
 	border: 1px solid #6f6f6f;
@@ -31,9 +31,9 @@
 }
 
 .webos-window.bg-window {
-	-moz-box-shadow: none; 
-	-webkit-box-shadow: none;
-	box-shadow: none;
+	-moz-box-shadow:0px 0px 15px rgba(0, 0, 0, 0.5);
+	-webkit-box-shadow:0px 0px 15px rgba(0, 0, 0, 0.5);
+	box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
 }
 
 .webos-window .header {
@@ -45,6 +45,12 @@
 	-webkit-border-radius: 5px 5px 0px 0px;
 	border-radius: 5px 5px 0px 0px;
 	border-bottom: 1px solid #7c7c7c;
+}
+.webos-window.bg-window .header {
+	background-color: #e7e7e7;
+	background: -moz-linear-gradient(#f3f3f3, #dadada);
+	background: -webkit-linear-gradient(#f3f3f3, #dadada);
+	background: linear-gradient(#f3f3f3, #dadada);
 }
 
 /* BARRE DU HEADER */
@@ -155,7 +161,7 @@
 	text-align: center;
 }
 .webos-window.bg-window .header .top .title {
-	color: #a7aba7;
+	color: #b2b2b2;
 }
 
 /* CONTENU DE LA FENETRE */
