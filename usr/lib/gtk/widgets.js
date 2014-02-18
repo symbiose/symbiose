@@ -62,7 +62,7 @@ $.webos.widget = function(widgetName) {
 		$.widget(fullWidgetName, properties);
 	}
 
-	if (properties._translationsName) {
+	if ($[$.webos.widget.namespace()][widgetName].prototype._translationsName) {
 		parentWidget = $[$.webos.widget.namespace()][widgetName];
 		$.widget(fullWidgetName, parentWidget, {
 			_translations: new Webos.Translation(),
