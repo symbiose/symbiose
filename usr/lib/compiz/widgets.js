@@ -931,7 +931,7 @@ $.webos.widget('window', 'container', {
 		var that = this;
 		
 		this.options._components.header.bind('mousedown.window.widget.webos', function(e) {
-			if ($(e.target).add($(e.target).parents()).is('.controllers, .header-specific * *')) {
+			if ($(e.target).add($(e.target).parents()).is('.controllers *, .header-specific * *')) {
 				return;
 			}
 

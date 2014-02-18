@@ -67,7 +67,8 @@
 
 /* CONTROLLEURS DE LA FENETRE */
 .webos-window .header .top .controllers {
-	float: right;
+	position: absolute;
+	width: 100%;
 	height: 16px;
 	margin-top: 4px;
 }
@@ -89,6 +90,11 @@
 }
 
 .webos-window .header .top .controllers .close {
+	float: left;
+	margin-left: 3px;
+}
+.webos-window .header .top .controllers .hide,
+.webos-window .header .top .controllers .maximize {
 	float: right;
 }
 
