@@ -78,7 +78,12 @@ Webos.Script.run = function (js, options) {
 
 	var s = document.createElement('script');
 	s.innerHTML = '\n'+js+'\n';
-	document.head.appendChild(s);
+
+	if (document.head) {
+		document.head.appendChild(s);
+	} else {
+		document.appendChild(s);
+	}
 };
 
 /**
