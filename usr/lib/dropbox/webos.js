@@ -60,7 +60,7 @@ Webos.DropboxFile.prototype = {
 		callback = Webos.Callback.toCallback(callback);
 		
 		if (newName.indexOf('/') != -1) {
-			callback.error('Le nom d\'un fichier ne peut pas contenir le caract&egrave;re "/"');
+			callback.error(Webos.Callback.Result.error('A file name cannot contain "/"'));
 		}
 		
 		var dest = this.get('mountPoint').getRelativePath(this.get('dirname') + '/' + newName);
