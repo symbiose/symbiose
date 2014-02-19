@@ -338,7 +338,7 @@ dropbox.oauthRequest = function(param1,param2,callback) {
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
 			//Something went wrong. Feel free to add a better error message if you want
-			callback.error(jqXHR.status + ' ' + jqXHR.statusText + '. ' + jqXHR.responseText, jqXHR);
+			callback.error(Webos.Callback.Result.error(jqXHR.status + ' ' + jqXHR.statusText + '. ' + jqXHR.responseText));
 		}
 	});
 };
@@ -493,7 +493,7 @@ dropbox.oauthPutRequest = function(param1,param2,body,callback) {
 			xhr = new XMLHttpRequest();
 		}
 	} else {
-		console.log("XMLHTTPRequest not supported, please update your web browser.");
+		callback.error(Webos.Callback.Result.error("XMLHTTPRequest not supported, please update your web browser."));
 		return;
 	}
 
@@ -508,7 +508,7 @@ dropbox.oauthPutRequest = function(param1,param2,body,callback) {
 		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
 			callback.success(jQuery.parseJSON(xhr.responseText));
 		} else if (xhr.readyState == 4) {
-			callback.error(xhr.status + ' ' + xhr.statusText + '. ' + xhr.responseText, xhr);
+			callback.error(Webos.Callback.Result.error(xhr.status + ' ' + xhr.statusText + '. ' + xhr.responseText));
 		}
 	};
 };
