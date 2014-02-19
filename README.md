@@ -45,7 +45,7 @@ Have a bug ? Please create an issue here on GitHub : https://github.com/symbiose
 Installing
 ----------
 
-To install Symbiose you just need to unzip files on your web server and chmod all of them to 0777. If a HTTP 500 error occurs, chmod */.htaccess*, */sbin/* and */index.php* to 0755.
+To install Symbiose you just need to unzip files on your web server and to set them read and write permissions for web server user.
 
 For more information, please see the wiki : https://github.com/symbiose/symbiose/wiki/Installing.
 
