@@ -3,7 +3,7 @@
 	"description":"Symbiose, the free and flexible webos.",
 	"keywords":["webos","web desktop"],
 	"homepage":"http://symbiose.fr.cr",
-	"version":"1.0-beta3",
+	"version":"1.0-beta4",
 	"license":"GPLv3",
 	"type":"application",
 	"authors":[
@@ -16,6 +16,7 @@
 		"vendor-dir":"lib/vendor"
 	},
 	"require": {
+		"php": ">=5.3.0",
 		"cboden/Ratchet": "0.3.*",
 		"symbiose/websocket-client": "dev-master",
 		"nitra/php-min": "dev-master",
