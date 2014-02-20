@@ -1803,7 +1803,12 @@ Webos.User.bind('login logout', function() {
 });
 Webos.User.bind('logout', function() {
 	//On demonte tous les volumes
-	for (var local in Webos.File.mountedDevices()) {
+	var mounted = Webos.File.mountedDevices();
+	for (var local in mounted) {
+		if (mounted[local].get('driver') == 'WebosFile') { //Do not unmount webos volumes
+			continue;
+		}
+
 		Webos.File.umount(local);
 	}
 });
