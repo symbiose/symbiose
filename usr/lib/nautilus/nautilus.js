@@ -173,7 +173,11 @@ Webos.require([
 					'title': 'Google Drive',
 					'icon': 'applications/google-drive',
 					'lib': '/usr/lib/google-api/webos.js'
-				}
+				}/*,
+				'WebosFile': {
+					'title': 'Webos',
+					'icon': 'places/folder-remote'
+				}*/
 			};
 
 			for (var name in this._drivers) {
@@ -317,7 +321,7 @@ Webos.require([
 				}).appendTo(spoilerContents);
 				var remoteEntry = $.w.textEntry(t.get('Remote folder :'), '/').appendTo(spoilerContents);
 				
-				var permanentEntry = $.w.switchButton(t.get('Persistant mounting :'), canWriteUserFiles).appendTo(spoilerContents);
+				var permanentEntry = $.w.switchButton(t.get('Persistant mounting'), canWriteUserFiles).appendTo(spoilerContents);
 				
 				var buttons = $.w.buttonContainer().appendTo(form);
 				$.w.button(t.get('Cancel')).click(function() {
