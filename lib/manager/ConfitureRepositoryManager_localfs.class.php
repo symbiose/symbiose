@@ -612,9 +612,7 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 			//Re-create parent dirs if they are not
 			$parentDir = $this->dao->dirname($item['destPath']);
 			if (!$this->dao->isDir($parentDir)) {
-				if (!$this->dao->mkdir($parentDir, true)) {
-					throw new RuntimeException('Cannot create directory "'.$parentDir.'"');
-				}
+				$this->dao->mkdir($parentDir, true);
 			}
 
 			//If the file already exists, do not overwrite it
@@ -626,7 +624,7 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 				if (!empty($fileData)) {
 					//Collision
 					if ($fileData['pkg'] != $package->name()) {
-						throw new RuntimeException('File collision detected : "'.$item['name'].'" is already provided by "'.$fileData['pkg'].'"');
+						throw new RuntimeException('File collision detected: "'.$item['name'].'" is already provided by "'.$fileData['pkg'].'"');
 					}
 
 					//Check if the file must be upgraded
@@ -646,12 +644,18 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 			$itemSource = $zip->getStream($item['sourcePath']); //Get the file's stream
 			$itemDest = fopen($this->dao->toInternalPath($item['destPath']), 'w'); //Destination file
 
-			$copiedBits = stream_copy_to_stream($itemSource, $itemDest); //Extract current file...
-			fclose($itemDest);
-
-			if ($copiedBits == 0) { //Nothing copied -> error ?
-				throw new RuntimeException('Cannot extract file "'.$item['sourcePath'].'" from "'.$zipPath.'" to "'.$item['destPath'].'"');
+			if ($itemSource === false) {
+				throw new RuntimeException('Cannot open zip file stream: "'.$item['sourcePath'].'" from "'.$zipPath.'"');
 			}
+			if ($itemDest === false) {
+				throw new RuntimeException('Cannot open file for writing: "'.$item['destPath'].'"');
+			}
+
+			$copiedBytes = stream_copy_to_stream($itemSource, $itemDest); //Extract current file...
+			
+			//Close files
+			fclose($itemDest);
+			fclose($itemSource);
 
 			//Post-check
 
@@ -660,7 +664,7 @@ class ConfitureRepositoryManager_localfs extends ConfitureRepositoryManager {
 
 				if ($item['md5sum'] != $destMd5) { //If checksums are different
 					$this->dao->delete($item['destPath']); //Delete copied file
-					throw new RuntimeException('Bad file checksum : "'.$item['destPath'].'". This file is corrupted. Please try to install this package again.');
+					throw new RuntimeException('Bad file checksum: "'.$item['destPath'].'". This file is corrupted. Please try to install this package again.');
 				}
 			}
 
