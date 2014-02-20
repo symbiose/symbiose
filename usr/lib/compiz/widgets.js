@@ -80,7 +80,12 @@ $.webos.widget('window', 'container', {
 		
 		this.options._components.header = $('<div></div>', { 'class': 'header' }).appendTo(this.element);
 		
-		var headerTop = $('<div></div>').addClass('top').appendTo(this.options._components.header);
+		var headerTop = $('<div></div>')
+			.addClass('top')
+			.dblclick(function() {
+				that.minimizeOrMaximize();
+			})
+			.appendTo(this.options._components.header);
 		
 		this.options._components.controllers = {};
 		var controllers = $('<div></div>', { 'class': 'controllers' }).appendTo(headerTop);
@@ -126,9 +131,6 @@ $.webos.widget('window', 'container', {
 		})
 			.mousedown(function(e) {
 				e.preventDefault();
-			})
-			.dblclick(function() {
-				that.minimizeOrMaximize();
 			})
 			.appendTo(headerTop);
 		
