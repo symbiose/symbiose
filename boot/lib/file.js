@@ -180,11 +180,11 @@ Webos.base64 = {
  * @since 1.0alpha1
  */
 Webos.File = function (data, point) {
-	Webos.Model.call(this, data); //Inherits from Webos.Model
-
 	if (point) { //Do not override an existing point -- legacy mode
 		this._mountPoint = point;
 	}
+
+	Webos.Model.call(this, data); //Inherits from Webos.Model
 };
 /**
  * Webos.File's prototype.
@@ -546,15 +546,6 @@ Webos.File.get = function(file, data, disableCache) {
 				return file;
 			}
 		}
-
-		//Sinon, on crée un nouvel objet
-		file = new Webos.WebosFile($.extend({}, data, {
-			path: path
-		}));
-		if (!disableCache) {
-			Webos.File._cache[file.get('path')] = file;
-		}
-		return file;
 	}
 };
 
@@ -590,7 +581,7 @@ Webos.File.load = function(path, callback) {
 						callback.success(file);
 					}, callback.error]);
 				} else {
-					var file = Webos[point.get('driver')].get(path, devices[local], data);
+					var file = Webos[point.get('driver')].get(path, devices[local]);
 
 					file.load([function() {
 						//On le stocke dans le cache
@@ -652,7 +643,8 @@ Webos.File.createFile = function(path, callback) {
 			return;
 		}
 	}
-	
+
+	//TODO: remove this fallback
 	return new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'createFile',
@@ -687,7 +679,8 @@ Webos.File.createFolder = function(path, callback) {
 			return;
 		}
 	}
-	
+
+	//TODO: remove this fallback
 	return new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'createFolder',
@@ -714,7 +707,7 @@ Webos.File.copy = function(source, dest, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
 	var updateMetadataFn = function(source, dest, data) {
-		var metadataFile = new dest.constructor(data);
+		var metadataFile = new dest.constructor(data, dest.get('mountPoint'));
 		var file = Webos.File.get(metadataFile.get('path'));
 		if (Webos.isInstanceOf(file, metadataFile.constructor)) {
 			file._updateData(metadataFile.data());
@@ -867,7 +860,7 @@ Webos.File.move = function(source, dest, callback) {
 		var contents = source._contents;
 		source._remove();
 
-		var metadataFile = new dest.constructor(data);
+		var metadataFile = new dest.constructor(data, dest.get('mountPoint'));
 		var file = Webos.File.get(metadataFile.get('path'));
 		if (Webos.isInstanceOf(file, metadataFile.constructor)) {
 			file._updateData(metadataFile.data());
@@ -1293,13 +1286,14 @@ Webos.WebosFile = function (data, point) {
 Webos.WebosFile.prototype = {
 	hydrate: function(data) {
 		if (data.path) {
-			data.path = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
+			data.webospath = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
+			data.path = this.get('mountPoint').getWebosPath(data.webospath);
 
 			if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
 				data.realpath = 'sbin/rawdatacall.php?type=file&path='+data.path;
 			}
 		}
-		
+
 		if (typeof data.readable == 'undefined') {
 			data.readable = true;
 		}
@@ -1317,7 +1311,7 @@ Webos.WebosFile.prototype = {
 			'class': 'FileController',
 			method: 'getData',
 			arguments: {
-				path: this.get('path')
+				path: this.get('webospath')
 			}
 		}).load([function(response) {
 			var data = response.getData();
@@ -1339,7 +1333,7 @@ Webos.WebosFile.prototype = {
 			'class': 'FileController',
 			method: 'rename',
 			arguments: {
-				file: that.get('path'),
+				file: this.get('webospath'),
 				newName: newName
 			}
 		}).load([function(response) {
@@ -1362,7 +1356,7 @@ Webos.WebosFile.prototype = {
 			'class': 'FileController',
 			method: 'delete',
 			arguments: {
-				file: that.get('path')
+				file: this.get('webospath')
 			}
 		}).load([function() {
 			that._remove();
@@ -1386,7 +1380,7 @@ Webos.WebosFile.prototype = {
 			'class': 'FileController',
 			method: 'getContents',
 			arguments: {
-				file: that.get('path')
+				file: this.get('webospath')
 			}
 		}).load([function(response) {
 			that.hydrate({
@@ -1419,13 +1413,13 @@ Webos.WebosFile.prototype = {
 				'class': 'FileController',
 				method: 'getContents',
 				arguments: {
-					dir: this.get('path')
+					dir: this.get('webospath')
 				}
 			}).load([function(response) {
 				var data = response.getData();
 				var list = [];
 				for (var key in data) {
-					var webosFile = new Webos.WebosFile(data[key]);
+					var webosFile = new Webos.WebosFile(data[key], that.get('mountPoint'));
 					var file = Webos.File.get(webosFile.get('path'));
 					if (Webos.isInstanceOf(file, Webos.WebosFile)) {
 						file._updateData(webosFile.data());
@@ -1469,7 +1463,7 @@ Webos.WebosFile.prototype = {
 			'class': 'FileController',
 			method: 'getAsBinary',
 			arguments: {
-				file: that.get('path')
+				file: this.get('webospath')
 			}
 		}).load([function(response) {
 			that.hydrate({
@@ -1497,7 +1491,7 @@ Webos.WebosFile.prototype = {
 			'class': 'FileController',
 			method: 'getMinified',
 			arguments: {
-				file: that.get('path')
+				file: this.get('webospath')
 			}
 		}).load([function(response) {
 			that.hydrate({
@@ -1523,7 +1517,7 @@ Webos.WebosFile.prototype = {
 			'class': 'FileController',
 			method: 'setContents',
 			arguments: {
-				file: that.get('path'),
+				file: this.get('webospath'),
 				contents: contents
 			}
 		});
@@ -1587,7 +1581,7 @@ Webos.WebosFile.prototype = {
 			'class': 'FileController',
 			method: 'setContentsAsBinary',
 			arguments: {
-				file: that.get('path'),
+				file: this.get('webospath'),
 				contents: contents
 			}
 		}).load([function(response) {
@@ -1608,7 +1602,7 @@ Webos.WebosFile.prototype = {
 			'class': 'FileController',
 			method: 'share',
 			arguments: {
-				file: that.get('path')
+				file: this.get('webospath')
 			}
 		}).load([function(response) {
 			var shareData = response.getData();
