@@ -5,7 +5,7 @@
             "userInterface",
             "guestInterface"
         ],
-        "isDefault": true
+        "isDefault": false
     },
     {
         "name": "gnome-panel",
@@ -53,6 +53,6 @@
             "userInterface",
             "guestInterface"
         ],
-        "isDefault": false
+        "isDefault": true
     }
 ]
