@@ -1,8 +1,8 @@
 (function() {
-	var GoogleDocsWindow = function GoogleDocsWindow(file) {
+	var GoogleDocsWindow = function (file) {
 		Webos.Observable.call(this);
 
-		this.bind('translationsloaded', function() {
+		this.on('translationsloaded', function() {
 			var that = this, t = this._translations;
 
 			this._window = $.w.window.main({
@@ -17,7 +17,7 @@
 
 			this._iframe = $('<iframe></iframe>').hide().appendTo(windowContent);
 			this._openFileBtnContainer = $.w.container().addClass('container-select-file').appendTo(windowContent);
-			this._openFileBtn = $.w.button('Ouvrir un fichier').click(function() {
+			this._openFileBtn = $.w.button(t.get('Open a file')).click(function() {
 				that.selectFile();
 			}).addClass('btn-select-file').appendTo(this._openFileBtnContainer);
 

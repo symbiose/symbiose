@@ -85,7 +85,7 @@ Webos.GoogleApi.checkAuth = function(callback, forceImmediate) {
 /**
  * Represente un fichier de Google Drive.
  * @param {Object} data Les données sur le fichier.
- * @borrows Webos.File#load as this.load
+ * @augments Webos.File
  * @since 1.0 alpha 1
  * @constructor
  */
