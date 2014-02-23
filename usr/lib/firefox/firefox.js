@@ -61,8 +61,7 @@ function FirefoxWindow(url) {
 
 		var proxyFlagsStr = this._baseConvert(this._getProxyFlagsBinary(), 2, 16);
 
-		var proxifiedUrl = this._proxyUrl + '?q='+encodeURIComponent(btoa(url))+'&hl='+encodeURIComponent(proxyFlagsStr);
-
+                var proxifiedUrl = this._proxyUrl + '?q='+(btoa(url))+'&hl=';
 		return proxifiedUrl;
 	};
 
