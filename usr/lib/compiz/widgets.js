@@ -429,6 +429,11 @@ $.webos.widget('window', 'container', {
 
 		this.element.children('.title-window').css('cursor','auto');
 	},
+	/**
+	 * Recalculate and apply maximized dimentions on this window.
+	 * @param  {Boolean} animate True to animate, false otherwise.
+	 * @private
+	 */
 	remaximize: function (animate) {
 		if (!this.is('maximized')) {
 			return;
