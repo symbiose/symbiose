@@ -347,8 +347,9 @@ $.webos.widget('window', 'container', {
 			this._saveDimentions();
 		}
 		
-		var maxHeight = $('#desktop').height();
-		var maxWidth = $('#desktop').width();
+		var $desktop = $('#desktop');
+		var maxHeight = $desktop.height();
+		var maxWidth = $desktop.width();
 
 		var options = {
 			animate: true,
@@ -427,6 +428,79 @@ $.webos.widget('window', 'container', {
 		}
 
 		this.element.children('.title-window').css('cursor','auto');
+	},
+	remaximize: function (animate) {
+		if (!this.is('maximized')) {
+			return;
+		}
+
+		if (!this.options.maximizable) {
+			return;
+		}
+
+		var $desktop = $('#desktop');
+		var maxHeight = $desktop.height();
+		var maxWidth = $desktop.width();
+
+		var options = {
+			animate: (typeof animate == 'undefined' || animate) ? true : false,
+			mode: 'full',
+			position: 'left'
+		};
+		$.extend(options, this.options.maximizedDisplay);
+
+		var duration = 'fast';
+		if (!options.animate) {
+			duration = 0;
+		}
+
+		var finalCSS = {};
+		if (options.mode == 'half') {
+			if (options.position == 'right') {
+				finalCSS = {
+					width: maxWidth / 2,
+					height: maxHeight,
+					top: 0,
+					left: maxWidth / 2
+				};
+			} else {
+				finalCSS = {
+					width: maxWidth / 2,
+					height: maxHeight,
+					top: 0,
+					left: 0
+				};
+			}
+		} else {
+			finalCSS = {
+				width: maxWidth,
+				height: maxHeight,
+				top: 0,
+				left: 0
+			};
+		}
+
+		this.options._maximizedPosition = {
+			left: finalCSS.left,
+			top: finalCSS.top
+		};
+		this.options._maximizedDimentions = {
+			width: finalCSS.width,
+			height: finalCSS.height
+		};
+
+		this.element.addClass('animating').animate(finalCSS, duration);
+		
+		var that = this;
+
+		this.options._content.animate({
+			width: finalCSS.width,
+			height: (finalCSS.height - that.options._components.header.outerHeight(true))
+		}, duration, function() {
+			that.element.removeClass('animating');
+
+			that._trigger('resize', { type: 'resize' }, { window: that.element });
+		});
 	},
 	/**
 	 * Minimize this window.
@@ -1605,6 +1679,22 @@ $.webos.window.getHidePos = function(thisWindow) {
 $.webos.window.setHidePosFn = function(fn) {
 	$.webos.window._getHidePos = fn;
 };
+
+var resizeWindows = function () {
+	$.webos.window.getWindows().each(function () {
+		if ($(this).window('is', 'maximized')) {
+			$(this).window('remaximize', false);
+		}
+	});
+};
+
+var timer = window.setTimeout(function() {}, 0);
+$(window).on('resize', function() {
+	window.clearTimeout(timer);
+	timer = window.setTimeout(function() {
+		resizeWindows();
+	}, 500);
+});
 
 //WindowHeader
 $.webos.widget('windowHeader', 'container', {
