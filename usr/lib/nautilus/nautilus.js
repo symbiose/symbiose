@@ -173,11 +173,11 @@ Webos.require([
 					'title': 'Google Drive',
 					'icon': 'applications/google-drive',
 					'lib': '/usr/lib/google-api/webos.js'
-				}/*,
+				},
 				'WebosFile': {
 					'title': 'Webos',
 					'icon': 'places/folder-remote'
-				}*/
+				}
 			};
 
 			for (var name in this._drivers) {
@@ -198,13 +198,13 @@ Webos.require([
 						});
 
 						W.ScriptFile(that._drivers[selectedDriver].lib);
-						
-						var local = localEntry.nautilusFileEntry('value'), remote = remoteEntry.textEntry('value'), permanent = permanentEntry.switchButton('value');
-						var point = new Webos.File.MountPoint({
-							remote: remote,
-							driver: selectedDriver
-						}, local);
 					}
+
+					var local = localEntry.nautilusFileEntry('value'), remote = remoteEntry.textEntry('value'), permanent = permanentEntry.switchButton('value');
+					var point = new Webos.File.MountPoint({
+						remote: remote,
+						driver: selectedDriver
+					}, local);
 
 					var mountFn = function() {
 						that._window.window('loading', true, {
@@ -244,7 +244,7 @@ Webos.require([
 					};
 					
 					that._window.window('loading', true, {
-						message: t.get('Checking the local folder "${local}"...', { local: local })
+						message: t.get('Checking local folder "${local}"...', { local: local })
 					});
 
 					if (canWriteUserFiles) {

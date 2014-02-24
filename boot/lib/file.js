@@ -502,6 +502,39 @@ Webos.File._cache = {};
  */
 Webos.File._mountedDevices = {};
 
+Webos.File._toAbsolutePath = function (path) {
+	path = String(path);
+
+	if (Webos.Process) {
+		var currentProc = Webos.Process.current();
+
+		if (Webos.isInstanceOf(currentProc, Webos.Cmd)) {
+			var term = currentProc.getTerminal();
+			path = term.absolutePath(path);
+		}
+	}
+
+	return path;
+};
+
+Webos.File._mountPointByPath = function (path) {
+	path = Webos.File._toAbsolutePath(path);
+
+	var devices = Webos.File.mountedDevices(), matchingDevices = [];
+	for (var local in devices) {
+		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
+			matchingDevices.push(local);
+		}
+	}
+
+	if (!matchingDevices.length) {
+		return;
+	}
+
+	//Get the longest local path
+	return matchingDevices.sort(function (a, b) { return b.length - a.length; })[0];
+};
+
 /**
  * Get a file.
  * @param {String|Webos.File} file The path to the file.
@@ -521,31 +554,23 @@ Webos.File.get = function(file, data, disableCache) {
 		return;
 	}
 
-	path = String(file);
-
-	if (Webos.Process) {
-		var currentProc = Webos.Process.current();
-
-		if (Webos.isInstanceOf(currentProc, Webos.Cmd)) {
-			var term = currentProc.getTerminal();
-			path = term.absolutePath(path);
-		}
-	}
+	path = Webos.File._toAbsolutePath(file);
 
 	if (Webos.File.isCached(path)) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
 	} else {
-		//Le fichier est-il dans un volume monte ?
 		var devices = Webos.File.mountedDevices();
-		for (var local in devices) {
-			if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-				file = Webos[devices[local].get('driver')].get(path, devices[local], data);
-				if (!disableCache) {
-					Webos.File._cache[file.get('path')] = file;
-				}
-				return file;
-			}
+		var local = Webos.File._mountPointByPath(path);
+
+		if (typeof local == 'undefined') {
+			return;
 		}
+
+		file = Webos[devices[local].get('driver')].get(path, devices[local], data);
+		if (!disableCache) {
+			Webos.File._cache[file.get('path')] = file;
+		}
+		return file;
 	}
 };
 
@@ -556,7 +581,6 @@ Webos.File.get = function(file, data, disableCache) {
  * @static
  */
 Webos.File.load = function(path, callback) {
-	path = String(path);
 	callback = Webos.Callback.toCallback(callback);
 
 	//Ajouter un fichier au cache
@@ -570,8 +594,12 @@ Webos.File.load = function(path, callback) {
 		}
 	};
 
+	if (typeof path == 'undefined') {
+		return;
+	}
+
 	//Le fichier est-il dans un volume monte ?
-	var devices = Webos.File.mountedDevices();
+	/*var devices = Webos.File.mountedDevices();
 	for (var local in devices) {
 		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
 			(function(point) {
@@ -593,7 +621,7 @@ Webos.File.load = function(path, callback) {
 			})(devices[local]);
 			return;
 		}
-	}
+	}*/
 
 	var file = Webos.File.get(path, {}, false);
 
@@ -998,6 +1026,7 @@ Webos.File.search = function(options, callback) {
 		if (searchDir.get('path') == localPath || localPath.indexOf(searchDir.get('path')+'/') == 0) {
 			//Search in this device
 			//TODO
+			operation.setCompleted(Webos.Callback.Result.error('Operation not supported'));
 		}
 	}
 
@@ -1168,10 +1197,10 @@ Webos.File.mount = function(point, callback) {
 	
 	var mountFn = function() {
 		var mountFn = function() {
+			Webos.File.clearCache(point.get('local'), true);
+
 			Webos.File._mountedDevices[point.get('local')] = point;
 			Webos.File.notify('mount', { local: point.get('local'), remote: point.get('remote'), driver: point.get('driver'), point: point });
-			
-			Webos.File.clearCache(point.get('local'), true);
 
 			callback.success(point);
 		};
@@ -1284,6 +1313,9 @@ Webos.WebosFile = function (data, point) {
  * @namespace Webos.WebosFile
  */
 Webos.WebosFile.prototype = {
+	mountPointData: function () {
+		return this.get('mountPoint').get('data') || {};
+	},
 	hydrate: function(data) {
 		if (data.path) {
 			data.webospath = Webos.File.cleanPath(data.path); //On nettoie le chemin recu
@@ -1312,7 +1344,10 @@ Webos.WebosFile.prototype = {
 			method: 'getData',
 			arguments: {
 				path: this.get('webospath')
-			}
+			},
+			host: this.get('mountPointData').host,
+			username: this.get('mountPointData').username,
+			password: this.get('mountPointData').password
 		}).load([function(response) {
 			var data = response.getData();
 
@@ -1335,7 +1370,10 @@ Webos.WebosFile.prototype = {
 			arguments: {
 				file: this.get('webospath'),
 				newName: newName
-			}
+			},
+			host: this.get('mountPointData').host,
+			username: this.get('mountPointData').username,
+			password: this.get('mountPointData').password
 		}).load([function(response) {
 			var data = response.getData();
 
@@ -1357,7 +1395,10 @@ Webos.WebosFile.prototype = {
 			method: 'delete',
 			arguments: {
 				file: this.get('webospath')
-			}
+			},
+			host: this.get('mountPointData').host,
+			username: this.get('mountPointData').username,
+			password: this.get('mountPointData').password
 		}).load([function() {
 			that._remove();
 			callback.success();
@@ -1381,7 +1422,10 @@ Webos.WebosFile.prototype = {
 			method: 'getContents',
 			arguments: {
 				file: this.get('webospath')
-			}
+			},
+			host: this.get('mountPointData').host,
+			username: this.get('mountPointData').username,
+			password: this.get('mountPointData').password
 		}).load([function(response) {
 			that.hydrate({
 				is_dir: false
@@ -1414,7 +1458,10 @@ Webos.WebosFile.prototype = {
 				method: 'getContents',
 				arguments: {
 					dir: this.get('webospath')
-				}
+				},
+				host: this.get('mountPointData').host,
+				username: this.get('mountPointData').username,
+				password: this.get('mountPointData').password
 			}).load([function(response) {
 				var data = response.getData();
 				var list = [];
@@ -1464,7 +1511,10 @@ Webos.WebosFile.prototype = {
 			method: 'getAsBinary',
 			arguments: {
 				file: this.get('webospath')
-			}
+			},
+			host: this.get('mountPointData').host,
+			username: this.get('mountPointData').username,
+			password: this.get('mountPointData').password
 		}).load([function(response) {
 			that.hydrate({
 				is_dir: false
@@ -1492,7 +1542,10 @@ Webos.WebosFile.prototype = {
 			method: 'getMinified',
 			arguments: {
 				file: this.get('webospath')
-			}
+			},
+			host: this.get('mountPointData').host,
+			username: this.get('mountPointData').username,
+			password: this.get('mountPointData').password
 		}).load([function(response) {
 			that.hydrate({
 				is_dir: false
@@ -1519,7 +1572,10 @@ Webos.WebosFile.prototype = {
 			arguments: {
 				file: this.get('webospath'),
 				contents: contents
-			}
+			},
+			host: this.get('mountPointData').host,
+			username: this.get('mountPointData').username,
+			password: this.get('mountPointData').password
 		});
 
 		call.bind('success', function(data) {
@@ -1583,7 +1639,10 @@ Webos.WebosFile.prototype = {
 			arguments: {
 				file: this.get('webospath'),
 				contents: contents
-			}
+			},
+			host: this.get('mountPointData').host,
+			username: this.get('mountPointData').username,
+			password: this.get('mountPointData').password
 		}).load([function(response) {
 			that._updateData(response.getData());
 
@@ -1603,7 +1662,10 @@ Webos.WebosFile.prototype = {
 			method: 'share',
 			arguments: {
 				file: this.get('webospath')
-			}
+			},
+			host: this.get('mountPointData').host,
+			username: this.get('mountPointData').username,
+			password: this.get('mountPointData').password
 		}).load([function(response) {
 			var shareData = response.getData();
 
@@ -1612,6 +1674,44 @@ Webos.WebosFile.prototype = {
 	}
 };
 Webos.inherit(Webos.WebosFile, Webos.File); //Héritage de Webos.File
+
+Webos.WebosFile.mount = function(point, callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	if (!point.get('data')) {
+		var dialog = $.w.window.dialog({
+			title: 'Connecting to another webos',
+			icon: 'places/folder-remote'
+		});
+
+		var form = $.w.entryContainer().submit(function() {
+			point.set('data', {
+				host: host.textEntry('value'),
+				username: username.textEntry('value'),
+				password: password.passwordEntry('value')
+			});
+
+			dialog.window('close');
+			callback.success(point);
+		});
+
+		var host = $.w.textEntry('Host: ').appendTo(form);
+		var username = $.w.textEntry('Username: ').appendTo(form);
+		var password = $.w.passwordEntry('Password: ').appendTo(form);
+
+		var buttons = $.w.buttonContainer().appendTo(form);
+		$.w.button('Cancel').click(function() {
+			dialog.window('close');
+		}).appendTo(buttons);
+		$.w.button('OK', true).appendTo(buttons);
+
+		form.appendTo(dialog.window('content'));
+
+		dialog.window('open');
+	} else {
+		callback.success(point);
+	}
+};
 
 Webos.WebosFile.get = function (file, point, data) {
 	path = String(file);
@@ -1627,13 +1727,18 @@ Webos.WebosFile.get = function (file, point, data) {
 
 Webos.WebosFile.createFile = function(path, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
+
+	var pointData = point.get('data') || {};
 	
 	return new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'createFile',
 		arguments: {
 			file: point.getRelativePath(path)
-		}
+		},
+		host: pointData.host,
+		username: pointData.username,
+		password: pointData.password
 	}).load([function(resp) {
 		var file = Webos.File.get(path);
 		file._updateData(resp.getData());
@@ -1643,13 +1748,18 @@ Webos.WebosFile.createFile = function(path, point, callback) {
 
 Webos.WebosFile.createFolder = function(path, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
+
+	var pointData = point.get('data') || {};
 	
 	return new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'createFolder',
 		arguments: {
 			file: point.getRelativePath(path)
-		}
+		},
+		host: pointData.host,
+		username: pointData.username,
+		password: pointData.password
 	}).load([function(resp) {
 		var file = Webos.File.get(path);
 		file._updateData(resp.getData());
@@ -1660,13 +1770,18 @@ Webos.WebosFile.createFolder = function(path, point, callback) {
 Webos.WebosFile.copy = function(source, dest, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
+	var pointData = point.get('data') || {};
+
 	return new Webos.ServerCall({
 		'class': 'FileController',
 		method: 'copy',
 		arguments: {
 			source: point.getRelativePath(source),
 			dest: point.getRelativePath(dest)
-		}
+		},
+		host: pointData.host,
+		username: pointData.username,
+		password: pointData.password
 	}).load([function(resp) {
 		callback.success(resp.getData());
 	}, callback.error]);
@@ -1674,6 +1789,8 @@ Webos.WebosFile.copy = function(source, dest, point, callback) {
 
 Webos.WebosFile.move = function(source, dest, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
+
+	var pointData = point.get('data') || {};
 	
 	return new Webos.ServerCall({
 		'class': 'FileController',
@@ -1681,22 +1798,27 @@ Webos.WebosFile.move = function(source, dest, point, callback) {
 		arguments: {
 			source: point.getRelativePath(source),
 			dest: point.getRelativePath(dest)
-		}
+		},
+		host: pointData.host,
+		username: pointData.username,
+		password: pointData.password
 	}).load([function(resp) {
 		callback.success(resp.getData());
 	}, callback.error]);
 };
 
 // Mount / and ~
-Webos.File.registerDriver('WebosFile', { title: 'Webos' });
+Webos.File.registerDriver('WebosFile', { title: 'Webos', icon: 'places/folder-remote' });
 var rootPoint = new Webos.File.MountPoint({
 	remote: '/',
-	driver: 'WebosFile'
+	driver: 'WebosFile',
+	data: {}
 }, '/');
 Webos.File.mount(rootPoint);
 var homePoint = new Webos.File.MountPoint({
 	remote: '~',
-	driver: 'WebosFile'
+	driver: 'WebosFile',
+	data: {}
 }, '~');
 Webos.File.mount(homePoint);
 

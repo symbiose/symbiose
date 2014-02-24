@@ -4,7 +4,7 @@
 	 * @augments {Webos.Operation}
 	 * @since  1.0alpha1
 	 */
-	Webos.ServerCall = function WServerCall() {
+	Webos.ServerCall = function () {
 		Webos.Operation.call(this);
 
 		this._initialize.apply(this, arguments);
@@ -58,20 +58,21 @@
 		 * @param {String} options.class The class' name.
 		 * @param {String} options.method The method's name.
 		 * @param {Object} [options.arguments] Arguments to provide to the method.
-		 * @param {String} [options.user] The username with which the method will be called.
+		 * @param {String} [options.username] The username with which the method will be called.
 		 * @param {String} [options.password] The password corresponding to the username.
 		 * @param {Number} [options.pid] The process' ID with which the method will be called.
 		 * @param {String} [options.key] The process' key.
 		 * @constructor
 		 * @private
 		 */
-		_initialize: function $_WServerCall__initialize(opts) {
+		_initialize: function (opts) {
 			//Default options
 			var defaults = {
 				'class': '',
 				method: '',
 				arguments: {},
-				user: '',
+				host: '',
+				username: '',
 				password: '',
 				pid: '',
 				key: '',
@@ -88,6 +89,11 @@
 			}
 
 			var options = $.extend({}, defaults, opts);
+
+			if (options.host) { //If host is specified, do not use the websocket connection
+				options.transports.skip.push('websocket');
+			}
+
 			this._options = options;
 
 			var module = options['class'].replace(/Controller$/, '');
@@ -105,7 +111,7 @@
 					}
 					return value;
 				}),
-				user: options.user,
+				user: options.username,
 				password: options.password,
 				pid: options.pid,
 				key: options.key
@@ -306,7 +312,11 @@
 
 			var transport = Webos.ServerCall.transport(this._transport());
 
-			if (this._options.async === false || !transport.requestsOptions.groupRequests) {
+			//Do not group this request if:
+			// - request is async
+			// - request is on another host
+			// - transport cannot group requests
+			if (this._options.async === false || this._options.host || !transport.requestsOptions.groupRequests) {
 				//Webos.ServerCall._removeFromLoadStack(this);
 				that._load();
 			} else {
@@ -485,12 +495,17 @@
 			var operation = new Webos.Operation();
 			operation.addCallbacks(callback);
 
+			var url = Webos.ServerCall.ajax.options.url;
+			if (req._options.host) {
+				url = req._options.host+'/'+url;
+			}
+
 			var reqData = $.extend({}, req._data, {
 				id: Webos.ServerCall.requestMsgId()
 			});
 
 			$.ajax({
-				url: Webos.ServerCall.ajax.options.url,
+				url: url,
 				data: reqData,
 				type: req._type,
 				async: (req._options.async === false) ? false : true,

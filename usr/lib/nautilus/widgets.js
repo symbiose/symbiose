@@ -1898,7 +1898,7 @@ Webos.require([
 			
 			for (var local in mountedDevices) {
 				(function(local, point) {
-					if (point.get('driver') == 'WebosFile') { // Ignore webos volumes
+					if (point.get('local') == '/' || point.get('local') == '~') { // Ignore webos volumes
 						return;
 					}
 
