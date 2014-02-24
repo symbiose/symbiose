@@ -141,23 +141,29 @@ Webos.require([
 					return;
 				}
 
-				var generateItemFn = function(data, $item) {
-					if (!$item) {
-						$item = $('<li></li>').addClass('app').draggable({
-							data: (data.app) ? data.app : null,
-							dragImage: $('<img />', { src: data.icon.realpath(48) }).css({ height: '48px', width: '48px' })
-						});
-					} else {
-						$item.empty();
+				var generateItemFn = function(data, $currentItem) {
+					$item = $('<li></li>').addClass('app').draggable({
+						data: (data.app) ? data.app : null,
+						dragImage: $('<img />', { src: data.icon.realpath(48) }).css({ height: '48px', width: '48px' })
+					});
+					if ($currentItem) {
+						$currentItem.replaceWith($item);
 					}
 
 					if (typeof data.app == 'string') {
+						var $newItem = $item;
 						Webos.Application.get(data.app, function (app) {
-							generateItemFn($.extend({}, data, {
-								app: app
-							}), $item);
+							if (app) {
+								$newItem = generateItemFn($.extend({}, data, {
+									app: app
+								}), $item);
+							} else {
+								$newItem = generateItemFn($.extend({}, data, {
+									app: null
+								}), $item);
+							}
 						});
-						return $item;
+						return $newItem;
 					}
 
 					if ($(data.windows).length) {
@@ -286,19 +292,25 @@ Webos.require([
 						}
 
 						//Detect apps corresponding to this window
-						var windowApp = null;
+						var windowApp;
 						for (var appCmd in that._cmds2Windows) {
-							if (thisWindow.is(that._cmds2Windows[appCmd])) {
-								windowApp = appCmd;
+							that._cmds2Windows[appCmd].each(function () {
+								if (thisWindow.window('id') === $(this).window('id')) {
+									windowApp = appCmd;
+									return false;
+								}
+							});
+
+							if (windowApp) {
 								break;
 							}
 						}
 
-						if (alreadyShownApps[appCmd]) {
-							var item = alreadyShownApps[appCmd];
+						if (windowApp && alreadyShownApps[windowApp]) {
+							var item = alreadyShownApps[windowApp];
 
 							item.data.windows = item.data.windows.add(thisWindow);
-							alreadyShownApps[appCmd] = item;
+							alreadyShownApps[windowApp] = item;
 
 							generateItemFn(item.data, item.$item);
 							return;
@@ -315,7 +327,7 @@ Webos.require([
 						var $item = generateItemFn(itemData).appendTo(that._$launcherApps);
 
 						if (windowApp) {
-							alreadyShownApps[appCmd] = {
+							alreadyShownApps[windowApp] = {
 								data: itemData,
 								$item: $item
 							};
