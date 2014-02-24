@@ -342,6 +342,10 @@ class LocalFs {
 	 * @param  string $contents The contents to write.
 	 */
 	public function write($path, $contents) {
+		if (!is_writable($this->toInternalPath($path))) {
+			throw $this->acessDeniedException($path);
+		}
+
 		if (file_put_contents($this->toInternalPath($path), $contents) === false) {
 			throw new \RuntimeException('Cannot write into file "'.$path.'"');
 		}
@@ -391,6 +395,10 @@ class LocalFs {
 	 * @return string       The file's contents.
 	 */
 	public function read($path) {
+		if (!is_readable($this->toInternalPath($path))) {
+			throw $this->acessDeniedException($path, 'read');
+		}
+
 		$contents = file_get_contents($this->toInternalPath($path));
 
 		if ($contents === false) {
@@ -407,6 +415,10 @@ class LocalFs {
 	 * @return array              A list of files contained in the given directory.
 	 */
 	public function readDir($path, $recursive = false) {
+		if (!is_readable($this->toInternalPath($path))) {
+			throw $this->acessDeniedException($path, 'read');
+		}
+
 		$handle = opendir($this->toInternalPath($path)); //Open dir
 
 		if ($handle === false) {
@@ -553,5 +565,9 @@ class LocalFs {
 		});
 
 		return $tmpFile;
+	}
+
+	protected function acessDeniedException($path, $action = 'write') {
+		return new \RuntimeException('Cannot '.$action.' file "'.$path.'": permission denied (the web server user cannot '.$action.' files, chmod needed)');
 	}
 }
