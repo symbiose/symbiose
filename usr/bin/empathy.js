@@ -20,53 +20,6 @@ Webos.require([
 			}
 
 			return new Strophe.Connection(boshUrl);
-		}
-	};
-
-	var Empathy = function () {
-		Webos.Observable.call(this);
-
-		this.initialize();
-	};
-	Empathy.prototype = {
-		_$win: $(),
-		_$settingsWin: $(),
-		_$conversations: {},
-		_conns: {},
-		_loggedInUsers: {},
-		_contacts: {},
-		_defaultContactIcon: new W.Icon('stock/person').realpath(32),
-		_currentDst: null,
-		_servers: {
-			'chat.facebook.com': 'Facebook',
-			'gmail.com': 'Google',
-			'': 'XMPP'
-		},
-		_config: {
-			accounts: [],
-			sendComposing: true,
-			sendActive: false
-		},
-		_conn: function (jid) {
-			return this._conns[jid];
-		},
-		connection: function (jid) {
-			return this._conn(jid);
-		},
-		countConnections: function () {
-			return Object.keys(this._conns).length;
-		},
-		contacts: function () {
-			return this._contacts;
-		},
-		contact: function (jid) {
-			return this._contacts[jid];
-		},
-		loggedInUser: function (jid) {
-			return this._loggedInUsers[this.getSubJid(jid)];
-		},
-		currentDst: function () {
-			return this._currentDst;
 		},
 		getSubJid: function (jid) {
 			//for parsing JID: ramon@localhost/1234567
@@ -104,6 +57,101 @@ Webos.require([
 			} else {
 				return jid;
 			}
+		}
+	};
+
+	var Empathy = function () {
+		Webos.Observable.call(this);
+
+		this.initialize();
+	};
+
+	Empathy._services = {
+		facebook: {
+			type: 'xmpp',
+			title: 'Facebook',
+			options: {
+				host: 'chat.facebook.com'
+			}
+		},
+		google: {
+			type: 'xmpp',
+			title: 'Google',
+			options: {
+				host: 'gmail.com'
+			}
+		},
+		xmpp: {
+			type: 'xmpp',
+			title: 'XMPP'
+		}
+	};
+	Empathy.service = function (serviceName) {
+		return this._services[serviceName];
+	};
+	Empathy.listServices = function () {
+		return this._services;
+	};
+
+	Empathy.createConnection = function (serviceName, options) {
+		var serviceApiName = serviceName[0].toUpperCase() + serviceName.substr(1),
+			serviceApi = this[serviceApiName];
+
+		if (!serviceApi) {
+			return false;
+		}
+
+		return serviceApi.create(options);
+	};
+
+	Empathy.prototype = {
+		_$win: $(),
+		_$settingsWin: $(),
+		_$conversations: {},
+		_conns: [],
+		_loggedInUsers: {},
+		_contacts: {},
+		_defaultContactIcon: new W.Icon('stock/person').realpath(32),
+		_currentDst: null,
+		_servers: {
+			'chat.facebook.com': 'Facebook',
+			'gmail.com': 'Google',
+			'': 'XMPP'
+		},
+		_config: {
+			accounts: [],
+			sendComposing: true,
+			sendActive: false
+		},
+		_conn: function (index) {
+			return this._conns[index];
+		},
+		connection: function (index) {
+			return this._conn(index);
+		},
+		connectionByUsername: function (username) {
+			for (var i = 0; i < this._conns.length; i++) {
+				var conn = this._conns[i];
+
+				if (conn.option('username') == username) {
+					return conn;
+				}
+			}
+		},
+		countConnections: function () {
+			return this._conns.length;
+		},
+		contacts: function () {
+			return this._contacts;
+		},
+		contact: function (username) {
+			return this._contacts[username];
+		},
+		loggedInUser: function (username) {
+			return this._loggedInUsers[username];
+		},
+		currentDst: function () {
+			return this._currentDst;
 		},
 		initialize: function () {
 			var that = this;
@@ -125,7 +173,6 @@ Webos.require([
 
 				that._initUi();
 				that._initEvents();
-				that._initChatstates();
 				that.switchView('login');
 			});
 		},
@@ -133,11 +180,13 @@ Webos.require([
 			var that = this;
 			var $win = this._$win;
 
-			var $servers = $win.find('.view-login .login-server');
-			for (var servHost in this._servers) {
-				var servName = this._servers[servHost];
+			var services = Empathy.listServices();
 
-				$servers.append('<option value="'+servHost+'">'+servName+'</option>');
+			var $services = $win.find('.view-login .login-service');
+			for (var serviceName in services) {
+				var service = services[serviceName];
+
+				$services.append('<option value="'+serviceName+'">'+service.title+'</option>');
 			}
 		},
 		_initEvents: function () {
@@ -147,30 +196,30 @@ Webos.require([
 			$win.find('.view-login form').submit(function (e) {
 				e.preventDefault();
 
-				var server = $win.find('.view-login .login-server').val(),
-					jid = $win.find('.view-login .login-username').val(),
+				var serviceName = $win.find('.view-login .login-service').val(),
+					username = $win.find('.view-login .login-username').val(),
 					password = $win.find('.view-login .login-password').val();
 
-				if (!jid) {
+				if (!username) {
 					return;
 				}
 
-				if (server && jid.indexOf('@') == -1) {
-					jid += '@'+server;
-				}
-
-				that.connect(jid, password);
+				that.connect({
+					username: username,
+					password: password,
+					service: serviceName
+				});
 			});
 
 			this.on('connecting', function (data) {
 				$win.window('loading', true, {
-					message: 'Logging in '+data.jid,
-					lock: (that.countConnections() == 0)
+					message: 'Logging in '+data.connection.option('username'),
+					lock: (that.countConnections() == 1)
 				});
 
-				var jid = data.jid;
+				var connId = data.id;
 				this.once('connected connecterror autherror', function (data) {
-					if (that.getSubJid(data.jid) == jid) {
+					if (data.id == connId) {
 						$win.window('loading', false);
 					}
 				});
@@ -178,13 +227,13 @@ Webos.require([
 
 			this.on('disconnecting', function (data) {
 				$win.window('loading', true, {
-					message: 'Disconnecting '+data.jid,
+					message: 'Disconnecting '+data.connection.option('username'),
 					lock: (that.countConnections() <= 1)
 				});
 
-				var jid = data.jid;
+				var connId = data.id;
 				this.once('disconnected', function (data) {
-					if (that.getSubJid(data.jid) == jid) {
+					if (data.id == connId) {
 						$win.window('loading', false);
 					}
 
@@ -210,10 +259,10 @@ Webos.require([
 				$conversationCtn = $win.find('.conversation ul');
 			this.on('contactupdated', function (contact) {
 				var $contact = $contactsCtn.children('li').filter(function () {
-					return ($(this).data('jid') == contact.jid);
+					return ($(this).data('username') == contact.username);
 				});
 				if (!$contact.length) {
-					$contact = $('<li></li>').data('jid', contact.jid).appendTo($contactsCtn);
+					$contact = $('<li></li>').data('username', contact.username).appendTo($contactsCtn);
 					$contact.append('<span class="contact-status"></span>');
 					$contact.append('<img alt="" class="contact-picture"/>');
 					$contact.append('<span class="contact-name"></span>');
@@ -239,7 +288,7 @@ Webos.require([
 				var inserted = false;
 				$contact.detach();
 				$contactsCtn.children('li').each(function () {
-					var thisContact = that.contact($(this).data('jid'));
+					var thisContact = that.contact($(this).data('username'));
 
 					if ($(this).is('.contact-conversation-unread') && !$contact.is('.contact-conversation-unread')) {
 						return;
@@ -260,13 +309,14 @@ Webos.require([
 				$contact.find('.contact-status').html('<span class="status-inner">'+readablePresence+'</span>');
 				$contact.find('.contact-picture').attr('src', contact.picture);
 
-				if (contact.conn) {
-					var serverName = that.getJidDomain(contact.conn);
-					if (that._servers[serverName]) {
-						serverName = that._servers[serverName];
-					}
+				if (typeof contact.conn != 'undefined') {
+					var conn = that._conn(contact.conn);
 
-					$contact.find('.contact-server').text(serverName);
+					if (conn.option('service')) {
+						var service = Empathy.service(conn.option('service'));
+
+						$contact.find('.contact-server').text(service.title);
+					}
 				}
 
 				$contactsCtn.toggleClass('hide-contact-server', (that.countConnections() <= 1));
@@ -291,7 +341,7 @@ Webos.require([
 				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 
-				if (that.currentDst() && that.currentDst().jid == msg.to) {
+				if (that.currentDst() && that.currentDst().username == msg.to) {
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
@@ -309,7 +359,8 @@ Webos.require([
 				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 
-				if (that.currentDst() && that.currentDst().jid == msg.from) {
+				if (that.currentDst() && that.currentDst().username == msg.from) {
+					$conversationCtn.find('.msg-typing').remove();
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
@@ -317,11 +368,11 @@ Webos.require([
 					if (that._isConversationDetached(msg.from)) {
 						$msgs = that._$conversations[msg.from];
 					}
-					that._$conversations[msg.from] = $msgs.add($msg);
+					that._$conversations[msg.from] = $msgs.not('.msg-typing').add($msg);
 
 					//Set conversation as unread
 					var $contact = $contactsCtn.children('li').filter(function () {
-						return ($(this).data('jid') == msg.from);
+						return ($(this).data('username') == msg.from);
 					});
 					$contact.addClass('contact-conversation-unread').detach().prependTo($contactsCtn);
 
@@ -332,7 +383,7 @@ Webos.require([
 							if (e.keyCode == 13) {
 								var msg = {
 									from: src.conn,
-									to: src.jid,
+									to: src.username,
 									message: $replyEntry.val()
 								};
 								that.sendMessage(msg);
@@ -341,7 +392,7 @@ Webos.require([
 							}
 						});
 					var $talkBtn = $.w.button('Talk').click(function() {
-						that._switchConversation(src.jid, src.conn);
+						that._switchConversation(src.username, src.conn);
 					});
 
 					$.w.notification({
@@ -354,37 +405,37 @@ Webos.require([
 			});
 
 			this.on('contactcomposing', function (data) {
-				var src = that.contact(data.jid);
+				var src = that.contact(data.username);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received msg-typing' });
 				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html('...'));
 
-				if (that.currentDst() && that.currentDst().jid == data.jid) {
+				if (that.currentDst() && that.currentDst().username == data.username) {
 					if (!$conversationCtn.find('.msg-typing').length) {
 						$msg.appendTo($conversationCtn);
 						scrollToConversationBottom();
 					}
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(data.jid)) {
-						$msgs = that._$conversations[data.jid];
+					if (that._isConversationDetached(data.username)) {
+						$msgs = that._$conversations[data.username];
 					}
 
 					if (!$msgs.filter('.msg-typing').length) {
-						that._$conversations[data.jid] = $msgs.add($msg);
+						that._$conversations[data.username] = $msgs.add($msg);
 					}
 				}
 			});
 
 			this.on('contactpaused', function (data) {
-				var src = that.contact(data.jid);
+				var src = that.contact(data.username);
 
-				if (that.currentDst() && that.currentDst().jid == data.jid) {
+				if (that.currentDst() && that.currentDst().username == data.username) {
 					$conversationCtn.find('.msg-typing').remove();
 				} else {
-					if (that._isConversationDetached(data.jid)) {
-						that._$conversations[data.jid] = $msgs.not('.msg-typing');
+					if (that._isConversationDetached(data.username)) {
+						that._$conversations[data.username] = $msgs.not('.msg-typing');
 					}
 				}
 			});
@@ -394,32 +445,41 @@ Webos.require([
 			 * @type {Boolean}
 			 */
 			var isComposing = false;
-			var sendActive = function (dstJid) {
+			var sendActive = function (dstUsername) {
 				if (!that._config.sendActive) {
 					return;
 				}
 
-				var dst = that.contact(dstJid), conn = that.connection(dst.conn);
+				var dst = that.contact(dstUsername), conn = that.connection(dst.conn);
 
-				conn.chatstates.sendActive(dst.jid);
+				conn.sendChatstate({
+					to: dst.username,
+					type: 'active'
+				});
 			};
-			var sendComposing = function (dstJid) {
+			var sendComposing = function (dstUsername) {
 				if (!that._config.sendComposing) {
 					return;
 				}
 
 				if (!isComposing) {
-					var dst = that.contact(dstJid), conn = that.connection(dst.conn);
+					var dst = that.contact(dstUsername), conn = that.connection(dst.conn);
 
-					conn.chatstates.sendComposing(dst.jid);
+					conn.sendChatstate({
+						to: dst.username,
+						type: 'composing'
+					});
 					isComposing = true;
 				}
 			};
-			var sendPaused = function (dstJid) {
+			var sendPaused = function (dstUsername) {
 				if (isComposing) {
-					var dst = that.contact(dstJid), conn = that.connection(dst.conn);
+					var dst = that.contact(dstUsername), conn = that.connection(dst.conn);
 
-					conn.chatstates.sendPaused(dst.jid);
+					conn.sendChatstate({
+						to: dst.username,
+						type: 'paused'
+					});
 					isComposing = false;
 				}
 			};
@@ -427,19 +487,21 @@ Webos.require([
 			$contactsCtn.on('click', 'li', function () {
 				var previousDst = that.currentDst();
 				if (previousDst) {
-					sendPaused(previousDst.jid);
+					sendPaused(previousDst.username);
 				}
 
 				var $contact = $(this),
-					contactJid = $contact.data('jid'),
-					contact = that.contact(contactJid);
+					contactUsername = $contact.data('username'),
+					contact = that.contact(contactUsername);
 
-				if (!contact || !contact.conn) {
+				if (!contact || typeof contact.conn == 'undefined') {
 					return;
 				}
 
-				that._switchConversation(contact.jid, contact.conn);
-				sendActive(contact.jid);
+				that._switchConversation(contact.username, contact.conn);
+				sendActive(contact.username);
+
+				that._getContactPicture(contact.conn, contact.username);
 			});
 
 			$win.find('.conversation-compose .compose-msg').keydown(function (e) {
@@ -451,21 +513,21 @@ Webos.require([
 				}
 
 				if (msgContent) {
-					sendComposing(dst.jid);
+					sendComposing(dst.username);
 				} else {
-					sendPaused(dst.jid);
+					sendPaused(dst.username);
 				}
 
 				if (e.keyCode == 13) { //Enter
-					sendPaused(dst.jid);
+					sendPaused(dst.username);
 
 					if (!msgContent) {
 						return;
 					}
 
 					var msg = {
-						from: dst.conn,
-						to: dst.jid,
+						connId: dst.conn,
+						to: dst.username,
 						message: msgContent
 					};
 					that.sendMessage(msg);
@@ -486,25 +548,6 @@ Webos.require([
 				that._saveConfig();
 			});
 		},
-		_initChatstates: function () {
-			var that = this;
-
-			$(document).on('composing.chatstates', function (e, jid) {
-				that.trigger('contactcomposing', {
-					jid: jid
-				});
-			});
-			$(document).on('paused.chatstates', function (e, jid) {
-				that.trigger('contactpaused', {
-					jid: jid
-				});
-			});
-			$(document).on('active.chatstates', function (e, jid) {
-				that.trigger('contactactive', {
-					jid: jid
-				});
-			});
-		},
 		switchView: function (newView) {
 			var $views = this._$win.find('.views > div'),
 				$newView = $views.filter('.view-'+newView);
@@ -512,92 +555,118 @@ Webos.require([
 			$views.hide();
 			$newView.show();
 		},
-		connect: function (jid, password) {
+		connect: function (options) {
 			var that = this;
 
-			if (this._conns[jid]) {
-				return this._conns[jid];
-			}
+			options = $.extend({
+				username: '',
+				password: '',
+				service: ''
+			}, options);
 
-			if (!jid) {
+			if (!options.username) {
 				return false;
 			}
 
-			var conn = Webos.xmpp.initialize();
+			var service = Empathy.service(options.service);
 
-			conn.connect(jid, password, function (status) {
-				switch (status) {
-					case Strophe.Status.CONNECTING:
+			if (!service) {
+				return false;
+			}
+
+			var connectOptions = $.extend({}, options);
+
+			if (service.options) {
+				if (service.options.host) {
+					if (connectOptions.username.indexOf('@') == -1) {
+						connectOptions.username += '@'+service.options.host;
+					}
+				}
+			}
+
+			var conn = Empathy.createConnection(service.type);
+			if (!conn) {
+				return false;
+			}
+
+			var connId = this._conns.length;
+			this._conns.push(conn);
+
+			conn.on('status', function (data) {
+				switch (data.type) {
+					case 'connecting':
 						that.trigger('connecting', {
-							jid: jid,
-							connection: conn
+							connection: conn,
+							id: connId
 						});
 						break;
-					case Strophe.Status.CONNFAIL:
+					case 'connfail':
 						that.trigger('connecterror', {
-							jid: jid,
-							connection: conn
+							connection: conn,
+							id: connId
 						});
 
-						Webos.Error.trigger('Failed to connect to server with username "'+jid+'"', '', 400);
+						Webos.Error.trigger('Failed to connect to server with username "'+options.username+'"', '', 400);
 						break;
-					case Strophe.Status.CONNECTED:
-						that._connected(conn);
+					case 'connected':
+						that._connected(connId);
 						break;
-					case Strophe.Status.DISCONNECTING:
+					case 'disconnecting':
 						that.trigger('disconnecting', {
-							jid: jid,
-							connection: conn
+							connection: conn,
+							id: connId
 						});
 						break;
-					case Strophe.Status.DISCONNECTED:
+					case 'disconnected':
 						that.trigger('disconnected', {
-							jid: jid,
-							connection: conn
+							connection: conn,
+							id: connId
 						});
+
+						that._conns.splice(connId, 1);
 						break;
-					case Strophe.Status.AUTHENTICATING:
+					case 'authenticating':
 						that.trigger('authenticating', {
-							jid: jid,
-							connection: conn
+							connection: conn,
+							id: connId
 						});
 						break;
-					case Strophe.Status.AUTHFAIL:
+					case 'authfail':
 						that.trigger('autherror', {
-							jid: jid,
-							connection: conn
+							connection: conn,
+							id: connId
 						});
 
-						Webos.Error.trigger('Failed to authenticate with username "'+jid+'"', '', 401);
+						Webos.Error.trigger('Failed to authenticate with username "'+options.username+'"', '', 401);
 						break;
-					case Strophe.Status.ERROR:
+					case 'error':
 						that.trigger('connerror', {
-							jid: jid,
-							connection: conn
+							connection: conn,
+							id: connId
 						});
 
-						Webos.Error.trigger('An error occured with connection "'+jid+'"', '', 400);
+						Webos.Error.trigger('An error occured with connection "'+options.username+'"', '', 400);
 						break;
-					default:
-						console.log('Strophe: unknown connection status: '+status);
 				}
 			});
 
-			this._addAccount({
-				jid: jid,
-				password: password
-			});
+			conn.connect(connectOptions);
+
+			this._addAccount(options);
 		},
-		disconnect: function (jid) {
-			if (typeof jid == 'undefined') {
-				for (var currentJid in this._conns) {
-					this._conns[currentJid].disconnect();
+		disconnect: function (connId) {
+			if (typeof connId == 'undefined') {
+				for (var i = 0; i < this._conns.length; i++) {
+					this._conns[i].disconnect();
 				}
 
-				this._conns = {};
+				this._conns = [];
 			} else {
-				this._conns[jid].disconnect();
-				delete this._conns[jid];
+				if (!this._conns[connId]) {
+					return false;
+				}
+
+				this._conns[connId].disconnect();
 			}
 		},
 		_addAccount: function (newAccount) {
@@ -608,7 +677,7 @@ Webos.require([
 			for (var i = 0; i < accounts.length; i++) {
 				var account = accounts[i];
 
-				if (account.jid == newAccount.jid) {
+				if (account.username == newAccount.username) {
 					if (account !== newAccount) {
 						this._config.accounts[i] = newAccount;
 						this.trigger('accountupdate', { account: newAccount });
@@ -621,13 +690,13 @@ Webos.require([
 			this._config.accounts.push(newAccount);
 			this.trigger('accountupdate', { account: newAccount });
 		},
-		_removeAccount: function (jid) {
+		_removeAccount: function (username) {
 			var accounts = this._config.accounts;
 
 			for (var i = 0; i < accounts.length; i++) {
 				var account = accounts[i];
 
-				if (account.jid == jid) {
+				if (account.username == username) {
 					this._config.accounts.splice(i, 1); //Remove item
 					this.trigger('accountremove', { account: account });
 					return true;
@@ -638,7 +707,7 @@ Webos.require([
 		},
 		_loadConfig: function () {
 			var that = this;
-			var op = new Webos.Operation();
+			var op = Webos.Operation.create();
 
 			Webos.DataFile.loadUserData('empathy', [function (dataFile) {
 				var config = dataFile.data();
@@ -673,19 +742,11 @@ Webos.require([
 				var account = this._config.accounts[0];
 
 				if (account.password) {
-					this.connect(account.jid, account.password);
+					this.connect(account);
 				} else {
-					var jid = account.jid, serverHost = this.getJidDomain(account.jid);
-					if (!this._servers[serverHost]) {
-						serverHost = '';
-					}
-					if (serverHost) {
-						jid = this.getJidUsername(jid);
-					}
-
-					this._$win.find('.view-login .login-server').val(serverHost);
+					this._$win.find('.view-login .login-service').val(account.service);
 					
-					this._$win.find('.view-login .login-username').val(jid);
+					this._$win.find('.view-login .login-username').val(account.username);
 					this._$win.find('.view-login .login-password').focus();
 				}
 			} else {
@@ -693,10 +754,12 @@ Webos.require([
 				for (var i = 0; i < accounts.length; i++) {
 					(function (account) {
 						if (account.password) {
-							this.connect(account.jid, account.password);
+							this.connect(account);
 						} else {
+							var service = Empathy.service(account.service);
+
 							var $askPasswordWin = $.w.window({
-								title: 'Connecting '+account.jid,
+								title: 'Logging in '+account.username+' to '+service.title,
 								dialog: true,
 								resizable: false,
 								width: 350
@@ -704,7 +767,7 @@ Webos.require([
 
 							var $form = $.w.entryContainer().appendTo($askPasswordWin.window('content'));
 
-							$.w.label('Please enter your password for '+account.jid+'.').appendTo($form);
+							$.w.label('Please enter your password for '+account.username+'.').appendTo($form);
 							var $passwordEntry = $.w.passwordEntry('Password: ');
 							$passwordEntry.appendTo($form);
 
@@ -721,7 +784,9 @@ Webos.require([
 									return;
 								}
 
-								that.connect(account.jid, password);
+								that.connect($.extend({}, account, {
+									password: password
+								}));
 								$askPasswordWin.window('close');
 							});
 
@@ -731,120 +796,87 @@ Webos.require([
 				}
 			}
 		},
-		_connected: function (conn) {
-			var that = this;
-
-			this._conns[conn.jid] = conn;
+		_connected: function (connId) {
+			var that = this, conn = this._conn(connId);
 
 			this.trigger('connected', {
-				jid: conn.jid,
+				id: connId,
 				connection: conn
 			});
 
-			this._sendPriority(conn);
-
-			this._getRoster(conn);
-
-			conn.addHandler(function (msg) {
-				var to = msg.getAttribute('to');
-				var from = msg.getAttribute('from');
-				var type = msg.getAttribute('type');
-				var elems = msg.getElementsByTagName('body');
-
-				if (type == "error") {
-					alert("An error occured! Is your account verified? Is the individual in your contacts?");
-					return;
-				}
-
-				if (/*type == "chat" && */ elems.length > 0) {
-					var body = elems[0];
-					console.log('I got a message from ' + from + ': ' + Strophe.getText(body));
-
-					that.trigger('messagereceived', {
-						from: from,
-						to: to,
-						message: Strophe.getText(body)
-					});
-				}
-
-				// we must return true to keep the handler alive.
-				// returning false would remove it after it finishes.
-				return true;
-			}, null, 'message', null, null, null);
-		},
-		_getRoster: function (conn) {
-			var that = this;
-
-			//Set user info
-			var connJid = that.getSubJid(conn.jid);
-			this._loggedInUsers[connJid] = {
-				jid: connJid,
-				name: 'Me'
-			};
-			that._getVcard(conn, connJid);
-
-			//Get roster
-			var iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
-
-			conn.sendIQ(iq, function (iq) {
-				var contacts = [];
-				$(iq).find("item").each(function() {
-					// if a contact is still pending subscription then do not show it in the list
-					if ($(this).attr('ask')) {
-						return true;
-					}
-
-					var jid = $(this).attr('jid'), name = $(this).attr('name');
-					
-					if (that.getSubJid(jid) == connJid) {
-						return;
-					}
-
-					that._setContact({
-						jid: that.getSubJid(jid),
-						conn: conn.jid,
-						name: (jid != name) ? name : ''
-					});
+			conn.on('messagereceived', function (msg) {
+				that.trigger('messagereceived', {
+					from: msg.from,
+					to: msg.to,
+					connId: connId,
+					message: msg.body
+				});
+			});
+			conn.on('messagesent', function (msg) {
+				that.trigger('messagesent', {
+					from: msg.from,
+					to: msg.to,
+					connId: connId,
+					message: msg.body
 				});
 			});
 
-			conn.addHandler(function (presence) {
-				var presence_type = $(presence).attr('type'); // unavailable, subscribed, etc...
-				var from = that.getSubJid($(presence).attr('from')); // the jabber_id of the contact...
+			this._initChatstates(connId);
 
-				if (presence_type != 'error') {
-					if (presence_type === 'unavailable') {
-						that._setContact({
-							jid: from,
-							presence: 'offline'
+			this._listContacts(connId);
+		},
+		_initChatstates: function (connId) {
+			var that = this, conn = this._conn(connId);
+
+			conn.on('chatstate', function (state) {
+				switch (state.type) {
+					case 'active':
+						that.trigger('contactactive', {
+							username: state.username
 						});
-					} else {
-						var show = $(presence).find("show").text(); // this is what gives away, dnd, etc.
-						if (show === 'chat' || !show){
-							// Mark contact as online
-							that._setContact({
-								jid: from,
-								presence: 'online'
-							});
-						} else {
-							that._setContact({
-								jid: from,
-								presence: show
-							});
-						}
-
-						that._getVcard(conn, from);
-					}
+						break;
+					case 'composing':
+						that.trigger('contactcomposing', {
+							username: state.username
+						});
+						break;
+					case 'paused':
+						that.trigger('contactpaused', {
+							username: state.username
+						});
+						break;
 				}
-				return true;
-			}, null, "presence");
+			});
+		},
+		_listContacts: function (connId) {
+			var that = this, conn = this._conn(connId);
+
+			//Set user info
+			var connUsername = conn.option('username');
+			this._loggedInUsers[connUsername] = {
+				username: connUsername,
+				name: 'Me'
+			};
+			that._getContactPicture(connId, connUsername);
+
+			conn.on('contact', function (contact) {
+				that._setContact($.extend({}, contact, {
+					conn: connId
+				}));
+
+				if (contact.presence == 'online') {
+					that._getContactPicture(connId, contact.username);
+				}
+			});
+
+			conn.listContacts();
 		},
 		_setContact: function (contact) {
-			var isLoggedInUser = (!!this._loggedInUsers[contact.jid]);
-			var currentContact = (isLoggedInUser) ? this._loggedInUsers[contact.jid] : this._contacts[contact.jid];
+			var isLoggedInUser = (!!this._loggedInUsers[contact.username]),
+				currentContact = (isLoggedInUser) ? this._loggedInUsers[contact.username] : this._contacts[contact.username];
 
 			contact = $.extend({}, currentContact, {
-				jid: contact.jid,
+				username: contact.username,
 				conn: contact.conn,
 				name: contact.name,
 				presence: contact.presence,
@@ -852,7 +884,7 @@ Webos.require([
 				picture: contact.picture
 			});
 
-			contact.name = contact.name || contact.jid;
+			contact.name = contact.name || contact.username;
 
 			contact.presence = contact.presence || 'offline';
 			switch (contact.presence)  {
@@ -875,73 +907,51 @@ Webos.require([
 			contact.picture = contact.picture || this._defaultContactIcon;
 
 			if (isLoggedInUser) {
-				this._loggedInUsers[contact.jid] = contact;
+				this._loggedInUsers[contact.username] = contact;
 
 				this.trigger('userupdated', contact);
 			} else {
-				this._contacts[contact.jid] = contact;
+				this._contacts[contact.username] = contact;
 
 				this.trigger('contactupdated', contact);
 			}
 		},
-		_sendPriority: function (conn, priority) {
-			if (!priority) {
-				priority = 0;
+		_getContactPicture: function (connId, username) {
+			var that = this, conn = this._conn(connId), contact = this.contact(username);
+
+			if (contact && contact.picture) {
+				return;
 			}
 
-			conn.send($pres().c("priority").t(String(priority)));
-		},
-		_getVcard: function (conn, jid) {
-			var that = this;
-
-			if (!conn.vcard) {
-				return false;
-			}
-
-			conn.vcard.get(function (stanza) {
-				var $vCard = $(stanza).find("vCard");
-				var img = $vCard.find('BINVAL').text();
-				var type = $vCard.find('TYPE').text();
-
-				if (!img || !type) {
-					return;
-				}
-
-				var imgSrc = 'data:'+type+';base64,'+img;
-
-				that._setContact({
-					jid: jid,
-					picture: imgSrc
-				});
-			}, jid);
+			conn.getContactPicture(username);
 		},
 		$conversation: function () {
 			return this._$win.find('.conversation ul');
 		},
-		_isConversationDetached: function (jid) {
-			return (!!this._$conversations[jid]);
+		_isConversationDetached: function (username) {
+			return (!!this._$conversations[username]);
 		},
 		_detachCurrentConversation: function () {
 			if (!this._currentDst) {
 				return;
 			}
 
-			this._$conversations[this._currentDst.jid] = this.$conversation().children().detach();
+			this._$conversations[this._currentDst.username] = this.$conversation().children().detach();
 			this._currentDst = null;
 		},
-		_reattachConversation: function (jid) {
-			if (!this._isConversationDetached(jid)) {
+		_reattachConversation: function (username) {
+			if (!this._isConversationDetached(username)) {
 				return;
 			}
 
 			this._detachCurrentConversation();
 
-			this._currentDst = this.contact(jid);
-			this.$conversation().append(this._$conversations[this._currentDst.jid]);
-			delete this._$conversations[this._currentDst.jid];
+			this._currentDst = this.contact(username);
+			this.$conversation().append(this._$conversations[this._currentDst.username]);
+			delete this._$conversations[this._currentDst.username];
 		},
-		_switchConversation: function (dst, src) {
-			var conn = this._conn(src);
+		_switchConversation: function (dst, connId) {
+			var conn = this._conn(connId);
 
 			this._detachCurrentConversation();
 			this._reattachConversation(dst);
@@ -952,33 +962,23 @@ Webos.require([
 
 			var $contactsCtn = this._$win.find('.view-conversations .friends-list ul');
 			var $contact = $contactsCtn.children('li').filter(function () {
-				return ($(this).data('jid') == dst);
+				return ($(this).data('username') == dst);
 			});
 			$contactsCtn.children('.item-active').removeClass('item-active');
 			$contact.addClass('item-active').removeClass('contact-conversation-unread');
 		},
 		sendMessage: function (msg) {
-			var conn = this._conn(msg.from);
+			var conn = this._conn(msg.connId);
 
-			var reply = $msg({
+			conn.sendMessage({
 				to: msg.to,
-				from: conn.jid,
-				type: 'chat'
-			}).c("body").t(msg.message);
-
-			conn.send(reply.tree());
-
-			this.trigger('messagesent', {
-				from: conn.jid,
-				connection: conn,
-				to: msg.to,
-				message: msg.message
+				body: msg.message
 			});
 		},
 		searchContacts: function (searchQuery) {
 			var that = this;
 
-			var searchAttrs = ['jid', 'name'];
+			var searchAttrs = ['username', 'name', 'presence'];
 
 			var $contactsCtn = this._$win.find('.view-conversations .friends-list ul');
 
@@ -986,7 +986,7 @@ Webos.require([
 				$contactsCtn.children().show();
 			} else {
 				$contactsCtn.children().each(function () {
-					var contact = that.contact($(this).data('jid'));
+					var contact = that.contact($(this).data('username'));
 
 					for (var i = 0; i < searchAttrs.length; i++) {
 						var val = contact[searchAttrs[i]];
@@ -1024,16 +1024,18 @@ Webos.require([
 			// Accounts
 
 			var $form = $settingsWin.find('form'),
-				$serverEntry = $settingsWin.find('.account-server'),
+				$serviceEntry = $settingsWin.find('.account-service'),
 				$usernameEntry = $settingsWin.find('.account-username'),
 				$passwordEntry = $settingsWin.find('.account-password'),
 				$removeAccountBtn = $settingsWin.find('.acount-remove');
 
-			$serverEntry.empty();
-			for (var servHost in this._servers) {
-				var servName = this._servers[servHost];
 
-				$serverEntry.append('<option value="'+servHost+'">'+servName+'</option>');
+			var services = Empathy.listServices();
+			$serviceEntry.empty();
+			for (var serviceName in services) {
+				var service = services[serviceName];
+
+				$serviceEntry.append('<option value="'+serviceName+'">'+service.title+'</option>');
 			}
 
 			var editedAccount = -1;
@@ -1042,20 +1044,14 @@ Webos.require([
 			var accounts = this._config.accounts;
 			for (var i = 0; i < accounts.length; i++) {
 				(function (i, account) {
-					var $item = $.w.listItem(account.jid);
+					var service = Empathy.service(account.service);
+
+					var $item = $.w.listItem(account.username+' on '+service.title);
 					$item.on('listitemselect', function () {
 						editedAccount = i;
 
-						var jid = account.jid, serverHost = that.getJidDomain(account.jid);
-						if (!that._servers[serverHost]) {
-							serverHost = '';
-						}
-						if (serverHost) {
-							jid = that.getJidUsername(jid);
-						}
-
-						$serverEntry.val(serverHost);
-						$usernameEntry.val(jid);
+						$serviceEntry.val(account.service);
+						$usernameEntry.val(account.username);
 						$passwordEntry.val(account.password || '');
 
 						$removeAccountBtn.button('option', 'disabled', false);
@@ -1073,7 +1069,7 @@ Webos.require([
 			$newItem.on('listitemselect', function () {
 				editedAccount = -1;
 
-				$serverEntry.val('');
+				$serviceEntry.val('');
 				$usernameEntry.val('');
 				$passwordEntry.val('');
 
@@ -1086,22 +1082,21 @@ Webos.require([
 			$form.off('submit.settings.empathy').on('submit.settings.empathy', function (e) {
 				e.preventDefault();
 
-				var server = $serverEntry.val(),
-					jid = $usernameEntry.val(),
-					password = $passwordEntry.val();
+				var account = {
+					service: $serviceEntry.val(),
+					username: $usernameEntry.val(),
+					password: $passwordEntry.val()
+				};
 
-				if (server && !~jid.indexOf('@')) {
-					jid = jid+'@'+server;
+				if (~editedAccount && that._config.accounts[editedAccount].username != account.username) {
+					that._removeAccount(that._config.accounts[editedAccount].username);
 				}
 
-				if (~editedAccount && that._config.accounts[editedAccount].jid != jid) {
-					that._removeAccount(that._config.accounts[editedAccount].jid);
+				var conn = that.connectionByUsername(account.username);
+				if (conn) {
+					conn.disconnect();
 				}
-
-				if (that.connection(jid)) {
-					that.disconnect(jid);
-				}
-				that.connect(jid, password);
+				that.connect(account);
 			});
 
 			$removeAccountBtn.off('click.settings.empathy').on('click.settings.empathy', function () {
@@ -1109,13 +1104,14 @@ Webos.require([
 					return;
 				}
 
-				var jid = that._config.accounts[editedAccount].jid;
+				var username = that._config.accounts[editedAccount].username;
 
-				if (that.connection(jid)) {
-					that.disconnect(jid);
+				var conn = that.connectionByUsername(username);
+				if (conn) {
+					conn.disconnect();
 				}
 
-				that._removeAccount(jid);
+				that._removeAccount(username);
 			});
 
 			// Other settings
@@ -1149,6 +1145,340 @@ Webos.require([
 		}
 	};
 	Webos.inherit(Empathy, Webos.Observable);
+
+	Empathy.Interface = function (options) {
+		Webos.Observable.call(this);
+
+		options = options || {};
+		this._options = options;
+		this.initialize(options);
+	};
+	Empathy.Interface.prototype = {
+		_type: '',
+		options: function () {
+			return this._options;
+		},
+		option: function (key) {
+			return this._options[key];
+		},
+		type: function () {
+			return this._type;
+		},
+		initialize: function (options) {},
+		connect: function () {},
+		listContacts: function () {},
+		getContactPicture: function (username) {}
+	};
+	Webos.inherit(Empathy.Interface, Webos.Observable);
+
+	Empathy.MessageInterface = function (options) {
+		Empathy.Interface.call(this, options);
+	};
+	Empathy.MessageInterface.prototype = {
+		sendMessage: function (msg) {}
+	};
+	Webos.inherit(Empathy.MessageInterface, Empathy.Interface);
+
+
+	Empathy.Xmpp = function (options) {
+		Empathy.MessageInterface.call(this, options);
+	};
+	Empathy.Xmpp.prototype = {
+		_type: 'xmpp',
+		getSubJid: Webos.xmpp.getSubJid,
+		getJidDomain: Webos.xmpp.getJidDomain,
+		getJidUsername: Webos.xmpp.getJidUsername,
+		initialize: function (options) {
+			var that = this;
+
+			var conn = Webos.xmpp.initialize(); //Initialize a new XMPP connection
+
+			//Connection handlers
+			conn.addHandler(function (msg) {
+				var to = msg.getAttribute('to');
+				var from = msg.getAttribute('from');
+				var type = msg.getAttribute('type');
+				var elems = msg.getElementsByTagName('body');
+
+				if (type == 'error') {
+					that.trigger('messageerror', {
+						from: from,
+						to: to,
+						body: 'An error occured! Is your account verified? Is the individual in your contacts?'
+					});
+					return;
+				}
+
+				if (/*type == "chat" && */ elems.length > 0) {
+					var body = elems[0];
+
+					that.trigger('message messagereceived', {
+						from: from,
+						to: to,
+						body: Strophe.getText(body)
+					});
+				}
+
+				// we must return true to keep the handler alive.
+				// returning false would remove it after it finishes.
+				return true;
+			}, null, 'message');
+
+			conn.addHandler(function (presence) {
+				var presenceType = $(presence).attr('type'); // unavailable, subscribed, etc...
+				var from = that.getSubJid($(presence).attr('from')); // the jabber_id of the contact...
+
+				var connJid = that.getSubJid(conn.jid);
+
+				if (presenceType != 'error') {
+					if (presenceType === 'unavailable') {
+						that.trigger('contact', {
+							username: from,
+							account: connJid,
+							presence: 'offline'
+						});
+					} else {
+						var show = $(presence).find("show").text(); // this is what gives away, dnd, etc.
+						if (show === 'chat' || !show) {
+							// Mark contact as online
+							that.trigger('contact', {
+								username: from,
+								account: connJid,
+								presence: 'online'
+							});
+						} else {
+							that.trigger('contact', {
+								username: from,
+								account: connJid,
+								presence: show
+							});
+						}
+					}
+				}
+
+				return true;
+			}, null, "presence");
+
+			if (conn.chatstates) { // Chatstates plugin loaded
+				conn.chatstates.onActive = function (jid) {
+					that.trigger('chatstate', {
+						type: 'active',
+						username: jid
+					});
+				};
+
+				conn.chatstates.onComposing = function (jid) {
+					that.trigger('chatstate', {
+						type: 'composing',
+						username: jid
+					});
+				};
+
+				conn.chatstates.onPaused = function (jid) {
+					that.trigger('chatstate', {
+						type: 'paused',
+						username: jid
+					});
+				};
+			}
+
+			this._conn = conn;
+		},
+		connect: function (options) {
+			var that = this, conn = this._conn;
+			var op = Webos.Operation.create();
+
+			options = $.extend({
+				username: '',
+				password: ''
+			}, this.options(), options);
+			this._options = options;
+
+			conn.connect(options.username, options.password, function (status) {
+				var statusData = {
+					type: ''
+				};
+
+				switch (status) {
+					case Strophe.Status.CONNECTING:
+						statusData.type = 'connecting';
+						break;
+					case Strophe.Status.CONNFAIL:
+						statusData.type = 'error';
+						statusData.error = 'connfail';
+
+						op.setCompleted(false);
+						break;
+					case Strophe.Status.CONNECTED:
+						statusData.type = 'connected';
+
+						//Send priority
+						conn.send($pres().c("priority").t(String(0)));
+
+						op.setCompleted();
+						break;
+					case Strophe.Status.DISCONNECTING:
+						statusData.type = 'disconnecting';
+						break;
+					case Strophe.Status.DISCONNECTED:
+						statusData.type = 'disconnected';
+						break;
+					case Strophe.Status.AUTHENTICATING:
+						statusData.type = 'authenticating';
+						break;
+					case Strophe.Status.AUTHFAIL:
+						statusData.type = 'error';
+						statusData.error = 'autherror';
+						break;
+					case Strophe.Status.ERROR:
+						statusData.type = 'error';
+						statusData.error = 'connerror';
+						break;
+					default:
+						console.log('Strophe: unknown connection status: '+status);
+				}
+
+				if (statusData.type) {
+					that.trigger('status', statusData);
+				}
+			});
+
+			return op;
+		},
+		disconnect: function () {
+			this._conn.disconnect();
+		},
+		listContacts: function () {
+			var that = this, conn = this._conn;
+			var op = Webos.Operation.create();
+
+			var connJid = that.getSubJid(conn.jid);
+
+			//Get roster
+			var iq = $iq({type: 'get'}).c('query', { xmlns: 'jabber:iq:roster' });
+
+			conn.sendIQ(iq, function (iq) {
+				var contacts = [];
+				$(iq).find("item").each(function() {
+					// if a contact is still pending subscription then do not show it in the list
+					if ($(this).attr('ask')) {
+						return true;
+					}
+
+					var jid = $(this).attr('jid'), name = $(this).attr('name');
+					
+					if (that.getSubJid(jid) == connJid) {
+						return;
+					}
+
+					var contact = {
+						username: that.getSubJid(jid),
+						account: connJid,
+						name: (jid != name) ? name : ''
+					};
+
+					that.trigger('contact', contact);
+					contacts.push(contact);
+				});
+
+				op.setCompleted(contacts);
+			}, function () {
+				op.setCompleted(false);
+			});
+
+			return op;
+		},
+		getContactPicture: function (jid) {
+			var that = this, conn = this._conn;
+			var op = Webos.Operation.create();
+
+			if (!conn.vcard) {
+				op.setCompleted(false);
+				return op;
+			}
+
+			var connJid = that.getSubJid(conn.jid);
+
+			conn.vcard.get(function (stanza) {
+				var $vCard = $(stanza).find("vCard");
+				var img = $vCard.find('BINVAL').text();
+				var type = $vCard.find('TYPE').text();
+
+				if (!img || !type) {
+					op.setCompleted(false);
+					return;
+				}
+
+				var imgSrc = 'data:'+type+';base64,'+img;
+
+				var contact = {
+					username: that.getSubJid(jid),
+					account: connJid,
+					picture: imgSrc
+				};
+
+				that.trigger('contact', contact);
+				op.setCompleted(contact);
+			}, jid, function () {
+				op.setCompleted(false);
+			});
+
+			return op;
+		},
+		sendMessage: function (msg) {
+			var that = this, conn = this._conn;
+
+			var reply = $msg({
+				to: msg.to,
+				from: conn.jid,
+				type: 'chat'
+			}).c("body").t(msg.body);
+
+			conn.send(reply.tree());
+
+			this.trigger('message messagesent', {
+				from: that.getSubJid(conn.jid),
+				to: msg.to,
+				body: msg.body
+			});
+		},
+		sendChatstate: function (state) {
+			var that = this, conn = this._conn;
+			var op = Webos.Operation.create();
+
+			if (!conn.chatstates) {
+				op.setCompleted(false);
+				return op;
+			}
+
+			var method = '';
+			switch (state.type) {
+				case 'active':
+					method = 'sendActive';
+					break;
+				case 'composing':
+					method = 'sendComposing';
+					break;
+				case 'paused':
+					method = 'sendPaused';
+					break;
+				default:
+					op.setCompleted(false);
+					return op;
+			}
+
+			conn.chatstates[method](state.to);
+
+			op.setCompleted();
+
+			return op;
+		}
+	};
+	Webos.inherit(Empathy.Xmpp, Empathy.MessageInterface);
+
+	Empathy.Xmpp.create = function () {
+		return new Empathy.Xmpp();
+	};
 
 	Empathy.open = function () {
 		return new Empathy();

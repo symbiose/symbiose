@@ -68,6 +68,8 @@
 	border: 1px solid #387eb1;
 	background-color: #3f99e8;
 	background-image: -moz-linear-gradient(#45a4e9, #378ae6);
+	background-image: -webkit-linear-gradient(#45a4e9, #378ae6);
+	background-image: linear-gradient(#45a4e9, #378ae6);
 	color: white;
 }
 .friends-list .contact-conversation-unread:before {
@@ -80,6 +82,8 @@
 	border: 1px solid #4789b9;
 	background-color: #48aae9;
 	background-image: -moz-linear-gradient(#6bcaee, #3583db);
+	background-image: -webkit-linear-gradient(#6bcaee, #3583db);
+	background-image: linear-gradient(#6bcaee, #3583db);
 	border-radius: 10px;
 }
 .friends-list .contact-picture,
@@ -140,6 +144,8 @@
 	border-color: #6b8e20;
 	background-color: #acca36;
 	background-image: -moz-linear-gradient(#d9ea64, #8baf20);
+	background-image: -webkit-linear-gradient(#d9ea64, #8baf20);
+	background-image: linear-gradient(#d9ea64, #8baf20);
 }
 .friends-list .contact-away .contact-status:after,
 .friends-list .contact-dnd .contact-status:after,
@@ -147,6 +153,8 @@
 	border-color: #bf911c;
 	background-color: #ffca65;
 	background-image: -moz-linear-gradient(#ffdd8d, #ffb53d);
+	background-image: -webkit-linear-gradient(#ffdd8d, #ffb53d);
+	background-image: linear-gradient(#ffdd8d, #ffb53d);
 }
 .friends-list .contact-offline .contact-status {
 	display: none;
