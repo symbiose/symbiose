@@ -34,6 +34,19 @@
 		 */
 		_result: null,
 		on: function(event, fn) {
+			if (typeof event == 'object') {
+				var events = event;
+				for (var eventName in events) {
+					var fn = events[eventName];
+					if (typeof fn != 'function') {
+						continue;
+					}
+
+					this.on(eventName, fn);
+				}
+				return this;
+			}
+
 			var result = Webos.Operation._parent.prototype.on.call(this, event, fn);
 
 			if (this.completed()) {
@@ -59,28 +72,28 @@
 		},
 		/**
 		 * Check if this operation is started.
-		 * @returns {Boolean} True if this operation is started, false otherwise.
+		 * @return {Boolean} True if this operation is started, false otherwise.
 		 */
 		started: function () {
 			return this._started;
 		},
 		/**
 		 * Get this operation's progress.
-		 * @returns {Number} This operation's progress, in percentages.
+		 * @return {Number} This operation's progress, in percentages.
 		 */
 		progress: function () {
 			return this._progress;
 		},
 		/**
 		 * Check if this operation is completed.
-		 * @returns {Boolean} True if this operations is completed, false otherwise.
+		 * @return {Boolean} True if this operations is completed, false otherwise.
 		 */
 		completed: function () {
 			return this._completed;
 		},
 		/**
 		 * Check if this operation is failed.
-		 * @returns {Boolean} True if this operations is failed, false otherwise.
+		 * @return {Boolean} True if this operations is failed, false otherwise.
 		 */
 		failed: function () {
 			var result = this._result;
@@ -269,7 +282,7 @@
 	/**
 	 * Put operations in a group.
 	 * @param   {Array|Webos.Operation} observables Operation(s).
-	 * @returns {Webos.Operation.Group}             The group.
+	 * @return {Webos.Operation.Group}             The group.
 	 * @static
 	 */
 	Operation.group = function (operations) {
