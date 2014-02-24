@@ -21,12 +21,25 @@ Webos.Observable.prototype = {
 	_lastObserver: -1,
 	/**
 	 * Listen to an event.
-	 * @param   {String}   event The event's name. Multiple events can be listened if a space-separated list of events is provided. Namespaces are supported too.
-	 * @param   {Function} fn    The callback which will be called when the event will be triggered.
-	 * @returns {Number}         The callback's ID.
+	 * @param   {String|Object} event The event's name. Multiple events can be listened if a space-separated list of events is provided. Namespaces are supported too. If it's an object, it must associate events to callbacks.
+	 * @param   {Function}      [fn]  The callback which will be called when the event will be triggered.
+	 * @returns {Number}              The callback's ID.
 	 */
 	on: function (event, fn) {
 		var that = this;
+
+		if (typeof event == 'object') {
+			var events = event;
+			for (var eventName in events) {
+				var fn = events[eventName];
+				if (typeof fn != 'function') {
+					continue;
+				}
+
+				this.on(eventName, fn);
+			}
+			return this;
+		}
 
 		var namespace = event;
 		var events = event.split(' '), eventsNames = [];

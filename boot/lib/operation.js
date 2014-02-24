@@ -6,7 +6,7 @@
 	 * @constructor
 	 * @since  1.0beta3
 	 */
-	var Operation = function WOperation() {
+	var Operation = function () {
 		Webos.Observable.call(this);
 	};
 	Operation.prototype = {
@@ -183,8 +183,16 @@
 			this.trigger('resume');
 		}
 	};
-
 	Webos.inherit(Operation, Webos.Observable);
+
+	/**
+	 * Create a new operation.
+	 * @return {Webos.Operation} The new operation.
+	 * @since 1.0beta4
+	 */
+	Operation.create = function () {
+		return new Operation();
+	};
 
 
 	/**
