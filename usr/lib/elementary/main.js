@@ -141,11 +141,24 @@ Webos.require([
 					return;
 				}
 
-				var generateItemFn = function(data) {
-					var $item = $('<li></li>').addClass('app').draggable({
-						data: (data.app) ? data.app : null,
-						dragImage: $('<img />', { src: data.icon.realpath(48) }).css({ height: '48px', width: '48px' })
-					});
+				var generateItemFn = function(data, $item) {
+					if (!$item) {
+						$item = $('<li></li>').addClass('app').draggable({
+							data: (data.app) ? data.app : null,
+							dragImage: $('<img />', { src: data.icon.realpath(48) }).css({ height: '48px', width: '48px' })
+						});
+					} else {
+						$item.empty();
+					}
+
+					if (typeof data.app == 'string') {
+						Webos.Application.get(data.app, function (app) {
+							generateItemFn($.extend({}, data, {
+								app: app
+							}), $item);
+						});
+						return $item;
+					}
 
 					if ($(data.windows).length) {
 						var isActive = false;
@@ -235,7 +248,7 @@ Webos.require([
 					return $item;
 				};
 
-				var alreadyShowedWindows = []; //Fenetres affichees dans les favoris
+				var alreadyShownWindows = []; //Fenetres affichees dans les favoris
 				for (var i = 0; i < favorites.length; i++) {
 					(function(i, app) {
 						//On detecte les fenetres correspondant au favori
@@ -252,30 +265,61 @@ Webos.require([
 						}).appendTo(that._$launcherApps);
 
 						appWindows.each(function () {
-							alreadyShowedWindows.push($(this).window('id'));
+							alreadyShownWindows.push($(this).window('id'));
 						});
 					})(i, favorites[i]);
 				}
 
 				//Maintenant, on traite le reste des fenetres
+				var alreadyShownApps = {};
 				for (var i = 0; i < windows.length; i++) {
 					(function(i, thisWindow) {
 						//Si la fenetre a deja ete traitee, on passe
-						if ($.inArray(thisWindow.window('id'), alreadyShowedWindows) != -1) {
+						if ($.inArray(thisWindow.window('id'), alreadyShownWindows) != -1) {
 							return;
 						}
 
 						//Si c'est une fenetre fille, on passe
-						if (typeof thisWindow.window('option', 'parentWindow') != 'undefined' && thisWindow.window('option', 'parentWindow').length != 0) {
+						if (typeof thisWindow.window('option', 'parentWindow') != 'undefined' &&
+							thisWindow.window('option', 'parentWindow').length != 0) {
 							return;
 						}
 
-						//Sinon, on affiche l'icone
-						var $item = generateItemFn({
+						//Detect apps corresponding to this window
+						var windowApp = null;
+						for (var appCmd in that._cmds2Windows) {
+							if (thisWindow.is(that._cmds2Windows[appCmd])) {
+								windowApp = appCmd;
+								break;
+							}
+						}
+
+						if (alreadyShownApps[appCmd]) {
+							var item = alreadyShownApps[appCmd];
+
+							item.data.windows = item.data.windows.add(thisWindow);
+							alreadyShownApps[appCmd] = item;
+
+							generateItemFn(item.data, item.$item);
+							return;
+						}
+
+						var itemData = {
 							icon: thisWindow.window('option', 'icon'),
 							title: thisWindow.window('option', 'title'),
-							windows: thisWindow
-						}).appendTo(that._$launcherApps);
+							windows: thisWindow,
+							app: windowApp
+						};
+
+						//Sinon, on affiche l'icone
+						var $item = generateItemFn(itemData).appendTo(that._$launcherApps);
+
+						if (windowApp) {
+							alreadyShownApps[appCmd] = {
+								data: itemData,
+								$item: $item
+							};
+						}
 					})(i, windows[i]);
 				}
 
