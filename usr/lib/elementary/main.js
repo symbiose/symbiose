@@ -310,9 +310,9 @@ Webos.require([
 							var item = alreadyShownApps[windowApp];
 
 							item.data.windows = item.data.windows.add(thisWindow);
-							alreadyShownApps[windowApp] = item;
+							item.$item = generateItemFn(item.data, item.$item);
 
-							generateItemFn(item.data, item.$item);
+							alreadyShownApps[windowApp] = item;
 							return;
 						}
 
