@@ -8,15 +8,17 @@ Webos.require([
 		config: {
 			//boshHttpUrl: 'http://'+window.location.hostname+':5280/http-bind',
 			//boshHttpUrl: 'http://bosh.metajack.im:5280/xmpp-httpbind',
-			boshHttpUrl: 'https://jwchat.org/http-bind/',
-			//boshHttpUrl: 'http://emersion.fr:5280/http-bind/',
+			//boshHttpUrl: 'https://jwchat.org/http-bind/',
+			boshHttpUrl: 'http://emersion.fr:5280/http-bind/',
 			//boshWsUrl: 'ws://'+window.location.hostname+':5280'
 			boshWsUrl: 'ws://emersion.fr:5280/'
 		},
-		initialize: function () {
-			var boshUrl = this.config.boshHttpUrl;
-			if (window.WebSocket && this.config.boshWsUrl) {
-				boshUrl = this.config.boshWsUrl;
+		initialize: function (config) {
+			var config = $.extend({}, this.config, config);
+
+			var boshUrl = config.boshHttpUrl;
+			if (window.WebSocket && config.boshWsUrl) {
+				boshUrl = config.boshWsUrl;
 			}
 
 			return new Strophe.Connection(boshUrl);
@@ -113,15 +115,12 @@ Webos.require([
 		_contacts: {},
 		_defaultContactIcon: new W.Icon('stock/person').realpath(32),
 		_currentDst: null,
-		_servers: {
-			'chat.facebook.com': 'Facebook',
-			'gmail.com': 'Google',
-			'': 'XMPP'
-		},
 		_config: {
 			accounts: [],
 			sendComposing: true,
-			sendActive: false
+			sendActive: false,
+			boshHttpUrl: Webos.xmpp.config.boshHttpUrl,
+			boshWsUrl: Webos.xmpp.config.boshWsUrl
 		},
 		_conn: function (index) {
 			return this._conns[index];
@@ -584,7 +583,10 @@ Webos.require([
 				}
 			}
 
-			var conn = Empathy.createConnection(service.type);
+			var conn = Empathy.createConnection(service.type, {
+				boshHttpUrl: this._config.boshHttpUrl,
+				boshWsUrl: this._config.boshWsUrl
+			});
 			if (!conn) {
 				return false;
 			}
@@ -919,7 +921,8 @@ Webos.require([
 		_getContactPicture: function (connId, username) {
 			var that = this, conn = this._conn(connId), contact = this.contact(username);
 
-			if (contact && contact.picture) {
+			// Picture already loaded?
+			if (contact && contact.picture != this._defaultContactIcon) {
 				return;
 			}
 
@@ -1115,24 +1118,27 @@ Webos.require([
 			});
 
 			// Other settings
-			
-			$settingsWin.find('.settings-composing').find('input').each(function () {
-				var settingName = $(this).data('setting');
 
-				if (!settingName) {
-					return;
-				}
+			var loadSettings = function () {
+				$settingsWin.find('.settings-composing, .settings-servers').find('input').each(function () {
+					var settingName = $(this).data('setting');
 
-				if (typeof that._config[settingName] != 'undefined') {
-					if ($(this).is('[type=checkbox]')) {
-						$(this).prop('checked', that._config[settingName]);
-					} else {
-						$(this).val(that._config[settingName]);
+					if (!settingName) {
+						return;
 					}
-				}
-			});
 
-			$settingsWin.find('.settings-composing').on('change', 'input', function () {
+					if (typeof that._config[settingName] != 'undefined') {
+						if ($(this).is('[type=checkbox]')) {
+							$(this).prop('checked', that._config[settingName]);
+						} else {
+							$(this).val(that._config[settingName]);
+						}
+					}
+				});
+			};
+			loadSettings();
+
+			$settingsWin.find('.settings-composing, .settings-servers').on('change', 'input', function () {
 				var val = $(this).val(), settingName = $(this).data('setting');
 
 				if ($(this).is('[type=checkbox]')) {
@@ -1141,6 +1147,12 @@ Webos.require([
 
 				that._config[settingName] = val;
 				that._saveConfig();
+			});
+
+			$settingsWin.find('.servers-reset').click(function () {
+				that._config.boshHttpUrl = Webos.xmpp.config.boshHttpUrl;
+				that._config.boshWsUrl = Webos.xmpp.config.boshWsUrl;
+				loadSettings();
 			});
 		}
 	};
@@ -1191,7 +1203,7 @@ Webos.require([
 		initialize: function (options) {
 			var that = this;
 
-			var conn = Webos.xmpp.initialize(); //Initialize a new XMPP connection
+			var conn = Webos.xmpp.initialize(options); //Initialize a new XMPP connection
 
 			//Connection handlers
 			conn.addHandler(function (msg) {

@@ -52,6 +52,7 @@
 		<ul>
 			<li>Accounts</li>
 			<li>Notifications</li>
+			<li>BOSH servers</li>
 		</ul>
 
 		<div class="contents">
@@ -59,9 +60,9 @@
 				<x-list class="accounts-list"></x-list>
 				<div class="account-settings">
 					<form>
-						<label>Service : <select class="account-service"></select></label><br />
-						<label>Username : <input type="text" class="account-username"></label><br />
-						<label>Password : <input type="password" class="account-password"></label><br />
+						<label>Service: <select class="account-service"></select></label><br />
+						<label>Username: <input type="text" class="account-username"></label><br />
+						<label>Password: <input type="password" class="account-password"></label><br />
 						<x-buttonContainer>
 							<x-button class="acount-remove">Remove account</x-button>
 							<x-button submit>Apply</x-button>
@@ -73,6 +74,15 @@
 			<div class="settings-composing">
 				<label><input type="checkbox" data-setting="sendComposing"> Send notifications when typing</label><br />
 				<label><input type="checkbox" data-setting="sendActive"> Send notifications when reading messages</label>
+			</div>
+
+			<div class="settings-servers">
+				<p>BOSH servers are used as gateways between your browser and XMPP protocol.</p>
+				<label>BOSH HTTP server: <input type="text" data-setting="boshHttpUrl"></label><br />
+				<label>BOSH Websocket server (optional): <input type="text" data-setting="boshWsUrl"></label><br />
+				<x-buttonContainer>
+					<x-button class="servers-reset">Reset to defaults</x-button>
+				</x-buttonContainer>
 			</div>
 		</div>
 
