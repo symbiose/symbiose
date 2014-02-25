@@ -2,7 +2,11 @@ Webos.require([
 	'/usr/lib/strophejs/strophe.js',
 	'/usr/lib/strophejs/strophe.vcard.js',
 	'/usr/lib/strophejs/strophe.chatstates.js',
-	'/usr/lib/webos/data.js'
+	'/usr/lib/webos/data.js',
+	'/usr/lib/webos/bigint.js',
+	'/usr/lib/webos/crypto.js',
+	'/usr/lib/webos/eventemitter.js',
+	'/usr/lib/otr/otr.min.js'
 ], function() {
 	Webos.xmpp = {
 		config: {
@@ -1190,6 +1194,14 @@ Webos.require([
 		sendMessage: function (msg) {}
 	};
 	Webos.inherit(Empathy.MessageInterface, Empathy.Interface);
+
+	Empathy.CallInterface = function (options) {
+		Empathy.Interface.call(this, options);
+	};
+	Empathy.CallInterface.prototype = {
+		call: function (call) {}
+	};
+	Webos.inherit(Empathy.CallInterface, Empathy.Interface);
 
 
 	Empathy.Xmpp = function (options) {
