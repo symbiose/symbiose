@@ -34,6 +34,8 @@
 		 */
 		_result: null,
 		on: function(event, fn) {
+			var that = this;
+
 			if (typeof event == 'object') {
 				var events = event;
 				for (var eventName in events) {
@@ -57,13 +59,13 @@
 
 				setTimeout(function () {
 					if (~$.inArray('complete', eventsNames)) {
-						fn.call(this, { result: this._result });
+						fn.call(that, { result: that._result });
 					}
-					if (~$.inArray('error', eventsNames) && this.failed()) {
-						fn.call(this, { result: this._result });
+					if (~$.inArray('error', eventsNames) && that.failed()) {
+						fn.call(that, { result: that._result });
 					}
-					if (~$.inArray('success', eventsNames) && !this.failed()) {
-						fn.call(this, { result: this._result });
+					if (~$.inArray('success', eventsNames) && !that.failed()) {
+						fn.call(that, { result: that._result });
 					}
 				}, 0);
 			}
