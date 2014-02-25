@@ -114,8 +114,10 @@ class FileController extends \lib\ApiBackController {
 
 		if ($data['is_dir']) {
 			$data['available_space'] = $manager->availableSpace($path);
+			$data['size'] = count($manager->readDir($path));
 		} else {
 			$data['extension'] = $manager->extension($path);
+			$data['size'] = $manager->size($path);
 		}
 
 		return $data;

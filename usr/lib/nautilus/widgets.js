@@ -1024,7 +1024,11 @@ Webos.require([
 					data.push(t.get('Location : ${location}', { location: file.get('dirname') }));
 				}
 				if (file.exists('size')) {
-					data.push(t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }));
+					if (file.get('is_dir')) {
+						data.push(t.get('Contents : ${size} file${size|s}', { size: file.get('size') }));
+					} else {
+						data.push(t.get('Size : ${size}', { size: W.File.bytesToSize(file.get('size')) }));
+					}
 				}
 				if (file.exists('atime')) {
 					var atime = new Date(file.get('atime') * 1000);
