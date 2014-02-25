@@ -6,7 +6,11 @@ Webos.require([
 	'/usr/lib/webos/bigint.js',
 	'/usr/lib/webos/crypto.js',
 	'/usr/lib/webos/eventemitter.js',
-	'/usr/lib/otr/otr.min.js'
+	'/usr/lib/webos/salsa20.js',
+	{
+		path: '/usr/lib/otr/otr.min.js',
+		context: window
+	}
 ], function() {
 	Webos.xmpp = {
 		config: {
@@ -124,7 +128,8 @@ Webos.require([
 			sendComposing: true,
 			sendActive: false,
 			boshHttpUrl: Webos.xmpp.config.boshHttpUrl,
-			boshWsUrl: Webos.xmpp.config.boshWsUrl
+			boshWsUrl: Webos.xmpp.config.boshWsUrl,
+			useOtr: false
 		},
 		_conn: function (index) {
 			return this._conns[index];
@@ -341,8 +346,9 @@ Webos.require([
 				var dst = that.contact(msg.to), src = that.loggedInUser(msg.from);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-sent' });
-				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
+				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
+				$msg.toggleClass('msg-encrypted', msg.encrypted);
 
 				if (that.currentDst() && that.currentDst().username == msg.to) {
 					$msg.appendTo($conversationCtn);
@@ -359,8 +365,9 @@ Webos.require([
 				var src = that.contact(msg.from), dst = that.loggedInUser(msg.to);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received' });
-				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
+				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
+				$msg.toggleClass('msg-encrypted', msg.encrypted);
 
 				if (that.currentDst() && that.currentDst().username == msg.from) {
 					$conversationCtn.find('.msg-typing').remove();
@@ -550,6 +557,63 @@ Webos.require([
 			this.on('accountupdate accountremove', function () {
 				that._saveConfig();
 			});
+
+			this.on('configchange', function () {
+				$win.find('.btn-encryption').toggle(that._config.useOtr);
+
+				if (that._config.privKey) {
+					//TODO: key saving not working!
+					//Empathy.OtrMessageInterface.importKey(that._config.privKey);
+				}
+				if (that._config.useOtr && !Empathy.OtrMessageInterface.otrReady()) {
+					that.generateOtrKey();
+				}
+			});
+			$win.find('.btn-encryption').hide();
+			
+			this.on('conversationswitch', function () {
+				$win.find('.btn-encryption').button('option', 'disabled', false);
+
+				if (that.currentDst()) {
+					var dst = that.currentDst(), conn = that.connection(dst.conn);
+					var status = conn.otrStatus(dst.username);
+
+					$win.find('.btn-encryption').button('option', 'activated', status.encrypted);
+				}
+			});
+			this.on('otrake', function (status) {
+				if (that.currentDst()) {
+					var dst = that.currentDst(), conn = that.connection(status.connId);
+
+					if (status.from === dst.username) {
+						$win.find('.btn-encryption').button('option', 'activated', status.encrypted);
+					}
+				}
+			});
+			this.on('otrend', function (status) {
+				if (that.currentDst()) {
+					var dst = that.currentDst(), conn = that.connection(status.connId);
+
+					if (status.from === dst.username) {
+						$win.find('.btn-encryption').button('option', 'activated', false);
+					}
+				}
+			});
+			$win.find('.btn-encryption').click(function () {
+				if (!that.currentDst()) {
+					return;
+				}
+
+				var dst = that.currentDst(), conn = that.connection(dst.conn);
+				var status = conn.otrStatus(dst.username);
+
+				if (!status.encrypted) {
+					conn.sendOtrQuery(dst.username);
+				} else {
+					conn.endOtr(dst.username);
+				}
+			});
+
 		},
 		switchView: function (newView) {
 			var $views = this._$win.find('.views > div'),
@@ -723,6 +787,7 @@ Webos.require([
 				}
 
 				op.setCompleted();
+				that.trigger('configchange');
 			}, function (resp) {
 				op.setCompleted(resp);
 			}]);
@@ -737,7 +802,11 @@ Webos.require([
 					Webos.DataFile.loadUserData('empathy', function (dataFile) {
 						dataFile.setData(that._config);
 						dataFile.sync();
+
+						that.trigger('configchange');
 					});
+				} else {
+					that.trigger('configchange');
 				}
 			});
 		},
@@ -815,7 +884,8 @@ Webos.require([
 					from: msg.from,
 					to: msg.to,
 					connId: connId,
-					message: msg.body
+					message: msg.body,
+					encrypted: !!msg.encrypted
 				});
 			});
 			conn.on('messagesent', function (msg) {
@@ -823,7 +893,43 @@ Webos.require([
 					from: msg.from,
 					to: msg.to,
 					connId: connId,
-					message: msg.body
+					message: msg.body,
+					encrypted: !!msg.encrypted
+				});
+			});
+			conn.on('otrstatus', function (status) {
+				switch (status.type) {
+					case 'ake':
+						that.trigger('otrake', {
+							connId: connId,
+							from: status.from,
+							encrypted: status.encrypted
+						});
+						break;
+					case 'end':
+						that.trigger('otrend', {
+							connId: connId,
+							from: status.from,
+							encrypted: status.encrypted
+						});
+						break;
+				}
+			});
+			conn.on('otrkeygenstart', function () {
+				var $loadingDialog = $.w.window({
+					title: 'Generating OTR key...',
+					resizable: false,
+					closeable: false,
+					dialog: true,
+					width: 300,
+					parentWindow: that._$win
+				});
+				$loadingDialog.window('open').window('loading', true, {
+					message: 'Generating OTR key...'
+				});
+
+				conn.once('otrkeygencomplete', function () {
+					$loadingDialog.window('close');
 				});
 			});
 
@@ -973,6 +1079,10 @@ Webos.require([
 			});
 			$contactsCtn.children('.item-active').removeClass('item-active');
 			$contact.addClass('item-active').removeClass('contact-conversation-unread');
+
+			this.trigger('conversationswitch', {
+				dst: dst
+			});
 		},
 		sendMessage: function (msg) {
 			var conn = this._conn(msg.connId);
@@ -1123,8 +1233,9 @@ Webos.require([
 
 			// Other settings
 
+			var $others = $('.settings-composing, .settings-servers, .settings-encryption');
 			var loadSettings = function () {
-				$settingsWin.find('.settings-composing, .settings-servers').find('input').each(function () {
+				$others.find('input').each(function () {
 					var settingName = $(this).data('setting');
 
 					if (!settingName) {
@@ -1142,7 +1253,7 @@ Webos.require([
 			};
 			loadSettings();
 
-			$settingsWin.find('.settings-composing, .settings-servers').on('change', 'input', function () {
+			$others.off('change.settings.empathy').on('change.settings.empathy', 'input', function () {
 				var val = $(this).val(), settingName = $(this).data('setting');
 
 				if ($(this).is('[type=checkbox]')) {
@@ -1153,10 +1264,42 @@ Webos.require([
 				that._saveConfig();
 			});
 
-			$settingsWin.find('.servers-reset').click(function () {
+			$settingsWin.find('.servers-reset').off('click.settings.empathy').on('click.settings.empathy', function () {
 				that._config.boshHttpUrl = Webos.xmpp.config.boshHttpUrl;
 				that._config.boshWsUrl = Webos.xmpp.config.boshWsUrl;
 				loadSettings();
+			});
+
+			$settingsWin.find('.encryption-generateKey').off('click.settings.empathy').on('click.settings.empathy', function () {
+				that.generateOtrKey();
+			});
+		},
+		generateOtrKey: function () {
+			var that = this;
+
+			var $loadingDialog = $.w.window({
+				title: 'Generating OTR key...',
+				resizable: false,
+				closeable: false,
+				dialog: true,
+				width: 300,
+				parentWindow: that._$win
+			});
+			$loadingDialog.window('open').window('loading', true, {
+				message: 'Generating OTR key...'
+			});
+
+			Empathy.OtrMessageInterface.generateKey(true).on('success', function () {
+				Empathy.OtrMessageInterface.exportKey().on({
+					success: function (data) {
+						var exportedKey = data.result;
+
+						that._config.privKey = exportedKey;
+						that._saveConfig();
+
+						$loadingDialog.window('close');
+					}
+				});
 			});
 		}
 	};
@@ -1191,9 +1334,251 @@ Webos.require([
 		Empathy.Interface.call(this, options);
 	};
 	Empathy.MessageInterface.prototype = {
+		_receiveMessage: function (msg) {
+			this.trigger('message messagereceived', msg);
+		},
 		sendMessage: function (msg) {}
 	};
 	Webos.inherit(Empathy.MessageInterface, Empathy.Interface);
+
+	Empathy.OtrMessageInterface = function (options) {
+		Empathy.Interface.call(this, options);
+	};
+	Webos.Observable.build(Empathy.OtrMessageInterface);
+
+	Empathy.OtrMessageInterface._otrPrivKey = null;
+	Empathy.OtrMessageInterface.otrAvailable = function () {
+		return !!Empathy.OtrMessageInterface._otrPrivKey;
+	};
+	Empathy.OtrMessageInterface.otrReady = function () {
+		return !!Empathy.OtrMessageInterface._otrPrivKey;
+	};
+	Empathy.OtrMessageInterface._createKey = function (base64Key) {
+		var that = this;
+		var op = Webos.Operation.create();
+
+		if (that._otrPrivKey) {
+			op.setCompleted(that._otrPrivKey);
+			return op;
+		}
+
+		if (base64Key) { //Import a key
+			var key = DSA.parsePrivate(base64Key);
+			that._otrPrivKey = key;
+
+			op.setCompleted(key);
+		} else {
+			var imports = [
+				'/usr/lib/webos/bigint.js',
+				'/usr/lib/webos/crypto.js',
+				'/usr/lib/webos/eventemitter.js',
+				'/usr/lib/webos/salsa20.js',
+				'/usr/lib/otr/lib/const.js',
+				'/usr/lib/otr/lib/helpers.js',
+				'/usr/lib/otr/lib/dsa.js'
+			];
+			for (var i = 0; i < imports.length; i++) {
+				imports[i] = '../'+W.File.get(imports[i]).get('realpath'); //TODO: get absolute path
+			}
+
+			op.setStarted();
+			that.trigger('keygenstart', {
+				operation: op
+			});
+
+			// generate a DSA key in a web worker
+			DSA.createInWebWorker({
+				path: Webos.File.get('/usr/lib/otr/dsa-webworker.js').get('realpath'),
+				imports: imports
+			}, function (key) {
+				that._otrPrivKey = key;
+
+				op.setCompleted(key);
+
+				that.trigger('keygencomplete', {
+					key: key
+				});
+			});
+		}
+
+		return op;
+	};
+	Empathy.OtrMessageInterface.exportKey = function () {
+		var that = this;
+		var op = Webos.Operation.create();
+
+		this._createKey().on('success', function (data) {
+			var key = data.result;
+			op.setCompleted(key.packPrivate());
+		});
+
+		return op;
+	};
+	Empathy.OtrMessageInterface.importKey = function (base64Key) {
+		var that = this;
+		var op = Webos.Operation.create();
+
+		this._createKey(base64Key).on('success', function (data) {
+			op.setCompleted();
+		});
+
+		return op;
+	};
+	Empathy.OtrMessageInterface.generateKey = function (regenerate) {
+		var that = this;
+		var op = Webos.Operation.create();
+
+		if (regenerate) {
+			that._otrPrivKey = null;
+		}
+
+		this._createKey().on('success', function (data) {
+			op.setCompleted();
+		});
+
+		return op;
+	};
+
+	Empathy.OtrMessageInterface.prototype = {
+		_otr: {},
+		otrAvailable: function () {
+			return Empathy.OtrMessageInterface.otrAvailable();
+		},
+		_startOtr: function (dst) {
+			var that = this, conn = this._conn;
+			var op = Webos.Operation.create();
+
+			if (that._otr[dst]) {
+				op.setCompleted(that._otr[dst]);
+				return op;
+			}
+
+			Empathy.OtrMessageInterface._createKey().on({
+				start: function () {
+					that.trigger('otrkeygenstart', { operation: op });
+
+					this.once('complete', function () {
+						that.trigger('otrkeygencomplete');
+					});
+				},
+				success: function (data) {
+					var key = data.result;
+
+					//Start new OTR
+					var buddy = new OTR({
+						priv: key,
+						debug: true
+					});
+
+					buddy.REQUIRE_ENCRYPTION = false;
+					buddy.SEND_WHITESPACE_TAG = true;
+					buddy.WHITESPACE_START_AKE = true;
+					buddy.ERROR_START_AKE = false;
+
+					buddy.on('ui', function (msg, encrypted) { //Message received
+						that._receiveMessage({
+							from: dst,
+							to: conn.jid,
+							body: msg,
+							encrypted: encrypted
+						});
+					});
+
+					buddy.on('io', function (msg) { //Message to send
+						that._sendMessage({
+							to: dst,
+							body: msg
+						});
+					});
+
+					buddy.on('error', function (err) { //Error
+						console.warn(err);
+						that.trigger('messageerror', {
+							from: dst,
+							to: conn.jid,
+							body: err
+						});
+					});
+
+					buddy.on('status', function (state) {
+						switch (state) {
+							case OTR.CONST.STATUS_AKE_SUCCESS:
+								// sucessfully ake'd with buddy
+								// check if buddy.msgstate === OTR.CONST.MSGSTATE_ENCRYPTED
+								that.trigger('otrstatus', {
+									type: 'ake',
+									from: dst,
+									to: conn.jid,
+									encrypted: (buddy.msgstate === OTR.CONST.MSGSTATE_ENCRYPTED)
+								});
+								break;
+							case OTR.CONST.STATUS_END_OTR:
+								// if buddy.msgstate === OTR.CONST.MSGSTATE_FINISHED
+								// inform the user that his correspondent has closed his end
+								// of the private connection and the user should do the same
+								that.trigger('otrstatus', {
+									type: 'end',
+									from: dst,
+									to: conn.jid,
+									encrypted: (buddy.msgstate !== OTR.CONST.MSGSTATE_FINISHED)
+								});
+
+								buddy.endOtr();
+								break;
+						}
+					});
+
+					that._otr[dst] = buddy;
+
+					op.setCompleted(buddy);
+				}
+			});
+
+			return op;
+		},
+		sendOtrQuery: function (dst) {
+			var that = this, conn = this._conn;
+			var op = Webos.Operation.create();
+
+			this._startOtr(dst).on('success', function (data) {
+				var buddy = data.result;
+
+				buddy.sendQueryMsg();
+
+				op.setCompleted();
+			});
+
+			return op;
+		},
+		endOtr: function (dst) {
+			var that = this, conn = this._conn;
+
+			if (!this._otr[dst]) {
+				return;
+			}
+
+			this._otr[dst].endOtr();
+		},
+		otrStatus: function (dst) {
+			var that = this, conn = this._conn;
+
+			var otrStatus = {
+				available: false,
+				encrypted: false
+			};
+
+			if (this._otr[dst]) {
+				otrStatus.available = true;
+
+				var buddy = this._otr[dst];
+
+				otrStatus.encrypted = (buddy.msgstate === OTR.CONST.MSGSTATE_ENCRYPTED);
+			}
+
+			return otrStatus;
+		}
+	};
+	Webos.inherit(Empathy.OtrMessageInterface, Empathy.MessageInterface);
 
 	Empathy.CallInterface = function (options) {
 		Empathy.Interface.call(this, options);
@@ -1205,7 +1590,7 @@ Webos.require([
 
 
 	Empathy.Xmpp = function (options) {
-		Empathy.MessageInterface.call(this, options);
+		Empathy.OtrMessageInterface.call(this, options);
 	};
 	Empathy.Xmpp.prototype = {
 		_type: 'xmpp',
@@ -1234,13 +1619,21 @@ Webos.require([
 				}
 
 				if (/*type == "chat" && */ elems.length > 0) {
-					var body = elems[0];
+					var body = Strophe.getText(elems[0]);
 
-					that.trigger('message messagereceived', {
-						from: from,
-						to: to,
-						body: Strophe.getText(body)
-					});
+					if (that.otrAvailable()) {
+						that._startOtr(that.getSubJid(from)).on('success', function (data) {
+							var buddy = data.result;
+
+							buddy.receiveMsg(body);
+						});
+					} else {
+						that._receiveMessage({
+							from: from,
+							to: to,
+							body: body
+						});
+					}
 				}
 
 				// we must return true to keep the handler alive.
@@ -1449,7 +1842,7 @@ Webos.require([
 
 			return op;
 		},
-		sendMessage: function (msg) {
+		_sendMessage: function (msg) {
 			var that = this, conn = this._conn;
 
 			var reply = $msg({
@@ -1459,12 +1852,33 @@ Webos.require([
 			}).c("body").t(msg.body);
 
 			conn.send(reply.tree());
+		},
+		sendMessage: function (msg) {
+			var that = this, conn = this._conn;
+			var encrypted = false;
 
-			this.trigger('message messagesent', {
-				from: that.getSubJid(conn.jid),
-				to: msg.to,
-				body: msg.body
-			});
+			var triggerEvent = function () {
+				that.trigger('message messagesent', {
+					from: that.getSubJid(conn.jid),
+					to: msg.to,
+					body: msg.body,
+					encrypted: encrypted
+				});
+			};
+			
+			if (that.otrAvailable()) {
+				that._startOtr(that.getSubJid(msg.to)).on('success', function (data) {
+					var buddy = data.result;
+
+					buddy.sendMsg(msg.body);
+
+					encrypted = (buddy.msgstate === OTR.CONST.MSGSTATE_ENCRYPTED);
+					triggerEvent();
+				});
+			} else {
+				this._sendMessage(msg);
+				triggerEvent();
+			}
 		},
 		sendChatstate: function (state) {
 			var that = this, conn = this._conn;
@@ -1498,7 +1912,7 @@ Webos.require([
 			return op;
 		}
 	};
-	Webos.inherit(Empathy.Xmpp, Empathy.MessageInterface);
+	Webos.inherit(Empathy.Xmpp, Empathy.OtrMessageInterface);
 
 	Empathy.Xmpp.create = function () {
 		return new Empathy.Xmpp();
