@@ -32,18 +32,23 @@ textarea {
 	padding-left: 2px;
 }
 
+.btn-ctn {
+	display: inline-block;
+	width: 16.666666666%;
+	padding: 2px;
+}
+.btn-ctn.btn-ctn-enter {
+	width: 33.333333332%;
+}
+
 .webos-button.violet, .webos-button.pink,
-.webos-button.blue, .webos-button.gray {
-	width: 14%;
-	margin-bottom: 1px;
-	height: 27px;
-	text-align: center;
-	padding-left: 3px;
-	padding-right: 3px;
+.webos-button.blue, .webos-button.gray,
+.webos-button.enter {
+	margin: 0;
+	width: 100%;
 }
 
 .webos-button.enter {
-	width: 28%;
 	background-image: url('usr/share/images/gcalctool/green.png');
 	background-position: 0px top;
 	background-repeat: repeat-x;

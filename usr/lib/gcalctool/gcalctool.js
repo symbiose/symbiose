@@ -100,7 +100,7 @@ function GCalcTool() {
 			title: t.get('Calculator'),
 			icon: new W.Icon('apps/calculator'),
 			width: 370,
-			height: 197,
+			height: 180,
 			stylesheet: '/usr/share/css/gcalctool/main.css',
 			resizable: false
 		});
@@ -131,7 +131,7 @@ function GCalcTool() {
 		gcalctool.container.append(gcalctool.textarea);
 		
 		// 7, 8, 9, ÷, "Annuler", "Effacer"
-		var container = $.w.container();
+		var container = $.w.container().addClass('btns-row');
 		
 		var button = $.w.button('7');
 		button.addClass('violet');
@@ -180,7 +180,7 @@ function GCalcTool() {
 		
 		// 4, 5, 6, x, (, )
 		
-		var container = $.w.container();
+		var container = $.w.container().addClass('btns-row');
 		
 		var button = $.w.button('4');
 		button.addClass('violet');
@@ -228,7 +228,7 @@ function GCalcTool() {
 		
 		// 1, 2, 3, -, x², √
 		
-		var container = $.w.container();
+		var container = $.w.container().addClass('btns-row');
 		
 		var button = $.w.button('1');
 		button.addClass('violet');
@@ -276,7 +276,7 @@ function GCalcTool() {
 		
 		// 0, ".", "="
 		
-		var container = $.w.container();
+		var container = $.w.container().addClass('btns-row');
 		
 		var button = $.w.button('0');
 		button.addClass('violet');
@@ -314,6 +314,10 @@ function GCalcTool() {
 		container.append(button);
 		
 		gcalctool.container.append(container);
+
+		var btns = gcalctool.container.children('.btns-row').children();
+		btns.wrap('<div class="btn-ctn"></div>');
+		btns.last().parent().addClass('btn-ctn-enter');
 		
 		gcalctool.window.window('content').append(gcalctool.container);
 		
