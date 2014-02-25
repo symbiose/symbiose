@@ -1699,7 +1699,9 @@ Webos.require([
 			this.options._components.buttons.cancel = $.w.button(t.get('Cancel')).click(function() {
 				that._trigger('cancel');
 			}).appendTo(buttonContainer);
-			this.options._components.buttons.submit = $.w.button(t.get('Open'), true).appendTo(buttonContainer);
+			
+			var submitBtnText = (this.options.exists) ? t.get('Open') : t.get('Save');
+			this.options._components.buttons.submit = $.w.button(submitBtnText, true).appendTo(buttonContainer);
 		},
 		_select: function() {
 			var that = this;
