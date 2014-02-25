@@ -129,7 +129,8 @@ Webos.require([
 			sendActive: false,
 			boshHttpUrl: Webos.xmpp.config.boshHttpUrl,
 			boshWsUrl: Webos.xmpp.config.boshWsUrl,
-			useOtr: false
+			useOtr: false,
+			saveOtrKey: false
 		},
 		_conn: function (index) {
 			return this._conns[index];
@@ -796,10 +797,15 @@ Webos.require([
 		_saveConfig: function () {
 			var that = this;
 
+			var config = $.extend({}, that._config);
+			if (!config.saveOtrKey) {
+				config.privKey = null;
+			}
+
 			Webos.User.getLogged(function(user) {
 				if (user) { //User logged in
 					Webos.DataFile.loadUserData('empathy', function (dataFile) {
-						dataFile.setData(that._config);
+						dataFile.setData(config);
 						dataFile.sync();
 
 						that.trigger('configchange');
