@@ -1520,10 +1520,12 @@ Webos.require([
 									type: 'end',
 									from: dst,
 									to: conn.jid,
-									encrypted: (buddy.msgstate !== OTR.CONST.MSGSTATE_FINISHED)
+									encrypted: (buddy.msgstate === OTR.CONST.MSGSTATE_ENCRYPTED)
 								});
 
-								buddy.endOtr();
+								if (buddy.msgstate === OTR.CONST.MSGSTATE_FINISHED) {
+									buddy.endOtr();
+								}
 								break;
 						}
 					});
