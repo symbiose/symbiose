@@ -580,7 +580,11 @@ Webos.require([
 				},
 				rename: function() {
 					var file = item.data('file')();
-					
+
+					if (item.find('input[type=text]').length) { //Already renaming this file
+						return;
+					}
+
 					var renameFn = function() {
 						var name = input.val();
 						input.remove();
@@ -590,29 +594,28 @@ Webos.require([
 						
 						file.rename(name);
 					};
-					
-					var onDocClickFn = function(event) {
-						if (!input.parents().filter(event.target).length === 0) {
-							$(document).unbind('click', onDocClickFn);
-							renameFn();
-						}
-					};
-					
-					setTimeout(function() { // Delay for Mozilla
-						$(document).click(onDocClickFn);
-					}, 0);
-					
+
 					var input = $('<input />', { type: 'text' }).keydown(function(e) {
 						if (e.keyCode == 13) {
-							$(document).unbind('click', onDocClickFn);
 							renameFn();
 							e.preventDefault();
 						}
 					});
 					item.find('.filename').hide().after(input);
-					
+
+					//Let the user click in the text input
+					input.on('mousedown mouseup click', function (e) {
+						e.stopPropagation();
+					});
+
 					var pos = file.get('basename').length - ((file.get('extension')) ? (file.get('extension').length + 1) : 0);
 					input.val(file.get('basename')).focus().setCursorPosition(0, pos);
+
+					setTimeout(function () { //Delay otherwise the current click event is triggered
+						$(document).one('click', function () {
+							renameFn();
+						});
+					}, 0);
 				},
 				remove: function() {
 					that._remove(item.data('file')());
