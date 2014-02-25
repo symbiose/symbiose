@@ -1,4 +1,8 @@
-Webos.Application = function WApplication(data, name) {
+if (Webos.Application) {
+	return;
+}
+
+Webos.Application = function (data, name) {
 	this._name = name;
 	Webos.Model.call(this, data);
 };
@@ -390,4 +394,6 @@ Webos.Application.clearCache = function() {
 	Webos.Application._loaded = false;
 	Webos.Application._applications = {};
 	Webos.Application._categories = {};
+
+	Webos.Application.trigger('reload');
 };

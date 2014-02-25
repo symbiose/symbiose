@@ -308,6 +308,10 @@
 		if (Webos.Package._cache.installed !== null) {
 			Webos.Package._cache.installed.push(data.package);
 		}
+
+		if (Webos.Application) {
+			Webos.Application.clearCache();
+		}
 	});
 	Webos.Package.on('remove', function(data) {
 		var pkgToRemove = data.package;
@@ -327,6 +331,10 @@
 		}
 
 		Webos.Package._cache.installed = list;
+
+		if (Webos.Application) {
+			Webos.Application.clearCache();
+		}
 	});
 
 	/**

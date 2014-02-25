@@ -786,6 +786,11 @@ Webos.require([
 					that.renderApps();
 				});
 
+				Webos.Application.on('reload.elementary', function () {
+					that.renderLauncher();
+					that.renderApps();
+				});
+
 				that.trigger('ready');
 			}, 'elementary');
 
@@ -798,6 +803,7 @@ Webos.require([
 			this.destroyMeMenu();
 
 			Webos.Theme.off('load.elementary');
+			Webos.Application.off('reload.elementary');
 
 			this.trigger('destroy');
 			delete window.Elementary;
