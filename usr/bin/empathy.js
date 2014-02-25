@@ -562,8 +562,7 @@ Webos.require([
 				$win.find('.btn-encryption').toggle(that._config.useOtr);
 
 				if (that._config.privKey) {
-					//TODO: key saving not working!
-					//Empathy.OtrMessageInterface.importKey(that._config.privKey);
+					Empathy.OtrMessageInterface.importKey(decodeURIComponent(that._config.privKey));
 				}
 				if (that._config.useOtr && !Empathy.OtrMessageInterface.otrReady()) {
 					that.generateOtrKey();
@@ -1294,7 +1293,7 @@ Webos.require([
 					success: function (data) {
 						var exportedKey = data.result;
 
-						that._config.privKey = exportedKey;
+						that._config.privKey = encodeURIComponent(exportedKey);
 						that._saveConfig();
 
 						$loadingDialog.window('close');
@@ -1754,7 +1753,7 @@ Webos.require([
 						statusData.error = 'connerror';
 						break;
 					default:
-						console.log('Strophe: unknown connection status: '+status);
+						console.warn('Strophe: unknown connection status: '+status);
 				}
 
 				if (statusData.type) {
