@@ -60,15 +60,29 @@ class ConfitureRepositoryController extends \lib\ApiBackController {
 		$sort = (isset($options['sort'])) ? $options['sort'] : 'name';
 		$limit = (isset($options['limit'])) ? (int) $options['limit'] : null;
 
+		$searchFields = array('name', 'title', 'description');
+
 		$pkgs = $manager->listAll();
 		$matches = array();
 
 		foreach($pkgs as $pkg) {
 			$pkgMatches = true;
 
-			if (!empty($q) && strpos($pkg['title'], $q) === false) {
-				$pkgMatches = false;
+			if (!empty($q)) {
+				$queryMatches = false;
+
+				foreach ($searchFields as $field) {
+					if (strpos(strtolower($pkg[$field]), strtolower($q)) !== false) {
+						$queryMatches = true;
+						break;
+					}
+				}
+
+				if (!$queryMatches) {
+					$pkgMatches = false;
+				}
 			}
+
 			if (!empty($cat) && !in_array($cat, $pkg['categories'])) {
 				$pkgMatches = false;
 			}
