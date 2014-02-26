@@ -29,9 +29,8 @@ Webos.Translation.load(function(t) {
 		});
 	$.w.button(t.get('Reboot'))
 		.click(function() {
-			W.Cmd.execute('halt', function() {
-				window.location.reload();
-			});
+			rebootWindow.window('close');
+			window.location.reload();
 		})
 		.appendTo(buttonContainer);
 }, 'gnome');
