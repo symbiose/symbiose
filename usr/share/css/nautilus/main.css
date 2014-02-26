@@ -85,18 +85,29 @@
 }
 .webos-nautilusshortcuts strong.title {
 	font-size: 1.05em;
+	padding-left: 2px;
 }
 .webos-nautilusshortcuts .webos-list table {
 	border: none;
 	background: none;
 }
+.webos-nautilusshortcuts .webos-list table td {
+	display: block;
+	max-width: 200px;
+	overflow: hidden;
+	-o-text-overflow: ellipsis;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
 .webos-nautilusshortcuts .webos-list-item img {
 	width: 20px;
 	height: 20px;
+	margin-right: 2px;
 }
 .webos-nautilusshortcuts .webos-list-item img.umount {
 	float: right;
 	width: 16px;
 	height: 16px;
 	margin: 2px;
+	margin-left: 10px;
 }

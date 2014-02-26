@@ -1931,7 +1931,7 @@ Webos.require([
 							that.options.open(local);
 						});
 					$('<img />', {
-						src: new W.Icon('actions/umount', 16),
+						src: new W.Icon('actions/media-eject-symbolic', 16),
 						alt: '',
 						title: t.get('Unmount volume')
 					}).addClass('umount').prependTo($item.listItem('column', 0));

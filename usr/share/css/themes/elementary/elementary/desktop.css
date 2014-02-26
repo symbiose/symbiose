@@ -362,6 +362,7 @@ body {
 	padding-left: 15px;
 	padding-right: 15px;
 }
+.webos-nautilusshortcuts .webos-list table tbody tr:active,
 .webos-nautilusshortcuts .webos-list table tbody tr.active {
 	background-color: #cacaca;
 	border: none;
