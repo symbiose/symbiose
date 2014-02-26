@@ -262,8 +262,10 @@ Webos.require = function (files, callback, options) {
 			requiredFile = $.extend({
 				path: '',
 				context: null,
-				arguments: []
-			}, requiredFile);
+				arguments: [],
+				styleContainer: null,
+				exportApis: []
+			}, options, requiredFile);
 
 			var file = W.File.get(requiredFile.path);
 			var call = file.readAsText([function(contents) {
@@ -272,10 +274,14 @@ Webos.require = function (files, callback, options) {
 					Webos.require._stacks[file.get('path')] = [];
 					Webos.require._currentFile = file.get('path');
 
-					if (typeof options.exportApis != 'undefined') {
+					if (typeof requiredFile.exportApis != 'undefined') {
+						if (!(requiredFile.exportApis instanceof Array)) {
+							requiredFile.exportApis = [requiredFile.exportApis];
+						}
+
 						var exportApiCode = '';
-						for (var i = 0; i < options.exportApis.length; i++) {
-							var apiName = options.exportApis[i];
+						for (var i = 0; i < requiredFile.exportApis.length; i++) {
+							var apiName = requiredFile.exportApis[i];
 							exportApiCode += 'if (typeof '+apiName+' != "undefined") { window.'+apiName+' = '+apiName+'; }\n';
 						}
 
@@ -304,7 +310,7 @@ Webos.require = function (files, callback, options) {
 						onLoadFn(file);
 					}
 				} else if (file.get('extension') == 'css') {
-					Webos.Stylesheet.insertCss(contents, options.styleContainer);
+					Webos.Stylesheet.insertCss(contents, requiredFile.styleContainer);
 					onLoadFn(file);
 				} else {
 					callback.error(Webos.Callback.Result.error('Unknown file type: "'+file.get('extension')+'" (file path: "'+file.get('path')+'")'));
