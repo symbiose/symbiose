@@ -8,12 +8,13 @@
 	overflow: auto;
 }
 .webos-scrollpane.scrollpane-natural .pane-natural {
+	position: relative;
 	min-width: 100%;
 	min-height: 100%;
 }
-.webos-window .content > .webos-scrollpane.scrollpane-natural {
+/*.webos-window .content > .webos-scrollpane.scrollpane-natural {
 	overflow: visible;
-}
+}*/
 
 .webos-scrollpane .pane {
 	position: absolute;
