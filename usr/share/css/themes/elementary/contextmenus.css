@@ -1,16 +1,17 @@
 /* Generic context menu styles */
-.webos-contextmenu, .webos-contextmenu li ul {
+.webos-contextmenu,
+.webos-contextmenu ul {
 	position: absolute;
-	min-width: 274px;
+	min-width: 210px;
 	z-index: 99999;
 	background: white;
 	padding: 0px;
 	margin: 0px;
 	display: none;
-	border: 1px solid #aaaaaa;
-	-moz-box-shadow: 5px 4px 12px black;
-	-webkit-box-shadow: 5px 4px 12px black;
-	box-shadow: 5px 4px 12px black;
+	border: 1px solid #909090;
+	-moz-box-shadow: 0 0 12px black;
+	-webkit-box-shadow: 0 0 12px black;
+	box-shadow: 0 0 12px black;
 }
 
 ul.webos-contextmenu li {
@@ -20,23 +21,23 @@ ul.webos-contextmenu li {
 }
 
 ul.webos-contextmenu a {
-	color: black;
+	color: #4d4d4d;
 	text-decoration: none;
 	display: block;
-	line-height: 25px;
-	height: 25px;
-	background-repeat: no-repeat;
+	line-height: 22px;
+	height: 22px;
 	outline: none;
-	padding: 0px 5px;
-	padding-left: 22px;
-	padding-right:15px;
+	padding: 0 20px;
 	border: 1px solid transparent;
 }
 
 ul.webos-contextmenu li:hover > a {
 	color: white;
-	background: #98b9e2;
-	border: 1px solid #4b6e99;
+	background-color: #72afef;
+	background: -moz-linear-gradient(#81b9f4, #4e93db);
+	background: -webkit-linear-gradient(#81b9f4, #4e93db);
+	background: linear-gradient(#81b9f4, #4e93db);
+	border: 1px solid #364b63;
 }
 
 ul.webos-contextmenu li.disabled a {
@@ -48,8 +49,14 @@ ul.webos-contextmenu li:hover.disabled > a {
 	border: 1px solid transparent;
 }
 
-ul.webos-contextmenu li.separator {
-	border-top: solid 1px #aaaaaa;
+ul.webos-contextmenu li.separator:before {
+	content: " ";
+	display: block;
+	height: 1px;
+	background-color: #909090;
+	background: -moz-linear-gradient(left, transparent 0%, #909090 50%, transparent 100%);
+	background: -webkit-linear-gradient(left, transparent 0%, #909090 50%, transparent 100%);
+	background: linear-gradient(left, transparent 0%, #909090 50%, transparent 100%);
 }
 
 /* Permet d'afficher les sous catégories*/
@@ -57,12 +64,12 @@ ul.webos-contextmenu li.separator {
 
 ul.webos-contextmenu li ul /* Sous-listes */
 {
-	margin: -27px 0px 0 274px;
+	margin: -27px 0px 0 210px;
 }
 
 ul.webos-contextmenu li ul li /* Éléments de sous-listes */
 {
-	min-width:274px;
+	min-width:210px;
 	margin-left:0px;
 	padding-right:0px;
 }
