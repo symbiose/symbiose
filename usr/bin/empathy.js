@@ -1,8 +1,10 @@
 Webos.require([
+	'/usr/lib/webos/data.js',
+	//Strophe
 	'/usr/lib/strophejs/strophe.js',
 	'/usr/lib/strophejs/strophe.vcard.js',
 	'/usr/lib/strophejs/strophe.chatstates.js',
-	'/usr/lib/webos/data.js',
+	//OTR
 	'/usr/lib/webos/bigint.js',
 	'/usr/lib/webos/crypto.js',
 	'/usr/lib/webos/eventemitter.js',
@@ -10,7 +12,22 @@ Webos.require([
 	{
 		path: '/usr/lib/otr/otr.min.js',
 		context: window
-	}
+	},
+	//Jingle
+	//Not working really well... At least with Facebook and Google's servers
+	/*'/usr/lib/strophejs/jingle/strophe.jingle.js',
+	{
+		path: '/usr/lib/strophejs/jingle/strophe.jingle.session.js',
+		exportApis: ['JingleSession']
+	},
+	{
+		path: '/usr/lib/strophejs/jingle/strophe.jingle.sdp.js',
+		exportApis: ['SDP']
+	},
+	{
+		path: '/usr/lib/strophejs/jingle/strophe.jingle.adapter.js',
+		exportApis: ['TraceablePeerConnection', 'setupRTC', 'getUserMediaWithConstraints']
+	}*/
 ], function() {
 	Webos.xmpp = {
 		config: {
@@ -112,6 +129,29 @@ Webos.require([
 		}
 
 		return serviceApi.create(options);
+	};
+
+	Empathy.priorityFromPresence = function (presence) {
+		var priority = -128;
+
+		switch (presence)  {
+			case 'online':
+				priority = 0;
+				break;
+			case 'away':
+				priority = -8;
+				break;
+			case 'dnd':
+				priority = -4;
+				break;
+			case 'xa':
+				priority = -12;
+				break;
+			default:
+				priority = -128;
+		}
+
+		return priority;
 	};
 
 	Empathy.prototype = {
@@ -270,12 +310,31 @@ Webos.require([
 				var $contact = $contactsCtn.children('li').filter(function () {
 					return ($(this).data('username') == contact.username);
 				});
+				
+				var $contactActions = $();
 				if (!$contact.length) {
 					$contact = $('<li></li>').data('username', contact.username).appendTo($contactsCtn);
 					$contact.append('<span class="contact-status"></span>');
+					$contact.append('<ul class="contact-actions"></ul>');
 					$contact.append('<img alt="" class="contact-picture"/>');
 					$contact.append('<span class="contact-name"></span>');
 					$contact.append('<span class="contact-server"></span>');
+
+					$contactActions = $contact.find('.contact-actions');
+					var conn = that.connection(contact.conn),
+						connFeatures = conn.features();
+
+					for (var i = 0; i < connFeatures.length; i++) {
+						$('<li></li>', {
+							'class': 'action-'+connFeatures[i]+' cursor-pointer'
+						}).appendTo($contactActions);
+					}
+
+					$('<li></li>', {
+						'class': 'action-url cursor-pointer'
+					}).appendTo($contactActions);
+				} else {
+					$contactActions = $contact.find('.contact-actions');
 				}
 
 				var readablePresence = '';
@@ -317,6 +376,8 @@ Webos.require([
 				$contact.find('.contact-name').text(contact.name);
 				$contact.find('.contact-status').html('<span class="status-inner">'+readablePresence+'</span>');
 				$contact.find('.contact-picture').attr('src', contact.picture);
+
+				$contactActions.find('.action-url').toggle(!!contact.url);
 
 				if (typeof contact.conn != 'undefined') {
 					var conn = that._conn(contact.conn);
@@ -495,6 +556,35 @@ Webos.require([
 				}
 			};
 
+			$contactsCtn.on('click', '.contact-actions li', function (e) {
+				var previousDst = that.currentDst();
+
+				var $contact = $(this).parentsUntil($contactsCtn, 'li'),
+					contactUsername = $contact.data('username'),
+					contact = that.contact(contactUsername),
+					conn = that.connection(contact.conn);
+
+				if (!contact || typeof contact.conn == 'undefined') {
+					return;
+				}
+
+				if ($(this).is('.action-message')) {
+					return; // It's like just clicking the contact
+				} else {
+					e.stopPropagation();
+					that._getContactPicture(contact.conn, contact.username);
+
+					if ($(this).is('.action-call')) {
+						conn.call({
+							to: contact.username
+						});
+					} else if ($(this).is('.action-url')) {
+						if (contact.url) {
+							window.open(contact.url);
+						}
+					}
+				}
+			});
 			$contactsCtn.on('click', 'li', function () {
 				var previousDst = that.currentDst();
 				if (previousDst) {
@@ -981,7 +1071,8 @@ Webos.require([
 					conn: connId
 				}));
 
-				if (contact.presence == 'online') {
+				var updatedContact = that.contact(contact.username);
+				if (updatedContact && updatedContact.presence && updatedContact.presence != 'offline') {
 					that._getContactPicture(connId, contact.username);
 				}
 			});
@@ -998,28 +1089,14 @@ Webos.require([
 				name: contact.name,
 				presence: contact.presence,
 				priority: contact.priority,
-				picture: contact.picture
+				picture: contact.picture,
+				url: contact.url
 			});
 
 			contact.name = contact.name || contact.username;
 
 			contact.presence = contact.presence || 'offline';
-			switch (contact.presence)  {
-				case 'online':
-					contact.priority = 0;
-					break;
-				case 'away':
-					contact.priority = -8;
-					break;
-				case 'dnd':
-					contact.priority = -4;
-					break;
-				case 'xa':
-					contact.priority = -12;
-					break;
-				default:
-					contact.priority = -128;
-			}
+			contact.priority = Empathy.priorityFromPresence(contact.presence);
 
 			contact.picture = contact.picture || this._defaultContactIcon;
 
@@ -1108,7 +1185,13 @@ Webos.require([
 				$contactsCtn.children().show();
 			} else {
 				$contactsCtn.children().each(function () {
-					var contact = that.contact($(this).data('username'));
+					var contactUsername = $(this).data('username'),
+						contact = that.contact(contactUsername);
+
+					if (!contactUsername || !contact) {
+						$(this).hide();
+						return;
+					}
 
 					for (var i = 0; i < searchAttrs.length; i++) {
 						var val = contact[searchAttrs[i]];
@@ -1315,10 +1398,10 @@ Webos.require([
 
 		options = options || {};
 		this._options = options;
-		this.initialize(options);
 	};
 	Empathy.Interface.prototype = {
 		_type: '',
+		_features: [],
 		options: function () {
 			return this._options;
 		},
@@ -1328,7 +1411,19 @@ Webos.require([
 		type: function () {
 			return this._type;
 		},
-		initialize: function (options) {},
+		features: function () {
+			return this._features;
+		},
+		hasFeature: function (feat) {
+			return ~$.inArray(feat, this._features);
+		},
+		_removeFeature: function (feat) {
+			var featIndex = this._features.indexOf(feat);
+
+			if (featIndex >= 0) {
+				this._features.splice(featIndex, 1);
+			}
+		},
 		connect: function () {},
 		listContacts: function () {},
 		getContactPicture: function (username) {}
@@ -1336,6 +1431,8 @@ Webos.require([
 	Webos.inherit(Empathy.Interface, Webos.Observable);
 
 	Empathy.MessageInterface = function (options) {
+		this._features.push('message');
+
 		Empathy.Interface.call(this, options);
 	};
 	Empathy.MessageInterface.prototype = {
@@ -1347,7 +1444,7 @@ Webos.require([
 	Webos.inherit(Empathy.MessageInterface, Empathy.Interface);
 
 	Empathy.OtrMessageInterface = function (options) {
-		Empathy.Interface.call(this, options);
+		Empathy.MessageInterface.call(this, options);
 	};
 	Webos.Observable.build(Empathy.OtrMessageInterface);
 
@@ -1588,6 +1685,8 @@ Webos.require([
 	Webos.inherit(Empathy.OtrMessageInterface, Empathy.MessageInterface);
 
 	Empathy.CallInterface = function (options) {
+		this._features.push('call');
+
 		Empathy.Interface.call(this, options);
 	};
 	Empathy.CallInterface.prototype = {
@@ -1598,12 +1697,54 @@ Webos.require([
 
 	Empathy.Xmpp = function (options) {
 		Empathy.OtrMessageInterface.call(this, options);
+		Empathy.CallInterface.call(this, options);
+
+		this.initialize(this._options);
 	};
 	Empathy.Xmpp.prototype = {
 		_type: 'xmpp',
+		_RTC: null,
+		_localVideoSteam: null,
+		_jids: {},
 		getSubJid: Webos.xmpp.getSubJid,
 		getJidDomain: Webos.xmpp.getJidDomain,
 		getJidUsername: Webos.xmpp.getJidUsername,
+		_updateContactJid: function (contact, fullJid) {
+			if (!this._jids[contact.username]) {
+				this._jids[contact.username] = {};
+			}
+
+			this._jids[contact.username][fullJid] = {
+				priority: contact.priority,
+				presence: contact.presence
+			};
+		},
+		_getFullJid: function (bareJid) {
+			bareJid = this.getSubJid(bareJid); //Make sure that's a bare jid
+
+			if (!this._jids[bareJid]) {
+				return '';
+			}
+
+			var availableJids = this._jids[bareJid];
+
+			var preferedJid = '', preferedJidPriority = -129;
+			for (var fullJid in availableJids) {
+				var fullJidContact = availableJids[fullJid];
+
+				var fullJidPriority = fullJidContact.priority;
+				if (typeof fullJidPriority != 'number') {
+					fullJidPriority = Empathy.priorityFromPresence(fullJidContact.presence);
+				}
+
+				if (preferedJidPriority < fullJidPriority) {
+					preferedJidPriority = fullJidPriority;
+					preferedJid = fullJid;
+				}
+			}
+
+			return preferedJid;
+		},
 		initialize: function (options) {
 			var that = this;
 
@@ -1650,38 +1791,35 @@ Webos.require([
 
 			conn.addHandler(function (presence) {
 				var presenceType = $(presence).attr('type'); // unavailable, subscribed, etc...
-				var from = that.getSubJid($(presence).attr('from')); // the jabber_id of the contact...
+				var from = $(presence).attr('from'), // the jabber_id of the contact
+					fromUsername = that.getSubJid(from);
 
 				var connJid = that.getSubJid(conn.jid);
 
+				var contact = {
+					username: fromUsername,
+					account: connJid
+				};
+
 				if (presenceType != 'error') {
 					if (presenceType === 'unavailable') {
-						that.trigger('contact', {
-							username: from,
-							account: connJid,
-							presence: 'offline'
-						});
+						contact.presence = 'offline';
 					} else {
 						var show = $(presence).find("show").text(); // this is what gives away, dnd, etc.
 						if (show === 'chat' || !show) {
 							// Mark contact as online
-							that.trigger('contact', {
-								username: from,
-								account: connJid,
-								presence: 'online'
-							});
+							contact.presence = 'online';
 						} else {
-							that.trigger('contact', {
-								username: from,
-								account: connJid,
-								presence: show
-							});
+							contact.presence = show;
 						}
 					}
 				}
 
+				that._updateContactJid(contact, from);
+				that.trigger('contact', contact);
+
 				return true;
-			}, null, "presence");
+			}, null, 'presence');
 
 			if (conn.chatstates) { // Chatstates plugin loaded
 				conn.chatstates.onActive = function (jid) {
@@ -1705,6 +1843,95 @@ Webos.require([
 					});
 				};
 			}
+
+			if (conn.jingle) { // Jingle plugin loaded (for video calls)
+				
+				RTC = setupRTC();
+				if (RTC) {
+					conn.jingle.pc_constraints = RTC.pc_constraints;
+
+					if (RTC.browser == 'firefox') {
+						conn.jingle.media_constraints.mandatory.MozDontOfferDataChannel = true;
+					}
+
+					window.RTCPeerconnection = RTC.peerconnection;
+				} else {
+
+				}
+
+				conn.jingle.ice_config = {
+					iceServers: [{ url: 'stun:stun.l.google.com:19302' }]
+				};
+
+				var handlers = {
+					'mediaready.jingle': function (event, localStream) {
+						conn.jingle.localStream = localStream;
+						console.log('media ready');
+					},
+					'mediafailure.jingle': function () {
+						console.warn('media failure');
+					},
+					'callincoming.jingle': function () {
+						console.log('call incoming');
+					},
+					'callactive.jingle': function () {
+						console.log('call active');
+					},
+					'callterminated.jingle': function () {
+						console.log('call terminated');
+					},
+					'remotestreamadded.jingle': function () {
+						console.log('remote stream added');
+					},
+					'remotestreamremoved.jingle': function () {
+						console.log('remote stream removed');
+					},
+					'iceconnectionstatechange.jingle': function () {
+						console.log('ice connection state change');
+					},
+					'nostuncandidates.jingle': function () {
+						console.warn('no stun candidates');
+					},
+					'ack.jingle': function (event, sid, ack) {
+						console.log('got stanza ack for ' + sid, ack);
+					},
+					'error.jingle': function (event, sid, err) {
+						console.warn('got stanza error for ' + sid, err);
+					},
+					'packetloss.jingle': function (event, sid, err) {
+						console.warn('packetloss', sid, loss);
+					}
+				};
+
+				for (var eventName in handlers) {
+					$(document).off(eventName).on(eventName, handlers[eventName]);
+				}
+
+				this.on('status', function (status) {
+					if (status.type != 'connected') {
+						return;
+					}
+
+					conn.jingle.getStunAndTurnCredentials();
+				});
+			} else { // Jingle not loaded, no call support
+				this._removeFeature('call');
+			}
+
+			if (conn.disco) { // Disco plugin loaded
+				this.on('status', function (status) {
+					if (status.type != 'connected') {
+						return;
+					}
+
+					conn.disco.addIdentity('client', 'web');
+					conn.disco.addFeature(Strophe.NS.DISCO_INFO);
+				});
+			}
+
+			//Log Strophe io
+			/*conn.rawInput = function (data) { console.log('RECV: ' + data); };
+			conn.rawOutput = function (data) { console.log('SEND: ' + data); };//*/
 
 			this._conn = conn;
 		},
@@ -1802,6 +2029,7 @@ Webos.require([
 					};
 
 					that.trigger('contact', contact);
+					that._updateContactJid(contact, jid);
 					contacts.push(contact);
 				});
 
@@ -1825,21 +2053,32 @@ Webos.require([
 
 			conn.vcard.get(function (stanza) {
 				var $vCard = $(stanza).find("vCard");
-				var img = $vCard.find('BINVAL').text();
-				var type = $vCard.find('TYPE').text();
 
-				if (!img || !type) {
+				if ($vCard.is(':empty')) {
 					op.setCompleted(false);
 					return;
 				}
 
-				var imgSrc = 'data:'+type+';base64,'+img;
+				var img = $vCard.find('BINVAL').text();
+				var type = $vCard.find('TYPE').text();
+
+				var fullname = $vCard.find('FN').text();
+				var url = $vCard.find('URL').text();
 
 				var contact = {
 					username: that.getSubJid(jid),
-					account: connJid,
-					picture: imgSrc
+					account: connJid
 				};
+
+				if (img && type) {
+					contact.picture = 'data:'+type+';base64,'+img;
+				}
+				if (fullname) {
+					contact.name = fullname;
+				}
+				if (url) {
+					contact.url = url;
+				}
 
 				that.trigger('contact', contact);
 				op.setCompleted(contact);
@@ -1917,9 +2156,46 @@ Webos.require([
 			op.setCompleted();
 
 			return op;
+		},
+		_call: function (call) {
+			var that = this, conn = this._conn;
+
+			if (!conn.jingle) {
+				return false;
+			}
+
+			conn.send($pres({ to: call.to }));
+
+			conn.jingle.initiate(call.to, conn.jid);
+		},
+		call: function (call) {
+			var that = this, conn = this._conn;
+
+			if (!conn.jingle) {
+				return false;
+			}
+
+			//We must provide a full jid here
+			var to = that._getFullJid(call.to);
+			if (to) {
+				call.to = to;
+			}
+
+			if (!conn.jingle.localStream) { //Get local stream
+				$(document).one('mediaready.jingle mediafailure.jingle', function (e) {
+					if (e.type == 'mediaready') { //Got media
+						that._call(call);
+					}
+				});
+
+				getUserMediaWithConstraints(['audio', 'video']);
+			} else {
+				that._call(call);
+			}
 		}
 	};
 	Webos.inherit(Empathy.Xmpp, Empathy.OtrMessageInterface);
+	Webos.inherit(Empathy.Xmpp, Empathy.CallInterface);
 
 	Empathy.Xmpp.create = function () {
 		return new Empathy.Xmpp();

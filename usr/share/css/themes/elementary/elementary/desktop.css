@@ -19,7 +19,10 @@ a, a * {
 }
 
 .cursor-pointer, .cursor-pointer * {
-	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.png"), pointer, hand;
+	cursor: pointer;
+	cursor: hand;
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.png"), pointer;
+	cursor: url("usr/share/images/themes/adwaita/cursors/pointer.png"), hand;
 }
 
 .cursor-wait, .cursor-wait * {
