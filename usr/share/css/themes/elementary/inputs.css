@@ -27,9 +27,7 @@ input[type="number"]:focus, input[type="email"]:focus {
 input[type="button"], input[type="submit"], .webos-button { 
 	min-height: 25px;
 	font-size: 1.1em;
-	border: 1px solid #9d9d9d;
 	font-weight: normal;
-	color: #505156;
 	display: inline-block;
 	position: relative;
 	margin-left: .1em;
@@ -37,10 +35,6 @@ input[type="button"], input[type="submit"], .webos-button {
 	padding: 0 8px;
 	text-decoration: none !important;
 	text-align: center;
-	background-color: #fcfcfc;
-	background: -moz-linear-gradient(white, #e8e8e8);
-	background: -webkit-linear-gradient(white, #e8e8e8);
-	background: linear-gradient(white, #e8e8e8);
 	-moz-border-radius: 2px;
 	-webkit-border-radius: 2px;
 	border-radius: 2px;
@@ -52,19 +46,45 @@ input[type="button"], input[type="submit"], .webos-button {
 	-o-user-select: none;
 	user-select: none;
 }
-input[type="button"]:hover, input[type="submit"]:hover, .webos-button:hover {
+
+input[type="button"], .webos-button {
+	color: #505156;
+	border: 1px solid #9d9d9d;
+	background-color: #fcfcfc;
+	background: -moz-linear-gradient(white, #e8e8e8);
+	background: -webkit-linear-gradient(white, #e8e8e8);
+	background: linear-gradient(white, #e8e8e8);
+}
+input[type="button"]:hover, .webos-button:hover {
 	background: -moz-linear-gradient(white, #dddddd);
 	background: -webkit-linear-gradient(white, #dddddd);
 	background: linear-gradient(white, #dddddd);
 }
-input[type="button"]:active, input[type="submit"]:active, .webos-button:active,
-input[type="button"].active, input[type="submit"].active, .webos-button.active {
+input[type="button"]:active, .webos-button:active,
+input[type="button"].active, .webos-button.active {
 	background: -moz-linear-gradient(#b6b6b6, #a0a0a0);
 	background: -webkit-linear-gradient(#b6b6b6, #a0a0a0);
 	background: linear-gradient(#b6b6b6, #a0a0a0);
 	border-color: #636363;
 	color: #4f5054;
 }
+
+input[type="submit"], .webos-button.submit { 
+	color: white;
+	border: 1px solid #2a8ece;
+	background-color: #46a5e9;
+	background: -moz-linear-gradient(#52bbec, #368ae6);
+}
+input[type="submit"]:hover, .webos-button.submit:hover {
+	background-color: #4aacea;
+	background: -moz-linear-gradient(#64c8ec, #3a91e7);
+}
+input[type="submit"]:active, input[type="submit"].active,
+.webos-button.submit:active, .webos-button.submit.active {
+	background-color: #3d96e7;
+	background: -moz-linear-gradient(#378ce6, #44a1e9);
+}
+
 input[type="button"][disabled],
 input[type="button"][disabled]:hover,
 input[type="button"][disabled]:active,

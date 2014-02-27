@@ -1416,6 +1416,7 @@ $.webos.button.prototype = {
 				} else {
 					this.content().unbind('click', submitFn);
 				}
+				this.element.toggleClass('submit', (value) ? true : false);
 				break;
 			case 'label':
 				this.content().html(value);
