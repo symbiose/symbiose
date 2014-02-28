@@ -1,0 +1,71 @@
+<x-window-main width="700" height="500" icon="apps/writer" stylesheet="/usr/share/css/writer/main.css">
+	<h1>Writer (alpha)</h1>
+
+	<header>
+		<div class="btns-ctn pull-right">
+			<x-button class="btn-document-save" title="Save"><x-icon src="actions/document-save" size="24"></x-icon></x-button>
+			<x-button class="btn-document-export" title="Export"><x-icon src="actions/document-export" size="24"></x-icon></x-button>
+			<x-button class="btn-settings" title="Properties"><x-icon src="actions/document-properties" size="24"></x-icon></x-button>
+		</div>
+
+		<div class="btns-ctn">
+			<x-button class="btn-document-new" title="New document"><x-icon src="actions/document-new" size="24"></x-icon></x-button>
+			<x-button class="btn-document-open" title="Open"><x-icon src="actions/document-open" size="24"></x-icon></x-button>
+			<x-button class="btn-document-page-setup" title="Properties"><x-icon src="actions/document-page-setup" size="24"></x-icon></x-button>
+
+			<x-button class="btn-edit-undo" title="Undo"><x-icon src="actions/edit-undo" size="24"></x-icon></x-button>
+			<x-button class="btn-edit-redo" title="Redo"><x-icon src="actions/edit-redo" size="24"></x-icon></x-button>
+		</div>
+	</header>
+
+	<div class="writer-toolbar">
+		<div class="btns-font">
+			<x-button class="btn-format-font" title="Font" disabled>
+				<span class="font-family">Arial</span>
+				<span class="font-color"></span>
+			</x-button>
+		</div>
+
+		<div class="btns-format-text">
+			<x-button class="btn-format-text-bold" title="Bold">B</x-button>
+			<x-button class="btn-format-text-italic" title="Italic">i</x-button>
+			<x-button class="btn-format-underline" title="Underline">u</x-button>
+		</div>
+
+		<div class="btns-format-align">
+			<x-button class="btn-format-align-left" title="Left"><span class="align-left"></span></x-button>
+			<x-button class="btn-format-align-center" title="Center"><span class="align-center"></span></x-button>
+			<x-button class="btn-format-align-right" title="Right"><span class="align-right"></span></x-button>
+			<x-button class="btn-format-align-justify" title="Justify"><span class="align-justify"></span></x-button>
+		</div>
+
+		<div class="btns-format-list">
+			<x-button class="btn-format-list-unordered" title="Unordered list"><span class="list-unordered"></span></x-button>
+			<x-button class="btn-format-list-ordered" title="Ordered list"><span class="list-ordered"></span></x-button>
+		</div>
+
+		<x-button class="btn-insert pull-right" title="Insert..." disabled>Insert</x-button>
+
+		<!--<div class="dropdown pull-right">
+			<x-button class="btn-insert" title="Insert..." data-toggle="dropdown">Insert</x-button>
+			<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+				<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
+				<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
+				<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
+				<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
+			</ul>
+		</div>-->
+	</div>
+
+	<div class="writer-ctn">
+		<div class="writer-page">
+			<div class="writer-inner" contenteditable>
+				<h1>Heading One</h1>
+				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a non tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem. Ut turpis felis, pulvinar a semper sed, adipiscing id dolor. Pellentesque auctor nisi id magna consequat sagittis. Curabitur dapibus enim sit amet elit pharetra tincidunt feugiat nisl imperdiet. Ut convallis libero in urna ultrices accumsan. Donec sed odio eros. Donec viverra mi quis quam pulvinar at malesuada arcu rhoncus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In rutrum accumsan ultricies. Mauris vitae nisi at sem facilisis semper ac in est.</p>
+
+				<h2>Heading Two</h2>
+				<p>Vivamus fermentum semper porta. Nunc diam velit, adipiscing ut tristique vitae, sagittis vel odio. Maecenas convallis ullamcorper ultricies. Curabitur ornare, ligula semper consectetur sagittis, nisi diam iaculis velit, id fringilla sem nunc vel mi. Nam dictum, odio nec pretium volutpat, arcu ante placerat erat, non tristique elit urna et turpis. Quisque mi metus, ornare sit amet fermentum et, tincidunt et orci. Fusce eget orci a orci congue vestibulum. Ut dolor diam, elementum et vestibulum eu, porttitor vel elit. Curabitur venenatis pulvinar tellus gravida ornare. Sed et erat faucibus nunc euismod ultricies ut id justo. Nullam cursus suscipit nisi, et ultrices justo sodales nec. Fusce venenatis facilisis lectus ac semper. Aliquam at massa ipsum. Quisque bibendum purus convallis nulla ultrices ultricies. Nullam aliquam, mi eu aliquam tincidunt, purus velit laoreet tortor, viverra pretium nisi quam vitae mi. Fusce vel volutpat elit. Nam sagittis nisi dui.</p>
+			</div>
+		</div>
+	</div>
+</x-window-main>

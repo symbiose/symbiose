@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Writer"/>
+	<attribute name="title" lang="fr_FR" value="Traitement de texte"/>
+	<attribute name="title" lang="es_ES" value="Procesador de texto"/>
+	<attribute name="description" value="Format your documents"/>
+	<attribute name="description" lang="fr_FR" value="Mettre en forme vos documents"/>
+	<attribute name="description" lang="es_ES" value="Formatee sus documentos"/>
+	<attribute name="command" value="writer"/>
+	<attribute name="icon" value="apps/writer"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="office"/>
+	<attribute name="open" value="html,htm"/>
+	<attribute name="openMimeTypes" value="text/html"/>
+</shortcut>
