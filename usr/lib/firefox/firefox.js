@@ -113,7 +113,7 @@ function FirefoxWindow(url) {
 
 		var url = '';
 		if (Webos.isInstanceOf(location, Webos.File)) {
-			url = file.get('realpath');
+			url = location.get('realpath');
 			this.historyLocation++;
 		} else if (typeof location == 'string') {
 			url = location;
