@@ -45,18 +45,31 @@ class IconController extends \lib\RawBackController {
 				'type' => $indexData[0],
 				'theme' => $indexData[1],
 				'size' => $indexData[2],
-				'name' => $indexData[3]
+				'name' => $indexData[3],
+				'format' => 'png'
 			);
 		} else {
 			$iconData = array(
 				'type' => $indexData[0],
 				'size' => $indexData[1],
-				'name' => $indexData[2]
+				'name' => $indexData[2],
+				'format' => 'png'
 			);
 		}
+		$iconData['format'] = 'png';
 
 		if ($scalable) {
 			//First, if scalable icons are supported, try to find one
+			
+			//With specified size
+			$svgIconData = $iconData;
+			$svgIconData['format'] = 'svg';
+			$iconPath = $this->_buildFinalPath($svgIconData);
+			if ($fileManager->exists($iconPath)) {
+				return $iconPath;
+			}
+
+			//A scallable one
 			$scalableIconData = $iconData;
 			$scalableIconData['size'] = 'scalable';
 			$iconPath = $this->_buildFinalPath($scalableIconData);
@@ -198,7 +211,7 @@ class IconController extends \lib\RawBackController {
 	}
 
 	protected function _buildFinalPath(array $iconData) {
-		$format = 'png';
+		$format = $iconData['format'];
 
 		if (isset($iconData['size']) && $iconData['size'] == 'scalable') {
 			$format = 'svg';
