@@ -105,12 +105,12 @@
 				id: this.id(),
 				module: module,
 				action: options.method,
-				arguments: JSON.stringify(options.arguments, function(key, value) { //Convert all arguments to strings/numbers
+				arguments: encodeURIComponent(JSON.stringify(options.arguments, function(key, value) { //Convert all arguments to strings/numbers
 					if (typeof value === 'number' && !isFinite(value)) {
 						return String(value);
 					}
 					return value;
-				}),
+				})),
 				user: options.username,
 				password: options.password,
 				pid: options.pid,
@@ -535,7 +535,7 @@
 				data[i] = req._data;
 
 				if (typeof data[i].arguments == 'string') {
-					data[i].arguments = JSON.parse(data[i].arguments);
+					data[i].arguments = JSON.parse(decodeURIComponent(data[i].arguments));
 				}
 
 				if (async && req._options.async === false) {
@@ -905,7 +905,7 @@
 				data[i] = req._data;
 
 				if (typeof data[i].arguments == 'string') {
-					data[i].arguments = JSON.parse(data[i].arguments);
+					data[i].arguments = JSON.parse(decodeURIComponent(data[i].arguments));
 				}
 			}
 
