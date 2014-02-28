@@ -57,6 +57,7 @@ ul.webos-contextmenu li.separator:before {
 	background: -moz-linear-gradient(left, transparent 0%, #909090 50%, transparent 100%);
 	background: -webkit-linear-gradient(left, transparent 0%, #909090 50%, transparent 100%);
 	background: linear-gradient(left, transparent 0%, #909090 50%, transparent 100%);
+	margin: 4px 0;
 }
 
 /* Permet d'afficher les sous catégories*/
