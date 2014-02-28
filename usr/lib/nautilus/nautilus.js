@@ -50,7 +50,8 @@ Webos.require([
 				selectDirs: options.selectDirs,
 				selectMultiple: options.selectMultiple,
 				exists: options.exists,
-				extensions: options.extensions
+				extensions: options.extensions,
+				mime_type: options.mime_type
 			});
 			
 			var nautilus = this._nautilus.nautilusFileSelector('nautilus');

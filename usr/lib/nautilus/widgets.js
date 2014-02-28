@@ -1660,7 +1660,8 @@ Webos.require([
 			selectDirs: false,
 			selectMultiple: false,
 			exists: true,
-			extensions: null
+			extensions: null,
+			mime_type: ''
 		},
 		_translationsName: 'nautilus',
 		_create: function() {
@@ -1675,30 +1676,80 @@ Webos.require([
 			this.options._components.nautilus = $.w.nautilus({
 				display: 'list'
 			}).appendTo(form);
+
+			this.options._components.fallback = $('<div></div>').hide().appendTo(this.element);
 			
 			if (!this.options.exists) {
 				this.options._components.filename = $.w.textEntry(t.get('File name :')).prependTo(form);
 				var autoFill = '';
-				this.options._components.nautilus.bind('select', function(e) {
+				this.options._components.nautilus.on('select', function(e) {
 					if (that.options._components.filename.textEntry('value') === '') {
 						var filename = $(e.target).data('file')().getAttribute('basename');
 						that.options._components.filename.textEntry('value', filename);
 						autoFill = filename;
 					}
-				});
-				this.options._components.nautilus.bind('nautilusreadstart', function() {
+				}).on('nautilusreadstart', function() {
 					if (that.options._components.filename.textEntry('value') == autoFill) {
 						that.options._components.filename.textEntry('value', '');
 						autoFill = '';
 					}
 				});
+
+				this.options._components.fallback.append('<p>'+t.get('Cannot save the file in this directory.')+'</p>');
+
+				this.options._components.fallback.append($.w.button(t.get('Download the file')).click(function () {
+					file = new Webos.DownloadableFile({
+						mime_type: that.options.mime_type
+					});
+					var list = [file];
+
+					that._trigger('select', { type: 'select' }, {
+						selection: list,
+						parentDir: that.options._components.nautilus.nautilus('location')
+					});
+				}));
+			} else {
+				this.options._components.fallback.append('<p>'+t.get('Cannot open this directory.')+'</p>');
+
+				var input = $('<input />', {
+					type: 'file'
+				}).change(function() {
+					var files = this.files;
+
+					if (!files || files.length === 0) {
+						return;
+					}
+
+					var list = [];
+					for (var i = 0; i < files.length; i++) {
+						list.push(Webos.File.get(files[i]));
+					}
+
+					that._trigger('select', { type: 'select' }, {
+						selection: list,
+						parentDir: that.options._components.nautilus.nautilus('location')
+					});
+				}).css({
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					height: '100%',
+					width: '100%',
+					margin: 0,
+					padding: 0,
+					opacity: 0
+				});
+				this.options._components.fallback.append($.w.button(t.get('Open a file from my computer')).prepend(input));
 			}
 			
-			this.options._components.nautilus.bind('open', function(e) {
-				if (!$(e.target).data('file')().getAttribute('is_dir')) {
+			this.options._components.nautilus.on('open', function(e) {
+				if (!$(e.target).data('file')().get('is_dir')) {
 					that._select();
 					e.preventDefault();
 				}
+			}).on('nautilusreaderror', function () {
+				form.hide();
+				that.options._components.fallback.show();
 			});
 			
 			this.options._components.buttons = {};
@@ -2010,6 +2061,24 @@ Webos.require([
 					
 					item.appendTo(this.component('shortcuts').list('content'));
 				}
+			}
+
+			if (!this.options.exists) {
+				var item = $.w.listItem(),
+					content = item.listItem('column', 0);
+				
+				content.append('<img src="'+new W.Icon('actions/document-save', 22)+'" alt=""/> '+t.get('Download'));
+				
+				item.click(function() {
+					file = new Webos.DownloadableFile({
+						mime_type: that.options.mime_type
+					});
+					var list = [file];
+
+					that.options.select(list);
+				});
+				
+				item.appendTo(this.component('shortcuts').list('content'));
 			}
 		}
 	});
