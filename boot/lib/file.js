@@ -345,16 +345,19 @@ Webos.File.prototype = {
 	 * @private
 	 */
 	_unsupportedMethod: function(callback) {
-		callback = Webos.Callback.toCallback(callback);
+		var op = Webos.Operation.create();
+		op.addCallbacks(callback);
 		
-		callback.error(Webos.Callback.Result.error('Cannot execute this operation on this type of file "'+this.get('path')+'"'));
+		op.setCompleted(Webos.Callback.Result.error('Cannot execute this operation on this type of file "'+this.get('path')+'"'));
+
+		return op;
 	},
 	/**
 	 * Load this file's data.
 	 * @param {Webos.Callback} callback The callback.
 	 */
 	load: function(callback) {
-		this._unsupportedMethod(callback);
+		return this._unsupportedMethod(callback);
 	},
 	/**
 	 * Rename this file.
@@ -362,28 +365,28 @@ Webos.File.prototype = {
 	 * @param {Webos.Callback} callback The callback.
 	 */
 	rename: function(newName, callback) {
-		this._unsupportedMethod(callback);
+		return this._unsupportedMethod(callback);
 	},
 	/**
 	 * Delete this file.
 	 * @param {Webos.Callback} callback The callback.
 	 */
 	remove: function(callback) {
-		this._unsupportedMethod(callback);
+		return this._unsupportedMethod(callback);
 	},
 	/**
 	 * Read this file's content as text.
 	 * @param {Webos.Callback} callback The callback.
 	 */
 	readAsText: function(callback) {
-		this._unsupportedMethod(callback);
+		return this._unsupportedMethod(callback);
 	},
 	/**
 	 * Get this file/directory's content.
 	 * @param {Webos.Callback} callback The callback. If this file is a directory, an array of files will be provided.
 	 */
 	contents: function(callback) {
-		this._unsupportedMethod(callback);
+		return this._unsupportedMethod(callback);
 	},
 	/**
 	 * Get this file/directory's content.
@@ -399,7 +402,7 @@ Webos.File.prototype = {
 	 * @private
 	 */
 	_writeAsText: function(contents) {
-		this._unsupportedMethod();
+		return this._unsupportedMethod();
 	},
 	/**
 	 * Write this file's content as text.
@@ -407,7 +410,30 @@ Webos.File.prototype = {
 	 * @param {Webos.Callback} callback The callback.
 	 */
 	writeAsText: function(contents, callback) {
-		this._unsupportedMethod(callback);
+		return this._unsupportedMethod(callback);
+	},
+	/**
+	 * Write this file's content as base 64 data.
+	 * @param {String}           contents The new content for this file, base64-encoded.
+	 * @param {Webos.Callback}   callback The callback.
+	 * @return {Webos.Operation}          The operation.
+	 */
+	writeAsBinary: function(contents, callback) {
+		return this._unsupportedMethod(callback);
+	},
+	/**
+	 * Write this file's content as data URL.
+	 * @param  {String}          dataUrl  The data URL.
+	 * @param  {Webos.Callback}  callback The callback.
+	 * @return {Webos.Operation}          The operation.
+	 */
+	writeAsDataUrl: function (dataUrl, callback) {
+		if (!this.writeAsBinary) {
+			return this._unsupportedMethod(callback);
+		}
+
+		var base64Data = dataUrl.replace(/^data:([a-z0-9-\/]+);base64,/, '');
+		return this.writeAsBinary(base64Data, callback);
 	},
 	/**
 	 * Write this file's content as text.
@@ -423,7 +449,7 @@ Webos.File.prototype = {
 	 * @param  {Webos.Callback} callback The callback.
 	 */
 	share: function(callback) {
-		this._unsupportedMethod(callback);
+		return this._unsupportedMethod(callback);
 	},
 	/**
 	 * Check if the user can execute a given action on this file.
@@ -1829,7 +1855,7 @@ Webos.File.mount(homePoint);
  * @augments {Webos.File}
  * @since 1.0beta1
  */
-Webos.LocalFile = function WLocalFile(file) {
+Webos.LocalFile = function (file) {
 	this._file = file;
 	
 	var data = {};
@@ -1841,7 +1867,7 @@ Webos.LocalFile = function WLocalFile(file) {
 	data.is_dir = false;
 	data.size = file.size || file.fileSize;
 	data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
-	data.type = file.type;
+	data.mime_type = file.type;
 	
 	data.readable = true;
 	data.writable = false;
@@ -1875,7 +1901,7 @@ Webos.LocalFile.prototype = {
 		callback = Webos.Callback.toCallback(callback);
 		
 		if (!window.FileReader) {
-			callback.error('La lecture de fichiers locaux n\'est pas support&eacute;e par votre navigateur');
+			callback.error('Reading local files is not supported by your browser');
 			return;
 		}
 		
@@ -1893,7 +1919,7 @@ Webos.LocalFile.prototype = {
 		callback = Webos.Callback.toCallback(callback);
 		
 		if (!window.FileReader) {
-			callback.error('La lecture de fichiers locaux n\'est pas support&eacute;e par votre navigateur');
+			callback.error('Reading local files is not supported by your browser');
 			return;
 		}
 		
@@ -1917,6 +1943,50 @@ Webos.inherit(Webos.LocalFile, Webos.File); //Héritage de Webos.File
  */
 Webos.LocalFile.support = (window.File && window.FileReader) ? true : false;
 
+/**
+ * A downloadable file.
+ * @param {Object} data The file data.
+ * @constructor
+ * @augments {Webos.File}
+ * @since 1.0beta4
+ */
+Webos.DownloadableFile = function (data) {
+	var data = $.extend({
+		basename: 'download',
+		mime_type: 'application/octet-stream'
+	}, data);
+
+	data.path = data.basename;
+	data.dirname = '';
+	data.realpath = null;
+	data.is_dir = false;
+	data.size = 0;
+	data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
+	
+	data.readable = false;
+	data.writable = true;
+	
+	Webos.File.call(this, data); //On appelle la classe parente
+};
+/**
+ * Webos.DownloadableFile's prototype.
+ * @namespace Webos.DownloadableFile
+ */
+Webos.DownloadableFile.prototype = {
+	writeAsText: function (contents, callback) {
+		this.writeAsBinary(Webos.base64.encode(contents), callback);
+	},
+	writeAsBinary: function (base64Data, callback) {
+		this.writeAsDataUrl('data:'+this.get('mime_type')+';base64,'+base64Data, callback);
+	},
+	writeAsDataUrl: function (dataUrl, callback) {
+		callback = W.Callback.toCallback(callback);
+
+		window.open(dataUrl);
+		callback.success();
+	}
+};
+Webos.inherit(Webos.DownloadableFile, Webos.File); //Héritage de Webos.File
 
 //Events
 Webos.User.bind('login logout', function() {
