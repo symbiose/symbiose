@@ -1712,7 +1712,9 @@ Webos.require([
 				this.options._components.fallback.append('<p>'+t.get('Cannot open this directory.')+'</p>');
 
 				var input = $('<input />', {
-					type: 'file'
+					type: 'file',
+					multiple: this.options.selectMultiple,
+					accept: this.options.mime_type
 				}).change(function() {
 					var files = this.files;
 
@@ -2026,9 +2028,11 @@ Webos.require([
 					var content = $('<div></div>').css('position', 'relative').appendTo(item.listItem('column', 0));
 					
 					content.append('<img src="'+new W.Icon('devices/display', 22)+'" alt=""/> '+t.get('Computer'));
-					
+
 					var input = $('<input />', {
-						type: 'file'
+						type: 'file',
+						multiple: this.options.selectMultiple,
+						accept: this.options.mime_type
 					}).change(function() {
 						var files = this.files;
 						
