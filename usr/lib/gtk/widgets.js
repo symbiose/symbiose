@@ -7,6 +7,8 @@
 
 (function($) {
 
+Webos.require('/usr/share/css/gtk/widgets.css');
+
 /**
  * Global namespace for webos' widgets.
  * @type {Object}
@@ -1351,6 +1353,22 @@ $.webos.buttonContainer.prototype = {
 	_name: 'button-container'
 };
 $.webos.widget('buttonContainer', 'container');
+
+/**
+ * A button group.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.buttonGroup = function() {
+	return $('<div></div>').buttonGroup();
+};
+/**
+ * A button container.
+ */
+$.webos.buttonGroup.prototype = {
+	_name: 'button-group'
+};
+$.webos.widget('buttonGroup', 'container');
 
 /**
  * A button.
@@ -3154,6 +3172,62 @@ $.webos.tabs.prototype = {
 	}
 };
 $.webos.widget('tabs', 'container');
+
+
+$.webos.popover = function(toggle, content) {
+	var $popover = $('<div></div>').popover();
+	$popover.popover('component', 'toggle').html(toggle || '');
+	$popover.popover('content').html(content || '');
+
+	return $popover;
+};
+$.webos.popover.prototype = {
+	_name: 'popover',
+	options: {
+		trigger: 'click'
+	},
+	_create: function () {
+		this._super('_create');
+
+		var popoverToggle = this.element.children('.popover-toggle');
+		if (!popoverToggle.length) {
+			popoverToggle = $('<div></div>', { 'class': 'popover-toggle' }).prependTo(this.element);
+		}
+		this.options._components.toggle = popoverToggle;
+
+		var popoverContent = this.element.children('.popover-content');
+		if (!popoverContent.length) {
+			popoverContent = $('<div></div>', { 'class': 'popover-content' }).appendTo(this.element);
+		}
+		this.options._components.content = popoverContent;
+
+		this._update('trigger', this.options.trigger);
+	},
+	show: function () {
+		this.options._components.content.stop().fadeIn('fast');
+	},
+	hide: function () {
+		this.options._components.content.stop().fadeOut('fast');
+	},
+	toggle: function () {
+		this.options._components.content.stop().fadeToggle('fast');
+	},
+	_update: function(key, value) {
+		var that = this;
+
+		switch (key) {
+			case 'trigger':
+				value = String(value);
+
+				this.options._components.toggle.off('.toggle.popover.gtk').on(value+'.toggle.popover.gtk', function () {
+					that.toggle();
+				});
+				this.options.trigger = value;
+				break;
+		}
+	}
+};
+$.webos.widget('popover', 'container');
 
 /**
  * A draggable element.

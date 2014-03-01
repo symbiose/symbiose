@@ -97,17 +97,125 @@ Webos.require([
 				}
 			};
 
+			var sel = null;
+			var saveSel = function () {
+				var newSel = that._saveSelection();
+				if (newSel) {
+					sel = newSel;
+				}
+			};
+			var restoreSel = function () {
+				that._restoreSelection(sel);
+			};
+
+			var refreshUi = function () {
+				if (!that._$docInner.is(':focus')) {
+					return;
+				}
+
+				$win.find('.format-font-size:not(:focus)').val(that.commandValue('fontSize') || 2);
+
+				var fontFamilies = that.commandValue('fontName').split(','), fontFamily = '';
+				for (var i = 0; i < fontFamilies.length; i++) {
+					var font = fontFamilies[i].replace(/(^[ '"]+|[ '"]+$)/g, '');
+					if (that._detectFont(font)) {
+						fontFamily = font;
+						break;
+					}
+				}
+				$win.find('.font-family').html(fontFamily);
+				$win.find('.font-family-input:not(:focus)').val(fontFamily.toLowerCase());
+
+				var fontColor = that.commandValue('foreColor') || 'black';
+				$win.find('.font-color').css('background-color', fontColor);
+				$win.find('.font-color-input:not(:focus)').val(fontColor);
+
+				var align = {
+					left: that.commandValue('justifyleft'),
+					center: that.commandValue('justifycenter'),
+					right: that.commandValue('justifyright'),
+					justify: that.commandValue('justifyfull')
+				};
+				for (var alignType in align) {
+					var alignVal = align[alignType];
+
+					if (alignVal === 'true' || alignVal === alignType) {
+						alignVal = true;
+					} else {
+						alignVal = false;
+					}
+
+					$win.find('.btn-format-align-'+alignType).button('option', 'activated', alignVal);
+				}
+
+				var isBold = that.commandValue('bold');
+				$win.find('.btn-format-text-bold').button('option', 'activated', (isBold && isBold != 'false'));
+				var isItalic = that.commandValue('italic');
+				$win.find('.btn-format-text-italic').button('option', 'activated', (isItalic && isItalic != 'false'));
+				var isUnderline = that.commandValue('underline');
+				$win.find('.btn-format-text-underline').button('option', 'activated', (isUnderline && isUnderline != 'false'));
+
+				var isUnorderedList = that.commandValue('insertUnorderedList');
+				$win.find('.btn-format-list-unordered').button('option', 'activated', (isUnorderedList && isUnorderedList != 'false'));
+				var isOrderedList = that.commandValue('inserOrderedList');
+				$win.find('.btn-format-list-ordered').button('option', 'activated', (isOrderedList && isOrderedList != 'false'));
+			};
+
 			for (var btnName in btnsHandlers) {
-				$win.find('.'+btnName).click(btnsHandlers[btnName]);
+				(function (btnName, btnHandler) {
+					$win.find('.'+btnName).click(function () {
+						restoreSel();
+						btnHandler();
+						refreshUi();
+					});
+				})(btnName, btnsHandlers[btnName]);
 			}
 
-			/*$win.find('.btns-font').popover({
-				html: true,
-				placement: 'bottom',
-				trigger: 'click',
-				title: '',
-				content: '<div class="fonts"></div>'
-			});*/
+			$win.find('.writer-inner').on('mouseup keyup', function () {
+				if (typeof document.onselectstart == 'undefined') {
+					$(this).trigger('selectstart', { emulated: true }); //Not all browsers support the "select" event
+				}
+			}).on('selectstart', function (evt, data) {
+				if (data && data.emulated) {
+					refreshUi();
+				} else { //This is an original event, we have to wait the selection to be changed
+					setTimeout(function () {
+						refreshUi();
+					}, 0);
+				}
+			});
+
+			$win.find('.writer-toolbar').mousedown(function () {
+				saveSel();
+			});
+
+			$win.find('.format-font-size').on('keyup mouseup input', function (evt) {
+				restoreSel();
+
+				that.command('fontSize', $(this).val());
+				$(this).focus();
+			});
+			$win.find('.font-color-input').on('keyup input', function (evt) {
+				restoreSel();
+
+				that.command('foreColor', $(this).val());
+				$(this).focus();
+			});
+			$win.find('.font-family-input').children('option').each(function () {
+				var font = $(this).text();
+
+				if (!that._detectFont(font)) {
+					$(this).remove();
+				} else {
+					$(this).attr('value', font.toLowerCase());
+				}
+			});
+			$win.find('.font-family-input').on('change', function (evt) {
+				restoreSel();
+
+				that.command('fontName', $(this).val());
+				refreshUi();
+			});
 
 			$win.find('.writer-page').click(function (evt) {
 				if (!$(evt.target).is('.writer-page')) {
@@ -117,14 +225,114 @@ Webos.require([
 				that._$docInner.focus();
 			});
 
+			that.command('styleWithCSS');
+			that.command('enableInlineTableEditing');
+			that.command('enableObjectResizing');
 			this._$docInner.focus();
+		},
+		//From http://jsfiddle.net/timdown/gEhjZ/4/
+		_saveSelection: function () { 
+			var containerEl = this._$docInner[0];
+
+			if (window.getSelection && document.createRange) {
+				var doc = containerEl.ownerDocument, win = doc.defaultView;
+
+				if (!win.getSelection().rangeCount) {
+					return null;
+				}
+
+				var range = win.getSelection().getRangeAt(0);
+
+				if (!range.intersectsNode(containerEl)) {
+					return null;
+				}
+
+				var preSelectionRange = range.cloneRange();
+				preSelectionRange.selectNodeContents(containerEl);
+				preSelectionRange.setEnd(range.startContainer, range.startOffset);
+				var start = preSelectionRange.toString().length;
+
+				return {
+					start: start,
+					end: start + range.toString().length
+				};
+			} else {
+				var doc = containerEl.ownerDocument, win = doc.defaultView || doc.parentWindow;
+				var selectedTextRange = doc.selection.createRange();
+				var preSelectionTextRange = doc.body.createTextRange();
+				preSelectionTextRange.moveToElementText(containerEl);
+				preSelectionTextRange.setEndPoint("EndToStart", selectedTextRange);
+				var start = preSelectionTextRange.text.length;
+
+				return {
+					start: start,
+					end: start + selectedTextRange.text.length
+				};
+			}
+		},
+		_restoreSelection: function (savedSel) {
+			var containerEl = this._$docInner[0];
+
+			if (!this._$docInner.is(':focus')) {
+				this._$docInner.focus();
+			}
+
+			if (!savedSel) {
+				return;
+			}
+
+			if (window.getSelection && document.createRange) {
+				var doc = containerEl.ownerDocument, win = doc.defaultView;
+				var charIndex = 0, range = doc.createRange();
+				range.setStart(containerEl, 0);
+				range.collapse(true);
+				var nodeStack = [containerEl], node, foundStart = false, stop = false;
+
+				while (!stop && (node = nodeStack.pop())) {
+					if (node.nodeType == 3) {
+						var nextCharIndex = charIndex + node.length;
+						if (!foundStart && savedSel.start >= charIndex && savedSel.start <= nextCharIndex) {
+							range.setStart(node, savedSel.start - charIndex);
+							foundStart = true;
+						}
+						if (foundStart && savedSel.end >= charIndex && savedSel.end <= nextCharIndex) {
+							range.setEnd(node, savedSel.end - charIndex);
+							stop = true;
+						}
+						charIndex = nextCharIndex;
+					} else {
+						var i = node.childNodes.length;
+						while (i--) {
+							nodeStack.push(node.childNodes[i]);
+						}
+					}
+				}
+
+				var sel = win.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+			} else {
+				var doc = containerEl.ownerDocument, win = doc.defaultView || doc.parentWindow;
+				var textRange = doc.body.createTextRange();
+				textRange.moveToElementText(containerEl);
+				textRange.collapse(true);
+				textRange.moveEnd("character", savedSel.end);
+				textRange.moveStart("character", savedSel.start);
+				textRange.select();
+			}
+		},
+		_detectFont: function(fontName) {
+			var detector = new FontDetector();
+			return detector.detect(fontName);
 		},
 		command: function (cmd, arg) {
 			if (!document.execCommand) {
 				return false;
 			}
 
-			this._$docInner.focus();
+			if (!this._$docInner.is(':focus')) {
+				this._$docInner.focus();
+			}
 			var isSuccess = document.execCommand(cmd, false, arg || null);
 
 			if (!isSuccess) {
@@ -134,6 +342,13 @@ Webos.require([
 
 				return false;
 			}
+		},
+		commandValue: function (cmd) {
+			if (!document.queryCommandValue) {
+				return;
+			}
+
+			return document.queryCommandValue(cmd);
 		},
 		supports: function () {
 			return (typeof $('body')[0].contentEditable != 'undefined');
@@ -234,7 +449,8 @@ Webos.require([
 			}
 
 			new NautilusFileSelectorWindow({
-				parentWindow: this._$win
+				parentWindow: this._$win,
+				mime_type: 'text/html'
 			}, function(files) {
 				if (files.length) {
 					that._openFile(files[0]);
@@ -275,10 +491,6 @@ Webos.require([
 					//Operation aborded
 				}
 			});
-		},
-		detectFont: function(fontName) {
-			var detector = new FontDetector();
-			return detector.detect(fontName);
 		},
 		_exportToPdf: function () {
 			var pdf = new jsPDF('p','in','letter');

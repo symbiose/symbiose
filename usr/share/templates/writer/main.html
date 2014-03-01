@@ -20,28 +20,56 @@
 
 	<div class="writer-toolbar">
 		<div class="btns-font">
-			<x-button class="btn-format-font" title="Font" disabled>
-				<span class="font-family">Arial</span>
-				<span class="font-color"></span>
-			</x-button>
+			<x-popover class="popover-font">
+				<x-button class="btn-format-font popover-toggle" title="Font">
+					<span class="font-family">Arial</span>
+					<span class="font-color"></span>
+				</x-button>
+
+				<div class="popover-content">
+					<label>Color:&nbsp;<input type="color" class="font-color-input" value="black"></label><br />
+					<label>Font:&nbsp;<select class="font-family-input">
+						<option>Arial</option>
+						<option>Cantarell</option>
+						<option>Courier</option>
+						<option>Cursive</option>
+						<option>DejaVu Sans</option>
+						<option>Droid Sans</option>
+						<option>Raleway</option>
+						<option>sans-serif</option>
+						<option>Times</option>
+						<option>Ubuntu</option>
+					</select></label>
+				</div>
+			</x-popover>
+		</div>
+
+		<div class="btns-font-size">
+			<input type="number" class="format-font-size" value="1" size="3" min="0" max="7" controls>
 		</div>
 
 		<div class="btns-format-text">
-			<x-button class="btn-format-text-bold" title="Bold">B</x-button>
-			<x-button class="btn-format-text-italic" title="Italic">i</x-button>
-			<x-button class="btn-format-underline" title="Underline">u</x-button>
+			<x-buttonGroup>
+				<x-button class="btn-format-text-bold" title="Bold">B</x-button>
+				<x-button class="btn-format-text-italic" title="Italic">i</x-button>
+				<x-button class="btn-format-text-underline" title="Underline">u</x-button>
+			</x-buttonGroup>
 		</div>
 
 		<div class="btns-format-align">
-			<x-button class="btn-format-align-left" title="Left"><span class="align-left"></span></x-button>
-			<x-button class="btn-format-align-center" title="Center"><span class="align-center"></span></x-button>
-			<x-button class="btn-format-align-right" title="Right"><span class="align-right"></span></x-button>
-			<x-button class="btn-format-align-justify" title="Justify"><span class="align-justify"></span></x-button>
+			<x-buttonGroup>
+				<x-button class="btn-format-align-left" title="Left"><span class="align-left"></span></x-button>
+				<x-button class="btn-format-align-center" title="Center"><span class="align-center"></span></x-button>
+				<x-button class="btn-format-align-right" title="Right"><span class="align-right"></span></x-button>
+				<x-button class="btn-format-align-justify" title="Justify"><span class="align-justify"></span></x-button>
+			</x-buttonGroup>
 		</div>
 
 		<div class="btns-format-list">
-			<x-button class="btn-format-list-unordered" title="Unordered list"><span class="list-unordered"></span></x-button>
-			<x-button class="btn-format-list-ordered" title="Ordered list"><span class="list-ordered"></span></x-button>
+			<x-buttonGroup>
+				<x-button class="btn-format-list-unordered" title="Unordered list"><span class="list-unordered"></span></x-button>
+				<x-button class="btn-format-list-ordered" title="Ordered list"><span class="list-ordered"></span></x-button>
+			</x-buttonGroup>
 		</div>
 
 		<x-button class="btn-insert pull-right" title="Insert..." disabled>Insert</x-button>

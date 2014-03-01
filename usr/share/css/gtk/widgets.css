@@ -1,0 +1,15 @@
+/* Popover */
+.webos-popover {
+	position: relative;
+}
+.webos-popover > .popover-toggle {
+	position: relative;
+}
+.webos-popover > .popover-content {
+	position: absolute;
+	padding: 5px;
+	z-index: 2;
+	display: none;
+
+	background-color: white;
+}

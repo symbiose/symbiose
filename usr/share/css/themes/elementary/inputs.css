@@ -3,11 +3,13 @@ textarea {
 }
 
 input[type="text"], input[type="password"], input[type="number"], input[type="email"] {
-	width: 170px;
 	border: 1px solid #b0b3ab;
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
 	border-radius: 4px;
+}
+input[type="text"], input[type="password"], input[type="email"] {
+	width: 170px;
 }
 
 input[type="text"]:focus, input[type="password"]:focus,
@@ -112,6 +114,23 @@ input[type="submit"][disabled]:active,
 	margin-top: 4px;
 }
 
+.webos-button-group {
+	display: inline-block;
+}
+.webos-button-group > .webos-button:not(:first-child) {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+	margin-left: 0;
+}
+.webos-button-group > .webos-button:not(:last-child) {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+	margin-right: -5px;
+}
+.webos-button-group > .webos-button:active,
+.webos-button-group > .webos-button.active {
+	z-index: 1;
+}
 
 .webos-entry-container input[type="submit"].fake-submit {
 	width: 0;
@@ -313,4 +332,45 @@ input[type="submit"][disabled]:active,
 }
 .webos-switchbutton[disabled] .entry.off .labels {
 	background-position: left 50%;
+}
+
+.webos-popover {
+	position: relative;
+}
+.webos-popover > .popover-toggle {
+	position: relative;
+}
+.webos-popover > .popover-content {
+	position: absolute;
+	padding: 5px;
+	margin-top: 2px;
+	z-index: 2;
+	display: none;
+
+	background-color: white;
+	border: 1px solid #969696;
+	border-radius: 5px;
+	box-shadow: 0 0 5px lightgray;
+}
+/* Popover arrow */
+.webos-popover > .popover-content:after, .webos-popover > .popover-content:before {
+	bottom: 100%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+.webos-popover > .popover-content:after {
+	border-bottom-color: white;
+	border-width: 10px;
+	left: 30px;
+	margin-left: -10px;
+}
+.webos-popover > .popover-content:before {
+	border-bottom-color: #969696;
+	border-width: 11px;
+	left: 30px;
+	margin-left: -11px;
 }
