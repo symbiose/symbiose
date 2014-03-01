@@ -3173,7 +3173,13 @@ $.webos.tabs.prototype = {
 };
 $.webos.widget('tabs', 'container');
 
-
+/**
+ * A popover.
+ * @param  {jQuery} toggle  The element which will toggle the popover.
+ * @param  {jQuery} content The popover content.
+ * @constructor
+ * @augments $.webos.container
+ */
 $.webos.popover = function(toggle, content) {
 	var $popover = $('<div></div>').popover();
 	$popover.popover('component', 'toggle').html(toggle || '');
@@ -3181,8 +3187,16 @@ $.webos.popover = function(toggle, content) {
 
 	return $popover;
 };
+/**
+ * A popover.
+ * @type {Object}
+ */
 $.webos.popover.prototype = {
 	_name: 'popover',
+	/**
+	 * Options:
+	 *  - `trigger`: the event which will toggle the popover
+	 */
 	options: {
 		trigger: 'click'
 	},
@@ -3203,12 +3217,21 @@ $.webos.popover.prototype = {
 
 		this._update('trigger', this.options.trigger);
 	},
+	/**
+	 * Show the popover.
+	 */
 	show: function () {
 		this.options._components.content.stop().fadeIn('fast');
 	},
+	/**
+	 * Hide the popover.
+	 */
 	hide: function () {
 		this.options._components.content.stop().fadeOut('fast');
 	},
+	/**
+	 * Toggle the popover (show/hide).
+	 */
 	toggle: function () {
 		this.options._components.content.stop().fadeToggle('fast');
 	},
