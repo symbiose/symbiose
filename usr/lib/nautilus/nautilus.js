@@ -492,25 +492,17 @@ Webos.require([
 			};
 			
 			this.readDir = function(dir, userCallback) {
-				if (typeof userCallback == 'undefined') {
-					userCallback = new W.Callback();
-				}
-				
 				dir = W.File.cleanPath(dir);
 				
 				this._refreshHeader(dir);
 				
 				this.window.window('loading', true);
 				
-				var callback = new W.Callback(function(nautilus) {
-					that.window.window('loading', false);
-					userCallback.success(nautilus);
-				}, function(response) {
-					that.window.window('loading', false);
-					userCallback.error(response);
+				this.nautilus.nautilus('readDir', dir, userCallback).on({
+					complete: function () {
+						that.window.window('loading', false);
+					}
 				});
-				
-				this.nautilus.nautilus('readDir', dir, callback);
 			};
 			
 			this.openAboutWindow = function() {

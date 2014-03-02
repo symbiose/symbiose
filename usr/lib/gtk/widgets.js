@@ -3253,6 +3253,27 @@ $.webos.popover.prototype = {
 $.webos.widget('popover', 'container');
 
 /**
+ * An alert.
+ * @param  {jQuery} content The alert content.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.alertContainer = function(content) {
+	var $alert = $('<div></div>').alertContainer();
+	$alert.alertContainer('content').html(content || '');
+
+	return $alert;
+};
+/**
+ * An alert.
+ * @type {Object}
+ */
+$.webos.alertContainer.prototype = {
+	_name: 'alert-container'
+};
+$.webos.widget('alertContainer', 'container');
+
+/**
  * A draggable element.
  * Use the widget `ui_draggable` for jQuery UI's draggable widget.
  * @constructor

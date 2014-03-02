@@ -13,3 +13,16 @@
 
 	background-color: white;
 }
+
+/* Alert */
+.webos-alert-container {
+	display: block;
+	padding: 3px;
+
+	background-color: #e35d4f;
+	color: #660000;
+	border-bottom: 1px solid #97312e;
+}
+.webos-alert-container .webos-button {
+	float: right;
+}

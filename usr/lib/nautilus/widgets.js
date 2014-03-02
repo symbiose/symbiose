@@ -206,17 +206,19 @@ Webos.require([
 		},
 		readDir: function(dir, userCallback) {
 			var that = this, t = this.translations();
-			
+			var op = Webos.Operation.create();
+
 			if (typeof this.options._components.contextmenu != 'undefined') {
 				this.options._components.contextmenu.contextMenu('destroy');
 				delete this.options._components.contextmenu;
 			}
-			
+
 			dir = W.File.cleanPath(dir);
-			
-			userCallback = W.Callback.toCallback(userCallback, new W.Callback(function() {}, function(res) {
+
+			userCallback = W.Callback.toCallback(userCallback, [function() {}, function(res) {
 				that._handleResponseError(res, t.get('Can\'t find « ${dir} ».', { dir: dir }));
-			}));
+			}]);
+			op.addCallbacks(userCallback);
 
 			this._trigger('readstart', { type: 'readstart' }, { location: dir });
 
@@ -392,19 +394,23 @@ Webos.require([
 				
 				that._trigger('readcomplete', { type: 'readcomplete' }, { location: that.location() });
 				that._trigger('readsuccess', { type: 'readsuccess' }, { location: that.location() });
-				
-				userCallback.success(that);
+
+				op.setCompleted(that);
 			}, function(response) {
 				that._render([]);
 				
-				that._trigger('readcomplete', { type: 'readcomplete' }, { location: that.location() });
+				that._trigger('readcomplete', { type: 'readcomplete' }, {
+					location: that.location()
+				});
 
 				if (!that._trigger('readerror', { type: 'readerror' }, { location: that.location(), response: response })) {
 					return;
 				}
-				
-				userCallback.error(response);
+
+				op.setCompleted(response);
 			}]);
+
+			return op;
 		},
 		search: function(query, userCallback) {
 			var that = this, t = this.translations();
@@ -1006,20 +1012,45 @@ Webos.require([
 			this._saveIconsPosition();
 		},
 		_handleError: function(error) {
-			var t = this.translations();
+			var that = this, t = this.translations();
 
-			var errorWindow = $.webos.window.messageDialog({
-				type: 'error',
-				title: t.get('Error'),
-				label: error.html.message,
-				details: error.html.details,
-				closeLabel: t.get('Close')
-			});
+			var openErrWindow = function () {
+				var errorWindow = $.webos.window.messageDialog({
+					type: 'error',
+					title: t.get('Error'),
+					label: error.html.message,
+					details: error.html.details,
+					closeLabel: t.get('Close')
+				});
 
-			errorWindow.window('open');
+				if (that._isWindowed()) {
+					errorWindow.window('option', 'parentWindow', that._getParentWindow());
+				}
+
+				errorWindow.window('open');
+			};
+
+			if (this._isWindowed()) {
+				var errorCtn = $.w.alertContainer().appendTo(this.options._components.container);
+
+				errorCtn.append($.w.icon('status/error', 24));
+				errorCtn.append(error.html.message);
+				errorCtn.append($.w.button(t.get('More...')).click(function () {
+					openErrWindow();
+				}));
+
+				this.options._components.filesList.hide();
+
+				this.element.one('nautilusreadstart', function () {
+					errorCtn.remove();
+					that.options._components.filesList.show();
+				});
+			} else {
+				openErrWindow();
+			}
 		},
 		_handleResponseError: function(resp, msg) {
-			if (resp.getStatusClass() == 5) { //5xx error
+			if (!resp.getStatusClass || resp.getStatusClass() == 5) { //5xx error
 				resp.triggerError(msg);
 			} else {
 				this._handleError(resp.getError(msg));
@@ -1240,6 +1271,12 @@ Webos.require([
 					that._handleResponseError(res);
 				}]);
 			}
+		},
+		_getParentWindow: function () {
+			return $.webos.widget.filter(this.element.parents(), 'window');
+		},
+		_isWindowed: function () {
+			return (this._getParentWindow().length > 0);
 		},
 		openUploadWindow: function() {
 			var that = this, t = this.translations();
@@ -1821,7 +1858,7 @@ Webos.require([
 					}
 				});
 
-				this.options._components.fallback.append('<p>'+t.get('Cannot save the file in this directory.')+'</p>');
+				this.options._components.fallback.append(t.get('Cannot save the file in this directory.'));
 
 				this.options._components.fallback.append($.w.button(t.get('Download the file')).click(function () {
 					file = new Webos.DownloadableFile({
@@ -1835,7 +1872,7 @@ Webos.require([
 					});
 				}));
 			} else {
-				this.options._components.fallback.append('<p>'+t.get('Cannot open this directory.')+'</p>');
+				this.options._components.fallback.append(t.get('Cannot open this directory.'));
 
 				var input = $('<input />', {
 					type: 'file',
