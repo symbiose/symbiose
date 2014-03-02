@@ -89,13 +89,6 @@ Webos.Error.setErrorHandler(function(error) {
 	});
 });
 
-var rootEl = Webos.UserInterface.Booter.current().element();
-rootEl.scroll(function () { //Prevent from scrolling
-	if (rootEl.scrollTop() > 0) {
-		rootEl.scrollTop(0);
-	}
-})
-
 Webos.Theme.once('load', function() {
 	resizeDesktopFn();
 	W.UserInterface.Booter.current().finishLoading();

@@ -3,6 +3,13 @@ $(document).scroll(function() {
 	$('body').scrollTop(0);
 });
 
+var rootEl = Webos.UserInterface.Booter.current().element();
+rootEl.scroll(function () { //Prevent from scrolling
+	if (rootEl.scrollTop() > 0) {
+		rootEl.scrollTop(0);
+	}
+});
+
 var loadThemeFn = function() {
 	//Chargement du theme
 	W.Theme.get(new W.Callback(function(theme) {
@@ -46,7 +53,8 @@ Webos.Translation.load(function(t) {
 			Webos.require('/usr/lib/nautilus/widgets.js', function() {
 				var nautilusDesktopFiles = $.w.nautilus({
 					multipleWindows: true,
-					directory: t.get('~/Desktop')
+					directory: t.get('~/Desktop'),
+					organizeIcons: true
 				});
 
 				nautilusDesktopFiles.one('nautilusreadcomplete', function() {
