@@ -14,6 +14,47 @@ Tags: bright, fixed width, two columns, widgets
 	http://www.opensource.org/licenses/gpl-license.php
 */
 
+/* Webly Sleek UI Light */
+@font-face {
+	font-family: 'Webly Light';
+	font-style: normal;
+	font-weight: normal;
+		src: local('Webly Light'), local('Webly-Light')
+		url('usr/share/fonts/webly/weblysleekuil.woff') format('woff'),
+		url('usr/share/fonts/webly/weblysleekuil.ttf') format('truetype');
+}
+
+/* Webly Sleek UI Light Italic */
+@font-face {
+	font-family: 'Webly Light';
+	font-style: italic;
+	font-weight: normal;
+	src: local('Webly Light Italic'), local('Webly-Light-Italic'),
+		url('usr/share/fonts/webly/weblysleekuili.woff') format('woff'),
+		url('usr/share/fonts/webly/weblysleekuili.ttf') format('truetype');
+}
+
+/* Webly Sleek UI Semilight */
+@font-face {
+	font-family: 'Webly Semilight';
+	font-style: normal;
+	font-weight: normal;
+	src: local('Webly Semilight'),local('Webly-Semilight'),
+		url('usr/share/fonts/webly/weblysleekuisl.woff') format('woff'),
+		url('usr/share/fonts/webly/weblysleekuisl.ttf') format('truetype');
+}
+
+/* Webly Sleek UI Semilight Italic */
+@font-face {
+	font-family: 'Webly Semilight';
+	font-style: italic;
+	font-weight: normal;
+	src: local('Webly Semilight Italic'), local('Webly-Semilight-Italic'),
+		url('usr/share/fonts/webly/weblysleekuisli.woff') format('woff'),
+		url('usr/share/fonts/webly/weblysleekuisli.ttf') format('truetype');
+}
+
+
 .webos-window {
 	position: absolute;
 	z-index: 1005;
@@ -58,7 +99,7 @@ Tags: bright, fixed width, two columns, widgets
 }
 
 .webos-window .header {
-	font:normal 12px/16px SegoeUI,Arial,sans-serif;
+	font:normal 12px/16px SegoeUI, Webly Semilight, Arial,sans-serif;
 }
 
 /* CONTROLLEURS DE LA FENETRE */

@@ -14,6 +14,42 @@ Tags: bright, fixed width, two columns, widgets
 	http://www.opensource.org/licenses/gpl-license.php
 */
 
+/* Vera */
+@font-face {
+	font-family: 'Vera';
+	font-style: normal;
+	font-weight: normal;
+		src: local('Vera'),
+		url('usr/share/fonts/vera/Vera.woff') format('woff'),
+		url('usr/share/fonts/vera/Vera.ttf') format('truetype');
+}
+/* Vera Italic */
+@font-face {
+	font-family: 'Vera';
+	font-style: italic;
+	font-weight: normal;
+	src: local('Vera Italic'), local('Vera-Italic'),
+		url('usr/share/fonts/vera/VeraIt.woff') format('woff'),
+		url('usr/share/fonts/vera/VeraIt.ttf') format('truetype');
+}
+/* Vera Bold */
+@font-face {
+	font-family: 'Vera';
+	font-style: normal;
+	font-weight: bold;
+	src: local('Vera Bold'),local('Vera-Bold'),
+		url('usr/share/fonts/vera/VeraBd.woff') format('woff'),
+		url('usr/share/fonts/vera/VeraBd.ttf') format('truetype');
+}
+/* Vera Bold Italic */
+@font-face {
+	font-family: 'Vera';
+	font-style: italic;
+	font-weight: bold;
+	src: local('Vera Bold Italic'), local('Vera-BoldItalic'),
+		url('usr/share/fonts/vera/VeraBI.woff') format('woff'),
+		url('usr/share/fonts/vera/VeraBI.ttf') format('truetype');
+}
 
 * {
 	cursor: default;
@@ -51,7 +87,7 @@ a, a * {
 	width:100%;
 	overflow:hidden;
 	color:#333;
-	font:normal 12px/16px Tahoma;
+	font:normal 12px/16px Vera, Tahoma, Arial, Helvetica, sans-serif;
 }
 a {
 	color:#000;
@@ -113,7 +149,7 @@ li {
 .button a {
 	background-color:#f1f1f1;
 	border:5px solid #ccc;
-	font:bold 25px/20px arial,helvetica,sans-serif;
+	font:bold 25px/20px Vera, Tahoma, Arial, Helvetica, sans-serif;
 	display:block;
 	padding:10px 20px;
 	text-shadow:0 1px 0 #fff;;
@@ -123,7 +159,7 @@ li {
 	text-decoration:none;
 }
 .button small {
-	font:normal 12px/16px arial,helvetica,sans-serif;
+	font:normal 12px/16px Vera, Tahoma, Arial, Helvetica, sans-serif;
 }
 .trigger {
 	-moz-border-radius:5px;
