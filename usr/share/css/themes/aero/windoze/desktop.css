@@ -51,7 +51,9 @@ a, a * {
 	width:100%;
 	overflow:hidden;
 	color:#333;
-	font:normal 12px/16px Tahoma;
+	font:normal 12px/16px Vera, Tahoma, Arial, Helvetica, sans-serif;
+	src: local('Vera'),
+		url('usr/share/fonts/webly/Vera.woff') format('woff')
 }
 a {
 	color:#000;
@@ -113,7 +115,9 @@ li {
 .button a {
 	background-color:#f1f1f1;
 	border:5px solid #ccc;
-	font:bold 25px/20px arial,helvetica,sans-serif;
+	font:bold 12px/16px Vera, Tahoma, Arial, Helvetica, sans-serif;
+	src: local('Vera'),
+		url('usr/share/fonts/webly/Vera.woff') format('woff')
 	display:block;
 	padding:10px 20px;
 	text-shadow:0 1px 0 #fff;;
@@ -123,7 +127,9 @@ li {
 	text-decoration:none;
 }
 .button small {
-	font:normal 12px/16px arial,helvetica,sans-serif;
+	font:normal 12px/16px Vera, Tahoma, Arial, Helvetica, sans-serif;
+	src: local('Vera'),
+		url('usr/share/fonts/webly/Vera.woff') format('woff')
 }
 .trigger {
 	-moz-border-radius:5px;
@@ -179,7 +185,7 @@ li {
 	border: none;
 }
 #start:hover,
-#start.active {
+#start.active {t
 	text-decoration:none;
 }
 #start:hover {
