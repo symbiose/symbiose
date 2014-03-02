@@ -1311,6 +1311,13 @@ $.webos.subwidget('window', 'main', function(args, $mainWindow) {
 
 	if (typeof $mainWindow.window('pid') == 'number') {
 		var process = Webos.Process.get($mainWindow.window('pid'));
+
+		process.on('stop', function () {
+			if (!$mainWindow.window('is', 'closed')) {
+				$mainWindow.window('close');
+			}
+		});
+
 		if (Webos.isInstanceOf(process, Webos.Cmd)) {
 			var i = $.webos.window.main._list.push($mainWindow[0]) - 1;
 

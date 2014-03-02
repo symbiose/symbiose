@@ -262,13 +262,13 @@ $.webos.widget.prototype = {
 		if (typeof Webos.Process.current() != 'undefined') {
 			var proc = Webos.Process.current();
 			this.options.pid = proc.getPid();
-			proc.bind('stop', function() {
+			/*proc.bind('stop', function() {
 				var $el = that.element;
 
 				if ($el.length > 0 && $el.closest('html').length > 0) {
 					$el.empty().remove();
 				}
-			});
+			});*/
 		}
 		this.element.addClass('webos-'+this._name);
 		this.element.attr('id', 'webos-widget-'+this.options.id);
