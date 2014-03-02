@@ -1,7 +1,8 @@
 Webos.require([
 	'/usr/lib/jquery.filedrop.js',
 	'/usr/lib/fileuploader.js',
-	'/usr/lib/webos/applications.js'
+	'/usr/lib/webos/applications.js',
+	'/usr/lib/webos/data.js'
 ], function() {
 	(function($) {
 		$.fn.setCursorPosition = function(pos1, pos2) {
@@ -22,15 +23,17 @@ Webos.require([
 
 	$.webos.widget('nautilus', 'container', {
 		_name: 'nautilus',
+		_translationsName: 'nautilus',
+		_organizedIconsConfig: 'nautilus-icons',
 		options: {
 			directory: '~',
 			multipleWindows: false,
 			uploads: [],
 			display: 'icons',
 			showHiddenFiles: false,
+			organizeIcons: false,
 			_items: {}
 		},
-		_translationsName: 'nautilus',
 		_create: function() {
 			this._super('_create');
 
@@ -272,6 +275,13 @@ Webos.require([
 				$.webos.menuItem(t.get('Refresh'), true).click(function() {
 					that.refresh();
 				}).appendTo(contextmenu);
+
+				if (that.options.organizeIcons) {
+					$.webos.menuItem(t.get('Reset icons position')).click(function() {
+						that._resetIconsPosition();
+					}).appendTo(contextmenu);
+				}
+
 				$.webos.menuItem(t.get('Properties'), true).click(function() {
 					that._openProperties(W.File.get(dir));
 				}).appendTo(contextmenu);
@@ -367,7 +377,14 @@ Webos.require([
 						var sourceFile = ui.draggable.draggable('option', 'sourceFile'),
 							destFile = Webos.File.get(dir);
 
-						ui.draggable.trigger('nautilusdrop', [{ source: sourceFile, dest: destFile, droppable: that.element }]);
+						ui.draggable.trigger('nautilusdrop', [{
+							source: sourceFile,
+							dest: destFile,
+							droppable: that.element,
+							draggable: ui.draggable,
+							pageX: event.pageX,
+							pageY: event.pageY
+						}]);
 					}
 				});
 				
@@ -464,6 +481,7 @@ Webos.require([
 			}
 			
 			this.element.scrollPane('reload');
+			this._loadIconsPosition();
 			
 			Webos.File.bind('load._render.nautilus-'+this.id(), function(data) {
 				var newFile = data.file;
@@ -593,6 +611,8 @@ Webos.require([
 						if (name == file.get('basename')) { return; }
 						
 						file.rename(name);
+
+						$(document).off('click.rename.nautilus');
 					};
 
 					var input = $('<input />', { type: 'text' }).keydown(function(e) {
@@ -612,7 +632,7 @@ Webos.require([
 					input.val(file.get('basename')).focus().setCursorPosition(0, pos);
 
 					setTimeout(function () { //Delay otherwise the current click event is triggered
-						$(document).one('click', function () {
+						$(document).one('click.rename.nautilus', function () {
 							renameFn();
 						});
 					}, 0);
@@ -767,6 +787,17 @@ Webos.require([
 						var doDrop = function(data) {
 							var sourceFile = data.source, destFile = data.dest;
 
+							if (data.droppable.is(that.element)) {
+								var offset = that.element.offset(),
+									dropPos = {
+										x: data.pageX - offset.left,
+										y: data.pageY - offset.top
+									};
+
+								that._setIconPos(sourceFile, dropPos);
+								return;
+							}
+
 							if (destFile.get('path') == sourceFile.get('dirname')) {
 								return;
 							}
@@ -800,6 +831,7 @@ Webos.require([
 						if (droppableAreas.length == 1) {
 							doDrop(droppableAreas[0]);
 						} else {
+							//TODO: integrate z-index support in draggable widget
 							var maxZIndex = -1, maxZIndexArea = null;
 							for (var i = 0; i < droppableAreas.length; i++) {
 								var dropArea = droppableAreas[i],
@@ -878,6 +910,100 @@ Webos.require([
 			if (this.options.display == 'list') {
 				this.content().list('content').append(item);
 			}
+		},
+		_setIconPos: function (file, pos) {
+			if (!this.options.organizeIcons) {
+				return false;
+			}
+
+			file = W.File.get(file);
+
+			var $item = this.options._items[file.get('path')];
+			if (!$item) {
+				return;
+			}
+
+			$item.css({
+				position: 'absolute',
+				left: pos.x - $item.outerWidth(true) / 2,
+				top: pos.y - $item.outerHeight(true) / 2
+			});
+
+			this._saveIconsPosition();
+		},
+		_resetIconPos: function (file) {
+			if (!this.options.organizeIcons) {
+				return false;
+			}
+
+			file = W.File.get(file);
+
+			var $item = this.options._items[file.get('path')];
+			if (!$item) {
+				return;
+			}
+
+			$item.css('position', 'static');
+
+			this._saveIconsPosition();
+		},
+		_saveIconsPosition: function () {
+			var that = this;
+
+			if (!this.options.organizeIcons) {
+				return false;
+			}
+
+			Webos.DataFile.loadUserData(this._organizedIconsConfig, [function (dataFile) {
+				var items = that.options._items, itemsPos = {};
+				for (var iconPath in items) {
+					var $item = items[iconPath],
+						itemPos = $item.position(),
+						file = W.File.get(iconPath);
+
+					if ($item.css('position') !== 'absolute') {
+						continue;
+					}
+
+					itemsPos[file.get('basename')] = {
+						x: itemPos.left,
+						y: itemPos.top
+					};
+				}
+
+				dataFile.set(that.location(), itemsPos);
+				dataFile.sync([function () {}, function (resp) {
+					that._handleResponseError(resp);
+				}]);
+			}, function (resp) {
+				that._handleResponseError(resp);
+			}]);
+		},
+		_loadIconsPosition: function () {
+			var that = this;
+
+			if (!this.options.organizeIcons) {
+				return false;
+			}
+
+			Webos.DataFile.loadUserData(this._organizedIconsConfig, [function (dataFile) {
+				var dirSection = dataFile.get(that.location()) || {};
+
+				for (var basename in dirSection) {
+					that._setIconPos(that.location()+'/'+basename, dirSection[basename]);
+				}
+			}, function (resp) {
+				that._handleResponseError(resp);
+			}]);
+		},
+		_resetIconsPosition: function () {
+			var items = this.options._items;
+			for (var iconPath in items) {
+				var $item = items[iconPath];
+				$item.css('position', 'static');
+			}
+
+			this._saveIconsPosition();
 		},
 		_handleError: function(error) {
 			var t = this.translations();
