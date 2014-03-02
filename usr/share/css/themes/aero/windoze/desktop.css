@@ -215,7 +215,7 @@ li {
 	border: none;
 }
 #start:hover,
-#start.active {t
+#start.active {
 	text-decoration:none;
 }
 #start:hover {
