@@ -32,6 +32,7 @@ Webos.require([
 			display: 'icons',
 			showHiddenFiles: false,
 			organizeIcons: false,
+			organizeIconsInGrid: true,
 			_items: {}
 		},
 		_create: function() {
@@ -942,11 +943,36 @@ Webos.require([
 				return;
 			}
 
-			$item.css({
+			var itemDim = {
+				width: $item.outerWidth(true),
+				height: $item.outerHeight(true)
+			};
+
+			var css = {
 				position: 'absolute',
-				left: pos.x - $item.outerWidth(true) / 2,
-				top: pos.y - $item.outerHeight(true) / 2
-			});
+				left: pos.x - itemDim.width / 2,
+				top: pos.y - itemDim.height / 2
+			};
+
+			if (this.options.organizeIconsInGrid) { //Stick icons to grid
+				var diff = {
+					left: css.left % itemDim.width,
+					top: css.top % itemDim.height
+				};
+
+				if (diff.left > itemDim.width / 2) {
+					css.left += itemDim.width - diff.left;
+				} else {
+					css.left -= diff.left;
+				}
+				if (diff.top > itemDim.height / 2) {
+					css.top += itemDim.height - diff.top;
+				} else {
+					css.top -= diff.top;
+				}
+			}
+
+			$item.css(css);
 
 			this._saveIconsPosition();
 		},
