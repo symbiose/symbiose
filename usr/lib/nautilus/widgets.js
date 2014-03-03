@@ -458,12 +458,25 @@ Webos.require([
 				userCallback.error(response);
 			}]);
 		},
+		sort: function () {
+			var sortAttr = this.options.sort;
+
+			var sortedItems = this.items().detach().sort(function (a, b) {
+				return ($(a).data('file')().get(sortAttr) > $(b).data('file')().get(sortAttr));
+			});
+
+			this._insertItem(sortedItems);
+		},
 		_update: function(name, value) {
 			switch(name) {
 				case 'display':
-					this.options.display = value;
+					this.options.display = String(value);
 					this._insertContent();
 					this.readDir(this.options.directory);
+					break;
+				case 'sort':
+					this.options.sort = String(value || 'basename');
+					this.sort();
 					break;
 			}
 		},

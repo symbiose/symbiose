@@ -625,14 +625,40 @@ Webos.require([
 			var viewItem = $.w.menuItem(t.get('View')).appendTo(this._menu);
 			viewItemContent = viewItem.menuItem('content');
 
-			$.w.menuItem(t.get('List'))
+			$.w.menuItem(t.get('Order by name'), true)
 				.click(function() {
-					that.nautilus.nautilus('option', 'display', 'list');
+					that.nautilus.nautilus('option', 'sort', 'basename');
+				})
+				.appendTo(viewItemContent);
+			$.w.menuItem(t.get('Order by size'), true)
+				.click(function() {
+					that.nautilus.nautilus('option', 'sort', 'size');
+				})
+				.appendTo(viewItemContent);
+			$.w.menuItem(t.get('Order by type'), true)
+				.click(function() {
+					that.nautilus.nautilus('option', 'sort', 'mime_type');
+				})
+				.appendTo(viewItemContent);
+			$.w.menuItem(t.get('Order by modification time'), true)
+				.click(function() {
+					that.nautilus.nautilus('option', 'sort', 'mtime');
+				})
+				.appendTo(viewItemContent);
+			$.w.menuItem(t.get('Order by access time'), true)
+				.click(function() {
+					that.nautilus.nautilus('option', 'sort', 'atime');
+				})
+				.appendTo(viewItemContent);
+
+			$.w.menuItem(t.get('List'), true)
+				.click(function() {
+					that.nautilus.nautilus('option', 'sort', 'basename');
 				})
 				.appendTo(viewItemContent);
 			$.w.menuItem(t.get('Icons'))
 				.click(function() {
-					that.nautilus.nautilus('option', 'display', 'icons');
+					that.nautilus.nautilus('option', 'sort', 'basename');
 				})
 				.appendTo(viewItemContent);
 			
