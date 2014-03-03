@@ -13,6 +13,21 @@
  */
 $.webos.widget('window', 'container', {
 	_name: 'window',
+	/**
+	 * Options:
+	 *  - _string_ **title** : the window's title
+	 *  - _string|[Webos.Icon](Library_icon)_ **icon** : the window's icon
+	 *  - _number_ **width** : the window's width
+	 *  - _number_ **height** : teh window's height
+	 *  - _boolean_ **closeable** : true if the window cannot be closed by the user
+	 *  - _boolean_ **maximizable** : true if the window cannot be maximizedby the user
+	 *  - _boolean_ **hideable** : true if the window cannot be hidden by the user
+	 *  - _boolean_ **maximized** : true if the window is maximized when opened
+	 *  - _boolean_ **dialog** : true if the window is a dialog window
+	 *  - _jQuery_ **parentWindow** : the parent window
+	 *  - **workspace** : the window's workspace
+	 *  - _string_ **stylesheet** : the window's stylesheet
+	 */
 	options: {
 		title: 'Fen&ecirc;tre',
 		icon: undefined,
@@ -208,6 +223,10 @@ $.webos.widget('window', 'container', {
 				break;
 		}
 	},
+	/**
+	 * Destroy this window.
+	 * @private
+	 */
 	destroy: function() {
 		if (this.is('closed')) {
 			this._super('destroy');
@@ -747,6 +766,8 @@ $.webos.widget('window', 'container', {
 		return false;
 	},
 	/**
+	 * Save this window's dimentions to an internal cache.
+	 * These dimentions will be restored when minimizing this window.
 	 * @private
 	 */
 	_saveDimentions: function() {
@@ -819,6 +840,7 @@ $.webos.widget('window', 'container', {
 		}
 	},
 	/**
+	 * Restore focus to the element which previously had it.
 	 * @private
 	 */
 	_restoreFocus: function() {
@@ -941,6 +963,8 @@ $.webos.widget('window', 'container', {
 		}
 	},
 	/**
+	 * Add an overlay on all iframes in this window.
+	 * Usefull when dragging when window, because mouse events over an iframe cannot be captured by thge parent document.
 	 * @private
 	 */
 	_protectIframes: function(value) {
@@ -1186,6 +1210,8 @@ $.webos.widget('window', 'container', {
 	},
 	/**
 	 * Get/set this window's workspace.
+	 * @param {Number} [workspace] If specified, the new workspace id.
+	 * @return {Number} The current workspace id.
 	 */
 	workspace: function(workspace) {
 		if (typeof workspace != 'undefined') {
@@ -1273,11 +1299,10 @@ $.webos.widget('window', 'container', {
 });
 
 /**
- * Create a new window.
- * @param {Object} The new window's options.
- * @return {jQuery}
+ * A window.
+ * @param {Object} The window's options.
  * @constructor
- * @static
+ * @augments $.w.container
  */
 $.webos.window = function(options) {
 	return $('<div></div>').window(options);
@@ -1296,6 +1321,12 @@ $.webos.window.states = [
 	['loading', 'ready']
 ];
 
+/**
+ * A main window.
+ * @param {Object} [opts] The window's options.
+ * @constructor
+ * @augments $.w.window
+ */
 $.webos.subwidget('window', 'main', function(args, $mainWindow) {
 	var options = args[0];
 	$mainWindow.window('option', options);
@@ -1356,9 +1387,22 @@ $.webos.subwidget('window', 'main', function(args, $mainWindow) {
 	return $mainWindow;
 });
 
+/**
+ * A list of all main windows.
+ * @private
+ */
 $.webos.window.main._list = [];
+/**
+ * A cache for this session.
+ * Contains windows positions, dimentions and workspaces.
+ * @private
+ */
 $.webos.window.main._cache = {};
 
+/**
+ * Helper function to get a window's position, dimentions and workspace.
+ * @private
+ */
 $.webos.window.main._getWindowDisplay = function($mainWindow) {
 	var display = {
 		position: $mainWindow.window('position'),
@@ -1376,9 +1420,18 @@ $.webos.window.main._getWindowDisplay = function($mainWindow) {
 
 	return display;
 };
+/**
+ * Get the list of all main windows.
+ * @return {jQuery}
+ */
 $.webos.window.main.list = function() {
 	return $.webos.widget.filter($($.webos.window.main._list), 'window');
 };
+/**
+ * Get/set the current session state.
+ * @param {Object} [display] The session state to restore.
+ * @return {Object} The current session state.
+ */
 $.webos.window.main.windowsDisplay = function(display) {
 	if (typeof display == 'undefined') {
 		var display = $.extend({}, $.webos.window.main._cache),
@@ -1401,6 +1454,17 @@ $.webos.window.main.windowsDisplay = function(display) {
 	}
 };
 
+/**
+ * An about window.
+ * @param {Object} [opts] Options:
+ *  - `name`: the software name
+ *  - `version`: the software version number
+ *  - `description`: the software description
+ *  - `author`: the software author
+ *  - _jQuery_ `parentWindow`: this window'sparent window
+ * @constructor
+ * @augments $.w.window
+ */
 $.webos.window.about = function(opts) {
 	//Options par defaut
 	var defaults = {
@@ -1459,6 +1523,12 @@ $.webos.window.about = function(opts) {
 	return aboutWindow;
 };
 
+/**
+ * A dialog window.
+ * @param {Object} [opts] The window's options.
+ * @constructor
+ * @augments $.w.window
+ */
 $.webos.window.dialog = function(opts) {
 	var dialog = $.webos.window($.extend({
 		resizable: false
@@ -1469,6 +1539,19 @@ $.webos.window.dialog = function(opts) {
 	return dialog;
 };
 
+/**
+ * A confirm dialog.
+ * @param {Object} [opts] Options. Can contain:
+ *  - `title`: the dialog title
+ *  - `label`: the dialog message
+ *  - `details`: more details
+ *  - _Function_ `cancel`: a callback which will be called if the user cancels the operation
+ *  - _Function_ `confirm`: a callback which will be called if the user confirms the operation
+ *  - `cancelLabel`: the cancel button value
+ *  - `confirmLabel`: the confirm button value
+ * @constructor
+ * @augments $.w.window
+ */
 $.webos.window.confirm = function(opts) {
 	var defaults = {
 		title: 'Confirmation',
@@ -1515,6 +1598,17 @@ $.webos.window.confirm = function(opts) {
 	return confirm;
 };
 
+/**
+ * A message dialog.
+ * @param {Object} [opts] Options. Can contain:
+ *  - `type`: the dialog type. Can be `information` (by default), `error` or `warning`.
+ *  - `title`: the dialog title
+ *  - `label`: the dialog message
+ *  - `details`: more details
+ *  - `closeLabel`: the close button value
+ * @constructor
+ * @augments $.w.window
+ */
 $.webos.window.messageDialog = function(opts) {
 	if (!opts) {
 		opts = {};
@@ -1582,11 +1676,25 @@ $.webos.window.messageDialog = function(opts) {
 	return dialog;
 };
 
+/**
+ * Z-index range used to arrange windows.
+ * @private
+ */
 $.webos.window.zIndexRange = [1005, 5000];
+/**
+ * Current greatest z-index.
+ * @private
+ */
 $.webos.window.currentZIndex = $.webos.window.zIndexRange[0];
+/**
+ * Request a new z-index for a window.
+ * @private
+ */
 $.webos.window.requestZIndex = function() {
 	var nextZIndex = $.webos.window.currentZIndex + 1;
 	
+	// Next z-index out of range
+	// We need to update all z-indexes
 	if (nextZIndex > $.webos.window.zIndexRange[1]) {
 		var diff = nextZIndex - $.webos.window.zIndexRange[0];
 		$.webos.window.getWindows().each(function() {
@@ -1602,25 +1710,38 @@ $.webos.window.requestZIndex = function() {
 	return nextZIndex;
 };
 
-$.webos.window.hideAll = function() { //Cacher toutes les fenetres
+/**
+ * Hide all windows.
+ */
+$.webos.window.hideAll = function() {
 	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
 	$list.each(function() {
 		$(this).window('hide');
 	});
 };
-$.webos.window.showAll = function() { //Afficher toutes les fenetres
+/**
+ * Show all windows.
+ */
+$.webos.window.showAll = function() {
 	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
 	$list.each(function() {
 		$(this).window('show');
 	});
 };
-$.webos.window.hideOrShowAll = function() { //Afficher ou cacher ttes les fenetres
+/**
+ * Hide/show all windows.
+ */
+$.webos.window.hideOrShowAll = function() {
 	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
 	$list.each(function() {
 		$(this).window('hideOrShow');
 	});
 };
-$.webos.window.getActive = function() { //Recuperer la fenetre active
+/**
+ * Get the current active window.
+ * @return {jQuery}
+ */
+$.webos.window.getActive = function() {
 	var visibleWindows = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
 	if (visibleWindows.length > 0) {
 		var activeWindow = $(), activeWindowZIndex = $.webos.window.zIndexRange[0];
@@ -1641,12 +1762,19 @@ $.webos.window.getActive = function() { //Recuperer la fenetre active
 		return $();
 	}
 };
-$.webos.window.allToBackground = function() { //Envoyer toutes les fenetres a l'arriere-plan
+/**
+ * Send all windows to background.
+ */
+$.webos.window.allToBackground = function() {
 	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
 	$list.each(function() {
 		$(this).window('toBackground');
 	});
 };
+/**
+ * Send all windows to background excluding one window.
+ * @param {jQuery} [excludedWindow] The excluded window.
+ */
 $.webos.window.allToBackGroundExcluding = function(excludedWindow) { //Envoyer ttes les fenetres a l'arriere-plan sauf la fenetre specifiee
 	var $list = $(($.w.window.workspace) ? $.w.window.workspace.getCurrent().getWindows() : $.webos.window.getWindows());
 	$list.each(function() {
@@ -1655,14 +1783,19 @@ $.webos.window.allToBackGroundExcluding = function(excludedWindow) { //Envoyer t
 		}
 	});
 };
-$.webos.window.setButtonsBorder = function() { //Definir le bord des boutons des fenetres
-	$.webos.window.buttons.children('.window-button-last').removeClass('window-button-last');
-	$.webos.window.buttons.children('.window-button:visible').last().addClass('window-button-last');
-};
-$.webos.window.getWindows = function() { //Recuperer TOUTES les fenetres (tous espaces de travail confondus)
+/**
+ * Get all windows from all workspaces.
+ * @return {jQuery}
+ */
+$.webos.window.getWindows = function() {
 	return $('#desktop').children('.webos-window').not('.closing');
 };
-$.webos.window.getWindowById = function(id) { //Recuperer une fenetre a aprtir de son ID
+/**
+ * Get a window by id.
+ * @param {Number} id The window id.
+ * @return {jQuery}
+ */
+$.webos.window.getWindowById = function(id) {
 	var list = $.webos.window.getWindows();
 
 	var $foundWindow = $();
@@ -1675,12 +1808,23 @@ $.webos.window.getWindowById = function(id) { //Recuperer une fenetre a aprtir d
 
 	return $foundWindow;
 };
+/**
+ * Internal function to get a window's hidding position for animations.
+ * @param {jQuery} hiddenWindow The window being hidden.
+ * @return {Object} An object containing properties `top` and `left`.
+ * @private
+ */
 $.webos.window._getHidePos = function() {
 	return {
 		top: 0,
 		left: 0
 	};
 };
+/**
+ * Get a window's hidding position for animations.
+ * @param {jQuery} thisWindow The window being hidden.
+ * @return {Object} An object containing properties `top` and `left`.
+ */
 $.webos.window.getHidePos = function(thisWindow) {
 	var hidePos = $.webos.window._getHidePos(thisWindow);
 	return {
@@ -1688,10 +1832,19 @@ $.webos.window.getHidePos = function(thisWindow) {
 		left: (hidePos && hidePos.left > 0) ? hidePos.left : 0
 	};
 };
+/**
+ * Define a callback which will determine windows' hidding positions.
+ * @param {Function} fn The callback. Must take the window as parameter and return an object containing properties `top` and `left`.
+ * @see $.webos.window.getHidePos
+ */
 $.webos.window.setHidePosFn = function(fn) {
 	$.webos.window._getHidePos = fn;
 };
 
+/**
+ * Remaximize all windows.
+ * @private
+ */
 var resizeWindows = function () {
 	$.webos.window.getWindows().each(function () {
 		if ($(this).window('is', 'maximized')) {
@@ -1700,6 +1853,7 @@ var resizeWindows = function () {
 	});
 };
 
+// Remaximize all windows after resize
 var timer = window.setTimeout(function() {}, 0);
 $(window).on('resize', function() {
 	window.clearTimeout(timer);
