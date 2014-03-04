@@ -1,4 +1,4 @@
-new W.ScriptFile('/usr/lib/firefox/firefox.js');
+new W.ScriptFile('/usr/lib/web-browser/main.js');
 
 var url;
 if (args.isParam(0)) {
@@ -8,4 +8,4 @@ if (args.isParam(0)) {
 		url = W.File.get(url);
 	}
 }
-new FirefoxWindow(url);
+new WebBrowserWindow(url);

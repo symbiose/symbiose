@@ -1,11 +1,11 @@
-function FirefoxWindow(url) {
+function WebBrowserWindow(url) {
 	this._window = $.w.window.main({
-		title: 'Firefox',
-		icon: new W.Icon('applications/firefox'),
+		title: 'Web browser',
+		icon: new W.Icon('apps/web-browser'),
 		width: 500,
 		height: 400,
 		maximized: true,
-		stylesheet: '/usr/share/css/firefox/main.css'
+		stylesheet: '/usr/share/css/web-browser/main.css'
 	});
 
 	var that = this;
