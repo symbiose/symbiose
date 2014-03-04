@@ -9,6 +9,18 @@ use \RuntimeException;
  * @since 1.0beta3
  */
 class Guardian extends ApplicationComponent {
+	protected $loggedPermissions = array(
+		'file.home.read',
+		'file.home.write',
+		'file.system.read',
+		'file.system.write',
+		'user.read',
+		'user.edit',
+		'user.manage',
+		'package.read',
+		'package.manage'
+	);
+
 	protected function _authForArgument($arg, $requiredAuth) {
 		$finalAuth = $requiredAuth;
 
@@ -129,6 +141,15 @@ class Guardian extends ApplicationComponent {
 		}
 
 		$authorized = ($requiredAuth === true || in_array($requiredAuth, $providedAuthsNames));
+
+		
+		if ($requiredAuth !== true && in_array($requiredAuth, $this->loggedPermissions)) {
+			$logLine = $_SERVER['REMOTE_ADDR'].' ';
+			$logLine .= ($authorized) ? 'granted' : 'denied';
+			$logLine .= ' '.$requiredAuth;
+
+			writeLog('permissions', $logLine);
+		}
 
 		if (!$authorized) {
 			throw new \RuntimeException('Permission denied (permission "'.$requiredAuth.'" is required)', 403);

@@ -74,6 +74,20 @@ function unparse_url($parsed_url) {
 } 
 
 /**
+ * Write a new log line.
+ * @param  string $logFilename The log filename.
+ * @param  string $logData     The new line to insert. Server name & date are automatically added.
+ */
+function writeLog($logFilename, $logData) {
+	$logPath = __DIR__.'/../var/log/'.$logFilename.'.log';
+
+	$serverName = (isset($_SERVER['SERVER_NAME'])) ? $_SERVER['SERVER_NAME'] : 'localhost';
+	$logLine = date('M d G:i:s').' '.$serverName.' '.$logData."\n";
+
+	file_put_contents($logPath, $logLine, FILE_APPEND);
+}
+
+/**
  * Log an error.
  */
 function errorLogger($errno, $errstr, $errfile, $errline) {
@@ -111,10 +125,7 @@ function errorLogger($errno, $errstr, $errfile, $errline) {
 				$errnoName = 'Unknown error';
 		}
 
-		$serverName = (isset($_SERVER['SERVER_NAME'])) ? $_SERVER['SERVER_NAME'] : 'unknown';
-		$logLine = date('M d G:i:s').' '.$serverName.' [#'.$errno.' '.$errnoName.'] '.$errstr.' '.$errfile.':'.$errline."\n";
-
-		file_put_contents($errorLogPath, $logLine, FILE_APPEND);
+		writeLog('errors', '[#'.$errno.' '.$errnoName.'] '.$errstr.' '.$errfile.':'.$errline);
 	}
 
 	//TODO: print warnings ?
