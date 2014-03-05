@@ -8,6 +8,7 @@ class ConfigManager_localfs extends FileManager {
 		$internalPath = $this->dao->toInternalPath($path);
 		switch ($this->dao->pathinfo($path, PATHINFO_EXTENSION)) {
 			case 'json':
+			case 'webapp':
 				return new \lib\JsonConfig($internalPath);
 			case 'xml':
 				return new \lib\XmlConfig($internalPath);
