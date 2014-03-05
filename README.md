@@ -12,21 +12,22 @@ Key features
  * Basic text editor ([gedit](https://en.wikipedia.org/wiki/Gedit))
  * File manager with copy-paste, drag'n'drop, file sharing, searching...
  * Google Docs to display and edit your documents
+ * Chat app which supports XMPP (Google, Facebook, with multiple accounts and OTR encryption)
+ * Basic word processor
  * Basic multimedia player
  * Music player (based on [GNOME Music](https://wiki.gnome.org/Apps/Music))
  * Basic web browser
  * Terminal (with a basic interpreter)
- * Very basic word processor
  * Image viewer, archive manager, software centre...
 * Customizable: themes, background and so on
-* Multiple interfaces: GNOME Shell, GNOME Panel (GNOME 2), Windows 7-like, mobile, CLI
+* Multiple interfaces: Elementary OS, GNOME Shell, GNOME Panel (GNOME 2), Windows 7-like, mobile, CLI
 * Easy configuration with a _System settings_ app and simple config files
 * FTP, Dropbox and Google Drive integration
 * LDAP authentication support
 * Firefox Marketplace apps integration
 * Available in English, French, German, Italian and Spanish
 * WebSocket support
-* And more! 
+* And more!
 
 Quick start
 -----------
