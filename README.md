@@ -1,4 +1,4 @@
-[Symbiose 1.0 beta 4](http://symbiose.fr.cr/)
+[Symbiose 1.0 beta 5](http://symbiose.fr.cr/)
 ==============================================
 
 This version (beta) is unstable. 
