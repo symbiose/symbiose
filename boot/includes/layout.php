@@ -7,7 +7,7 @@
 	<title>Symbiose</title>
 	<meta charset="utf-8" />
 	<meta name="description" content="Symbiose, the free and open-source webos." />
-	<meta name="author" content="$imon" />
+	<meta name="author" content="emersion" />
 
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" href="usr/share/css/webos/global.css" />
@@ -28,7 +28,8 @@
 	<script type="text/javascript">
 		if (!window.Webos) {
 			window.Webos = {
-				name: 'Symbiose'
+				name: 'Symbiose',
+				standalone: false
 			};
 			window.W = window.Webos;
 		}
