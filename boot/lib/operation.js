@@ -94,6 +94,14 @@
 			return this._completed;
 		},
 		/**
+		 * Get this operation's result.
+		 * @return {Object} The result.
+		 * @since  1.0beta5
+		 */
+		result: function () {
+			return this._result;
+		},
+		/**
 		 * Check if this operation is failed.
 		 * @return {Boolean} True if this operations is failed, false otherwise.
 		 */
@@ -149,6 +157,15 @@
 
 			this.trigger('progress', { value: value });
 		},
+		addProgress: function (value) {
+			value = Number(value);
+
+			if (isNaN(value)) {
+				return false;
+			}
+
+			return this.setProgress(this.progress() + value);
+		},
 		/**
 		 * Mark this operation as completed.
 		 * @param result This operation's result.
@@ -196,6 +213,56 @@
 		 */
 		resume: function () {
 			this.trigger('resume');
+		},
+		/**
+		 * Execute a callback then this operation is completed (success or error).
+		 * @param  {Function} callback The callback.
+		 * @return {Object}            The operation.
+		 * @since  1.0beta5
+		 */
+		always: function (callback) {
+			this.on('complete', callback);
+			return this;
+		},
+		/**
+		 * Execute a callback then this operation succeeds.
+		 * @param  {Function} callback The callback.
+		 * @return {Object}            The operation.
+		 * @since  1.0beta5
+		 */
+		done: function (callback) {
+			this.on('success', callback);
+			return this;
+		},
+		/**
+		 * Execute a callback then this operation fails.
+		 * @param  {Function} callback The callback.
+		 * @return {Object}            The operation.
+		 * @since  1.0beta5
+		 */
+		fail: function (callback) {
+			this.on('error', callback);
+			return this;
+		},
+		/**
+		 * Execute a callback then this operation succeeds, fails and progresses.
+		 * @param  {Function} doneFilter     The callback to execute when the operation succeeds.
+		 * @param  {Function} failFilter     The callback to execute when the operation fails.
+		 * @param  {Function} progressFilter The callback to execute when the operation progresses.
+		 * @return {Object}              The operation.
+		 * @since  1.0beta5
+		 */
+		then: function (doneFilter, failFilter, progressFilter) {
+			if (doneFilter) {
+				this.done(doneFilter);
+			}
+			if (failFilter) {
+				this.fail(failFilter);
+			}
+			if (progressFilter) {
+				this.on('progress', progressFilter);
+			}
+			return this;
 		}
 	};
 	Webos.inherit(Operation, Webos.Observable);
