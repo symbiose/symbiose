@@ -48,12 +48,26 @@
 
 			var url = '';
 			if (typeof id == 'undefined') {
-				url = 'sbin/rawdatacall.php?type=file&path='+this.name;
+				var iconFile = W.File.get(this.name);
+				url = iconFile.get('realpath');
 			} else {
-				url = 'sbin/rawdatacall.php?type=icon&index='+id;
+				if (Webos.standalone) {
+					if (Webos.Icon.supportsSvg()) {
+						id = this.id('scalable', theme);
+					}
 
-				if (Webos.Icon.supportsSvg()) {
-					url += '&svg=1';
+					var ext = (Webos.Icon.supportsSvg()) ? 'svg' : 'png';
+
+					iconPath = Webos.Icon.path+'/'+id+'.'+ext;
+
+					var iconFile = W.File.get(iconPath);
+					url = iconFile.get('realpath');
+				} else {
+					url = 'sbin/rawdatacall.php?type=icon&index='+id;
+
+					if (Webos.Icon.supportsSvg()) {
+						url += '&svg=1';
+					}
 				}
 			}
 

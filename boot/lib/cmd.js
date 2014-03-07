@@ -5,6 +5,8 @@
  * @constructor
  */
 Webos.Cmd = function WCmd(options) {
+	//TODO: support commands with spaces delimited by ""
+
 	this.cmdText = options.cmd; //Commande complete
 	this.cmd = this.cmdText.split(' ').shift(); //Nom de la commande
 	this.terminal = options.terminal; //Terminal d'ou la commande sera lancee

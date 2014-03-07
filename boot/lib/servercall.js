@@ -174,12 +174,17 @@
 			}
 
 			usedTransport.doRequest(this, [function(json) {
+				var data;
 				try {
 					if (!json) {
 						throw new Webos.Error('Empty response');
 					}
 
-					var data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
+					if (typeof json == 'string') {
+						data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
+					} else {
+						data = json;
+					}
 				} catch (jsonError) { //Si une erreur survient
 					var error = 'Malformed JSON data ('+jsonError.name+'): '+jsonError.message+'. Data :'+"\n"+json;
 					error += "\n"+that.stack();
@@ -197,7 +202,7 @@
 					that.setCompleted(response);
 					return; //On stoppe l'execution de la fonction
 				}
-				
+
 				var response = new W.ServerCall.Response(data); //On cree la reponse
 				
 				that.setCompleted(response);
@@ -280,7 +285,7 @@
 		 * Load this server call.
 		 * @param  {Webos.Callback} callback The callback.
 		 */
-		load: function $_WServerCall_load(callback) {
+		load: function (callback) {
 			var that = this;
 
 			if (callback) {
@@ -476,6 +481,393 @@
 		return supported;
 	};
 
+	Webos.ServerCall.standalone = {
+		priority: 3,
+		options: {},
+		requestsOptions: {
+			groupRequests: false
+		},
+		supports: function() {
+			return Webos.standalone;
+		},
+		canTransport: function(req) {
+			if (req._options.host) {
+				return false;
+			}
+
+			return true;
+		},
+		doRequest: function(req, callback) {
+			var that = Webos.ServerCall.standalone;
+
+			var op = Webos.Operation.create();
+			op.addCallbacks(callback);
+
+			var url = Webos.ServerCall.ajax.options.url;
+			if (req._options.host) {
+				url = req._options.host+'/'+url;
+			}
+
+			var reqData = req._data;
+
+			if (!that._handlers[reqData.module] ||
+				!that._handlers[reqData.module][reqData.action]) {
+				op.setCompleted({
+					statusCode: 503,
+					out: 'Operation not supported in standalone mode'
+				});
+console.log('todo', reqData);
+				return op;
+			}
+
+			var args = req._options.arguments || {},
+				async = (req._options.async !== false);
+			var result = that._handlers[reqData.module][reqData.action](args, req);
+
+			if (!Webos.isInstanceOf(result, Webos.Operation)) {
+				if (!result) {
+					op.setCompleted({
+						statusCode: 501,
+						out: 'Operation not implemented yet in standalone mode'
+					});
+console.log('todo', reqData);
+				} else {
+					op.setCompleted(result);
+				}
+
+				return op;
+			} else {
+				var handlerOp = result;
+
+				if (handlerOp.completed() && !async) { //Workaround for synchronous calls
+					callback = W.Callback.toCallback(callback);
+
+					if (handlerOp.failed()) {
+						callback.error(handlerOp.result());
+					} else {
+						callback.success(handlerOp.result());
+					}
+				} else {
+					handlerOp.addCallbacks(callback);
+				}
+
+				return handlerOp;
+			}
+		},
+		_handlers: {
+			file: {
+				getContents: function (args, req) {
+					var op = Webos.Operation.create();
+
+					var filePath = args.file,
+						file = W.File.get(filePath);
+
+					if (!file) {
+						var errMsg = 'Cannot read file "'+filePath+'": invalid file path';
+						op.setCompleted({
+							statusCode: 400,
+							channels: {
+								2: errMsg
+							},
+							out: errMsg
+						});
+						return op;
+					}
+
+					if (file.get('is_dir')) {
+						var errMsg = 'Cannot read file "'+file.get('path')+'": reading directories is not supported in standalone mode';
+						op.setCompleted({
+							statusCode: 405,
+							channels: {
+								2: errMsg
+							},
+							out: errMsg
+						});
+						return op;
+					}
+
+					var fileUrl = file.get('realpath');
+
+					$.ajax({
+						url: fileUrl,
+						method: 'get',
+						dataType: 'text',
+						async: (req._options.async !== false),
+						success: function(data, textStatus, jqXHR) {
+							op.setCompleted({
+								statusCode: 200,
+								channels: {
+									1: data
+								},
+								out: data
+							});
+						},
+						error: function(jqXHR, textStatus, errorThrown) {
+							var errMsg = 'Cannot read file "'+file.get('path')+'": '+errorThrown;
+
+							op.setCompleted({
+								statusCode: jqXHR.status,
+								channels: {
+									2: errMsg
+								},
+								out: errMsg
+							});
+						}
+					});
+
+					return op;
+				}
+			},
+			userInterface: {
+				loadBooter: function (args) {
+					var op = Webos.Operation.create();
+
+					var loadUi = function (uiName) {
+						if (!uiName) {
+							op.setCompleted(Webos.ServerCall.Response.error('No user interface found'));
+							return;
+						}
+
+						var uiRootPath = '/boot/uis/'+uiName;
+
+						var createBooter = function(html, js, css) {
+							var booterData = {
+								name: uiName,
+								booter: {
+									html: html || '',
+									js: {
+										'main.min.js': js || ''
+									},
+									css: {
+										'style.min.css': css || ''
+									}
+								}
+							};
+
+							op.setCompleted({
+								statusCode: 200,
+								data: booterData
+							});
+						};
+
+						W.File.get(uiRootPath+'/index.html').readAsText([function (html) {
+							W.File.get(uiRootPath+'/main.min.js').readAsText([function (js) {
+								W.File.get(uiRootPath+'/style.min.css').readAsText([function (css) {
+									createBooter(html, js, css);
+								}, function (resp) {
+									createBooter(html, js);
+								}]);
+							}, function (resp) {
+								op.setCompleted(resp);
+							}]);
+						}, function (resp) {
+							op.setCompleted(resp);
+						}]);
+					};
+
+					if (args.ui) {
+						loadUi(args.ui);
+					} else {
+						W.File.get('/etc/uis.json').readAsText([function (json) {
+							var uis = $.parseJSON(json);
+
+							var uiName = '';
+							for (var i = 0; i < uis.length; i++) {
+								var uiConfig = uis[i];
+
+								if (uiConfig.isDefault) {
+									uiName = uiConfig.name;
+									break;
+								}
+							}
+
+							if (!uiName && uis[0]) {
+								uiName = uis[0].name;
+							}
+
+							loadUi(uiName);
+						}, function (resp) {
+							op.setCompleted(resp);
+						}]);
+					}
+
+					return op;
+				}
+			},
+			user: {
+				getLogged: function (args) {
+					// User not logged in
+					return {};
+				},
+				canRegister: function (args) {
+					return {
+						statusCode: 200,
+						data: {
+							register: false,
+							autoEnable: false
+						}
+					};
+				}
+			},
+			config: {
+				_getConfig: function (configPath) {
+					var op = Webos.Operation.create();
+
+					var configFile = W.File.get(configPath);
+
+					configFile.readAsText([function (contents) {
+						var configData = {};
+
+						if (configFile.get('extension') == 'json') {
+							configData = $.parseJSON(contents);
+						} else if (configFile.get('extension') == 'xml') {
+							var xml = $.parseXML(contents), $xml = $(xml);
+
+							$xml.find('config').children('attribute').each(function () {
+								var attrName = $(this).attr('name'),
+									attrValue = $(this).attr('value');
+
+								configData[attrName] = attrValue;
+							});
+						}
+
+						op.setCompleted({
+							statusCode: 200,
+							data: configData
+						});
+					}, function (resp) {
+						op.setCompleted(resp);
+					}]);
+
+					return op;
+				},
+				getConfig: function (args) {
+					return this._getConfig(args.path);
+				},
+				getUserConfig: function (args) {
+					return this._getConfig(args.base);
+				}
+			},
+			applicationShortcut: {
+				get: function (args) {
+					var op = Webos.Operation.create();
+
+					op.on('progress', function (eventData) {
+						if (eventData.value == 99 && !this.completed()) {
+							for (var appName in favorites) {
+								var appIndex = parseInt(favorites[appName]);
+
+								if (appIndex > 0 && data.applications[appName]) {
+									data.applications[appName].favorite = appIndex;
+								}
+							}
+
+							//TODO: language support
+
+							this.setCompleted({
+								statusCode: 200,
+								data: data
+							});
+						}
+					});
+
+					var data = {}, favorites = {},
+						appsFile = W.File.get('/usr/share/applications.json'),
+						catsFile = W.File.get('/usr/share/categories.json');
+
+					appsFile.readAsText([function (json) {
+						data.applications = $.parseJSON(json);
+						op.addProgress(33);
+					}, function (resp) {
+						op.setCompleted(resp);
+					}]);
+					catsFile.readAsText([function (json) {
+						data.categories = $.parseJSON(json);
+						op.addProgress(33);
+					}, function (resp) {
+						op.setCompleted(resp);
+					}]);
+
+					Webos.ConfigFile.load('/etc/ske1/.config/favorites.xml', [function (configFile) {
+						favorites = configFile.data();
+						op.addProgress(33);
+					}, function (resp) {
+						//Ignore
+						op.addProgress(33);
+					}]);
+
+					return op;
+				}
+			},
+			theme: {
+				loadCss: function (args) {
+					var op = Webos.Operation.create();
+
+					var cssFile = W.File.get('/usr/share/css/themes/'+args.theme+'/'+args.ui+'/main.min.css');
+
+					cssFile.readAsText([function (css) {
+						op.setCompleted({
+							statusCode: 200,
+							data: {
+								css: {
+									'main.min.css': css
+								}
+							}
+						});
+					}, function (resp) {
+						op.setCompleted(resp);
+					}]);
+
+					return op;
+				}
+			},
+			cmd: {
+				_lastPid: -1,
+				execute: function (args) {
+					var that = this;
+					var op = Webos.Operation.create();
+
+					//TODO: support commands with spaces delimited by ""
+					var cmd = args.cmd.split(' ').shift();
+					var cmdFile = W.File.get('/usr/bin/'+cmd+'.js');
+
+					cmdFile.readAsText([function (js) {
+						op.setCompleted({
+							statusCode: 200,
+							data: {
+								pid: ++that._lastPid,
+								key: '',
+								authorizations: [],
+								path: cmdFile.get('path'),
+								script: js
+							}
+						});
+					}, function (resp) {
+						op.setCompleted(resp);
+					}]);
+
+					return op;
+				}
+			},
+			terminal: {
+				register: function (args) {
+					return this.getPromptData(args);
+				},
+				getPromptData: function (args) {
+					return {
+						statusCode: 200,
+						data: {
+							username: null,
+							host: null,
+							location: '/'
+						}
+					};
+				}
+			}
+		}
+	};
+	Webos.ServerCall.registerTransport('standalone', Webos.ServerCall.standalone);
+
 	Webos.ServerCall.ajax = {
 		priority: 1,
 		options: {
@@ -489,6 +881,10 @@
 			return jQuery.support.ajax;
 		},
 		canTransport: function(req) {
+			if (Webos.standalone && !req._options.host) {
+				return false;
+			}
+
 			return true;
 		},
 		doRequest: function(req, callback) {
@@ -589,6 +985,10 @@
 			return (typeof window.WebSocket != 'undefined');
 		},
 		canTransport: function(serverCall) {
+			if (Webos.standalone) {
+				return false;
+			}
+
 			return (serverCall._options.async !== false);
 		},
 		socket: function() {
@@ -1273,12 +1673,17 @@
 				}
 
 				usedTransport.doRequestGroup(reqs, [function(json) {
+					var data;
 					try {
 						if (!json) {
 							throw new Webos.Error('Empty response');
 						}
 
-						var data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
+						if (typeof json == 'string') {
+							data = jQuery.parseJSON(json); //On essaie de recuperer les donnees JSON
+						} else {
+							data = json;
+						}
 					} catch (jsonError) { //Si une erreur survient
 						var errMsg = 'Malformed JSON data ('+jsonError.name+'): '+jsonError.message+'. Data :'+"\n"+json,
 							resp;

@@ -1069,8 +1069,8 @@ Webos.require([
 				errorWindow.window('open');
 			};
 
-			if (this._isWindowed()) {
-				var errorCtn = $.w.alertContainer().appendTo(this.options._components.container);
+			if (that._isWindowed()) {
+				var errorCtn = $.w.alertContainer().appendTo(that.options._components.container);
 
 				errorCtn.append($.w.icon('status/error', 24));
 				errorCtn.append(error.html.message);
@@ -1078,9 +1078,9 @@ Webos.require([
 					openErrWindow();
 				}));
 
-				this.options._components.filesList.hide();
+				that.options._components.filesList.hide();
 
-				this.element.one('nautilusreadstart', function () {
+				that.element.one('nautilusreadstart', function () {
 					errorCtn.remove();
 					that.options._components.filesList.show();
 				});

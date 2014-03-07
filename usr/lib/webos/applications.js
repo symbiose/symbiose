@@ -1,3 +1,5 @@
+(function () {
+
 if (Webos.Application) {
 	return;
 }
@@ -397,3 +399,5 @@ Webos.Application.clearCache = function() {
 
 	Webos.Application.trigger('reload');
 };
+
+})();

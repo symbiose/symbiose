@@ -1348,7 +1348,11 @@ Webos.WebosFile.prototype = {
 			data.path = this.get('mountPoint').getWebosPath(data.webospath);
 
 			if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
-				data.realpath = 'sbin/rawdatacall.php?type=file&path='+data.path;
+				if (Webos.standalone) {
+					data.realpath = window.location.pathname+'/'+data.path;
+				} else {
+					data.realpath = 'sbin/rawdatacall.php?type=file&path='+data.path;
+				}
 			}
 		}
 
@@ -1483,7 +1487,7 @@ Webos.WebosFile.prototype = {
 				'class': 'FileController',
 				method: 'getContents',
 				arguments: {
-					dir: this.get('webospath')
+					file: this.get('webospath')
 				},
 				host: this.get('mountPointData').host,
 				username: this.get('mountPointData').username,
