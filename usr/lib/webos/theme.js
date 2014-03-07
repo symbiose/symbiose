@@ -1,7 +1,13 @@
 new Webos.ScriptFile('/usr/lib/webos/config.js');
 
 (function () {
-	Webos.Theme = function WTheme(configFile) {
+	/**
+	 * A theme.
+	 * @param {Webos.ConfigFile} configFile The config file associated with the theme.
+	 * @constructor
+	 * @augments Webos.Model
+	 */
+	Webos.Theme = function (configFile) {
 		var data = configFile.data();
 		
 		var defaults = {
@@ -20,8 +26,19 @@ new Webos.ScriptFile('/usr/lib/webos/config.js');
 		
 		this._configFile = configFile;
 	};
+	/**
+	 * The theme's prototype.
+	 */
 	Webos.Theme.prototype = {
+		/**
+		 * This theme's loaded stylesheets.
+		 * @private
+		 */
 		_stylesheets: [],
+		/**
+		 * Load this theme.
+		 * @param {Webos.Callback} callback The callback.
+		 */
 		load: function(callback) {
 			callback = Webos.Callback.toCallback(callback);
 			var that = this;
@@ -49,11 +66,19 @@ new Webos.ScriptFile('/usr/lib/webos/config.js');
 				Webos.Theme.trigger('load', { theme: that });
 			}, callback.error]);
 		},
+		/**
+		 * Unload this theme.
+		 * This will remove added stylesheets.
+		 */
 		unload: function() {
 			for (var i = 0; i < this._stylesheets.length; i++) {
 				Webos.Stylesheet.removeCss(this._stylesheets[i]);
 			}
 		},
+		/**
+		 * Apply the theme's background on an element.
+		 * @param {jQuery} el The element.
+		 */
 		applyBackgroundOn: function(el) {
 			var $el = $(el);
 
@@ -79,6 +104,11 @@ new Webos.ScriptFile('/usr/lib/webos/config.js');
 					.css('-ms-filter', '"progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\''+bgImg+'\', sizingMethod=\'scale\')"');
 			}
 		},
+		/**
+		 * Load the theme's background.
+		 * @param {Boolean} forceLoading By default, if the previous theme has the same background as this one, the background is not reloaded. If set to true, the background will be always reloaded.
+		 * @private
+		 */
 		_loadBackground: function(forceLoading) {
 			if (Webos.Theme._current && forceLoading !== true) {
 				if (Webos.Theme._current.get('background') == this.get('background')) {
@@ -88,9 +118,16 @@ new Webos.ScriptFile('/usr/lib/webos/config.js');
 
 			this.applyBackgroundOn(Webos.UserInterface.Booter.current().element());
 		},
+		/**
+		 * Apply this theme's animations preferences.
+		 */
 		_setAnimations: function() {
 			$.fx.off = !this.get('animations');
 		},
+		/**
+		 * Get this theme's background image.
+		 * @return {String} The background image path.
+		 */
 		background: function() {
 			var bg = this._get('background');
 			if (!bg) {
@@ -98,12 +135,24 @@ new Webos.ScriptFile('/usr/lib/webos/config.js');
 			}
 			return bg;
 		},
+		/**
+		 * Get this theme's background color.
+		 * @return {String} The background color.
+		 */
 		backgroundColor: function() {
 			return this._get('backgroundColor') || 'black';
 		},
+		/**
+		 * Get this theme's background reapeat value.
+		 * @return {String} The background reapeat value.
+		 */
 		backgroundRepeat: function() {
 			return this._get('backgroundRepeat') || 'no-repeat';
 		},
+		/**
+		 * Check if this background image is hidden.
+		 * @return {String} True if the background image is hidden, false otherwise.
+		 */
 		hideBackground: function() {
 			return (this._get('hideBackground') ? true : false);
 		},
