@@ -288,7 +288,6 @@ module.exports = function(grunt) {
 	]);
 
 
-	//TODO; outdated
 	grunt.registerTask('default', [
 		//'jshint',
 		'clean',
@@ -297,7 +296,10 @@ module.exports = function(grunt) {
 		'concat:themes',
 		'copy:index',
 		'copy:uis',
-		//'copy:usr'
+		'copy:usr',
+		'copy:ske1',
+		'convertuis',
+		'convertapps',
 		'uglify:build',
 		'uglify:uis'
 	]);
