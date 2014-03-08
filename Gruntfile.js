@@ -87,6 +87,8 @@ module.exports = function(grunt) {
 		}
 	}
 
+	//TODO: minify CSS
+
 	// Project configuration.
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),

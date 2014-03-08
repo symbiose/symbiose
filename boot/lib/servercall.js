@@ -754,6 +754,7 @@ console.log('todo', reqData);
 
 					op.on('progress', function (eventData) {
 						if (eventData.value == 99 && !this.completed()) {
+							//Favorites
 							for (var appName in favorites) {
 								var appIndex = parseInt(favorites[appName]);
 
@@ -762,7 +763,20 @@ console.log('todo', reqData);
 								}
 							}
 
-							//TODO: language support
+							//Language support
+							var lang = Webos.Translation.language();
+							if (Webos.Locale.getDefault().name() !== lang) {
+								for (var type in data) {
+									var items = data[type];
+									for (var itemName in items) {
+										var item = items[itemName];
+
+										if (item[lang]) {
+											data[type][itemName] = $.extend({}, item, item[lang]);
+										}
+									}
+								}
+							}
 
 							this.setCompleted({
 								statusCode: 200,
