@@ -52,11 +52,11 @@
 				url = iconFile.get('realpath');
 			} else {
 				if (Webos.standalone) {
+					var ext = 'png';
 					if (Webos.Icon.supportsSvg()) {
 						id = this.id('scalable', theme);
+						ext = 'svg';
 					}
-
-					var ext = (Webos.Icon.supportsSvg()) ? 'svg' : 'png';
 
 					iconPath = Webos.Icon.path+'/'+id+'.'+ext;
 
