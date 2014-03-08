@@ -1212,12 +1212,12 @@ Webos.File.mount = function(point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
 	if (!Webos[point.get('driver')]) {
-		callback.error();
+		callback.error(Webos.Callback.Result.error('Driver "'+point.get('driver')+'" not loaded'));
 		return;
 	}
 	
 	if (Webos.File._mountedDevices[point.get('local')]) {
-		callback.error();
+		callback.error(Webos.Callback.Result.error('Location "'+point.get('local')+'" already matches another mount point'));
 		return;
 	}
 	

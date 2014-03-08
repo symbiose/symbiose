@@ -230,17 +230,17 @@ Webos.require([
 								Webos.File.fstab.add(point, [function() {
 									that._window.window('close');
 									displaySuccessFn();
-								}, function(response) {
+								}, function(resp) {
 									that._window.window('loading', false);
-									response.triggerError(t.get('Can\'t perform the persistant mounting'));
+									resp.triggerError(t.get('Can\'t perform the persistant mounting'));
 								}]);
 							} else {
 								that._window.window('close');
 								displaySuccessFn();
 							}
-						}, function() {
+						}, function(resp) {
 							that._window.window('loading', false);
-							Webos.Error.trigger(t.get('Can\'t mount the volume'));
+							resp.triggerError(t.get('Can\'t mount the volume'));
 						}]);
 					};
 					
@@ -263,15 +263,15 @@ Webos.require([
 							}
 							
 							mountFn();
-						}, function(response) {
+						}, function(resp) {
 							that._window.window('loading', true, {
 								message: t.get('Creating the local folder "${local}"...', { local: local })
 							});
 							W.File.createFolder(local, [function(file) {
 								mountFn();
-							}, function(response) {
+							}, function(resp) {
 								that._window.window('loading', false);
-								response.triggerError(t.get('Can\'t create the local folder "${local}"', { local: local }));
+								resp.triggerError(t.get('Can\'t create the local folder "${local}"', { local: local }));
 							}]);
 						}]);
 					} else {
