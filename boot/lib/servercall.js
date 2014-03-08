@@ -203,7 +203,7 @@
 					return; //On stoppe l'execution de la fonction
 				}
 
-				var response = new W.ServerCall.Response(data); //On cree la reponse
+				var response = Webos.ServerCall.Response.create(data); //On cree la reponse
 				
 				that.setCompleted(response);
 			}, function(res) {
@@ -532,7 +532,7 @@ console.log('todo', reqData);
 					});
 console.log('todo', reqData);
 				} else {
-					op.setCompleted(result);
+					op.setCompleted(true, result);
 				}
 
 				return op;
@@ -564,7 +564,7 @@ console.log('todo', reqData);
 
 					if (!file) {
 						var errMsg = 'Cannot read file "'+filePath+'": invalid file path';
-						op.setCompleted({
+						op.setCompleted(true, {
 							statusCode: 400,
 							channels: {
 								2: errMsg
@@ -576,7 +576,7 @@ console.log('todo', reqData);
 
 					if (file.get('is_dir')) {
 						var errMsg = 'Cannot read file "'+file.get('path')+'": reading directories is not supported in standalone mode';
-						op.setCompleted({
+						op.setCompleted(true, {
 							statusCode: 405,
 							channels: {
 								2: errMsg
@@ -594,7 +594,7 @@ console.log('todo', reqData);
 						dataType: 'text',
 						async: (req._options.async !== false),
 						success: function(data, textStatus, jqXHR) {
-							op.setCompleted({
+							op.setCompleted(true, {
 								statusCode: 200,
 								channels: {
 									1: data
@@ -605,7 +605,7 @@ console.log('todo', reqData);
 						error: function(jqXHR, textStatus, errorThrown) {
 							var errMsg = 'Cannot read file "'+file.get('path')+'": '+errorThrown;
 
-							op.setCompleted({
+							op.setCompleted(true, {
 								statusCode: jqXHR.status,
 								channels: {
 									2: errMsg
@@ -658,10 +658,10 @@ console.log('todo', reqData);
 									createBooter(html, js);
 								}]);
 							}, function (resp) {
-								op.setCompleted(resp);
+								op.setCompleted(true, resp);
 							}]);
 						}, function (resp) {
-							op.setCompleted(resp);
+							op.setCompleted(true, resp);
 						}]);
 					};
 
@@ -687,7 +687,7 @@ console.log('todo', reqData);
 
 							loadUi(uiName);
 						}, function (resp) {
-							op.setCompleted(resp);
+							op.setCompleted(true, resp);
 						}]);
 					}
 
@@ -736,7 +736,7 @@ console.log('todo', reqData);
 							data: configData
 						});
 					}, function (resp) {
-						op.setCompleted(resp);
+						op.setCompleted(true, resp);
 					}]);
 
 					return op;
@@ -793,13 +793,13 @@ console.log('todo', reqData);
 						data.applications = $.parseJSON(json);
 						op.addProgress(33);
 					}, function (resp) {
-						op.setCompleted(resp);
+						op.setCompleted(true, resp);
 					}]);
 					catsFile.readAsText([function (json) {
 						data.categories = $.parseJSON(json);
 						op.addProgress(33);
 					}, function (resp) {
-						op.setCompleted(resp);
+						op.setCompleted(true, resp);
 					}]);
 
 					Webos.ConfigFile.load('/etc/ske1/.config/favorites.xml', [function (configFile) {
@@ -829,7 +829,7 @@ console.log('todo', reqData);
 							}
 						});
 					}, function (resp) {
-						op.setCompleted(resp);
+						op.setCompleted(true, resp);
 					}]);
 
 					return op;
@@ -857,7 +857,7 @@ console.log('todo', reqData);
 							}
 						});
 					}, function (resp) {
-						op.setCompleted(resp);
+						op.setCompleted(true, resp);
 					}]);
 
 					return op;
@@ -1714,7 +1714,7 @@ console.log('todo', reqData);
 					
 					var resp, i = 0;
 					for (var index in data.data) {
-						resp = new W.ServerCall.Response(data.data[index]); //On cree la reponse
+						resp = Webos.ServerCall.Response.create(data.data[index]); //On cree la reponse
 						reqs[i].setCompleted(resp);
 
 						i++;
@@ -1817,7 +1817,7 @@ console.log('todo', reqData);
 	 * @constructor
 	 * @since  1.0alpha1
 	 */
-	Webos.ServerCall.Response = function WServerCallResponse(response) {
+	Webos.ServerCall.Response = function (response) {
 		if (!response || typeof response != 'object') {
 			response = {
 				success: false,
@@ -1922,5 +1922,13 @@ console.log('todo', reqData);
 			},
 			out: msg
 		});
+	};
+
+	Webos.ServerCall.Response.create = function (data) {
+		if (Webos.isInstanceOf(data, Webos.ServerCall.Response)) {
+			return data;
+		} else {
+			return new Webos.ServerCall.Response(data);
+		}
 	};
 })();

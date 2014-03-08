@@ -28,6 +28,7 @@
 		 * @private
 		 */
 		_completed: false,
+		_failed: false,
 		/**
 		 * This operation's result.
 		 * @private
@@ -106,21 +107,7 @@
 		 * @return {Boolean} True if this operations is failed, false otherwise.
 		 */
 		failed: function () {
-			var result = this._result;
-
-			if (result === false) {
-				return true;
-			}
-
-			if (Webos.isInstanceOf(result, Webos.Callback.Result)) {
-				return (!result.isSuccess());
-			}
-
-			if (Webos.isInstanceOf(result, Webos.Error)) {
-				return true;
-			}
-
-			return false;
+			return this._failed;
 		},
 		/**
 		 * Mark this operation as started.
@@ -168,18 +155,40 @@
 		},
 		/**
 		 * Mark this operation as completed.
-		 * @param result This operation's result.
+		 * @param result This operation's result. False values will mark the operation as failed.
+		 * @param [data] This operation's result data, if not provided as first argument.
 		 */
-		setCompleted: function (result) {
+		setCompleted: function (result, data) {
 			this.setProgress(100);
 
-			this._completed = true;
-			this._result = result;
+			if (typeof data == 'undefined') {
+				data = result;
+			}
 
-			this.trigger('complete', { result: result, failed: this.failed() });
+			var isFailed = function () {
+				if (result === false) {
+					return true;
+				}
+
+				if (Webos.isInstanceOf(result, Webos.Callback.Result)) {
+					return (!result.isSuccess());
+				}
+
+				if (Webos.isInstanceOf(result, Webos.Error)) {
+					return true;
+				}
+
+				return false;
+			};
+
+			this._completed = true;
+			this._failed = isFailed();
+			this._result = data;
+
+			this.trigger('complete', { result: this.result(), failed: this.failed() });
 
 			var eventName = (this.failed()) ? 'error' : 'success';
-			this.trigger(eventName, { result: result });
+			this.trigger(eventName, { result: this.result() });
 		},
 		/**
 		 * Add callbacks to this operation.
