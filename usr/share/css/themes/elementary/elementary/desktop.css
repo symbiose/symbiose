@@ -192,6 +192,7 @@ body {
 }
 #elementary-apps .apps-view-search li .app-title {
 	height: auto;
+	width: auto;
 	font-weight: bold;
 }
 #elementary-apps .apps-view-search li .app-description {
