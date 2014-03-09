@@ -675,32 +675,35 @@ Webos.require([
 					W.Cmd.execute('gconf');
 				}).appendTo($submenu);
 			} else {
-				$('<li>'+t.get('Login...')+'</li>').click(function() {
-					W.Cmd.execute('gnome-login');
-				}).appendTo($submenu);
-				var registerMenuItem = $('<li>'+t.get('Register')+'</li>').click(function() {
-					W.Cmd.execute('gnome-register');
-				}).hide().appendTo($submenu);
-				$('<li></li>', { 'class': 'separator' }).appendTo($submenu);
-				
-				Webos.User.canRegister(function(registerSettings) {
-					var notificationsButtons = [
-						$.w.button(t.get('Register')).click(function() { W.Cmd.execute('gnome-register'); }),
-						$.w.button(t.get('Login...')).click(function() { W.Cmd.execute('gnome-login'); })
-					];
-					if (registerSettings.register) {
-						registerMenuItem.show();
-					} else {
-						notificationsButtons = [notificationsButtons[1]];
-					}
+				if (!Webos.standalone) {
+					$('<li>'+t.get('Login...')+'</li>').click(function() {
+						W.Cmd.execute('gnome-login');
+					}).appendTo($submenu);
+
+					var registerMenuItem = $('<li>'+t.get('Register')+'</li>').click(function() {
+						W.Cmd.execute('gnome-register');
+					}).hide().appendTo($submenu);
+					$('<li></li>', { 'class': 'separator' }).appendTo($submenu);
 					
-					/*$.w.notification({
-						title: t.get('Welcome to ${webos} !', { webos: Webos.name }),
-						message: t.get('To access your documents please login.'),
-						icon: '/usr/share/images/distributor/logo-48.png',
-						widgets: notificationsButtons
-					});*/
-				});
+					Webos.User.canRegister(function(registerSettings) {
+						var notificationsButtons = [
+							$.w.button(t.get('Register')).click(function() { W.Cmd.execute('gnome-register'); }),
+							$.w.button(t.get('Login...')).click(function() { W.Cmd.execute('gnome-login'); })
+						];
+						if (registerSettings.register) {
+							registerMenuItem.show();
+						} else {
+							notificationsButtons = [notificationsButtons[1]];
+						}
+						
+						/*$.w.notification({
+							title: t.get('Welcome to ${webos} !', { webos: Webos.name }),
+							message: t.get('To access your documents please login.'),
+							icon: '/usr/share/images/distributor/logo-48.png',
+							widgets: notificationsButtons
+						});*/
+					});
+				}
 			}
 
 			if (Webos.fullscreen.support) {
@@ -722,12 +725,13 @@ Webos.require([
 					}
 					updateFullScreenItemFn();
 				}).appendTo($submenu);
+
 				$('<li></li>', { 'class': 'separator' }).appendTo($submenu);
-				
+
 				$(document).bind(Webos.fullscreen.eventName, function() {
 					updateFullScreenItemFn();
 				});
-				
+
 				updateFullScreenItemFn();
 			}
 
