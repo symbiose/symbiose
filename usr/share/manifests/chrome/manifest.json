@@ -18,5 +18,9 @@
       "web_url": "http://webos.symbiose.fr.cr/"
     }
   },
-  "manifest_version":2
+  "manifest_version":2,
+  "permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
 }
