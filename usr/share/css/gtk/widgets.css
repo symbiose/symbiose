@@ -26,3 +26,10 @@
 .webos-alert-container .webos-button {
 	float: right;
 }
+
+/* Icons */
+.webos-icon.icon-dark {
+	filter: url(#webos-icon-brightness-darker);
+	-webkit-filter: brightness(50%);
+	filter: brightness(50%);
+}

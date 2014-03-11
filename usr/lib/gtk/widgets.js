@@ -1021,6 +1021,7 @@ $.webos.image = function(src, title, loadHidden) {
  * An image.
  */
 $.webos.image.prototype = {
+	_name: 'image',
 	/**
 	 * Options:
 	 *  - `src`: the image's source path
@@ -1224,20 +1225,26 @@ $.webos.icon = function(src, size) {
  * An icon.
  */
 $.webos.icon.prototype = {
+	_name: 'icon',
 	/**
 	 * Options:
 	 *  - `src`: the icon's name
 	 *  - `size`: the icon's size
+	 *  - `variant`: the icon's variant (can be `dark` or `light`)
 	 */
 	options: {
 		src: '',
-		size: undefined
+		size: undefined,
+		variant: ''
 	},
 	_create: function() {
 		this._super('_create');
 
 		if (this.options.size) {
 			this.option('size', this.options.size);
+		}
+		if (this.options.variant) {
+			this.option('variant', this.options.variant);
 		}
 	},
 	_update: function(key, value) {
@@ -1261,17 +1268,27 @@ $.webos.icon.prototype = {
 				break;
 			case 'size':
 				value = parseInt(value);
-				this.options.src.size = value;
+				this.options.src.setSize(value);
 				this.element.css({
 					width: value,
 					height: value
 				});
 				this.load();
 				break;
+			case 'variant':
+				value = String(value);
+				this.element.removeClass('icon-'+this.options.variant).addClass('icon-'+value);
+				this.options.variant = value;
+				break;
 		}
 	}
 };
 $.webos.widget('icon', 'image');
+
+$.webos.icon._svgFilters = {
+	dark: $('<div style="width:0;height:0;overflow:hidden;"><svg height="0" xmlns="http://www.w3.org/2000/svg"><filter id="webos-icon-brightness-darker"><feComponentTransfer><feFuncR type="linear" slope="0.3"/><feFuncG type="linear" slope="0.3"/><feFuncB type="linear" slope="0.3"/></feComponentTransfer></filter></svg></div>').appendTo('body')
+};
+
 
 /**
  * A progress bar.

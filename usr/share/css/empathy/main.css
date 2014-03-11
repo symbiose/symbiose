@@ -1,11 +1,6 @@
 .empathy-header {
 	padding: 3px;
 }
-.btns-ctn img {
-	filter: url(#brightness);
-	-webkit-filter: brightness(50%);
-	filter: brightness(50%);
-}
 
 .pull-right {
 	float: right;
