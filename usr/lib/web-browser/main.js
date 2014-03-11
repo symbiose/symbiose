@@ -1,217 +1,281 @@
-function WebBrowserWindow(url) {
-	this._window = $.w.window.main({
-		title: 'Web browser',
-		icon: new W.Icon('apps/web-browser'),
-		width: 500,
-		height: 400,
-		maximized: true,
-		stylesheet: '/usr/share/css/web-browser/main.css'
-	});
-
-	var that = this;
-
-	this._iframe = $();
-	this._configForm = $();
-
-	this._url = '';
-
-	this._homePage = 'http://www.duckduckgo.com/html?kd=-1&kn=-1';
-
-	this._proxyEnabled = false;
-	this._proxyUrl = '../phproxy-improved/';
-	this._proxyFlags = {
-		'include_form'    : false,
-		'remove_scripts'  : false,
-		'accept_cookies'  : true,
-		'show_images'     : true,
-		'show_referer'    : true,
-		'rotate13'        : false,
-		'base64_encode'   : true,
-		'strip_meta'      : true,
-		'strip_title'     : false,
-		'session_cookies' : true
-	};
-
-	this.url = function() {
-		return this._url;
-	};
-
-	this.proxyEnabled = function() {
-		return this._proxyEnabled;
-	};
-	this.proxyFlag = function(flag) {
-		return this._proxyFlags[flag];
-	};
-	this._getProxyFlagsBinary = function() {
-		var proxyFlagsStr = '';
-
-		for (var flag in this._proxyFlags) {
-			proxyFlagsStr += (this._proxyFlags[flag]) ? 1 : 0;
-		}
-
-		return proxyFlagsStr;
-	};
-	this._baseConvert = function(number, frombase, tobase) {
-		return parseInt(number + '', frombase | 0).toString(tobase | 0);
-	};
-	this._proxifyUrl = function(url, location) {
-		if (url.indexOf('about:') == 0) {
-			return url;
-		}
-
-		var proxyFlagsStr = this._baseConvert(this._getProxyFlagsBinary(), 2, 16);
-
-		var proxifiedUrl = this._proxyUrl + '?q='+encodeURIComponent(btoa(url))+'&hl='+encodeURIComponent(proxyFlagsStr);
-
-		return proxifiedUrl;
-	};
-
-	this._goToConfig = function() {
+(function () {
+	var WebBrowserWindow = function (url) {
 		var that = this;
 
-		this._iframe.hide();
-		this._configForm.remove();
+		Webos.Observable.call(this);
 
-		this._configForm = $.w.entryContainer().appendTo(this._window.window('content'));
-		var form = this._configForm;
+		this.initialize();
 
-		var $proxyConfig = $();
-
-		var proxySwitcher = $.w.switchButton('Enable proxy ', this.proxyEnabled()).on('switchbuttonchange', function(e, data) {
-			that._proxyEnabled = data.value;
-			$proxyConfig.toggle(data.value);
-		}).appendTo(form);
-
-		var proxyUrl = $.w.textEntry('Proxy URL ', this._proxyUrl).on('textentrychange', function(e, data) {
-			that._proxyUrl = data.value;
-		}).appendTo(form);
-		$proxyConfig = $proxyConfig.add(proxyUrl);
-
-		var proxyFlagsDesc = {
-			'remove_scripts'  : 'Enable Javascript',
-			'accept_cookies'  : 'Accept cookies',
-			'show_images'     : 'Show images'
-		};
-
-		for (var flag in proxyFlagsDesc) {
-			(function(flag, label) {
-				var switcher = $.w.switchButton(label+' ', that.proxyFlag(flag)).on('switchbuttonchange', function(e, data) {
-					that._proxyFlags[flag] = data.value;
-				}).appendTo(form);
-
-				$proxyConfig = $proxyConfig.add(switcher);
-			})(flag, proxyFlagsDesc[flag]);
-		}
-		
-		$proxyConfig.toggle(this.proxyEnabled());
-	};
-	
-	this.browse = function(location) {
-		var that = this;
-
-		that._window.window('loading', false);
-
-		var url = '';
-		if (Webos.isInstanceOf(location, Webos.File)) {
-			url = location.get('realpath');
-			this.historyLocation++;
-		} else if (typeof location == 'string') {
-			url = location;
-			this.historyLocation++;
-		}
-
-		if (url == 'about:home') {
-			url = this._homePage;
-		}
-
-		var showConfig = false;
-		if (url == 'about:config') {
-			showConfig = true;
-		}
-
-		this._urlInput.val(url);
-		this._url = url;
-
-		if (this.proxyEnabled()) {
-			url = this._proxifyUrl(url);
-		}
-
-		if (showConfig) {
-			this._goToConfig();
-			return;
-		} else {
-			this._configForm.hide();
-			this._iframe.show();
-		}
-
-		this._iframe.remove();
-		this._iframe = $('<iframe></iframe>', { src: url });
-
-		this._iframe.appendTo(this._window.window('content'));
-
-
-		this._window.window('loading', true, {
-			lock: false
+		this.once('ready', function () {
+			that.browse(url || 'about:home');
 		});
+	};
+	WebBrowserWindow.prototype = {
+		_url: '',
+		_$win: $(),
+		_$iframe: $(),
+		_$configForm: $(),
+		_config: {
+			homepage: 'https://www.duckduckgo.com/?kd=-1&kn=-1',
+			enableProxy: false,
+			proxyUrl: '../phproxy-improved/',
+			proxyFlags: {
+				'include_form'    : false,
+				'remove_scripts'  : false,
+				'accept_cookies'  : true,
+				'show_images'     : true,
+				'show_referer'    : true,
+				'rotate13'        : false,
+				'base64_encode'   : true,
+				'strip_meta'      : true,
+				'strip_title'     : false,
+				'session_cookies' : true
+			}
+		},
+		_settingsPreviousUrl: '',
+		initialize: function () {
+			var that = this;
 
-		this._iframe.unload(function(e) {
-			that._window.window('loading', true, {
+			W.xtag.loadUI('/usr/share/templates/web-browser/main.html', function(windows) {
+				that._$win = $(windows).filter(':eq(0)');
+
+				var $win = that._$win;
+
+				$win.window('open');
+
+				that._initUi();
+
+				that.trigger('ready');
+			});
+		},
+		_initUi: function () {
+			var that = this;
+			var $win = this._$win;
+
+			$win.find('.input-url').keydown(function(e) {
+				if (e.keyCode == 13) {
+					that.browse($(this).val());
+					e.preventDefault();
+				}
+			});
+
+			$win.find('.btn-go-previous').click(function () {
+				that.previous();
+			});
+			$win.find('.btn-go-next').click(function () {
+				that.next();
+			});
+			$win.find('.btn-settings').click(function () {
+				that.switchSettings();
+			});
+		},
+		_proxyFlagsAsBinary: function () {
+			var proxyFlagsStr = '';
+
+			for (var flag in this._config.proxyFlags) {
+				proxyFlagsStr += (this._config.proxyFlags[flag]) ? 1 : 0;
+			}
+
+			return proxyFlagsStr;
+		},
+		_baseConvert: function(number, frombase, tobase) {
+			return parseInt(number + '', frombase | 0).toString(tobase | 0);
+		},
+		_proxifyUrl: function(url, location) {
+			if (url.indexOf('about:') === 0) {
+				return url;
+			}
+
+			var proxyFlagsStr = this._baseConvert(this._proxyFlagsAsBinary(), 2, 16);
+
+			var proxifiedUrl = this._config.proxyUrl + '?q='+encodeURIComponent(btoa(url))+'&hl='+encodeURIComponent(proxyFlagsStr);
+
+			return proxifiedUrl;
+		},
+		_XFramesOptionError: function () {
+			var extensions = {
+				firefox: 'https://addons.mozilla.org/en-US/firefox/addon/modify-headers/',
+				chrome: 'https://chrome.google.com/webstore/detail/ignore-x-frame-headers/gleekbfjekiniecknbkamfmkohkpodhe'
+			};
+
+			W.Error.trigger('Cannot open page: internal error', 'most of the time that\'s due to security restrictions: see https://github.com/symbiose/symbiose/wiki/Proxy', 403);
+		},
+		_goToConfig: function() {
+			var that = this;
+
+			this._$win.find('.browser-ctn').hide();
+			this._$configForm.remove();
+
+			this._$configForm = $.w.entryContainer().addClass('settings-ctn').appendTo(this._$win.window('content'));
+			var form = this._$configForm;
+
+			var $proxyConfig = $();
+
+			var proxySwitcher = $.w.switchButton('Enable proxy ', this.config().enableProxy).on('switchbuttonchange', function(e, data) {
+				that._proxyEnabled = data.value;
+				$proxyConfig.toggle(data.value);
+			}).appendTo(form);
+
+			var proxyUrl = $.w.textEntry('Proxy URL ', this.config().proxyUrl).on('textentrychange', function(e, data) {
+				that._config.proxyUrl = data.value;
+			}).appendTo(form);
+			$proxyConfig = $proxyConfig.add(proxyUrl);
+
+			var proxyFlagsDesc = {
+				'remove_scripts'  : 'Enable Javascript',
+				'accept_cookies'  : 'Accept cookies',
+				'show_images'     : 'Show images'
+			};
+
+			for (var flag in proxyFlagsDesc) {
+				(function(flag, label) {
+					var switcher = $.w.switchButton(label+' ', that.config().proxyFlags[flag]).on('switchbuttonchange', function(e, data) {
+						that._config.proxyFlags[flag] = data.value;
+					}).appendTo(form);
+
+					$proxyConfig = $proxyConfig.add(switcher);
+				})(flag, proxyFlagsDesc[flag]);
+			}
+			
+			$proxyConfig.toggle(this.config().enableProxy);
+		},
+		switchSettings: function() {
+			if (this.url() == 'about:config') {
+				this._$configForm.hide();
+				this._$win.find('.browser-ctn').show();
+
+				this._$win.find('.input-url').val(this._settingsPreviousUrl);
+				this._url = this._settingsPreviousUrl;
+			} else {
+				this._settingsPreviousUrl = this.url();
+				this.browse('about:config');
+			}
+		},
+		url: function () {
+			return this._url;
+		},
+		config: function () {
+			return this._config;
+		},
+		browse: function (location) {
+			var that = this;
+
+			that._$win.window('loading', false);
+
+			var url = '';
+			if (Webos.isInstanceOf(location, Webos.File)) {
+				url = location.get('realpath');
+				this.historyLocation++;
+			} else if (typeof location == 'string') {
+				url = location;
+				this.historyLocation++;
+			}
+
+			if (url == 'about:home') {
+				url = this._config.homepage;
+			}
+
+			var showConfig = false;
+			if (url == 'about:config') {
+				showConfig = true;
+			}
+
+			this._$win.find('.input-url').val(url);
+			this._url = url;
+
+			if (showConfig) {
+				this._goToConfig();
+				return;
+			} else {
+				this._$configForm.hide();
+				this._$win.find('.browser-ctn').show();
+			}
+
+			if (this.config().enableProxy) {
+				url = this._proxifyUrl(url);
+			}
+
+			this._$iframe.remove();
+			this._$iframe = $('<iframe></iframe>', { src: url });
+
+			this._$iframe.appendTo(this._$win.find('.browser-ctn'));
+
+			this._$win.window('loading', true, {
 				lock: false
 			});
-		}).load(function() {
-			that._window.window('loading', false);
 
-			if (that.proxyEnabled()) {
-				var proxyHref = that._iframe[0].contentWindow.location.href,
-				proxyQuery = proxyHref.split('?')[1],
-				proxyParams = proxyQuery.split('&'),
-				proxyUrl = url;
+			this._$iframe.unload(function(e) {
+				that._$win.window('loading', true, {
+					lock: false
+				});
+			}).load(function() {
+				that._$win.window('loading', false);
 
-				for (var i = 0; i < proxyParams.length; i++) {
-					proxyParams[i] = proxyParams[i].split('=');
-				}
+				if (that.config().enableProxy) {
+					var proxyHref = that._$iframe[0].contentWindow.location.href,
+					proxyQuery = proxyHref.split('?')[1],
+					proxyParams = proxyQuery.split('&'),
+					proxyUrl = url;
 
-				proxyParams = _.object(proxyParams);
+					for (var i = 0; i < proxyParams.length; i++) {
+						proxyParams[i] = proxyParams[i].split('=');
+					}
 
-				var encodedUrl;
-				if (proxyParams.____pgfa) {
-					encodedUrl = proxyParams.____pgfa;
-				} else if (proxyParams.q) {
-					encodedUrl = proxyParams.q;
-				}
+					proxyParams = _.object(proxyParams);
 
-				if (encodedUrl) {
-					try {
-						proxyUrl = window.atob(decodeURIComponent(encodedUrl));
-					} catch(e) {
+					var encodedUrl;
+					if (proxyParams.____pgfa) {
+						encodedUrl = proxyParams.____pgfa;
+					} else if (proxyParams.q) {
+						encodedUrl = proxyParams.q;
+					}
+
+					if (encodedUrl) {
 						try {
-							proxyUrl = window.atob(decodeURIComponent(decodeURIComponent(encodedUrl)));
+							proxyUrl = window.atob(decodeURIComponent(encodedUrl));
 						} catch(e) {
-							proxyUrl = encodedUrl;
+							try {
+								proxyUrl = window.atob(decodeURIComponent(decodeURIComponent(encodedUrl)));
+							} catch(e) {
+								proxyUrl = encodedUrl;
+							}
 						}
 					}
+
+					that._urlInput.val(proxyUrl);
+					that._url = proxyUrl;
 				}
+			}).error(function() {
+				that._$win.window('loading', false);
+				that._XFramesOptionError();
+			});
+		},
+		previous: function (diff) {
+			this._$iframe[0].contentWindow.history.go(-1);
+		},
+		next: function (diff) {
+			this._$iframe[0].contentWindow.history.go(1);
+		},
+		goHome: function () {
+			this.browse('about:home');
+		},
+		reload: function (diff) {
+			this._$iframe[0].contentWindow.location.reload();
+		}
+	};
+	Webos.inherit(WebBrowserWindow, Webos.Observable);
 
-				that._urlInput.val(proxyUrl);
-				that._url = proxyUrl;
-			}
-		}).error(function() {
-			that._window.window('loading', false);
-			W.Error.trigger('Cannot open page: internal error', 'most of the time that\'s due to security restrictions: see https://github.com/symbiose/symbiose/wiki/Proxy', 403);
-		});
+	WebBrowserWindow.open = function (url) {
+		return new WebBrowserWindow(url);
 	};
 
-	this.previous = function(diff) {
-		this._iframe[0].contentWindow.history.go(-1);
-	};
-	
-	this.next = function(diff) {
-		this._iframe[0].contentWindow.history.go(1);
-	};
+	window.WebBrowserWindow = WebBrowserWindow;
+})();
+/*
 
-	this.goHome = function() {
-		this.browse('about:home');
-	};
+function WebBrowserWindow(url) {
+	this._iframe = $();
+	this._configForm = $();
 
 	var previousUrl;
 	this.switchConfig = function() {
@@ -266,4 +330,4 @@ function WebBrowserWindow(url) {
 	} else {
 		this.browse('about:home');
 	}
-}
+}*/

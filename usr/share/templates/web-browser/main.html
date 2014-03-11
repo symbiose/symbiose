@@ -1,0 +1,20 @@
+<x-window-main width="700" height="500" icon="apps/web-browser" stylesheet="/usr/share/css/web-browser/main.css">
+	<h1>Web browser</h1>
+
+	<header>
+		<div class="ctrl-ctn pull-right">
+			<x-button class="btn-settings" title="Settings"><x-icon src="actions/cog" size="24"></x-icon></x-button>
+		</div>
+
+		<div class="ctrl-ctn pull-left">
+			<x-button class="btn-go-previous" title="Previous"><x-icon src="actions/go-previous" size="24"></x-icon></x-button>
+			<x-button class="btn-go-next" title="Next"><x-icon src="actions/go-next" size="24"></x-icon></x-button>
+		</div>
+
+		<div class="ctrl-ctn expand">
+			<input type="text" class="input-url">
+		</div>
+	</header>
+
+	<div class="browser-ctn"></div>
+</x-window-main>
