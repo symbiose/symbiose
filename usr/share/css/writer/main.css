@@ -10,8 +10,9 @@
 	padding: 3px;
 }
 .btns-ctn .webos-button:not(:hover):not(:active) {
-	border: 1px solid transparent;
+	border-color: transparent;
 	background: none;
+	box-shadow: none;
 }
 
 .writer-toolbar {

@@ -40,6 +40,7 @@ input[type="button"], input[type="submit"], .webos-button {
 	-moz-border-radius: 2px;
 	-webkit-border-radius: 2px;
 	border-radius: 2px;
+	border: 1px solid transparent;
 }
 .webos-button { /* On desactive la selection des boutons */
 	-moz-user-select: none;
@@ -51,24 +52,27 @@ input[type="button"], input[type="submit"], .webos-button {
 
 input[type="button"], .webos-button {
 	color: #505156;
-	border: 1px solid #9d9d9d;
-	background-color: #fcfcfc;
+	border-color: #979797;
+	background-color: #ececec;
+	background: -moz-linear-gradient(#fbfbfb, #dedede);
+	background: -webkit-linear-gradient(#fbfbfb, #dedede);
+	background: linear-gradient(#fbfbfb, #dedede);
+	box-shadow: inset 0 0 1px 1px #e7e7e7;
+}
+input[type="button"]:hover, .webos-button:hover {
 	background: -moz-linear-gradient(white, #e8e8e8);
 	background: -webkit-linear-gradient(white, #e8e8e8);
 	background: linear-gradient(white, #e8e8e8);
 }
-input[type="button"]:hover, .webos-button:hover {
-	background: -moz-linear-gradient(white, #dddddd);
-	background: -webkit-linear-gradient(white, #dddddd);
-	background: linear-gradient(white, #dddddd);
-}
 input[type="button"]:active, .webos-button:active,
 input[type="button"].active, .webos-button.active {
-	background: -moz-linear-gradient(#b6b6b6, #a0a0a0);
-	background: -webkit-linear-gradient(#b6b6b6, #a0a0a0);
-	background: linear-gradient(#b6b6b6, #a0a0a0);
-	border-color: #636363;
+	background: -moz-linear-gradient(#c4c4c4, #cbcbcb);
+	background: -webkit-linear-gradient(#c4c4c4, #cbcbcb);
+	background: linear-gradient(#c4c4c4, #cbcbcb);
+	background-color: #c4c4c4;
+	border-color: #858585;
 	color: #4f5054;
+	box-shadow: inset 0 0 1px 1px #acacac;
 }
 
 input[type="submit"], .webos-button.submit { 
@@ -78,6 +82,7 @@ input[type="submit"], .webos-button.submit {
 	background: -moz-linear-gradient(#52bbec, #368ae6);
 	background: -webkit-linear-gradient(#52bbec, #368ae6);
 	background: linear-gradient(#52bbec, #368ae6);
+	box-shadow: inset 0 0 1px 1px #5bb5ec;
 }
 input[type="submit"]:hover, .webos-button.submit:hover {
 	background-color: #4aacea;
@@ -91,6 +96,7 @@ input[type="submit"]:active, input[type="submit"].active,
 	background: -moz-linear-gradient(#378ce6, #44a1e9);
 	background: -webkit-linear-gradient(#378ce6, #44a1e9);
 	background: linear-gradient(#378ce6, #44a1e9);
+	box-shadow: none;
 }
 
 input[type="button"][disabled],
