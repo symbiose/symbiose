@@ -48,13 +48,19 @@ var GConf = function (category) {
 				if (!params[cat]) {
 					params[cat] = $();
 				}
+				if (!catTitles[cat]) {
+					catTitles[cat] = cat;
+				}
 
 				params[cat] = params[cat].add(generateItemFn(data));
 			}
 
-			for (var catName in params) {
+			for (var catName in catTitles) {
 				var catTitle = catName;
 
+				if (!params[catName] || !params[catName].length) {
+					continue;
+				}
 				if (catTitles[catName]) {
 					catTitle = catTitles[catName];
 				}

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <category>
-	<define name="name" value="systemdata"/>
-	<define name="title" value="System info"/>
-	<define name="title" lang="fr_FR" value="Informations système"/>
+	<define name="name" value="about"/>
+	<define name="title" value="About"/>
+	<define name="title" lang="fr_FR" value="À propos"/>
 	<define name="icon" value="status/info"/>
 	<define name="description" value="Show information about the system"/>
 	<define name="description" lang="fr_FR" value="Afficher les informations sur le système"/>
 	<define name="category" value="system"/>
-	<define name="authorizations" value="file.system.read"/>
 </category>
