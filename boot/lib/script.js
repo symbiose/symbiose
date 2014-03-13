@@ -220,10 +220,6 @@ function include(path, args, thisObj) {
  */
 Webos.require = function (files, callback, options) {
 	callback = Webos.Callback.toCallback(callback);
-	options = $.extend({
-		styleContainer: null,
-		exportApis: []
-	}, options);
 
 	if (!files) { //No file to load
 		callback.success();
@@ -264,11 +260,17 @@ Webos.require = function (files, callback, options) {
 				context: null,
 				arguments: [],
 				styleContainer: null,
-				exportApis: []
+				exportApis: [],
+				process: true
 			}, options, requiredFile);
 
 			var file = W.File.get(requiredFile.path);
 			var call = file.readAsText([function(contents) {
+				if (!requiredFile.process) {
+					onLoadFn(file);
+					return;
+				}
+
 				if (file.get('extension') == 'js') {
 					var previousFile = Webos.require._currentFile;
 					Webos.require._stacks[file.get('path')] = [];

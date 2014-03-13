@@ -1,5 +1,9 @@
 Webos.require([
 	'/usr/share/css/nautilus/main.css',
+	{
+		path: '/usr/share/css/nautilus/window.css',
+		process: false //Preload without processing this file
+	},
 
 	'/usr/lib/nautilus/widgets.js',
 	'/usr/lib/jquery.filedrop.js',
