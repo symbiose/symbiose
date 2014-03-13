@@ -20,7 +20,7 @@ var about = $.w.label().appendTo(aboutContent)
 	.label('content').load(W.File.get('/usr/share/docs/webos/about.html').get('realpath'));
 
 if (thisProcess.getAuthorizations().can('package.read')) {
-	var $checkUpdatesBtn = $.w.button('V&eacute;rifier les mises &agrave; jour...').click(function() {
+	var $checkUpdatesBtn = $.w.button('Check system updates...').click(function() {
 		W.Cmd.execute('update-manager');
 	}).appendTo(aboutContent);
 }
@@ -28,13 +28,13 @@ if (thisProcess.getAuthorizations().can('package.read')) {
 if (canReadSystemFiles) {
 	//System
 	var serverData = $.w.label().addClass('serverdata');
-	tabs.tabs('tab', 'Serveur', serverData);
+	tabs.tabs('tab', 'Server', serverData);
 
 	var serverDataList = $('<ul></ul>').addClass('serverDataList').appendTo(serverData);
 
 	//Users
 	var usersData = $.w.label().addClass('usersdata');
-	tabs.tabs('tab', 'Utilisateurs', usersData);
+	tabs.tabs('tab', 'Users', usersData);
 
 	var usersDataList = $('<ul></ul>').addClass('usersDataList').appendTo(usersData);
 
@@ -60,18 +60,18 @@ if (canReadSystemFiles) {
 				Webos.require('/usr/lib/webos/server.js', function() {
 					Webos.Server.getData([function(data) {
 						var dataList = {
-							'Nom du serveur': data.host,
-							'Version actuelle de PHP': data.php_version,
-							'Version requise de PHP pour le webos': data.required_php_version,
-							'Syst&egrave;me d\'exploitation': data.os,
-							'Type du syst&egrave;me d\'exploitation': data.os_type,
-							'Espace disque restant': W.File.bytesToSize(data.free_space)
+							'Server name': data.host,
+							'Current PHP version': data.php_version,
+							'Required PHP version for the webos': data.required_php_version,
+							'OS': data.os,
+							'OS type': data.os_type,
+							'Available disk space': W.File.bytesToSize(data.free_space)
 						};
 
 						serverDataList.empty();
 						for (var label in dataList) {
 							var item = $('<li></li>');
-							item.html('<span class="detail">'+label+' : </span>'+dataList[label]);
+							item.html('<span class="detail">'+label+': </span>'+dataList[label]);
 							serverDataList.append(item);
 						}
 
@@ -87,13 +87,13 @@ if (canReadSystemFiles) {
 
 				Webos.User.stats([function(data) {
 					var dataList = {
-						'Nombre d\'utilisateurs': data.nbr_users
+						'Number of users': data.nbr_users
 					};
 
 					usersDataList.empty();
 					for (var label in dataList) {
 						var item = $('<li></li>');
-						item.html('<span class="detail">'+label+' : </span>'+dataList[label]);
+						item.html('<span class="detail">'+label+': </span>'+dataList[label]);
 						usersDataList.append(item);
 					}
 
