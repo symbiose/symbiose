@@ -215,7 +215,7 @@ function include(path, args, thisObj) {
  * Include Javascript files and CSS stylesheets.
  * @param  {Array|String}   files      File(s).
  * @param  {Webos.Callback} callback   The callback.
- * @param  {Object}         [options]  Options.
+ * @param  {Object}         [options]  Global options.
  * @static
  */
 Webos.require = function (files, callback, options) {
