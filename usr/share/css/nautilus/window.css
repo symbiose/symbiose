@@ -19,12 +19,17 @@
 .nautilus-header {
 	padding: 3px;
 }
+.nautilus-header .btn-navigation {
+	display: inline-block;
+	float: left;
+}
 .nautilus-header .btn-navigation .webos-button:not(:hover):not(:active) {
 	border-color: transparent;
 	background: none;
 }
-.btn-navigation {
-	display: inline-block;
+.nautilus-header .entry-search-query {
+	display: none;
+	width: 100%;
 }
 
 .webos-nautilus {

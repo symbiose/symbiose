@@ -384,99 +384,6 @@ Webos.require([
 			});
 			
 			/*
-			var editItem = $.w.menuItem(t.get('Edit')).appendTo(this._menu);
-			editItemContent = editItem.menuItem('content');
-			
-			$.w.menuItem(t.get('Select all'))
-				.click(function() {
-					that.nautilus.nautilus('items').addClass('active');
-				})
-				.appendTo(editItemContent);
-			
-			$.w.menuItem(t.get('Select...'))
-				.click(function() {
-					var selectWindow = $.w.window.dialog({
-						parentWindow: that.window,
-						title: t.get('Select elements corresponding to...'),
-						width: 400,
-						resizable: false,
-						hideable: false
-					});
-					var form = $.w.entryContainer()
-						.appendTo(selectWindow.window('content'))
-						.submit(function() {
-							var filter = textEntry.textEntry('content').val();
-							var exp = new RegExp(filter);
-							selectWindow.window('close');
-							that.nautilus.nautilus('items').each(function() {
-								if (exp.test($(this).data('file')().getAttribute('basename'))) {
-									$(this).addClass('active');
-								}
-							});
-						});
-					var textEntry = $.w.textEntry(t.get('Pattern (regex) :')).appendTo(form);
-					$.w.label('<strong>'+t.get('Samples')+'</strong> : <em>.png$</em>, <em>fich</em>, <em>^.</em>...').appendTo(form);
-					var buttons = $.w.buttonContainer().appendTo(form);
-					$.w.button('Valider', true).appendTo(buttons);
-					
-					selectWindow.window('open');
-					
-					textEntry.textEntry('content').focus();
-				})
-				.appendTo(editItemContent);
-			
-			$.w.menuItem(t.get('Invert'))
-				.click(function() {
-					that.nautilus.nautilus('items').toggleClass('active');
-				})
-				.appendTo(editItemContent);
-
-			$.w.menuItem(t.get('Search'), true)
-				.click(function() {
-					that.search();
-				})
-				.appendTo(editItemContent);
-			
-			var viewItem = $.w.menuItem(t.get('View')).appendTo(this._menu);
-			viewItemContent = viewItem.menuItem('content');
-
-			$.w.menuItem(t.get('Order by name'), true)
-				.click(function() {
-					that.nautilus.nautilus('option', 'sort', 'basename');
-				})
-				.appendTo(viewItemContent);
-			$.w.menuItem(t.get('Order by size'), true)
-				.click(function() {
-					that.nautilus.nautilus('option', 'sort', 'size');
-				})
-				.appendTo(viewItemContent);
-			$.w.menuItem(t.get('Order by type'), true)
-				.click(function() {
-					that.nautilus.nautilus('option', 'sort', 'mime_type');
-				})
-				.appendTo(viewItemContent);
-			$.w.menuItem(t.get('Order by modification time'), true)
-				.click(function() {
-					that.nautilus.nautilus('option', 'sort', 'mtime');
-				})
-				.appendTo(viewItemContent);
-			$.w.menuItem(t.get('Order by access time'), true)
-				.click(function() {
-					that.nautilus.nautilus('option', 'sort', 'atime');
-				})
-				.appendTo(viewItemContent);
-
-			$.w.menuItem(t.get('List'), true)
-				.click(function() {
-					that.nautilus.nautilus('option', 'sort', 'basename');
-				})
-				.appendTo(viewItemContent);
-			$.w.menuItem(t.get('Icons'))
-				.click(function() {
-					that.nautilus.nautilus('option', 'sort', 'basename');
-				})
-				.appendTo(viewItemContent);
-			
 			$.w.menuItem(t.get('Refresh'), true)
 				.click(function() {
 					that.refresh();
@@ -496,24 +403,7 @@ Webos.require([
 					that.nautilus.nautilus('refresh');
 				})
 				.appendTo(viewItemContent);
-			
-			var goToItem = $.w.menuItem(t.get('Go to...')).appendTo(this._menu);
-			goToItemContent = goToItem.menuItem('content');
-			
-			$.w.menuItem(t.get('Parent folder'))
-				.click(function() {
-					that._toolbar.toolbarWindowHeader('content').find('li:not(.active)').last().trigger('click');
-				})
-				.appendTo(goToItemContent);
-			
-			var helpItem = $.w.menuItem(t.get('Help')).appendTo(this._menu);
-			helpItemContent = helpItem.menuItem('content');
-			
-			$.w.menuItem(t.get('About'))
-				.click(function() {
-					that.openAboutWindow();
-				})
-				.appendTo(helpItemContent);*/
+*/
 			
 			this.window.window('open');
 			
@@ -564,11 +454,13 @@ Webos.require([
 				directory: this.options.location,
 				readstart: function(e, data) {
 					that._refreshHeader(data.location);
+					that.toggleSearch(false);
 					that._$win.window('loading', true, {
 						message: t.get('Opening folder « ${name} »...', { name: data.location.replace(/\/$/, '').split('/').pop() })
 					});
 				},
-				readcomplete: function() {
+				readcomplete: function(e, data) {
+					that._refreshHeader(data.location);
 					that._$win.window('loading', false);
 				},
 				readerror: function(e, data) {
@@ -597,20 +489,130 @@ Webos.require([
 					that._$win.window('close');
 				},
 
+				'btn-edit-select-all': function () {
+					that._$nautilus.nautilus('items').addClass('active');
+				},
+				'btn-edit-select-filter': function () {
+					var selectWindow = $.w.window.dialog({
+						parentWindow: that._$win,
+						title: t.get('Select elements corresponding to...'),
+						width: 400,
+						resizable: false,
+						hideable: false
+					});
+					var form = $.w.entryContainer()
+						.appendTo(selectWindow.window('content'))
+						.submit(function() {
+							var filter = textEntry.textEntry('content').val();
+							var exp = new RegExp(filter);
+							selectWindow.window('close');
+							that._$nautilus.nautilus('items').each(function() {
+								if (exp.test($(this).data('file')().getAttribute('basename'))) {
+									$(this).addClass('active');
+								}
+							});
+						});
+					var textEntry = $.w.textEntry(t.get('Pattern (regex) :')).appendTo(form);
+					$.w.label('<strong>'+t.get('Samples')+'</strong> : <em>.png$</em>, <em>fich</em>, <em>^.</em>...').appendTo(form);
+					var buttons = $.w.buttonContainer().appendTo(form);
+					$.w.button('Valider', true).appendTo(buttons);
+					
+					selectWindow.window('open');
+					
+					textEntry.textEntry('content').focus();
+				},
+				'btn-edit-select-invert': function () {
+					that._$nautilus.nautilus('items').toggleClass('active');
+				},
+				'btn-edit-search': function () {
+					that.toggleSearch();
+				},
+
+				'btn-view-order-name': function () {
+					that._$nautilus.nautilus('option', 'sort', 'basename');
+				},
+				'btn-view-order-size': function () {
+					that._$nautilus.nautilus('option', 'sort', 'size');
+				},
+				'btn-view-order-type': function () {
+					that._$nautilus.nautilus('option', 'sort', 'mime_type');
+				},
+				'btn-view-order-mtime': function () {
+					that._$nautilus.nautilus('option', 'sort', 'mtime');
+				},
+				'btn-view-order-atime': function () {
+					that._$nautilus.nautilus('option', 'sort', 'atime');
+				},
+				'btn-view-grid': function () {
+					that._$nautilus.nautilus('option', 'display', 'icons');
+				},
+				'btn-view-list': function () {
+					that._$nautilus.nautilus('option', 'display', 'list');
+				},
+				'btn-view-refresh': function () {
+					that.refresh();
+				},
+				'btn-view-hiddenfiles': function () {
+					var value = !(that._$nautilus.nautilus('option', 'showHiddenFiles'));
+
+					if (value) {
+						$(this).menuItem('option', 'label', t.get('Don\'t show hidden files'));
+					} else {
+						$(this).menuItem('option', 'label', t.get('Show hidden files'));
+					}
+
+					that._$nautilus.nautilus('option', 'showHiddenFiles', value);
+					that._$nautilus.nautilus('refresh');
+				},
+
 				'btn-help-about': function () {
 					that.openAboutWindow();
 				},
 
-				'btn-go-previous': function () {},
-				'btn-go-next': function () {}
+				'btn-go-previous': function () {
+					that._$nautilus.nautilus('previous');
+				},
+				'btn-go-next': function () {
+					that._$nautilus.nautilus('next');
+				}
 			};
+
 			for (var handlerName in handlers) {
 				(function (handlerName) {
 					$win.find('.'+handlerName).click(function () {
-						handlers[handlerName]();
+						handlers[handlerName].call(this);
 					});
 				})(handlerName);
 			}
+
+			//Search entry
+			var searchInFiles = function(query) {
+				if (query.trim()) {
+					that._$win.window('loading', true, {
+						lock: false
+					});
+					that._$nautilus.nautilus('search', query, function() {
+						that._$win.window('loading', false);
+					});
+				}
+			};
+
+			var keypressTimer = -1;
+			$win.find('.entry-search-query').keydown(function (e) {
+				if (e.keyCode == 27) { //Esc
+					that.toggleSearch(false);
+				}
+			}).keyup(function() {
+				var that = this;
+
+				if (keypressTimer !== -1) {
+					clearTimeout(keypressTimer);
+				}
+				keypressTimer = setTimeout(function() {
+					keypressTimer = -1;
+					searchInFiles($(that).val());
+				}, 500);
+			});
 		},
 		refresh: function() {
 			this._$nautilus.nautilus('refresh');
@@ -641,50 +643,37 @@ Webos.require([
 				}
 			});
 		},
-		search: function(query) { //TODO
-			var that = this, t = this.translations();
+		toggleSearch: function (value) {
+			var $header = this._$win.find('.nautilus-header'),
+				$searchBtn = $header.find('.btn-edit-search'),
+				$searchEntry = $header.find('.entry-search-query'),
+				$locationBtnCtn = $header.find('.btn-ctn-location');
 
-			var headers = this._$win.window('header');
-			if (typeof this._toolbar != 'undefined') {
-				this._toolbar.remove();
+			if (typeof value == 'undefined') {
+				value = $searchEntry.is(':hidden');
 			}
-			this._toolbar = $.w.toolbarWindowHeader().appendTo(headers);
 
-			var searchInFiles = function() {
-				var query = searchEntry.textEntry('value');
+			var searchDisplayed = $searchEntry.is(':visible');
 
-				if (query.trim()) {
-					that._$win.window('loading', true, {
-						lock: false
-					});
-					that._$nautilus.nautilus('search', query, function() {
-						that._$win.window('loading', false);
-					});
-				}
-			};
+			if (value && !searchDisplayed) {
+				$searchBtn.button('option', 'activated', true);
+				$searchEntry.show().val('').focus();
+				$locationBtnCtn.hide();
+			} else if (value) {
+				$searchEntry.focus();
+			} else if (!value && searchDisplayed) {
+				$searchBtn.button('option', 'activated', false);
+				$searchEntry.hide();
+				$locationBtnCtn.show();
 
-			var keypressTimer = -1;
-			var searchEntry = $.w.textEntry().keyup(function() {
-				if (keypressTimer !== -1) {
-					clearTimeout(keypressTimer);
-				}
-				keypressTimer = setTimeout(function() {
-					keypressTimer = -1;
-					searchInFiles();
-				}, 500);
-			});
-
-			$.w.windowHeaderItem(searchEntry).appendTo(this._toolbar);
-
-			$.w.toolbarWindowHeaderItem(t.get('Search')).css('float', 'right').click(function() {
-				that.readDir(that._$nautilus.nautilus('location'));
-			}).addClass('active').appendTo(this._toolbar);
-
-			searchEntry.textEntry('input').focus();
+				this.refresh();
+			}
 		},
 		_refreshHeader: function(dir) {
 			var t = this.translations();
-			var $btnCtn = this._$win.find('.btn-ctn-location');
+
+			var $header = this._$win.find('.nautilus-header'),
+				$btnCtn = $header.find('.btn-ctn-location');
 
 			var location = String(dir).split('/');
 
@@ -722,20 +711,17 @@ Webos.require([
 			$btnCtn.empty();
 
 			if (dir == '/') {
-				createButtonFn('/', '/').appendTo($btnCtn);
+				createButtonFn('<x-icon src="devices/drive-harddisk-symbolic" size="16" variant="dark"></x-icon>', '/').appendTo($btnCtn);
 			} else {
 				var stack = '';
 				for(var i = 0; i < location.length; i++) {
 					stack += location[i]+'/';
 					var userDir = location[i];
 					if (userDir === '') {
-						userDir = '/';
+						userDir = '<x-icon src="devices/drive-harddisk-symbolic" size="16" variant="dark"></x-icon>';
 					}
 					if (userDir == '~') {
-						//userDir = t.get('Private folder');
-						userDir = $.w.icon('places/user-home-symbolic', 16)
-							.icon('option', 'variant', 'dark')
-							.css('margin-top', '4px');
+						userDir = '<x-icon src="places/user-home-symbolic" size="16" variant="dark"></x-icon>';
 					}
 					var button = createButtonFn(userDir, stack);
 					$btnCtn.append(button);
@@ -743,6 +729,11 @@ Webos.require([
 			}
 
 			$btnCtn.children().last().button('option', 'activated', true);
+
+			//Refresh display mode indicator
+			var displayMode = this._$nautilus.nautilus('option', 'display');
+			$header.find('.btn-view-grid').button('option', 'activated', (displayMode == 'icons'));
+			$header.find('.btn-view-list').button('option', 'activated', (displayMode == 'list'));
 		}
 	};
 

@@ -15,25 +15,25 @@
 			</x-menuItem>
 
 			<x-menuItem label="Edit">
-				<x-menuItem label="Select all"></x-menuItem>
+				<x-menuItem class="btn-edit-select-all" label="Select all"></x-menuItem>
 
-				<x-menuItem label="Select..."></x-menuItem>
-				<x-menuItem label="Invert"></x-menuItem>
-				<x-menuItem label="Search" separator></x-menuItem>
+				<x-menuItem class="btn-edit-select-filter" label="Select..."></x-menuItem>
+				<x-menuItem class="btn-edit-select-invert" label="Invert"></x-menuItem>
+				<x-menuItem class="btn-edit-search" label="Search" separator></x-menuItem>
 			</x-menuItem>
 
 			<x-menuItem label="View">
-				<x-menuItem label="Order by name"></x-menuItem>
-				<x-menuItem label="Order by size"></x-menuItem>
-				<x-menuItem label="Order by type"></x-menuItem>
-				<x-menuItem label="Order by modification time"></x-menuItem>
-				<x-menuItem label="Order by access time"></x-menuItem>
+				<x-menuItem class="btn-view-order-name" label="Order by name"></x-menuItem>
+				<x-menuItem class="btn-view-order-size" label="Order by size"></x-menuItem>
+				<x-menuItem class="btn-view-order-type" label="Order by type"></x-menuItem>
+				<x-menuItem class="btn-view-order-mtime" label="Order by modification time"></x-menuItem>
+				<x-menuItem class="btn-view-order-atime" label="Order by access time"></x-menuItem>
 
-				<x-menuItem label="List" separator></x-menuItem>
-				<x-menuItem label="Icons"></x-menuItem>
+				<x-menuItem class="btn-view-grid" label="Icons"></x-menuItem>
+				<x-menuItem class="btn-view-list" label="List" separator></x-menuItem>
 
-				<x-menuItem label="Refresh" separator></x-menuItem>
-				<x-menuItem label="Show hidden files" separator></x-menuItem>
+				<x-menuItem class="btn-view-refresh" label="Refresh" separator></x-menuItem>
+				<x-menuItem class="btn-view-hiddenfiles" label="Show hidden files" separator></x-menuItem>
 			</x-menuItem>
 
 			<x-menuItem label="Help">
@@ -62,6 +62,7 @@
 
 			<div class="expand">
 				<x-buttonGroup class="btn-ctn-location"></x-buttonGroup>
+				<input type="text" class="entry-search-query">
 			</div>
 
 			<span class="clearfix"></span>
