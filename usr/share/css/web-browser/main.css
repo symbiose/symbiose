@@ -14,8 +14,9 @@
 	padding: 3px;
 }
 .ctrl-ctn .webos-button:not(:hover):not(:active) {
-	border: 1px solid transparent;
+	border-color: transparent;
 	background: none;
+	box-shadow: none;
 }
 .ctrl-ctn .input-url {
 	margin: 5px 0;
