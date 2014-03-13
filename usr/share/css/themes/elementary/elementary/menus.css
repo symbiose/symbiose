@@ -93,6 +93,11 @@ ul.menu ul:before {
 }
 
 /* Sous-listes */
+.webos-menuwindowheader .webos-menuitem .webos-menuitem {
+	display: block;
+}
+
+
 ul.menu ul,
 .webos-menuwindowheader ul {
 	position: absolute; /* Position absolue */
@@ -109,7 +114,7 @@ ul.menu ul,
 
 ul.menu ul.opened,
 .webos-menuwindowheader ul.opened,
-.webos-menuwindowheader li.hover > ul {
+.webos-menuwindowheader .webos-menuitem.hover > ul {
 	display: block;
 	opacity: 1;
 	-webkit-transform: scale(1);
