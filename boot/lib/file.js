@@ -994,7 +994,7 @@ Webos.File.search = function(options, callback) {
 	}, options);
 	searchDir = Webos.File.get(options.inDir);
 
-	var operation = new Webos.Operation();
+	var operation = Webos.Operation.create();
 	operation.addCallbacks(callback);
 
 	if (!options.q.trim()) {
@@ -1008,51 +1008,30 @@ Webos.File.search = function(options, callback) {
 		searchesResults = searchesResults.concat(results);
 	};
 
-	if (Webos.isInstanceOf(searchDir, Webos.WebosFile)) {
-		//Search in the webos's files
-		searchesOpsList.push(new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'search',
-			arguments: {
-				query: options.q,
-				inDir: options.inDir
-			}
-		}).load([function(res) {
-			var data = res.getData();
-			var list = [];
-			for (var key in data) {
-				var webosFile = new Webos.WebosFile(data[key]);
-				var file = Webos.File.get(webosFile.get('path'));
-				if (Webos.isInstanceOf(file, Webos.WebosFile)) {
-					file._updateData(webosFile.data());
-				} else {
-					file._updateData({
-						is_dir: webosFile.get('is_dir')
-					});
-				}
-
-				var searchResult = new Webos.File.SearchResultItem({
-					matchesNbr: data[key].matchesNbr
-				}, file);
-				list.push(searchResult);
-			}
-
-			addResults(list);
-		}, function(res) {
-			operation.trigger('error', {
-				result: res
-			});
-		}]));
-	}
-
 	var mountedList = Webos.File.mountedDevices();
 	for (var localPath in mountedList) {
-		var mountedDev = mountedList[localPath];
+		var point = mountedList[localPath];
 
-		if (searchDir.get('path') == localPath || localPath.indexOf(searchDir.get('path')+'/') == 0) {
+		if (searchDir.get('path') == localPath ||
+			localPath.indexOf(searchDir.get('path')+'/') == 0) {
 			//Search in this device
-			//TODO
-			operation.setCompleted(Webos.Callback.Result.error('Operation not supported'));
+			if (typeof Webos[point.get('driver')].search == 'function') {
+				var devOp = Webos.Operation.create();
+				Webos[point.get('driver')].search(options, point, [function (list) {
+					addResults(list);
+					devOp.setCompleted(list);
+				}, function (resp) {
+					operation.trigger('error', {
+						result: resp
+					});
+
+					devOp.setCompleted(resp);
+				}]);
+
+				searchesOpsList.push(devOp);
+			} else {
+				operation.setCompleted(Webos.Callback.Result.error('Operation not supported'));
+			}
 		}
 	}
 
@@ -1834,6 +1813,41 @@ Webos.WebosFile.move = function(source, dest, point, callback) {
 		password: pointData.password
 	}).load([function(resp) {
 		callback.success(resp.getData());
+	}, callback.error]);
+};
+
+Webos.WebosFile.search = function (options, point, callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	//Search in the webos's files
+	return new Webos.ServerCall({
+		'class': 'FileController',
+		method: 'search',
+		arguments: {
+			query: options.q,
+			inDir: point.getRelativePath(options.inDir)
+		}
+	}).load([function(resp) {
+		var data = resp.getData();
+		var list = [];
+		for (var key in data) {
+			var webosFile = new Webos.WebosFile(data[key], point);
+			var file = Webos.File.get(webosFile.get('path'));
+			if (Webos.isInstanceOf(file, Webos.WebosFile)) {
+				file._updateData(webosFile.data());
+			} else {
+				file._updateData({
+					is_dir: webosFile.get('is_dir')
+				});
+			}
+
+			var searchResult = new Webos.File.SearchResultItem({
+				matchesNbr: data[key].matchesNbr
+			}, file);
+			list.push(searchResult);
+		}
+
+		callback.success(list);
 	}, callback.error]);
 };
 

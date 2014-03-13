@@ -33,7 +33,11 @@ Webos.require([
 			showHiddenFiles: false,
 			organizeIcons: false,
 			organizeIconsInGrid: true,
-			_items: {}
+			_items: {},
+			_history: {
+				locations: [],
+				currentIndex: -1
+			}
 		},
 		_create: function() {
 			this._super('_create');
@@ -220,6 +224,25 @@ Webos.require([
 				that._handleResponseError(res, t.get('Can\'t find « ${dir} ».', { dir: dir }));
 			}]);
 			op.addCallbacks(userCallback);
+
+			//History
+			var currentIndex = this.options._history.currentIndex,
+				locations = this.options._history.locations;
+			//User got back in the history and opens another folder
+			if (currentIndex != locations.length - 1 &&
+				locations[currentIndex] != dir) {
+				locations = locations.slice(0, this.options._history.currentIndex);
+			}
+			//If the current index is not set or the last one
+			//Check for duplicates, and add a new entry to history
+			if ((locations.length === 0 ||
+				currentIndex == locations.length - 1) &&
+				locations[currentIndex] != dir) {
+				var historyLength = locations.push(dir);
+				currentIndex = historyLength - 1;
+			}
+			this.options._history.currentIndex = currentIndex;
+			this.options._history.locations = locations;
 
 			this._trigger('readstart', { type: 'readstart' }, { location: dir });
 
@@ -413,6 +436,25 @@ Webos.require([
 
 			return op;
 		},
+		previous: function () {
+			this.goTo(-1);
+		},
+		next: function () {
+			this.goTo(1);
+		},
+		goTo: function (delta) {
+			var newIndex = this.options._history.currentIndex + parseInt(delta);
+
+			if (newIndex < 0 ||
+				newIndex > this.options._history.locations.length - 1) {
+				return;
+			}
+
+			this.options._history.currentIndex = newIndex;
+
+			var dir = this.options._history.locations[this.options._history.currentIndex];
+			this.readDir(dir);
+		},
 		search: function(query, userCallback) {
 			var that = this, t = this.translations();
 
@@ -483,7 +525,7 @@ Webos.require([
 		},
 		_render: function(files) {
 			var that = this;
-			
+
 			if (this.options.display == 'icons') {
 				this.content().empty();
 			}

@@ -2988,7 +2988,7 @@ $.webos.menuItem.prototype = {
 				return;
 			}
 			
-			if (e.type == 'mouseenter' && $menu.parents('li.webos-menuitem').length == 0) {
+			if (e.type == 'mouseenter' && $menu.parents('.webos-menuitem').length == 0) {
 				return;
 			}
 			
@@ -2996,7 +2996,7 @@ $.webos.menuItem.prototype = {
 				$menuContents.show();
 			} else if (e.type == 'click') {
 				$menu.removeClass('hover');
-				$menu.parents('li.webos-menuitem ul li').hide();
+				$menu.parents('.webos-menuitem ul .webos-menuitem').hide();
 				return;
 			}
 			
@@ -3005,7 +3005,7 @@ $.webos.menuItem.prototype = {
 			var onDocClickFn = function(e) {
 				//Si on clique sur le menu
 				if ($(e.target).parents().filter($menu).length > 0) {
-					if ($(e.target).parents().filter('li.webos-menuitem').first().children('ul').children().length > 0) {
+					if ($(e.target).parents().filter('.webos-menuitem').first().children('ul').children().length > 0) {
 						return;
 					}
 				}
@@ -3021,7 +3021,7 @@ $.webos.menuItem.prototype = {
 		}).bind('mouseleave', function() {
 			var $menu = that.element, $menuContents = that.content();
 			
-			if ($menu.parents('li.webos-menuitem').length == 0) {
+			if ($menu.parents('.webos-menuitem').length == 0) {
 				return;
 			}
 			

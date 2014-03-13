@@ -1,0 +1,134 @@
+<x-window-main width="600" height="400" icon="apps/filemanager" stylesheet="/usr/share/css/nautilus/window.css">
+	<h1>File manager</h1>
+
+	<header>
+		<x-menuWindowHeader>
+			<x-menuItem label="File">
+				<x-menuItem class="btn-file-new-window" label="New window"></x-menuItem>
+
+				<x-menuItem class="btn-file-upload" label="Upload files" separator></x-menuItem>
+				<x-menuItem class="btn-file-new-folder" label="Create a new folder"></x-menuItem>
+				<x-menuItem class="btn-file-new-file" label="Create a new file"></x-menuItem>
+				<x-menuItem class="btn-file-mount" label="Mount a volume"></x-menuItem>
+
+				<x-menuItem class="btn-file-quit" label="Close" separator></x-menuItem>
+			</x-menuItem>
+
+			<x-menuItem label="Edit">
+				<x-menuItem class="btn-edit-select-all" label="Select all"></x-menuItem>
+
+				<x-menuItem class="btn-edit-select-filter" label="Select..."></x-menuItem>
+				<x-menuItem class="btn-edit-select-invert" label="Invert"></x-menuItem>
+				<x-menuItem class="btn-edit-search" label="Search" separator></x-menuItem>
+			</x-menuItem>
+
+			<x-menuItem label="View">
+				<x-menuItem class="btn-view-order-name" label="Order by name"></x-menuItem>
+				<x-menuItem class="btn-view-order-size" label="Order by size"></x-menuItem>
+				<x-menuItem class="btn-view-order-type" label="Order by type"></x-menuItem>
+				<x-menuItem class="btn-view-order-mtime" label="Order by modification time"></x-menuItem>
+				<x-menuItem class="btn-view-order-atime" label="Order by access time"></x-menuItem>
+
+				<x-menuItem class="btn-view-grid" label="Icons"></x-menuItem>
+				<x-menuItem class="btn-view-list" label="List" separator></x-menuItem>
+
+				<x-menuItem class="btn-view-refresh" label="Refresh" separator></x-menuItem>
+				<x-menuItem class="btn-view-hiddenfiles" label="Show hidden files" separator></x-menuItem>
+			</x-menuItem>
+
+			<x-menuItem label="Help">
+				<x-menuItem class="btn-help-about" label="About"></x-menuItem>
+			</x-menuItem>
+		</x-menuWindowHeader>
+
+		<div class="nautilus-header">
+			<div class="pull-right">
+				<div class="btns-ctn">
+					<x-button class="btn-edit-search" title="Search" data-l10n-prop="title"><x-icon src="actions/edit-find" size="16"></x-icon></x-button>
+				</div>
+			</div>
+
+			<div class="pull-left btn-ctn">
+				<div class="btn-navigation">
+					<x-button class="btn-go-previous" title="Previous"><x-icon src="actions/go-previous" size="16"></x-icon></x-button>
+					<x-button class="btn-go-next" title="Next"><x-icon src="actions/go-next" size="16"></x-icon></x-button>
+				</div>
+
+				<x-buttonGroup>
+					<x-button class="btn-view-grid" title="Grid" activated><x-icon src="actions/view-grid-symbolic" size="16" variant="dark"></x-icon></x-button>
+					<x-button class="btn-view-list" title="List"><x-icon src="actions/view-list-symbolic" size="16" variant="dark"></x-icon></x-button>
+				</x-buttonGroup>
+			</div>
+
+			<div class="expand">
+				<x-buttonGroup class="btn-ctn-location"></x-buttonGroup>
+				<input type="text" class="entry-search-query">
+			</div>
+
+			<span class="clearfix"></span>
+		</div>
+	</header>
+
+	<div class="nautilus-shortcuts-ctn"></div>
+	<div class="nautilus-ctn"></div>
+</x-window-main>
+
+<!--<x-window dialog width="600" resizable="false" stylesheet="/usr/share/css/empathy/main.css">
+	<h1>Settings</h1>
+
+	<x-tabs>
+		<ul>
+			<li>Accounts</li>
+			<li>Notifications</li>
+			<li>BOSH servers</li>
+			<li>Encryption</li>
+		</ul>
+
+		<div class="contents">
+			<div class="settings-accounts">
+				<x-list class="accounts-list"></x-list>
+				<div class="account-settings">
+					<form>
+						<label>Service: <select class="account-service"></select></label><br />
+						<label>Username: <input type="text" class="account-username"></label><br />
+						<label>Password: <input type="password" class="account-password"></label><br />
+						<x-buttonContainer>
+							<x-button class="acount-remove">Remove account</x-button>
+							<x-button submit>Apply</x-button>
+						</x-buttonContainer>
+					</form>
+				</div>
+			</div>
+
+			<div class="settings-composing">
+				<label><input type="checkbox" data-setting="sendComposing"> Send notifications when typing</label><br />
+				<label><input type="checkbox" data-setting="sendActive"> Send notifications when reading messages</label>
+			</div>
+
+			<div class="settings-servers">
+				<p>BOSH servers are used as gateways between your browser and XMPP protocol.</p>
+				<label>BOSH HTTP server: <input type="text" data-setting="boshHttpUrl"></label><br />
+				<label>BOSH Websocket server (optional): <input type="text" data-setting="boshWsUrl"></label><br />
+				<x-buttonContainer>
+					<x-button class="servers-reset">Reset to defaults</x-button>
+				</x-buttonContainer>
+			</div>
+
+			<div class="settings-encryption">
+				<p>Off-the-record (OTR) encryption is supported.</p>
+				<label><input type="checkbox" data-setting="useOtr"> Use OTR</label><br />
+				<label><input type="checkbox" data-setting="saveOtrKey"> Save OTR key</label><br />
+
+				<x-buttonContainer>
+					<x-button class="encryption-generateKey">Generate a new key</x-button>
+				</x-buttonContainer>
+			</div>
+		</div>
+
+		<x-buttonContainer>
+			<x-button class="settings-close">Close</x-button>
+		</x-buttonContainer>
+	</x-tabs>
+
+	
+</x-window>-->

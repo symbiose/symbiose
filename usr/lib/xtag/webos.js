@@ -11,6 +11,24 @@
 		};
 
 		xtag.registerFromWidget = function(widgetName, widgetOptions) {
+			var getOption = function (key, value) {
+				if (typeof widgetOptions.options[key] == 'boolean') {
+					if (value == 'false' || value == '0') {
+						value = false;
+					} else {
+						value = true;
+					}
+				} else if (typeof widgetOptions.options[key] == 'number') {
+					var numericValue = parseFloat(value);
+
+					if (!isNaN(numericValue)) {
+						value = numericValue;
+					}
+				}
+
+				return value;
+			};
+
 			xtag.register(widgetName.replace('.', '-'), {
 				lifecycle: {
 					created: function() {
@@ -18,27 +36,20 @@
 
 						for (var i = 0; i < this.attributes.length; i++) {
 							var attr = this.attributes[i],
-							key = attr.nodeName,
-							value = attr.value;
+								key = attr.nodeName,
+								value = attr.value;
 
-							if (typeof widgetOptions.options[key] == 'boolean') {
-								if (value == 'false' || value == '0') {
-									value = false;
-								} else {
-									value = true;
-								}
-							} else if (typeof widgetOptions.options[key] == 'number') {
-								var numericValue = Number(value);
-
-								if (!isNaN(numericValue)) {
-									value = numericValue;
-								}
-							}
-
-							options[key] = value;
+							options[key] = getOption(key, value);
 						}
 
 						$(this)[widgetName](options);
+					},
+					attributeChanged: function (key, oldValue, newValue) {
+						if (key == 'id' || key == 'class') {
+							return;
+						}
+
+						$(this)[widgetName]('option', key, getOption(key, newValue));
 					}
 				}
 			});

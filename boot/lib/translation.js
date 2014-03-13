@@ -479,7 +479,7 @@ Webos.Locale.set = function (locale, callback) {
  * @constructor
  * @since 1.0beta1
  */
-Webos.TranslatedLibrary = function WTranslatedLibrary() {
+Webos.TranslatedLibrary = function () {
 	this._loadTranslations();
 };
 Webos.TranslatedLibrary.prototype = {
@@ -513,6 +513,9 @@ Webos.TranslatedLibrary.prototype = {
 			that._translations = t;
 			that.notify('translationsloaded', { translations: t });
 		}, this._translationsName);
+	},
+	translations: function () {
+		return this._translations || new Webos.Translation();
 	}
 };
 

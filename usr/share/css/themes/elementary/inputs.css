@@ -111,11 +111,16 @@ input[type="submit"][disabled]:active,
 }
 .webos-button x-icon {
 	display: inline-block;
-	margin-top: 4px;
+	line-height: 22px;
+}
+.webos-button x-icon img {
+	vertical-align: middle;
 }
 
 .webos-button-group {
 	display: inline-block;
+	white-space: nowrap;
+	overflow: hidden;
 }
 .webos-button-group > .webos-button:not(:first-child) {
 	border-top-left-radius: 0;
