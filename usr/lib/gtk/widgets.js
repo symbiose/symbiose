@@ -3087,6 +3087,7 @@ $.webos.tabs.prototype = {
 			this.options._components.tabs = this.element.children('ul').addClass('tabs');
 			
 			var $tabsTitles = this.options._components.tabs.children();
+			$tabsTitles.addClass('tab-btn');
 			if ($tabsTitles.filter('.active').length) {
 				activeTab = $tabsTitles.filter('.active').index();
 			}
@@ -3101,8 +3102,8 @@ $.webos.tabs.prototype = {
 			this.options._components.content = $('<div></div>', { 'class': 'contents' }).appendTo(this.element);
 		}
 
-		this.options._components.tabs.on('click', 'li', function(e) {
-			that.option('selectedTab', $(this).index());
+		this.options._components.tabs.on('click', 'li.tab-btn', function(e) {
+			that.option('selectedTab', $(this).index('li.tab-btn'));
 		});
 	},
 	/**
@@ -3114,7 +3115,7 @@ $.webos.tabs.prototype = {
 	 */
 	tab: function(arg0, arg1, arg2) {
 		var index, title, contents;
-		
+
 		if (typeof arg0 == 'undefined') {
 			index = 0;
 		} else if (typeof arg1 == 'undefined' && typeof arg0 == 'string') {
@@ -3132,10 +3133,13 @@ $.webos.tabs.prototype = {
 			title = arg1;
 			contents = arg2;
 		}
-		
-		var tabTitle = $(), tabContents = $();
-		if (typeof index == 'undefined') {
-			tabTitle = $('<li></li>').appendTo(this.options._components.tabs);
+
+		var tabTitle = $(),
+			tabContents = $(),
+			tabsTitles = this.options._components.tabs.children('li.tab-btn'),
+			isNewTab = false;
+		if (typeof index == 'undefined' || !tabsTitles[index]) {
+			tabTitle = $('<li></li>', { 'class': 'tab-btn' }).appendTo(this.options._components.tabs);
 			tabContents = $('<div></div>').appendTo(this.options._components.content);
 			
 			if (this.options.selectedTab === null) {
@@ -3143,20 +3147,49 @@ $.webos.tabs.prototype = {
 				tabTitle.addClass('active');
 				tabContents.addClass('active');
 			}
+
+			isNewTab = true;
 		} else {
-			tabTitle = $(this.options._components.tabs.children('li')[index]);
+			tabTitle = $(tabsTitles[index]);
 			tabContents = $(this.options._components.content.children('div')[index]);
 		}
-		
-		if (typeof title != 'undefined') {
+
+		if (typeof title != 'undefined' && title !== null) {
 			tabTitle.html(title);
 		}
-		
-		if (typeof contents != 'undefined') {
+
+		if (typeof contents != 'undefined' && contents !== null) {
 			tabContents.html(contents);
 		}
-		
+
+		if (isNewTab) {
+			this._trigger('tabadd', { type: 'tabadd' }, { content: tabContents, index: index });
+		}
+
 		return tabContents;
+	},
+	removeTab: function (index) {
+		var $tabTitle = $(this.options._components.tabs.children('li.tab-btn')[index]);
+			$tabContents = $(this.options._components.content.children('div')[index]);
+
+		$tabTitle.remove();
+		$tabContents.detach();
+
+		this._trigger('tabremove', { type: 'tabremove' }, { content: $tabContents, index: index });
+
+		this._update('selectedTab', 0);
+	},
+	tabIndexFromContent: function (ctn) {
+		var $ctn = this.options._components.content.children().filter(ctn);
+
+		if (!$ctn.length) {
+			return false;
+		}
+
+		return $ctn.index();
+	},
+	countTabs: function () {
+		return this.options._components.content.children().length;
 	},
 	/**
 	 * Create some tabs.
@@ -3172,23 +3205,96 @@ $.webos.tabs.prototype = {
 	_update: function(key, value) {
 		switch (key) {
 			case 'selectedTab':
+				if (typeof value != 'number') {
+					value = this.tabIndexFromContent(value);
+				}
+
 				var index = parseInt(value);
 				if (isNaN(index)) {
 					index = 0;
 				}
+
+				var $tabTitles = this.options._components.tabs.children('li.tab-btn');
+				if (!$tabTitles[index]) {
+					return;
+				}
 				
-				this.options._components.tabs.children('li.active').removeClass('active');
+				$tabTitles.filter('.active').removeClass('active');
 				this.options._components.content.children('div.active').removeClass('active');
 				
-				$(this.options._components.tabs.children('li')[index]).addClass('active');
+				$($tabTitles[index]).addClass('active');
 				this.tab(index).addClass('active');
 
-				this._trigger('select', { type: 'select' }, { tab: index });
+				this._trigger('select', { type: 'select' }, {
+					content: this.tab(index),
+					index: index
+				});
 				break;
 		}
 	}
 };
 $.webos.widget('tabs', 'container');
+
+/**
+ * A notebook.
+ * Notebooks are a type of widget that allow showing one of multiple pages in an app, also colloquially referred to as "tab bars".
+ * @param  {Object} tabs An object associating the tab title and its contents.
+ * @constructor
+ * @augments $.webos.tabs
+ */
+$.webos.notebook = function(tabs) {
+	return $('<div></div>').notebook().notebook('setTabs', tabs);
+};
+/**
+ * A notebook.
+ */
+$.webos.notebook.prototype = {
+	_name: 'notebook'
+};
+$.webos.widget('notebook', 'tabs');
+
+/**
+ * A dynamic notebook.
+ * @param  {Object} tabs An object associating the tab title and its contents.
+ * @constructor
+ * @augments $.webos.notebook
+ */
+$.webos.dynamicNotebook = function(tabs) {
+	return $('<div></div>').dynamicNotebook().dynamicNotebook('setTabs', tabs);
+};
+/**
+ * A notebook.
+ */
+$.webos.dynamicNotebook.prototype = {
+	_create: function() {
+		this._super('_create');
+
+		var that = this;
+
+		var $newTabBtn = $('<li></li>', { 'class': 'tab-btn-newtab' }).html('+').click(function () {
+			that._trigger('newtab');
+		});
+		this.options._components.tabs.append($newTabBtn);
+	},
+	tab: function(arg0, arg1, arg2) {
+		var that = this;
+
+		var $tabCtn = this._super(arg0, arg1, arg2);
+
+		var index = $tabCtn.index(),
+			$tabTitle = $(this.options._components.tabs.children('li.tab-btn')[index]);
+		
+		if (!$tabTitle.children('.tab-btn-close').length) {
+			$closeBtn = $('<span></span>', { 'class': 'tab-btn-close' }).html('&times;').click(function () {
+				that.removeTab($tabCtn.index()); //Index can be modified
+			});
+			$tabTitle.prepend($closeBtn);
+		}
+
+		return $tabCtn;
+	}
+};
+$.webos.widget('dynamicNotebook', 'notebook');
 
 /**
  * A popover.

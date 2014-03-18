@@ -38,9 +38,9 @@
 
 .webos-window > .header {
 	background-color: #bdbdbd;
-	background: -moz-linear-gradient(#e5e5e5, #bdbdbd);
-	background: -webkit-linear-gradient(#e5e5e5, #bdbdbd);
-	background: linear-gradient(#e5e5e5, #bdbdbd);
+	background: -moz-linear-gradient(#e5e5e5, #bdbdbd 50px);
+	background: -webkit-linear-gradient(#e5e5e5, #bdbdbd 50px);
+	background: linear-gradient(#e5e5e5, #bdbdbd 50px);
 	-moz-border-radius: 5px 5px 0px 0px;
 	-webkit-border-radius: 5px 5px 0px 0px;
 	border-radius: 5px 5px 0px 0px;
@@ -48,9 +48,9 @@
 }
 .webos-window.bg-window > .header {
 	background-color: #e7e7e7;
-	background: -moz-linear-gradient(#f3f3f3, #dadada);
-	background: -webkit-linear-gradient(#f3f3f3, #dadada);
-	background: linear-gradient(#f3f3f3, #dadada);
+	background: -moz-linear-gradient(#f3f3f3, #dadada 50px);
+	background: -webkit-linear-gradient(#f3f3f3, #dadada 50px);
+	background: linear-gradient(#f3f3f3, #dadada 50px);
 }
 
 /* BARRE DU HEADER */

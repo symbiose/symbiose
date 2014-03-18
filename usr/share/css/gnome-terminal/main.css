@@ -1,4 +1,13 @@
-.content {
+.header {
+	border-bottom: none !important;
+}
+
+.webos-notebook {
+	height: 100%;
+	overflow: hidden;
+}
+
+.terminal-ctn {
 	color: white !important;
 	background-color: black !important;
 	background-color: rgba(0, 0, 0, 0.93) !important;

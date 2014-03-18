@@ -216,9 +216,11 @@ $.webos.terminal = function(callback) {
  * GTerminalWindow represente la fenetre d'un terminal.
  * @param cmd La commande a executer juste apres l'ouverture du terminal.
  * @author $imon
- * @version 1.0
+ * @version 1.1
  */
-GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
+var GTerminalWindow = function (callback) { //La fenetre du terminal
+	callback = W.Callback.toCallback(callback);
+
 	Webos.Observable.call(this);
 	
 	this.bind('translationsloaded', function() {
@@ -232,17 +234,37 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 			height: 250,
 			stylesheet: '/usr/share/css/gnome-terminal/main.css'
 		});
-		
+
 		var that = this;
-		
-		var scrollPane = $('<div></div>').appendTo(this._window.window('content')).scrollPane({
-			autoReload: true,
-			expand: true
+
+		this._tabs = $.w.dynamicNotebook().appendTo(this._window.window('content'));
+		var tabs = this._tabs;
+
+		tabs.on('dynamicnotebooknewtab', function () {
+			var $newTab = tabs.dynamicNotebook('tab', t.get('Terminal'));
+			tabs.dynamicNotebook('option', 'selectedTab', $newTab);
+		}).on('dynamicnotebooktabadd', function (e, data) {
+			that._initTerminal(data.content);
+		}).on('dynamicnotebookselect', function (e, data) {
+			that._terminal = that._terminals[data.content.data('terminal-index')];
+
+			if (that._terminal) {
+				that._updateTerminalTitle(null, data.index);
+				that._focusTerminal();
+			}
+		}).on('dynamicnotebooktabremove', function (e, data) {
+			that._terminals[data.content.data('terminal-index')] = $();
+			if (tabs.dynamicNotebook('option', 'selectedTab') == data.index) {
+				that._terminal = $();
+			}
+
+			if (tabs.dynamicNotebook('countTabs') == 0) {
+				that._window.window('close');
+			}
 		});
-		
-		//On initialise le terminal
-		this._terminal = $.w.terminal(callback).appendTo(scrollPane.scrollPane('content'));
-		
+
+		tabs.trigger('dynamicnotebooknewtab');
+
 		//Lors du redimentionnement de la fenetre
 		this._window.bind('windowresize', function() {
 			var prompt = that._terminal.terminal('prompt');
@@ -257,7 +279,7 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 				}
 			}
 		}).bind('windowbeforeclose', function(e) { //Avant la fermeture d'une fenetre
-			if (that._terminal.terminal('getRunningCmd')) {
+			if (that._terminal.length && that._terminal.terminal('getRunningCmd')) {
 				$.w.window.confirm({
 					title: t.get('Close the terminal ?'),
 					label: t.get('A process is still running in the terminal. Close the terminal will kill it.'),
@@ -271,28 +293,11 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 				e.preventDefault();
 			}
 		});
-		
-		//Lors du clic sur le terminal
-		scrollPane.scrollPane('content').click(function(e) {
-			if ($(e.target).is(this)) {
-				var prompt = that._terminal.terminal('prompt');
-				if (prompt.length) {
-					prompt.textEntry('content').focus();
-				} else {
-					var lastInput = that._terminal.terminal('outputContainer').find('input').last();
-					if (lastInput.length) {
-						lastInput.focus();
-					}
-				}
-			}
+
+		this._window.one('terminalready', function() {
+			callback.success(that._terminal);
 		});
-		
-		this._terminal.bind('terminalexecute terminalready', function() {
-			scrollPane.scrollPane('reload');
-			
-			that._window.window('option', 'title', that._terminal.terminal('promptStr'));
-		});
-		
+
 		//On ouvre la fenetre
 		this._window.window('open');
 	});
@@ -300,10 +305,74 @@ GTerminalWindow = function GTerminalWindow(callback) { //La fenetre du terminal
 	Webos.TranslatedLibrary.call(this);
 };
 GTerminalWindow.prototype = {
+	_version: '1.1',
 	_translationsName: 'gnome-terminal',
+	_terminal: $(),
+	_terminals: [],
 	terminal: function() {
 		return this._terminal;
+	},
+	_updateTerminalTitle: function (term, tabIndex) {
+		term = term || this._terminal;
+
+		if (!term || !term.length) {
+			return;
+		}
+
+		var promptStr = term.terminal('promptStr');
+		if (typeof promptStr == 'string' && promptStr) {
+			this._window.window('option', 'title', promptStr);
+
+			if (typeof tabIndex == 'number') {
+				this._tabs.dynamicNotebook('tab', tabIndex, promptStr, null);
+			}
+		}
+	},
+	_focusTerminal: function () {
+		if (!this._terminal || !this._terminal.length) {
+			return;
+		}
+
+		var prompt = this._terminal.terminal('prompt');
+		if (prompt.length) {
+			prompt.textEntry('content').focus();
+		} else {
+			var lastInput = this._terminal.terminal('outputContainer').find('input').last();
+			if (lastInput.length) {
+				lastInput.focus();
+			}
+		}
+	},
+	_initTerminal: function ($ctn) {
+		var that = this;
+
+		var scrollPane = $('<div></div>').appendTo($ctn).scrollPane({
+			autoReload: true,
+			expand: true
+		});
+		var scrollPaneCtn = scrollPane.scrollPane('content');
+
+		scrollPaneCtn.addClass('terminal-ctn');
+
+		var term = $.w.terminal().appendTo(scrollPaneCtn);
+		var termIndex = this._terminals.push(term) - 1;
+		$ctn.data('terminal-index', termIndex);
+
+		//Lors du clic sur le terminal
+		scrollPaneCtn.click(function(e) {
+			if ($(e.target).is(this)) {
+				that._focusTerminal();
+			}
+		});
+
+		term.on('terminalexecute terminalready', function() {
+			scrollPane.scrollPane('reload');
+
+			that._updateTerminalTitle(null, that._tabs.dynamicNotebook('tabIndexFromContent', $ctn));
+		});
 	}
 };
 Webos.inherit(GTerminalWindow, Webos.Observable);
 Webos.inherit(GTerminalWindow, Webos.TranslatedLibrary);
+
+window.GTerminalWindow = GTerminalWindow;
