@@ -353,6 +353,21 @@ Webos.File.prototype = {
 		return op;
 	},
 	/**
+	 * Check if a file matches a MIME type. Jockers `*` are supported.
+	 * @param  {String} mimeType The MIME type to check.
+	 * @return {Boolean}         True if the MIME type matches, false otherwise.
+	 */
+	matchesMimeType: function (mimeType) {
+		var fileMimeType = this.get('mime_type').split(';')[0];
+
+		if (mimeType.indexOf('*') !== -1) {
+			mimeType = mimeType.replace(/[-\/\\^$+?.()|[\]{}]/g, '\\$&').replace('*', '(.+)');
+			return ((new RegExp(mimeType, 'i')).test(fileMimeType));
+		} else {
+			return (fileMimeType == mimeType);
+		}
+	},
+	/**
 	 * Load this file's data.
 	 * @param {Webos.Callback} callback The callback.
 	 */
@@ -377,9 +392,57 @@ Webos.File.prototype = {
 	/**
 	 * Read this file's content as text.
 	 * @param {Webos.Callback} callback The callback.
+	 * @return {Webos.Operation}          The operation.
 	 */
 	readAsText: function(callback) {
 		return this._unsupportedMethod(callback);
+	},
+	/**
+	 * Read this file's content as base64-encoded string.
+	 * @param  {Webos.Callback}  callback The callback.
+	 * @return {Webos.Operation}          The operation.
+	 */
+	readAsBinary: function(callback) {
+		return this._unsupportedMethod(callback);
+	},
+	/**
+	 * Read this file's content as a blob.
+	 * @param  {Webos.Callback}  callback The callback.
+	 * @return {Webos.Operation}          The operation.
+	 */
+	readAsBlob: function (callback) {
+		var that = this;
+
+		var op = Webos.Operation.create();
+		op.addCallbacks(callback);
+
+		this.readAsBinary([function (b64Data) {
+			var contentType = that.get('mime_type') || '';
+			var sliceSize = 512;
+
+			var byteCharacters = window.atob(b64Data);
+			var byteArrays = [];
+
+			for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+				var slice = byteCharacters.slice(offset, offset + sliceSize);
+				
+				var byteNumbers = new Array(slice.length);
+				for (var i = 0; i < slice.length; i++) {
+					byteNumbers[i] = slice.charCodeAt(i);
+				}
+
+				var byteArray = new Uint8Array(byteNumbers);
+
+				byteArrays.push(byteArray);
+			}
+
+			var blob = new Blob(byteArrays, { type: contentType });
+			op.setCompleted(blob);
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
 	},
 	/**
 	 * Get this file/directory's content.
@@ -434,6 +497,31 @@ Webos.File.prototype = {
 
 		var base64Data = dataUrl.replace(/^data:([a-z0-9-\/]+);base64,/, '');
 		return this.writeAsBinary(base64Data, callback);
+	},
+	/**
+	 * Write this file's content as a Blob.
+	 * @param  {Blob}            blob     The blob.
+	 * @param  {Webos.Callback}  callback The callback.
+	 * @return {Webos.Operation}          The operation.
+	 */
+	writeAsBlob: function (blob, callback) {
+		var op = Webos.Operation.create();
+		op.addCallbacks(callback);
+
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			this.writeAsDataUrl(e.target.result, [function () {
+				op.setCompleted();
+			}, function (err) {
+				op.setCompleted(err);
+			}]);
+		};
+		reader.onerror = function (e) {
+			op.setCompleted(Webos.Callback.Result.error('Cannot read blob as data URL'));
+		};
+		reader.readAsDataURL(blob);
+
+		return op;
 	},
 	/**
 	 * Write this file's content as text.
@@ -1951,6 +2039,27 @@ Webos.LocalFile.prototype = {
 			callback.error(e.target.result);
 		};
 		reader.readAsDataURL(this._file);
+	},
+	readAsBlob: function (callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		if (!window.FileReader) {
+			callback.error('Reading local files is not supported by your browser');
+			return;
+		}
+		
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			var data = e.target.result;
+
+			var blob = new Blob(data, { type: that.get('mime_type') });
+			callback.success(blob);
+		};
+		reader.onerror = function(e) {
+			callback.error(e.target.result);
+		};
+		reader.readAsArrayBuffer(this._file);
 	}
 };
 Webos.inherit(Webos.LocalFile, Webos.File); //Héritage de Webos.File
@@ -1998,11 +2107,39 @@ Webos.DownloadableFile.prototype = {
 		this.writeAsDataUrl('data:'+this.get('mime_type')+';base64,'+base64Data, callback);
 	},
 	writeAsDataUrl: function (dataUrl, callback) {
-		callback = W.Callback.toCallback(callback);
+		var op = Webos.Operation.create();
+		op.addCallbacks(callback);
 
 		window.open(dataUrl);
-		callback.success();
-	}
+		op.setCompleted();
+
+		return op;
+	},
+	writeAsBlob: function (blob, callback) {
+		var op = Webos.Operation.create();
+		op.addCallbacks(callback);
+
+		var URL = window.URL || window.webkitURL;
+		if (URL && URL.createObjectURL) {
+			window.open(URL.createObjectURL(blob));
+			op.setCompleted();
+		} else {
+			var reader = new FileReader();
+			reader.onload = function(e) {
+				this.writeAsDataUrl(e.target.result, [function () {
+					op.setCompleted();
+				}, function (err) {
+					op.setCompleted(err);
+				}]);
+			};
+			reader.onerror = function (e) {
+				op.setCompleted(Webos.Callback.Result.error('Cannot read blob as data URL'));
+			};
+			reader.readAsDataURL(blob);
+		}
+
+		return op;
+	},
 };
 Webos.inherit(Webos.DownloadableFile, Webos.File); //Héritage de Webos.File
 

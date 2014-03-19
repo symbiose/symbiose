@@ -37,6 +37,9 @@
 
 	background-color: #f8f8f8;
 }
+.writer-ctn.writer-size-auto {
+	text-align: center;
+}
 .writer-page {
 	width: 600px;
 	min-height: 600px;
@@ -47,6 +50,11 @@
 
 	border: 1px solid #c6c6c6;
 	background-color: white;
+}
+.writer-ctn.writer-size-auto .writer-page {
+	width: auto;
+	display: inline-block;
+	text-align: left;
 }
 
 .writer-inner {
@@ -68,9 +76,14 @@
 .btn-format-font {
 	width: 120px;
 	overflow: hidden;
+	white-space: nowrap;
 }
 .btn-format-font .font-family {
-	float: left;
+	display: inline-block;
+	width: 80px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-align: left;
 }
 .btn-format-font .font-color {
 	display: inline-block;

@@ -60,18 +60,11 @@ Webos.Application.prototype = {
 			return true;
 		}
 
-		var found = false, openMimeTypes = this.get('openMimeTypes'), fileMimeType = file.get('mime_type');
+		var found = false, openMimeTypes = this.get('openMimeTypes');
 		for(var i = 0; i < openMimeTypes.length; i++) {
 			var mimeType = openMimeTypes[i];
 
-			if (mimeType.indexOf('*') !== -1) {
-				mimeType = mimeType.replace(/[-\/\\^$+?.()|[\]{}]/g, '\\$&').replace('*', '(.+)');
-				found = ((new RegExp(mimeType, 'i')).test(fileMimeType));
-			} else {
-				found = (fileMimeType == mimeType);
-			}
-
-			if (found) {
+			if (file.matchesMimeType(mimeType)) {
 				return true;
 			}
 		}

@@ -11,5 +11,6 @@
 	<attribute name="menu" value="applications"/>
 	<attribute name="category" value="office"/>
 	<attribute name="open" value="html,htm"/>
-	<attribute name="openMimeTypes" value="text/html"/>
+	<attribute name="openMimeTypes" value="text/html,application/vnd.oasis.opendocument.*"/>
+	<attribute name="type" value="word-processor"/>
 </shortcut>

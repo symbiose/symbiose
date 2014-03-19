@@ -1,3 +1,5 @@
+var proc = this, args = proc.getArguments();
+
 Webos.require([
 	'/usr/lib/webos/font-detector.js',
 
@@ -12,7 +14,12 @@ Webos.require([
 	},
 	'/usr/lib/jspdf/jspdf.standard_fonts_metrics.js',
 	'/usr/lib/jspdf/jspdf.split_text_to_size.js',
-	'/usr/lib/jspdf/jspdf.from_html.js'
+	'/usr/lib/jspdf/jspdf.from_html.js',
+	//WebODF
+	{
+		path: '/usr/lib/webodf/webodf.min.js',
+		exportApis: ['odf', 'webodf_css']
+	}
 ], function () {
 	var Writer = function () {
 		Webos.Observable.call(this);
@@ -40,6 +47,8 @@ Webos.require([
 				if (!that.supports()) {
 					W.Error.trigger('Your browser is not supported, falling back to "read only" mode.', 'The support of the "contenteditable" HTML5 property is required to edit the documents.');
 				}
+
+				that.trigger('ready');
 			});
 		},
 		_initUi: function () {
@@ -382,8 +391,6 @@ Webos.require([
 							return false;
 						}
 					} finally {
-						that._$win.window('loading', false);
-
 						$pageContents = $(pageContents);
 						$pageContents.find('script').remove();
 						$pageContents.find('style').prop('scoped', true);
@@ -393,27 +400,71 @@ Webos.require([
 
 						that._$docInner.html($pageContents);
 					}
+				},
+				'application/vnd.oasis.opendocument.*': {
+					readAs: false,
+					handler: function () {
+						var odfCanvas = new odf.OdfCanvas(that._$docInner[0]);
+
+						odfCanvas.load(file.get('realpath'));
+console.log(odfCanvas);window.odfCanvas = odfCanvas;
+						that._odfCanvas = odfCanvas;
+
+						that._$win.find('.writer-ctn').addClass('writer-size-auto');
+
+						//TODO: doesn't work
+						that.command('styleWithCSS');
+						that.command('enableInlineTableEditing');
+						that.command('enableObjectResizing');
+					}
 				}
 			};
 
-			var fileType = file.get('mime_type');
-			if (!openers[fileType]) {
+			var openerName = '';
+			for (var mimeType in openers) {
+				if (file.matchesMimeType(mimeType)) {
+					openerName = mimeType;
+					break;
+				}
+			}
+
+			if (!openerName) {
 				W.Error.trigger('Cannot open "'+file.get('basename')+'": unsupported file type', 'File type "'+fileType+'" isn\'t supported yet');
 				return;
 			}
 
+			var opener = openers[openerName];
+
 			this._$win.window('loading', true, {
 				message: 'Opening "'+file.get('basename')+'"...'
 			});
-			file.readAsText([function(contents) {
+
+			var callOpener = function (contents) {
+				that._$win.window('loading', false);
+				that._$win.find('.writer-ctn').removeClass('writer-size-auto');
+
 				that._file = file;
 				that._saved = true;
 
-				openers[fileType](contents);
-			}, function(resp) {
-				that._$win.window('loading', false);
-				resp.triggerError('Cannot open "'+file.get('basename')+'": error while reading file');
-			}]);
+				var openerCallback;
+				if (typeof opener == 'function') {
+					openerCallback = opener;
+				} else {
+					openerCallback = opener.handler;
+				}
+				openerCallback(contents);
+			};
+
+			if (opener.readAs === false) {
+				callOpener();
+			} else {
+				file[(opener.readAs == 'blob') ? 'readAsBlob' : 'readAsText']([function(contents) {
+					callOpener(contents);
+				}, function(resp) {
+					that._$win.window('loading', false);
+					resp.triggerError('Cannot open "'+file.get('basename')+'": error while reading file');
+				}]);
+			}
 		},
 		_saveFile: function (file) {
 			var that = this;
@@ -422,23 +473,111 @@ Webos.require([
 				W.Error.trigger('Cannot save file: no file specified');
 				return;
 			}
-			file = W.File.get(file);
+			file = W.File.get(file)
+;
+			var savers = {
+				'text/html': function () {
+					var contents = '<!doctype html><html><head><meta charset="UTF-8">';
+
+					if (that._file.get('mime_type') == 'application/vnd.oasis.opendocument.text' && webodf_css) {
+						contents += '<style>'+webodf_css+'</style>';
+					}
+
+					contents += '</head><body>';
+					contents += that._$docInner.html();
+					contents += '</body></html>';
+
+					return contents;
+				},
+				'application/vnd.oasis.opendocument.text': function () {
+					var op = Webos.Operation.create();
+
+					var odfCanvas = that._odfCanvas,
+						odfCtn = odfCanvas.odfContainer();
+
+					odfCtn.createByteArray(function (data) {
+						var blob = new Blob([data.buffer], { type: 'application/vnd.oasis.opendocument.text' });
+
+						file.writeAsBlob(blob, [function () {
+							op.setCompleted();
+						}, function (err) {
+							op.setCompleted(err);
+						}]);
+					}, function (err) {
+						op.setCompleted(Webos.Callback.Result.error(err));
+					});
+
+					return op;
+				},
+				'text/plain': function () {
+					return that._$docInner.text();
+				}
+			};
+
+			var saverName = '';
+			for (var mimeType in savers) {
+				if (file.matchesMimeType(mimeType)) {
+					saverName = mimeType;
+					break;
+				}
+			}
+
+			if (!saverName) {
+				switch (file.get('extension')) {
+					case 'html':
+					case 'htm':
+						saverName = 'text/html';
+						break;
+					case 'odt':
+						saverName = 'application/vnd.oasis.opendocument.text';
+						break;
+					case 'txt':
+						saverName = 'text/plain';
+						break;
+				}
+			}
+
+			if (!saverName) {
+				W.Error.trigger('Cannot save "'+file.get('basename')+'": unsupported file type', 'File type "'+fileType+'" isn\'t supported yet');
+				return;
+			}
+
+			var saver = savers[saverName];
 
 			this._$win.window('loading', true, {
 				message: 'Saving "'+file.get('basename')+'"...',
 				lock: false
 			});
-			file.writeAsText(that._$docInner.html(), [function () {
-				that._$win.window('loading', false);
 
-				if (file.can('read')) {
-					that._file = file;
-					that._saved = true;
+			var result = saver();
+
+			var op;
+			if (Webos.isInstanceOf(result, Webos.Operation)) {
+				op = result;
+			} else {
+				op = Webos.Operation.create();
+
+				file.writeAsText(result, [function () {
+					op.setCompleted();
+				}, function (err) {
+					op.setCompleted(err);
+				}]);
+			}
+
+			op.on({
+				complete: function () {
+					that._$win.window('loading', false);
+				},
+				success: function () {
+					if (file.can('read')) {
+						that._file = file;
+						that._saved = true;
+					}
+				},
+				error: function (data) {
+					data.result.triggerError('Cannot save "'+file.get('basename')+'": error while writing file');
 				}
-			}, function (resp) {
-				that._$win.window('loading', false);
-				resp.triggerError('Cannot save "'+file.get('basename')+'": error while writing file');
-			}]);
+			});
 		},
 		openFile: function (file) {
 			var that = this;
@@ -450,7 +589,7 @@ Webos.require([
 
 			new NautilusFileSelectorWindow({
 				parentWindow: this._$win,
-				mime_type: 'text/html'
+				mime_type: 'text/html' //TODO: ['text/html', ...]
 			}, function(files) {
 				if (files.length) {
 					that._openFile(files[0]);
@@ -465,20 +604,26 @@ Webos.require([
 				return;
 			}
 
-			if (that._file && that._file.can('write')) {
-				this._saveFile(that._file);
+			if (file !== false && this._file && this._file.can('write')) {
+				this._saveFile(this._file);
 				return;
+			}
+
+			var mimeType = 'text/html';
+			if (this._file && this._file.get('mime_type')) {
+				mimeType = this._file.get('mime_type');
 			}
 
 			new NautilusFileSelectorWindow({
 				parentWindow: this._$win,
-				exists: false
+				exists: false,
+				mime_type: mimeType
 			}, function(paths) {
 				if (paths.length) {
 					var path = paths[0];
 
 					if (typeof path == 'string') {
-						if (!/\.(html|htm)$/.test(path)) {
+						if (!/\.(html|htm|odt)$/.test(path)) {
 							path += '.html';
 						}
 						file = W.File.get(path);
@@ -545,9 +690,25 @@ Webos.require([
 	};
 	Webos.inherit(Writer, Webos.Observable);
 
-	Writer.open = function () {
-		return new Writer();
+	Writer.open = function (options) {
+		var writer = new Writer();
+
+		options = $.extend({
+			file: ''
+		}, options);
+
+		if (options.file) {
+			writer.one('ready', function () {
+				writer.openFile(options.file);
+			});
+		}
+
+		return writer;
 	};
 
-	Writer.open();
+	var options = {};
+	if (args.isParam(0)) {
+		options.file = args.getParam(0);
+	}
+	Writer.open(options);
 });
