@@ -1,5 +1,8 @@
 Webos.require([
-	'/usr/share/css/nautilus/main.css',
+	{
+		path: '/usr/share/css/nautilus/main.css',
+		styleContainer: Webos.UserInterface.Booter.current().element()
+	},
 	{
 		path: '/usr/share/css/nautilus/window.css',
 		process: false //Preload without processing this file
@@ -69,8 +72,11 @@ Webos.require([
 					that._window.window('close');
 					userCallback(files);
 				},
+				selectDirs: options.selectDirs,
+				selectMultiple: options.selectMultiple,
 				exists: options.exists,
-				selectMultiple: options.selectMultiple
+				extensions: options.extensions,
+				mime_type: options.mime_type
 			}).appendTo(this._window.window('content'));
 			
 			this._nautilus.appendTo(this._window.window('content'));
@@ -745,6 +751,4 @@ Webos.require([
 	Webos.inherit(NautilusWindow, Webos.TranslatedLibrary); //Heritage de Webos.TranslatedLibrary
 
 	window.NautilusWindow = NautilusWindow; //Export API
-}, {
-	styleContainer: Webos.UserInterface.Booter.current().element()
 });

@@ -1477,14 +1477,11 @@ Webos.require([
 			
 			var iconName = 'mimes/unknown';
 			
-			var exts = ['png', 'gif', 'jpeg', 'jpg', 'bmp', 'ico', 'js', 'mp3', 'ogv', 'tiff', 'php', 'ogg', 'mp4', 'html', 'zip', 'txt'];
-			for(var i = 0; i < exts.length; i++) {
-				if (exts[i] == file.get('extension')) {
-					iconName = 'mimes/'+file.get('extension');
-					break;
-				}
+			var exts = ['png', 'gif', 'jpeg', 'jpg', 'bmp', 'ico', 'js', 'mp3', 'ogv', 'tiff', 'php', 'ogg', 'mp4', 'html', 'zip', 'txt', 'odt', 'ods'];
+			if (~$.inArray(file.get('extension'), exts)) {
+				iconName = 'mimes/'+file.get('extension');
 			}
-			
+
 			if (file.get('is_dir')) {
 				iconName = 'mimes/folder';
 				
@@ -2258,7 +2255,8 @@ Webos.require([
 		options: {
 			exists: true,
 			select: function() {},
-			selectMultiple: false
+			selectMultiple: false,
+			mime_type: ''
 		},
 		_create: function() {
 			this._super('_create');
