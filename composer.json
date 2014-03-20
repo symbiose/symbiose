@@ -20,7 +20,8 @@
 		"cboden/Ratchet": "0.3.*",
 		"symbiose/websocket-client": "dev-master",
 		"nitra/php-min": "dev-master",
-		"ircmaxell/password-compat": "dev-master"
+		"ircmaxell/password-compat": "dev-master",
+		"evenement/evenement": "1.0.*"
 	},
 	"autoload": {
 		"psr-0": {"JSMinPlus": "lib/vendor/nitra/php-min"}

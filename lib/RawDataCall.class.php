@@ -31,17 +31,13 @@ class RawDataCall extends \lib\Application {
 	}
 
 	public function run() {
+		$resp = $this->httpResponse;
+		$resp->setCacheable();
+
 		$controller = $this->getController();
+		$respCtn = $controller->responseContent();
+		$resp->setContent($respCtn);
+
 		$controller->execute();
-
-		$out = $controller->responseContent()->value();
-
-		//Enable cache
-		$this->httpResponse->setCacheable();
-
-		$this->httpResponse->addHeader('Content-Length: ' . strlen($out));
-
-		//Set the response content
-		$this->httpResponse->setContent($controller->responseContent());
 	}
 }

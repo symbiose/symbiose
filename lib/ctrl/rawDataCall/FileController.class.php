@@ -22,11 +22,26 @@ class FileController extends \lib\RawBackController {
 
 		$filePath = $fileManager->beautifyPath($request->getData('path'));
 
-		//URL parameters
+		//Request parameters
 		$options = array(
 			'download' => ($request->getExists('dl') && (int) $request->getData('dl')),
-			'shareKey' => ($request->getExists('key')) ? $request->getData('key') : null
+			'shareKey' => ($request->getExists('key')) ? $request->getData('key') : null,
+			'range' => null
 		);
+
+		// Get the 'Range' header if one was sent
+		// See https://stackoverflow.com/questions/157318/resumable-downloads-when-using-php-to-send-the-file/4451376#4451376
+		if (isset($_SERVER['HTTP_RANGE'])) {
+			$options['range'] = $_SERVER['HTTP_RANGE']; // IIS/Some Apache versions
+		} else if ($apache = apache_request_headers()) { // Try Apache again
+			$headers = array();
+			foreach ($apache as $header => $val) {
+				if (strtolower($header) == 'range') {
+					$options['range'] = $val;
+					break;
+				}
+			}
+		}
 
 		//Authorizations control
 		$userAuths = array();
@@ -103,6 +118,45 @@ class FileController extends \lib\RawBackController {
 			$filename = $fileManager->basename($filePath) . '.zip';
 		}
 
+		// Get the data range requested (if any)
+		$isPartial = false;
+		$filesize = $fileManager->size($outputFile);
+		$length = $filesize;
+		if (!empty($options['range'])) {
+			$isPartial = true;
+			list($param, $range) = explode('=', $options['range']);
+
+			if (strtolower(trim($param)) != 'bytes') { // Bad request - range unit is not 'bytes'
+				$this->app->httpResponse()->addHeader('HTTP/1.0 400 Bad Request');
+				throw new RuntimeException('Invalid range: only ranges in bytes are accepted');
+			}
+
+			$range = explode(',', $range);
+			$range = explode('-', $range[0]); // We only deal with the first requested range
+
+			if (count($range) != 2) { // Bad request - 'bytes' parameter is not valid
+				$this->app->httpResponse()->addHeader('HTTP/1.0 400 Bad Request');
+				throw new RuntimeException('Invalid range: bytes parameter is not valid');
+			}
+
+			if ($range[0] === '') { // First number missing, return last $range[1] bytes
+				$end = $filesize - 1;
+				$start = $end - intval($range[0]);
+			} else if ($range[1] === '') { // Second number missing, return from byte $range[0] to end
+				$start = intval($range[0]);
+				$end = $filesize - 1;
+			} else { // Both numbers present, return specific range
+				$start = intval($range[0]);
+				$end = intval($range[1]);
+			}
+
+			if ($end >= $filesize || (!$start && (!$end || $end == ($filesize - 1)))) { // Invalid range/whole file specified, return whole file
+				$isPartial = false;
+			}
+
+			$length = $end - $start + 1;
+		}
+
 		//Send response
 		$httpResponse = $this->app->httpResponse();
 		$httpResponse->addHeader('Content-Type: '.$fileManager->mimetype($outputFile));
@@ -120,10 +174,30 @@ class FileController extends \lib\RawBackController {
 		}
 
 		$httpResponse->addHeader('Last-Modified: ' . gmdate('D, d M Y H:i:s T', $outputMtime));
+		$httpResponse->addHeader('Content-Length: ' . $filesize);
 
-		$out = $fileManager->read($outputFile);
-		$httpResponse->addHeader('Content-Length: ' . strlen($out));
+		$httpResponse->addHeader('Accept-Ranges: bytes');
 
-		$this->responseContent->setValue($out);
+		$resp = $this->responseContent;
+		if ($isPartial) {
+			$httpResponse->addHeader('HTTP/1.1 206 Partial Content');
+			$httpResponse->addHeader('Content-Range: bytes '.$start.'-'.$end.'/'.$filesize);
+		}
+
+		if (!$fp = fopen($fileManager->toInternalPath($outputFile), 'r')) { // Error out if we can't read the file
+			$this->app->httpResponse()->addHeader('HTTP/1.0 500 Internal Server Error');
+			throw new RuntimeException('Cannot read file "'.$filePath.'"');
+		}
+
+		if ($isPartial && $start > 0) {
+			fseek($fp, $start);
+		}
+
+		while ($length) { // Read in blocks of 8KB so we don't chew up memory on the server
+			$read = ($length > 8192) ? 8192 : $length;
+			$length -= $read;
+			$resp->output(fread($fp, $read));
+		}
+		fclose($fp);
 	}
 }
