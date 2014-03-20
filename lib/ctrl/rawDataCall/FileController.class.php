@@ -33,7 +33,7 @@ class FileController extends \lib\RawBackController {
 		// See https://stackoverflow.com/questions/157318/resumable-downloads-when-using-php-to-send-the-file/4451376#4451376
 		if (isset($_SERVER['HTTP_RANGE'])) {
 			$options['range'] = $_SERVER['HTTP_RANGE']; // IIS/Some Apache versions
-		} else if ($apache = apache_request_headers()) { // Try Apache again
+		} else if (function_exists('apache_request_headers') && $apache = apache_request_headers()) { // Try Apache again
 			$headers = array();
 			foreach ($apache as $header => $val) {
 				if (strtolower($header) == 'range') {
