@@ -322,7 +322,7 @@ Webos.require([
 				this._window.find('.tabs-btn-ctn').show();
 			}
 
-			var $tabs = this._window.find('.tabs-btn-ctn > x-button'),
+			var $tabs = this._window.find('.tabs-btn-inner > x-button'),
 				$newTab = $tabs.filter('.tab-btn-'+newView);
 
 			$tabs.button('option', 'activated', false);
