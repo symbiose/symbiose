@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Video player"/>
+	<attribute name="title" lang="fr_FR" value="Lecteur vidéo"/>
+	<attribute name="description" value="Play videos"/>
+	<attribute name="description" lang="fr_FR" value="Lire des vidéos"/>
+	<attribute name="command" value="audience"/>
+	<attribute name="icon" value="apps/video-player"/>
+	<attribute name="menu" value="applications"/>
+	<attribute name="category" value="soundandvideo"/>
+	<attribute name="openMimeTypes" value="video/*"/>
+	<attribute name="type" value="video-player"/>
+</shortcut>

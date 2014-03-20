@@ -1,0 +1,47 @@
+.pull-left {
+	float: left;
+}
+
+.player-ctn {
+	position: relative;
+}
+.player-ctn > * {
+	position: absolute;
+}
+.player-ctn, .player-ctn > * {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.welcome-ctn {
+	text-align: center;
+	font-size: 1.1em;
+}
+.welcome-ctn h2 {
+	margin-top: 100px;
+}
+.welcome-ctn .welcome-actions {
+	list-style-type: none;
+	margin: auto;
+	margin-top: 50px;
+	padding: 0;
+	width: 330px;
+	text-align: left;
+}
+.welcome-ctn .welcome-actions x-icon {
+	margin-right: 20px;
+}
+.welcome-ctn p, .welcome-ctn .welcome-actions .action-description {
+	color: #999999;
+}
+.video-ctn {
+	display: none;
+	overflow: hidden;
+	background-color: black;
+}
+.video-ctn video {
+	width: 100%;
+	height: 100%;
+}

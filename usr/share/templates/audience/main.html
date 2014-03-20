@@ -1,0 +1,20 @@
+<x-window-main width="700" height="500" icon="apps/video-player" stylesheet="/usr/share/css/audience/main.css">
+	<h1>Audience</h1>
+
+	<div class="player-ctn">
+		<div class="welcome-ctn">
+			<h2>No videos are opened.</h2>
+			<p>Select a source to start playing.</p>
+			<ul class="welcome-actions">
+				<li class="action-file-open">
+					<x-icon src="actions/document-open" size="48" class="pull-left"></x-icon>
+					<span class="action-title">Open file</span><br />
+					<span class="action-description">Open a saved file.</span>
+				</li>
+			</ul>
+		</div>
+		<div class="video-ctn">
+			<video controls preload autoplay></video>
+		</div>
+	</div>
+</x-window-main>
