@@ -93,6 +93,11 @@
 		},
 		_startTimer: function() {
 			var that = this;
+
+			if (this.options.life <= 0) {
+				return;
+			}
+
 			this.options._timer = setTimeout(function() {
 				that.dismiss();
 			}, this.options.life * 1000);
