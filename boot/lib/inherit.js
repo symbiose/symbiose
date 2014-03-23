@@ -6,7 +6,7 @@
 Webos.inherit = function(C, P) {
 	var F = function() {};
 	F.prototype = P.prototype;
-	C.prototype = $.extend({}, new F(), C.prototype);
+	C.prototype = $.extend(true, {}, new F(), C.prototype);
 	C.uber = P.prototype;
 	C._parent = P;
 	C.prototype.constructor = C;
