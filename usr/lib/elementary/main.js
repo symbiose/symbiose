@@ -184,6 +184,16 @@ Webos.require([
 							.off('windowtobackground.launcher.elementary windowhide.launcher.elementary')
 							.on('windowtobackground.launcher.elementary windowhide.launcher.elementary', function () {
 								$item.removeClass('app-active');
+							})
+							.off('windowbadge.launcher.elementary')
+							.on('windowbadge.launcher.elementary', function (e, data) {
+								var badgeVal = $(this).window('option', 'badge');
+
+								if (badgeVal) {
+									$item.find('.app-badge').text(badgeVal);
+								} else {
+									$item.find('.app-badge').empty();
+								}
 							});
 
 						$item.click(function() {
@@ -228,8 +238,16 @@ Webos.require([
 						for (var i = 0; i < data.windows.length; i++) {
 							indicators += '<span class="window-indicator"></span>';
 						}
-						indicators += '</span</div>';
+						indicators += '</span></div>';
 						$item.append(indicators);
+
+						var badgeVal = $(data.windows).window('option', 'badge');
+						var badge = '<div class="app-badge">';
+						if (badgeVal) {
+							badge += badgeVal;
+						}
+						badge += '</div>';
+						$item.append(badge);
 					}
 
 					$item.append('<div class="app-title"><span class="app-title-inner">'+data.title+'</span></div>');

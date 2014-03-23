@@ -39,7 +39,8 @@ $.webos.widget('window', 'container', {
 		maximized: false,
 		parentWindow: $(),
 		childWindow: $(),
-		dialog: false
+		dialog: false,
+		badge: 0
 	},
 	_create: function() {
 		this._super('_create');
@@ -221,6 +222,9 @@ $.webos.widget('window', 'container', {
 			case 'dialog':
 				this.dialog(value);
 				break;
+			case 'badge':
+				this._trigger('badge', parseInt(value) || 0);
+				return;
 		}
 	},
 	/**
@@ -902,9 +906,21 @@ $.webos.widget('window', 'container', {
 		if (value) {
 			var options = $.extend({
 				message: 'Chargement...',
-				lock: true
+				lock: true,
+				progress: null
 			}, opts);
-			
+
+			if (typeof options.progress == 'number') {
+				if (options.progress > 100) {
+					options.progress = 100;
+				}
+				if (options.progress < 0) {
+					options.progress = 0;
+				}
+			} else {
+				options.progress = null;
+			}
+
 			this.options.loading = options;
 			
 			if (options.lock) {
@@ -937,6 +953,7 @@ $.webos.widget('window', 'container', {
 			}
 			
 			this._trigger('loadingstart');
+			this._trigger('progress', { type: 'progress' }, { value: options.progress });
 			this.options.states.loading = true;
 		} else {
 			if (this.is('ready')) {
@@ -959,6 +976,7 @@ $.webos.widget('window', 'container', {
 			}
 			
 			this._trigger('loadingstop');
+			this._trigger('progress', { type: 'progress' }, { value: 100 });
 			this.options.states.loading = false;
 		}
 	},

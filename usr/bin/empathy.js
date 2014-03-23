@@ -471,10 +471,16 @@ Webos.require([
 					}
 					that._$conversations[msg.from] = $msgs.not('.msg-typing').add($msg);
 
-					//Set conversation as unread
 					var $contact = $contactsCtn.children('li').filter(function () {
 						return ($(this).data('username') == msg.from);
 					});
+
+					//Update main window badge
+					if (!$contact.is('.contact-conversation-unread')) {
+						$win.window('option', 'badge', $win.window('option', 'badge') + 1);
+					}
+
+					//Set conversation as unread
 					$contact.addClass('contact-conversation-unread').detach().prependTo($contactsCtn);
 
 					//Show a little notification
@@ -614,10 +620,16 @@ Webos.require([
 					}
 					that._$conversations[fileSending.from] = $msgs.add($msg);
 
-					//Set conversation as unread
 					var $contact = $contactsCtn.children('li').filter(function () {
 						return ($(this).data('username') == fileSending.from);
 					});
+
+					//Update main window badge
+					if (!$contact.is('.contact-conversation-unread')) {
+						$win.window('option', 'badge', $win.window('option', 'badge') + 1);
+					}
+
+					//Set conversation as unread
 					$contact.addClass('contact-conversation-unread').detach().prependTo($contactsCtn);
 
 					//Show a little notification
@@ -1491,6 +1503,13 @@ Webos.require([
 				return ($(this).data('username') == dst);
 			});
 			$contactsCtn.children('.item-active').removeClass('item-active');
+
+			//Update main window badge
+			if ($contact.is('.contact-conversation-unread')) {
+				this._$win.window('option', 'badge', this._$win.window('option', 'badge') - 1);
+			}
+
+			//Set conversation as read
 			$contact.addClass('item-active').removeClass('contact-conversation-unread');
 
 			this.trigger('conversationswitch', {

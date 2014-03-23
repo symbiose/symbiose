@@ -300,6 +300,7 @@ body {
 	height: 6px;
 	display: inline-block;
 	box-shadow: 0 0 3px 3px #53a6dc;
+	z-index: 1999;
 }
 #launcher ul li .app-indicators .window-indicator {
 	display: block;
@@ -308,6 +309,26 @@ body {
 	float: left;
 	background-color: #8dc4e9;
 	border: 1px solid #53a6dc;
+}
+#launcher ul li .app-badge {
+	position: absolute;
+	text-align: center;
+	display: inline-block;
+	top: 0;
+	right: 0;
+	min-width: 19px;
+	padding: 3px;
+	border: 1px solid #c73040;
+	border-radius: 20px;
+	background-color: #da1c2f;
+	background: -moz-linear-gradient(#fc5666, #c01929);
+	background: -webkit-linear-gradient(#fc5666, #c01929);
+	background: linear-gradient(#fc5666, #c01929);
+	color: white;
+	font-weight: bold;
+}
+#launcher ul li .app-badge:empty {
+	display: none;
 }
 #launcher ul li .app-title {
 	position: relative;
