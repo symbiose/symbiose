@@ -4,6 +4,7 @@
 	"executeGetPeerByUserAndApp":[],
 	"executeListPeersLinks":[],
 	"executeListLinkedPeers":[],
+	"executeAttachPeer":[],
 	"executeRegisterPeer":[],
 	"executeRequestPeerLink":[],
 	"executeConfirmPeerLink":[]

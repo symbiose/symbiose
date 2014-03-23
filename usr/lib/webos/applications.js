@@ -404,6 +404,42 @@ Webos.Application.listOpeners = function(file, callback) {
 	}, callback.error]);
 };
 /**
+ * Open a file.
+ * @param  {Webos.File}      file     The file to open.
+ * @param  {Webos.Callback}  callback The callback.
+ * @return {Webos.Operation}          The operation.
+ */
+Webos.Application.openFile = function (file, callback) {
+	var op = Webos.Operation.create();
+	op.addCallbacks(callback);
+
+	Webos.Application.listOpeners(file, function(openers) {
+		if (openers.length > 0) {
+			var prefered = openers[0];
+
+			for (var i = 0; i < openers.length; i++) {
+				if ($.inArray(file.get('extension'), openers[i].get('preferedOpen')) != -1) {
+					prefered = openers[i];
+					break;
+				}
+			}
+
+			W.Cmd.execute({
+				cmd: prefered.get('command'),
+				args: {
+					params: [file]
+				}
+			});
+
+			op.setCompleted();
+		} else {
+			op.setCompleted(W.Callback.Result.error('No app found to open "'+file.get('basename')+'"'));
+		}
+	});
+
+	return op;
+};
+/**
  * List apps by type.
  * @param {String} type The type.
  * @param {Webos.Callback} callback The callback.

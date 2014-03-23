@@ -1,9 +1,13 @@
 Webos.require([
+	'/usr/lib/webos/applications.js',
 	'/usr/lib/webos/data.js',
 	//Strophe
 	'/usr/lib/strophejs/strophe.js',
 	'/usr/lib/strophejs/strophe.vcard.js',
 	'/usr/lib/strophejs/strophe.chatstates.js',
+	//PeerJS
+	'/usr/lib/peerjs/peer.js',
+	'/usr/lib/peerjs/webos.js',
 	//OTR
 	'/usr/lib/webos/bigint.js',
 	'/usr/lib/webos/crypto.js',
@@ -111,6 +115,10 @@ Webos.require([
 		xmpp: {
 			type: 'xmpp',
 			title: 'XMPP'
+		},
+		peerjs: {
+			type: 'peerjs',
+			title: 'PeerJS'
 		}
 	};
 	Empathy.service = function (serviceName) {
@@ -120,9 +128,15 @@ Webos.require([
 		return this._services;
 	};
 
-	Empathy.createConnection = function (serviceName, options) {
-		var serviceApiName = serviceName[0].toUpperCase() + serviceName.substr(1),
+	Empathy.serviceApi = function (serviceType) {
+		var serviceApiName = serviceType[0].toUpperCase() + serviceType.substr(1),
 			serviceApi = this[serviceApiName];
+
+		return serviceApi;
+	};
+
+	Empathy.createConnection = function (serviceType, options) {
+		var serviceApi = Empathy.serviceApi(serviceType);
 
 		if (!serviceApi) {
 			return false;
@@ -157,6 +171,8 @@ Webos.require([
 	Empathy.prototype = {
 		_$win: $(),
 		_$settingsWin: $(),
+		_$callWin: $(),
+		_calls: {},
 		_$conversations: {},
 		_conns: [],
 		_loggedInUsers: {},
@@ -208,6 +224,7 @@ Webos.require([
 			W.xtag.loadUI('/usr/share/templates/empathy/main.html', function(windows) {
 				that._$win = $(windows).filter(':eq(0)');
 				that._$settingsWin = $(windows).filter(':eq(1)');
+				that._$callWin = $(windows).filter(':eq(2)');
 
 				var $win = that._$win;
 
@@ -249,16 +266,28 @@ Webos.require([
 					username = $win.find('.view-login .login-username').val(),
 					password = $win.find('.view-login .login-password').val();
 
-				if (!username) {
-					return;
-				}
-
 				that.connect({
 					username: username,
 					password: password,
 					service: serviceName
 				});
 			});
+
+			$win.find('.view-login .login-service').change(function () {
+				var serviceName = $win.find('.view-login .login-service').val();
+
+				var service = Empathy.service(serviceName);
+				if (!service) {
+					return;
+				}
+
+				var serviceApi = Empathy.serviceApi(service.type);
+				if (!serviceApi) {
+					return;
+				}
+
+				$win.find('.view-login .login-credentials').toggle(serviceApi.prototype.needsCredentials());
+			}).change();
 
 			this.on('connecting', function (data) {
 				$win.window('loading', true, {
@@ -310,7 +339,7 @@ Webos.require([
 				var $contact = $contactsCtn.children('li').filter(function () {
 					return ($(this).data('username') == contact.username);
 				});
-				
+
 				var $contactActions = $();
 				if (!$contact.length) {
 					$contact = $('<li></li>').data('username', contact.username).appendTo($contactsCtn);
@@ -476,8 +505,140 @@ Webos.require([
 				}
 			});
 
+			var createFileMsgContent = function (fileSending, isSent) {
+				var file = Webos.BlobFile.create(fileSending.blob, {
+					basename: fileSending.basename
+				});
+
+				var openFile = function () {
+					Webos.Application.openFile(file);
+				};
+
+				var saveFile = function () {
+					new NautilusFileSelectorWindow({
+						parentWindow: $win,
+						exists: false,
+						mime_type: fileSending.type
+					}, function(paths) {
+						if (paths.length) {
+							var path = paths[0];
+
+							W.File.get(path).writeAsBlob(fileSending.blob);
+						} else {
+							//Operation aborded
+						}
+					});
+				};
+
+				var $openFileLink = $('<a href="#"></a>').html('Open').click(function (e) {
+					e.preventDefault();
+					openFile();
+				});
+				var $saveFileLink = $('<a href="#"></a>').html('Save').click(function (e) {
+					e.preventDefault();
+					saveFile();
+				});
+
+				var $msgContent = $('<span></span>', { 'class': 'msg-content' });
+
+				if (file.matchesMimeType('image/*') ||
+					file.matchesMimeType('audio/*') ||
+					file.matchesMimeType('video/*')) {
+					var $media = $();
+
+					if (file.matchesMimeType('image/*')) {
+						$media = $('<img />');
+					} else if (file.matchesMimeType('audio/*')) {
+						$media = $('<audio controls></audio>');
+					} else if (file.matchesMimeType('video/*')) {
+						$media = $('<video controls></video>');
+					}
+					if ($media.is('audio,video')) {
+						$media.error(function () {
+							W.Error.trigger('Cannot play media', $media[0].error);
+						});
+					}
+					$media.addClass('msg-content-media').appendTo($msgContent);
+
+					file.readAsDataUrl(function (dataUrl) {
+						$media.attr('src', dataUrl);
+					});
+
+					$msgContent.append('<br />');
+				} else {
+					$msgContent.append((isSent) ? 'File sent: ' : 'File received: ');
+				}
+
+				$msgContent.append($openFileLink);
+				$msgContent.append(' &middot; ');
+				$msgContent.append($saveFileLink);
+
+				return $msgContent;
+			};
+			this.on('filesent', function (fileSending) {
+				var dst = that.contact(fileSending.to), src = that.loggedInUser(fileSending.from);
+
+				var $msg = $('<li></li>', { 'class': 'msg msg-sent' });
+				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
+				$msg.append(createFileMsgContent(fileSending, true));
+				$msg.toggleClass('msg-encrypted', fileSending.encrypted);
+
+				if (that.currentDst() && that.currentDst().username == fileSending.to) {
+					$msg.appendTo($conversationCtn);
+					scrollToConversationBottom();
+				} else {
+					var $msgs = $();
+					if (that._isConversationDetached(fileSending.to)) {
+						$msgs = that._$conversations[fileSending.to];
+					}
+					that._$conversations[fileSending.to] = $msgs.add($msg);
+				}
+			});
+
+			this.on('filereceived', function (fileSending) {
+				var src = that.contact(fileSending.from), dst = that.loggedInUser(fileSending.to);
+
+				var $msg = $('<li></li>', { 'class': 'msg msg-received' });
+				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
+				$msg.append(createFileMsgContent(fileSending));
+				$msg.toggleClass('msg-encrypted', fileSending.encrypted);
+
+				if (that.currentDst() && that.currentDst().username == fileSending.from) {
+					$conversationCtn.find('.msg-typing').remove();
+					$msg.appendTo($conversationCtn);
+					scrollToConversationBottom();
+				} else {
+					var $msgs = $();
+					if (that._isConversationDetached(fileSending.from)) {
+						$msgs = that._$conversations[fileSending.from];
+					}
+					that._$conversations[fileSending.from] = $msgs.add($msg);
+
+					//Set conversation as unread
+					var $contact = $contactsCtn.children('li').filter(function () {
+						return ($(this).data('username') == fileSending.from);
+					});
+					$contact.addClass('contact-conversation-unread').detach().prependTo($contactsCtn);
+
+					//Show a little notification
+					var $saveBtn = $.w.button('Save').click(function() {
+						saveFile();
+					});
+
+					$.w.notification({
+						title: 'File received',
+						icon: 'apps/chat',
+						message: 'New file received from '+src.name,
+						widgets: [$saveBtn]
+					});
+				}
+			});
+
 			this.on('contactcomposing', function (data) {
 				var src = that.contact(data.username);
+				if (!src) {
+					return;
+				}
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received msg-typing' });
 				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
@@ -507,7 +668,7 @@ Webos.require([
 					$conversationCtn.find('.msg-typing').remove();
 				} else {
 					if (that._isConversationDetached(data.username)) {
-						that._$conversations[data.username] = $msgs.not('.msg-typing');
+						that._$conversations[data.username] = that._$conversations[data.username].not('.msg-typing');
 					}
 				}
 			});
@@ -637,6 +798,33 @@ Webos.require([
 				}
 			});
 
+			$win.find('.conversation-compose .compose-attach').click(function () {
+				var dst = that.currentDst(), conn = that.connection(dst.conn);
+
+				if (!dst) {
+					return;
+				}
+				if (!conn.hasFeature('fileSending')) {
+					return;
+				}
+
+				new NautilusFileSelectorWindow({
+					parentWindow: $win
+				}, function(files) {
+					if (files.length) {
+						var file = files[0];
+
+						file.readAsBlob(function (blob) {
+							conn.sendFile({
+								to: dst.username,
+								file: blob,
+								basename: file.get('basename')
+							});
+						});
+					}
+				});
+			});
+
 			$win.find('.btn-accounts').click(function () {
 				that.openSettings();
 			});
@@ -662,13 +850,24 @@ Webos.require([
 			$win.find('.btn-encryption').hide();
 			
 			this.on('conversationswitch', function () {
-				$win.find('.btn-encryption').button('option', 'disabled', false);
+				$win.find('.btn-encryption').button('option', 'disabled', true);
+				$win.find('.conversation-compose .compose-attach').button('option', 'disabled', true);
 
 				if (that.currentDst()) {
 					var dst = that.currentDst(), conn = that.connection(dst.conn);
-					var status = conn.otrStatus(dst.username);
+					
+					var encrypted = false;
+					if (conn.hasFeature('otr')) {
+						var status = conn.otrStatus(dst.username);
+						encrypted = status.encrypted;
 
-					$win.find('.btn-encryption').button('option', 'activated', status.encrypted);
+						$win.find('.btn-encryption').button('option', 'disabled', false);
+					}
+					$win.find('.btn-encryption').button('option', 'activated', encrypted);
+
+					if (conn.hasFeature('fileSending')) {
+						$win.find('.conversation-compose .compose-attach').button('option', 'disabled', false);
+					}
 				}
 			});
 			this.on('otrake', function (status) {
@@ -695,6 +894,10 @@ Webos.require([
 				}
 
 				var dst = that.currentDst(), conn = that.connection(dst.conn);
+				if (!conn.hasFeature('otr')) {
+					return;
+				}
+
 				var status = conn.otrStatus(dst.username);
 
 				if (!status.encrypted) {
@@ -721,13 +924,17 @@ Webos.require([
 				service: ''
 			}, options);
 
-			if (!options.username) {
+			var service = Empathy.service(options.service);
+			if (!service) {
 				return false;
 			}
 
-			var service = Empathy.service(options.service);
+			var serviceApi = Empathy.serviceApi(service.type);
+			if (!serviceApi) {
+				return false;
+			}
 
-			if (!service) {
+			if (!options.username && serviceApi.prototype.needsCredentials()) {
 				return false;
 			}
 
@@ -992,6 +1199,28 @@ Webos.require([
 					encrypted: !!msg.encrypted
 				});
 			});
+			conn.on('filereceived', function (fileSending) {
+				that.trigger('filereceived', {
+					from: fileSending.from,
+					to: fileSending.to,
+					connId: connId,
+					blob: fileSending.blob,
+					type: fileSending.type,
+					basename: fileSending.basename,
+					encrypted: !!fileSending.encrypted
+				});
+			});
+			conn.on('filesent', function (fileSending) {
+				that.trigger('filesent', {
+					from: fileSending.from,
+					to: fileSending.to,
+					connId: connId,
+					blob: fileSending.blob,
+					type: fileSending.type,
+					basename: fileSending.basename,
+					encrypted: !!fileSending.encrypted
+				});
+			});
 			conn.on('otrstatus', function (status) {
 				switch (status.type) {
 					case 'ake':
@@ -1027,6 +1256,36 @@ Webos.require([
 					$loadingDialog.window('close');
 				});
 			});
+			conn.on('callinitiate', function (data) {
+				that._callUpdate(data, connId);
+			});
+			conn.on('callincoming', function (data) {
+				var src = that.contact(data.remote);
+
+				if (!src) { //Do not allow anonymous calls
+					conn.endCall(data.callId);
+					return;
+				}
+
+				$answerBtn = $.w.button('Answer').click(function () {
+					conn.answerCall(data.callId);
+				});
+
+				$.w.notification({
+					title: 'Incoming call',
+					message: src.name+' is calling you.',
+					icon: 'apps/chat',
+					widgets: [$answerBtn],
+					life: 60
+				});
+			});
+			conn.on('callstart', function (data) {
+				that._callUpdate(data, connId);
+			});
+			conn.on('callend', function (data) {
+				that._callUpdate(data, connId);
+				delete that._calls[data.callId];
+			});
 
 			this._initChatstates(connId);
 
@@ -1039,21 +1298,93 @@ Webos.require([
 				switch (state.type) {
 					case 'active':
 						that.trigger('contactactive', {
-							username: state.username
+							username: state.from
 						});
 						break;
 					case 'composing':
+						console.log('state', state);
 						that.trigger('contactcomposing', {
-							username: state.username
+							username: state.from
 						});
 						break;
 					case 'paused':
 						that.trigger('contactpaused', {
-							username: state.username
+							username: state.from
 						});
 						break;
 				}
 			});
+		},
+		_callUpdate: function (callData, connId) {
+			var that = this, conn = this._conn(connId);
+			var $callWin = this._$callWin;
+
+			this._calls[callData.callId] = callData;
+
+			var remoteNames = [];
+			for (var callId in this._calls) {
+				var thisCallData = this._calls[callId];
+
+				var src = that.contact(thisCallData.remote);
+				if (!src) {
+					continue;
+				}
+
+				remoteNames.push(src.name);
+			}
+			$callWin.window('option', 'title', 'Call with '+remoteNames.join(', '));
+
+			var $localVideo = $callWin.find('.video-local'),
+				$remoteVideosCtn = $callWin.find('.video-remote'),
+				$remoteVideo = $remoteVideosCtn.find('.video-remote-'+callData.callId);
+
+			var closeWin = ($remoteVideo.attr('src') && !callData.remoteStream && remoteNames.length <= 1);
+
+			if (!$callWin.window('is', 'opened') && !closeWin) {
+				$callWin.window('open');
+
+				$callWin.on('windowclose', function () {
+					for (var callId in that._calls) {
+						conn.endCall(callId);
+					}
+				});
+			}
+
+			if (!$remoteVideo.length) {
+				$remoteVideo = $('<video></video>', { 'class': 'video-remote-'+callData.callId });
+				$remoteVideosCtn.append($('<li></li>').append($remoteVideo));
+
+				var nbrRemotes = $remoteVideosCtn.children().length;
+				$remoteVideosCtn
+					.removeClass('video-remote-'+(nbrRemotes - 1))
+					.addClass('video-remote-'+nbrRemotes);
+			}
+
+			var URL = window.URL || window.webkitURL;
+			if (!$localVideo.attr('src') && callData.localStream) {
+				$localVideo.attr('src', URL.createObjectURL(callData.localStream));
+				$localVideo[0].play();
+			}
+			if (!$remoteVideo.attr('src') && callData.remoteStream) {
+				$remoteVideo.attr('src', URL.createObjectURL(callData.remoteStream));
+				$remoteVideo[0].play();
+			}
+
+			if ($localVideo.attr('src') && !callData.localStream) {
+				$localVideo.attr('src', '');
+			}
+			if ($remoteVideo.attr('src') && !callData.remoteStream) {
+				$remoteVideo.remove();
+
+				var nbrRemotes = $remoteVideosCtn.children().length;
+				$remoteVideosCtn
+					.removeClass('video-remote-'+(nbrRemotes + 1))
+					.addClass('video-remote-'+nbrRemotes);
+
+				if (closeWin) {
+					$callWin.window('close');
+				}
+			}
 		},
 		_listContacts: function (connId) {
 			var that = this, conn = this._conn(connId);
@@ -1402,6 +1733,7 @@ Webos.require([
 	Empathy.Interface.prototype = {
 		_type: '',
 		_features: [],
+		_needsCredentials: false,
 		options: function () {
 			return this._options;
 		},
@@ -1424,6 +1756,9 @@ Webos.require([
 				this._features.splice(featIndex, 1);
 			}
 		},
+		needsCredentials: function () {
+			return this._needsCredentials;
+		},
 		connect: function () {},
 		listContacts: function () {},
 		getContactPicture: function (username) {}
@@ -1444,6 +1779,8 @@ Webos.require([
 	Webos.inherit(Empathy.MessageInterface, Empathy.Interface);
 
 	Empathy.OtrMessageInterface = function (options) {
+		this._features.push('otr');
+
 		Empathy.MessageInterface.call(this, options);
 	};
 	Webos.Observable.build(Empathy.OtrMessageInterface);
@@ -1690,9 +2027,21 @@ Webos.require([
 		Empathy.Interface.call(this, options);
 	};
 	Empathy.CallInterface.prototype = {
-		call: function (call) {}
+		call: function (call) {},
+		answerCall: function (callId) {},
+		endCall: function (callId) {}
 	};
 	Webos.inherit(Empathy.CallInterface, Empathy.Interface);
+
+	Empathy.FileSendingInterface = function (options) {
+		this._features.push('fileSending');
+
+		Empathy.Interface.call(this, options);
+	};
+	Empathy.FileSendingInterface.prototype = {
+		sendFile: function (fileSending) {}
+	};
+	Webos.inherit(Empathy.FileSendingInterface, Empathy.Interface);
 
 
 	Empathy.Xmpp = function (options) {
@@ -1703,6 +2052,7 @@ Webos.require([
 	};
 	Empathy.Xmpp.prototype = {
 		_type: 'xmpp',
+		_needsCredentials: true,
 		_RTC: null,
 		_localVideoSteam: null,
 		_jids: {},
@@ -1823,23 +2173,32 @@ Webos.require([
 
 			if (conn.chatstates) { // Chatstates plugin loaded
 				conn.chatstates.onActive = function (jid) {
+					var connJid = that.getSubJid(conn.jid);
+
 					that.trigger('chatstate', {
 						type: 'active',
-						username: jid
+						from: jid,
+						to: connJid
 					});
 				};
 
 				conn.chatstates.onComposing = function (jid) {
+					var connJid = that.getSubJid(conn.jid);
+
 					that.trigger('chatstate', {
 						type: 'composing',
-						username: jid
+						from: jid,
+						to: connJid
 					});
 				};
 
 				conn.chatstates.onPaused = function (jid) {
+					var connJid = that.getSubJid(conn.jid);
+
 					that.trigger('chatstate', {
 						type: 'paused',
-						username: jid
+						from: jid,
+						to: connJid
 					});
 				};
 			}
@@ -2201,6 +2560,494 @@ Webos.require([
 		return new Empathy.Xmpp();
 	};
 
+	//Peerjs
+	Empathy.Peerjs = function (options) {
+		Empathy.MessageInterface.call(this, options);
+		Empathy.CallInterface.call(this, options);
+		Empathy.FileSendingInterface.call(this, options);
+
+		this.initialize(this._options);
+	};
+	Empathy.Peerjs.prototype = {
+		_type: 'peerjs',
+		_peer: null,
+		_peerAppName: 'empathy',
+		_contactsPeerIds: [],
+		initialize: function (options) {},
+		connect: function (options) {
+			var that = this, conn = this._conn;
+			var op = Webos.Operation.create();
+
+			options = $.extend({}, this.options(), options);
+			this._options = options;
+
+			var peer = Webos.Peer.connect();
+
+			var contactsInterval = null;
+			peer.on('open', function (id) {
+				that._options.username = id;
+				console.log('My id: '+id);
+
+				Webos.Peer.attach(id, that._peerAppName).on('complete', function () {
+					contactsInterval = setInterval(function () {
+						that.listContacts();
+					}, 15*1000);
+
+					that.trigger('status', {
+						type: 'connected'
+					});
+
+					op.setCompleted();
+				});
+			});
+			peer.on('close', function () {
+				that.trigger('status', {
+					type: 'disconnected'
+				});
+
+				if (contactsInterval) {
+					clearInterval(contactsInterval);
+				}
+			});
+			peer.on('error', function (err) {
+				that.trigger('status', {
+					type: 'connfail',
+					msg: 'Error: '+err.type
+				});
+				op.setCompleted(false);
+			});
+
+			peer.on('connection', function (conn) {
+				that._handleConnection(conn);
+			});
+
+			peer.on('call', function(call) {
+				that._handleCall(call);
+
+				that.trigger('callincoming', {
+					remote: call.peer,
+					local: peer.id,
+					callId: call.id
+				});
+			});
+
+			this._peer = peer;
+
+			this.trigger('status', {
+				type: 'connecting'
+			});
+
+			return op;
+		},
+		disconnect: function () {
+			this._peer.disconnect();
+		},
+		_handleConnection: function (conn) {
+			var that = this, peer = this._peer;
+
+			conn.on('data', function(data) {
+				console.log(data);
+
+				switch (data.type) {
+					case 'message': //Receive messages
+						if (!data.contents || !data.contents.body) {
+							break;
+						}
+
+						that._receiveMessage({
+							from: conn.peer,
+							to: peer.id,
+							body: data.contents.body
+						});
+						break;
+					case 'chatstate': //Chatstates
+						if (!data.contents || !data.contents.type) {
+							break;
+						}
+
+						that.trigger('chatstate', {
+							type: data.contents.type,
+							from: conn.peer,
+							to: peer.id
+						});
+						break;
+					case 'file':
+						if (!data.contents || !data.contents.bytes || !window.Blob) {
+							break;
+						}
+
+						var blob = new Blob([data.contents.bytes], { type: data.contents.type });
+
+						that.trigger('filereceived file', {
+							blob: blob,
+							type: data.contents.type,
+							basename: data.contents.basename,
+							from: conn.peer,
+							to: peer.id
+						});
+						break;
+					default:
+						console.warn('Empathy: Unknown PeerJS message type: '+data.type);
+				}
+			});
+
+			conn.on('close', function () {});
+
+			conn.on('error', function (err) {
+				that.trigger('status', {
+					type: 'error',
+					error: 'connerror',
+					msg: 'Error: '+err.type
+				});
+			});
+		},
+		_openConnection: function (dst) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+
+			var conn = this._getConnection(dst, 'data');
+			if (conn) {				
+				if (conn.open) {
+					op.setCompleted(conn);
+				} else {
+					conn.once('open', function(data) {
+						op.setCompleted(conn);
+					});
+				}
+			} else {
+				var conn = peer.connect(dst);
+
+				conn.on('open', function(data) {
+					that._handleConnection(conn);
+
+					op.setCompleted(conn);
+				});
+			}
+
+			return op;
+		},
+		_listConnections: function (peerId, connType) {
+			var peer = this._peer;
+
+			var connections = peer.connections[peerId] || [], matching = [];
+			for (var i = 0; i < connections.length; i++) {
+				var conn = connections[i];
+
+				if (!connType || conn.type == connType) {
+					matching.push(conn);
+				}
+			}
+
+			return matching;
+		},
+		_getConnection: function (peerId, connType) {
+			return this._listConnections(peerId, connType)[0];
+		},
+		_handleCall: function (call) {
+			var that = this, peer = this._peer;
+
+			call.on('stream', function (stream) {
+				that.trigger('call callstart', {
+					remote: call.peer,
+					local: peer.id,
+					remoteStream: stream,
+					localStream: call.localStream,
+					callId: call.id
+				});
+			});
+			call.on('close', function () {
+				that.trigger('callend', {
+					remote: call.peer,
+					local: peer.id,
+					callId: call.id
+				});
+			});
+			call.on('error', function (err) {
+				that.trigger('status', {
+					type: 'error',
+					error: 'connerror',
+					msg: 'Error: '+err.type
+				});
+			});
+		},
+		_getCall: function (callId) {
+			var peer = this._peer;
+
+			for (var peerId in peer.connections) {
+				var connections = peer.connections[peerId];
+				for (var i = 0; i < connections.length; i++) {
+					var conn = connections[i];
+
+					if (conn.type == 'media' && conn.id == callId) {
+						return conn;
+					}
+				}
+			}
+		},
+		listContacts: function () {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+
+			Webos.Peer.listByApp(this._peerAppName).on({
+				success: function (data) {
+					var list = data.result, contacts = [], offlinePeers = that._contactsPeerIds;
+					that._contactsPeerIds = [];
+
+					for (var i = 0; i < list.length; i++) {
+						var thisPeer = list[i];
+
+						if (!thisPeer.get('peerId')) {
+							continue;
+						}
+
+						var contact = {
+							username: thisPeer.get('peerId'),
+							account: peer.id,
+							name: '',
+							presence: 'offline'
+						};
+
+						if (thisPeer.get('online')) {
+							contact.presence = 'online';
+						}
+						if (thisPeer.get('user')) {
+							contact.name = thisPeer.get('user')['realname'];
+						}
+
+						that.trigger('contact', contact);
+						contacts.push(contact);
+
+						var j = $.inArray(contact.username, offlinePeers);
+						if (~j) {
+							offlinePeers = offlinePeers.slice(j, 1);
+						}
+						that._contactsPeerIds.push(contact.username);
+					}
+
+					for (var i = 0; i < offlinePeers.length; i++) {
+						/*that.trigger('contact', {
+							username: offlinePeers[i],
+							account: peer.id,
+							presence: 'offline'
+						});*/
+					}
+
+					op.setCompleted(contacts);
+				},
+				error: function () {
+					op.setCompleted(false);
+				}
+			});
+
+			return op;
+		},
+		getContactPicture: function (peerId) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+
+			op.setCompleted(false);
+
+			return op;
+		},
+		_sendMessage: function (msg) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+
+			that._openConnection(msg.to).on({
+				success: function (data) {
+					var conn = data.result;
+
+					conn.send({
+						type: 'message',
+						contents: {
+							body: msg.body
+						}
+					});
+
+					op.setCompleted();
+				},
+				error: function () {
+					op.setCompleted(false);
+				}
+			});
+
+			return op;
+		},
+		sendMessage: function (msg) {
+			var that = this, peer = this._peer;
+
+			var triggerEvent = function () {
+				that.trigger('message messagesent', {
+					from: peer.id,
+					to: msg.to,
+					body: msg.body
+				});
+			};
+
+			/*if (that.otrAvailable()) {
+				that._startOtr(that.getSubJid(msg.to)).on('success', function (data) {
+					var buddy = data.result;
+
+					buddy.sendMsg(msg.body);
+
+					encrypted = (buddy.msgstate === OTR.CONST.MSGSTATE_ENCRYPTED);
+					triggerEvent();
+				});
+			} else {*/
+				var op = this._sendMessage(msg);
+				triggerEvent();
+			//}
+
+			return op;
+		},
+		sendChatstate: function (state) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+
+			that._openConnection(state.to).on({
+				success: function (data) {
+					var conn = data.result;
+
+					conn.send({
+						type: 'chatstate',
+						contents: {
+							type: String(state.type)
+						}
+					});
+
+					op.setCompleted();
+				},
+				error: function () {
+					op.setCompleted(false);
+				}
+			});
+
+			return op;
+		},
+		_getUserMedia: function () {
+			var op = Webos.Operation.create();
+
+			// Compatibility shim
+			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+			// Get audio/video stream
+			navigator.getUserMedia({ audio: true, video: true }, function (stream) {
+				op.setCompleted(stream);
+			}, function(err) {
+				op.setCompleted(false);
+			});
+
+			return op;
+		},
+		call: function (callMetadata) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+
+			this._getUserMedia().on({
+				success: function (data) {
+					var stream = data.result,
+						call = peer.call(callMetadata.to, stream);
+
+					that.trigger('callinitiate calling', {
+						remote: callMetadata.to,
+						local: peer.id,
+						localStream: stream,
+						callId: call.id
+					});
+
+					that._handleCall(call);
+
+					op.setCompleted();
+				},
+				error: function () {
+					op.setCompleted(false);
+				}
+			});
+
+			return op;
+		},
+		answerCall: function (callId) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+			var call = this._getCall(callId);
+
+			this._getUserMedia().on({
+				success: function (data) {
+					var stream = data.result;
+					call.answer(stream);
+
+					op.setCompleted();
+				},
+				error: function () {
+					op.setCompleted(false);
+				}
+			});
+
+			return op;
+		},
+		endCall: function (callId) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+			var call = this._getCall(callId);
+
+			call.close();
+			op.setCompleted();
+
+			return op;
+		},
+		sendFile: function (fileSending) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+
+			if (!window.Blob) {
+				op.setCompleted(false);
+				return op;
+			}
+
+			if (!fileSending.file instanceof Blob) {
+				op.setCompleted(false);
+				return op;
+			}
+
+			that._openConnection(fileSending.to).on({
+				success: function (data) {
+					var conn = data.result;
+
+					conn.send({
+						type: 'file',
+						contents: {
+							bytes: fileSending.file,
+							type: fileSending.file.type,
+							basename: fileSending.basename
+						}
+					});
+
+					that.trigger('filesent', {
+						blob: fileSending.file,
+						from: peer.id,
+						to: conn.peer
+					});
+
+					op.setCompleted();
+				},
+				error: function () {
+					op.setCompleted(false);
+				}
+			});
+
+			return op;
+		}
+	};
+
+	Webos.inherit(Empathy.Peerjs, Empathy.MessageInterface);
+	Webos.inherit(Empathy.Peerjs, Empathy.CallInterface);
+	Webos.inherit(Empathy.Peerjs, Empathy.FileSendingInterface);
+
+	Empathy.Peerjs.create = function () {
+		return new Empathy.Peerjs();
+	};
+
+	//Static methods
 	Empathy.open = function () {
 		return new Empathy();
 	};

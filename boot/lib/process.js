@@ -32,9 +32,9 @@
 				url = that.cmd+'.js';
 			}
 
-			js = '(function (args) { '+js+'\n }).call(Webos.Process.get('+that.getPid()+'), args);';
+			js = '(function (args) { '+js+'\n }).call(Webos.Process.get('+that.getPid()+'), Webos.Process.get('+that.getPid()+').getArguments());';
 
-			Webos.Script.create(js, this.args, url);
+			Webos.Script.create(js, null, url);
 		};
 
 		if (typeof this.pid != 'undefined') {

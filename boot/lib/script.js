@@ -9,7 +9,7 @@ Webos.Script = function (js, args, url) {
 	this.js = js;
 	this.args = args;
 
-	if (typeof args == 'undefined') { //Si les arguments sont vides
+	if (!args) { //Si les arguments sont vides
 		args = new Webos.Arguments({});
 	}
 	
@@ -425,7 +425,7 @@ Webos.eval = function (scripts, callback, options) {
  * @deprecated  The use of this class is deprecated.
  * @todo Simplify argument's management.
  */
-Webos.Arguments = function WArguments(args) {
+Webos.Arguments = function (args) {
 	this.args = $.extend({}, args);
 	if (typeof this.args.options == 'undefined') { this.args.options = {}; }
 	if (typeof this.args.params == 'undefined') { this.args.params = []; }
@@ -461,6 +461,13 @@ Webos.Arguments = function WArguments(args) {
  * @deprecated  The use of Webos.Arguments is deprecated.
  */
 Webos.Arguments.parse = function(cmd) {
+	if (Webos.isInstanceOf(cmd, Webos.Arguments)) {
+		return cmd;
+	}
+	if (typeof cmd == 'object') {
+		return new Webos.Arguments(cmd);
+	}
+
 	var cmdArray = cmd.split(' ');
 	cmdArray.shift(); //On enleve le premier element : c'est la commande
 	var argsStr = cmdArray.join(' ');

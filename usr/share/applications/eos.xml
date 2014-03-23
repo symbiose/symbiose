@@ -10,5 +10,6 @@
 	<attribute name="icon" value="applications/eos"/>
 	<attribute name="category" value="accessories"/>
 	<attribute name="open" value="png,jpeg,jpg,gif"/>
+	<attribute name="openMimeTypes" value="image/*"/>
 	<attribute name="type" value="image-viewer"/>
 </shortcut>

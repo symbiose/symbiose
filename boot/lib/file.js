@@ -1955,46 +1955,47 @@ var homePoint = new Webos.File.MountPoint({
 Webos.File.mount(homePoint);
 
 /**
- * A local file (i.e. a file which is on the user's computer).
- * @param {File} file The native File object.
+ * A blob file.
+ * @param {Blob} blob The native Blob object.
+ * @param {Object} data The file data.
  * @constructor
  * @augments {Webos.File}
- * @since 1.0beta1
+ * @since 1.0beta5
  */
-Webos.LocalFile = function (file) {
-	this._file = file;
-	
+Webos.BlobFile = function (blob, data) {
+	this._file = blob;
+
 	var data = {};
-	
-	data.basename = file.name || file.fileName;
+
+	data.basename = data.basename || 'file';
 	data.path = data.basename;
 	data.dirname = '';
 	data.realpath = null;
 	data.is_dir = false;
-	data.size = file.size || file.fileSize;
+	data.size = blob.size;
 	data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
-	data.mime_type = file.type;
-	
+	data.mime_type = blob.type;
+
 	data.readable = true;
 	data.writable = false;
-	
+
 	Webos.File.call(this, data); //On appelle la classe parente
 };
 /**
- * Webos.LocalFile's prototype.
- * @namespace Webos.LocalFile
+ * Webos.BlobFile's prototype.
+ * @namespace Webos.BlobFile
  */
-Webos.LocalFile.prototype = {
+Webos.BlobFile.prototype = {
 	realpath: function() {
 		if (!this._get('realpath')) {
-			var myURL = window.URL || window.webkitURL;
-			if (myURL && myURL.createObjectURL) {
+			var URL = window.URL || window.webkitURL;
+			if (URL && URL.createObjectURL) {
 				this.hydrate({
-					realpath: myURL.createObjectURL(this._file)
+					realpath: URL.createObjectURL(this._file)
 				});
 			}
 		}
-		
+
 		return this._get('realpath');
 	},
 	load: function(callback) {
@@ -2020,7 +2021,7 @@ Webos.LocalFile.prototype = {
 		};
 		reader.readAsText(this._file);
 	},
-	readAsBinary: function(callback) {
+	readAsDataUrl: function(callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
@@ -2031,15 +2032,61 @@ Webos.LocalFile.prototype = {
 		
 		var reader = new FileReader();
 		reader.onload = function(e) {
-			var contents = e.target.result;
-			contents = contents.replace(/^data:[a-zA-Z0-9-_\/]+;base64,/, '');
-			callback.success(contents);
+			callback.success(e.target.result);
 		};
 		reader.onerror = function(e) {
 			callback.error(e.target.result);
 		};
 		reader.readAsDataURL(this._file);
 	},
+	readAsBinary: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+
+		this.readAsDataUrl([function (contents) {
+			contents = contents.replace(/^data:[a-zA-Z0-9-_\/]+;base64,/, '');
+			callback.success(contents);
+		}, callback.error]);
+	},
+	readAsBlob: function (callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+
+		callback.success(this._file);
+	}
+};
+Webos.inherit(Webos.BlobFile, Webos.File); //Héritage de Webos.File
+
+/**
+ * Create a new blob file.
+ * @param  {Blob} blob The blob.
+ * @param {Object} data The file data.
+ * @return {Webos.BlobFile} The blob file.
+ */
+Webos.BlobFile.create = function (blob, data) {
+	return new Webos.BlobFile(blob, data);
+};
+
+/**
+ * A local file (i.e. a file which is on the user's computer).
+ * @param {File} file The native File object.
+ * @constructor
+ * @augments {Webos.BlobFile}
+ * @since 1.0beta1
+ */
+Webos.LocalFile = function (file) {
+	var data = {};
+
+	data.basename = file.name || file.fileName;
+	data.mime_type = file.type || file.fileType;
+
+	Webos.BlobFile.call(this, file, data); //On appelle la classe parente
+};
+/**
+ * Webos.LocalFile's prototype.
+ * @namespace Webos.LocalFile
+ */
+Webos.LocalFile.prototype = {
 	readAsBlob: function (callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
@@ -2053,7 +2100,7 @@ Webos.LocalFile.prototype = {
 		reader.onload = function(e) {
 			var data = e.target.result;
 
-			var blob = new Blob(data, { type: that.get('mime_type') });
+			var blob = new Blob([data], { type: that.get('mime_type') });
 			callback.success(blob);
 		};
 		reader.onerror = function(e) {
@@ -2062,7 +2109,16 @@ Webos.LocalFile.prototype = {
 		reader.readAsArrayBuffer(this._file);
 	}
 };
-Webos.inherit(Webos.LocalFile, Webos.File); //Héritage de Webos.File
+Webos.inherit(Webos.LocalFile, Webos.BlobFile); //Héritage de Webos.BlobFile
+
+/**
+ * Create a new local file.
+ * @param  {File} file The local file.
+ * @return {Webos.LocalFile} The local file.
+ */
+Webos.LocalFile.create = function (file) {
+	return new Webos.LocalFile(file);
+};
 
 /**
  * True if local files are supported.
@@ -2142,6 +2198,15 @@ Webos.DownloadableFile.prototype = {
 	},
 };
 Webos.inherit(Webos.DownloadableFile, Webos.File); //Héritage de Webos.File
+
+/**
+ * Create a new downloadable file.
+ * @param  {Object} data The file data.
+ * @return {Webos.DownloadableFile} The downloadable file.
+ */
+Webos.DownloadableFile.create = function (data) {
+	return new Webos.DownloadableFile();
+};
 
 //Events
 Webos.User.bind('login logout', function() {

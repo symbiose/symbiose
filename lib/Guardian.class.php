@@ -144,7 +144,10 @@ class Guardian extends ApplicationComponent {
 
 		
 		if ($requiredAuth !== true && in_array($requiredAuth, $this->loggedPermissions)) {
-			$logLine = $_SERVER['REMOTE_ADDR'].' ';
+			$logLine = '';
+			if (isset($_SERVER['REMOTE_ADDR'])) {
+				$logLine .= $_SERVER['REMOTE_ADDR'].' ';
+			}
 			$logLine .= ($authorized) ? 'granted' : 'denied';
 			$logLine .= ' '.$requiredAuth;
 

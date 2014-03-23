@@ -13,15 +13,17 @@
  * -lib/intermezzo.js
  * -lib/UniqueId.js
 */
-new W.ScriptFile('/usr/lib/intermezzo/intermezzo.js');
 
- // On récupère les arguments passées en paramètres (console, etc ...)
-var IntermezzoPlayerFile = args.getParam(0);
-var file = (IntermezzoPlayerFile) ? W.File.get(IntermezzoPlayerFile) : null;
-if (file) {
-	new IntermezzoWindow({
-		file: file
-	});
-} else {
-	new IntermezzoWindow();
-}
+var proc = this, args = proc.getArguments();
+
+Webos.require('/usr/lib/intermezzo/intermezzo.js', function () {
+	// On récupère les arguments passées en paramètres (console, etc ...)
+	var file = (args.getParam(0)) ? W.File.get(args.getParam(0)) : null;
+	if (file) {
+		new IntermezzoWindow({
+			file: file
+		});
+	} else {
+		new IntermezzoWindow();
+	}
+});

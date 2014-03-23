@@ -4,16 +4,22 @@
  * @since 1.0 alpha 1
  * @constructor
  */
-Webos.Cmd = function WCmd(options) {
+Webos.Cmd = function (options) {
 	//TODO: support commands with spaces delimited by ""
 
 	this.cmdText = options.cmd; //Commande complete
 	this.cmd = this.cmdText.split(' ').shift(); //Nom de la commande
 	this.terminal = options.terminal; //Terminal d'ou la commande sera lancee
 	
+	if (options.args) {
+		options.args = Webos.Arguments.parse(options.args);
+	} else {
+		options.args = Webos.Arguments.parse(options.cmd);
+	}
+
 	//On appelle la classe parente
 	Webos.Process.call(this, {
-		args: Webos.Arguments.parse(options.cmd)
+		args: options.args
 	});
 };
 Webos.Cmd.prototype = {
@@ -77,7 +83,7 @@ Webos.inherit(Webos.Cmd, Webos.Process); //Heritage de Webos.Process
 
 /**
  * Executer une commande.
- * @param {String} cmd La commande a executer.
+ * @param {String|Object} cmd La commande a executer, ou les options a passer au constructeur de `Webos.Cmd`.
  * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que la commande aura ete executee.
  * @static
  */
@@ -91,7 +97,7 @@ Webos.Cmd.execute = function(cmd, callback) {
 /**
  * Crée une instance de Webos.Terminal, representant un terminal.
  * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que le terminal aura ete initialise.
- * @since 1.0 alpha 1
+ * @since 1.0alpha1
  * @constructor
  */
 Webos.Terminal = function WTerminal() {
@@ -238,16 +244,24 @@ Webos.Terminal.prototype = {
 	},
 	/**
 	 * Executer une commande dans le terminal.
-	 * @param {String} cmd La commande a executer.
+	 * @param {String|Object} cmd La commande a executer, ou les options a passer au constructeur de `Webos.Cmd`.
 	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que la commande aura ete executee.
-	 * @returns {Webos.Cmd} La commande.
+	 * @return {Webos.Cmd} La commande.
 	 */
 	enterCmd: function(cmd, callback) {
 		this._output = '';
-		this.cmd = new Webos.Cmd({
-			cmd: cmd,
-			terminal: this
-		});
+
+		if (typeof cmd == 'string') {
+			this.cmd = new Webos.Cmd({
+				cmd: cmd,
+				terminal: this
+			});
+		} else {
+			this.cmd = new Webos.Cmd($.extend({}, cmd, {
+				terminal: this
+			}));
+		}
+
 		this.cmd.run(Webos.Callback.toCallback(callback));
 		return this.cmd;
 	},

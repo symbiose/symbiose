@@ -15,13 +15,20 @@ use \RuntimeException;
 class PeerController extends ApiBackController {
 	protected static $peerServer;
 
+	/**
+	 * Bisounours mode. Everybody can communicate with everybody without any restriction.
+	 * Warning! Use for test purposes only, this can be dangerous.
+	 * @var boolean
+	 */
+	protected $bisounours = true;
+
 	protected function _getOnlinePeerData(OnlinePeer $peer, $isAttached = false) {
 		$peerData = array(
 			'registered' => ($peer['userId'] !== null),
 			'online' => true
 		);
 
-		if ($isAttached) {
+		if ($isAttached || $this->bisounours) {
 			$peerData['userId'] = $peer['userId'];
 			$peerData['peerId'] = $peer['id'];
 		}
@@ -53,7 +60,7 @@ class PeerController extends ApiBackController {
 		$offlinePeerData = array();
 		$onlinePeerData = array();
 		if (!empty($offlinePeer)) {
-			if ($offlinePeer['public']) {
+			if ($offlinePeer['isPublic']) {
 				$isAttached = true;
 			}
 			$offlinePeerData = $this->_getOfflinePeerData($offlinePeer, $isAttached);
@@ -264,6 +271,25 @@ class PeerController extends ApiBackController {
 
 	// Peers
 	
+	public function executeAttachPeer($peerId, $appName = null) {
+		$server = $this->peerServer();
+		$user = $this->app()->user();
+
+		$onlinePeer = $server->getPeer($peerId);
+		if (empty($onlinePeer)) {
+			throw new RuntimeException('Cannot find peer with id "'.$peerId.'"', 404);
+		}
+
+		if ($user->isLogged()) {
+			$onlinePeer['userId'] = $user->id();
+		}
+		if (!empty($appName)) {
+			$onlinePeer['app'] = $appName;
+		}
+		
+		$server->updatePeer($onlinePeer);
+	}
+
 	public function executeRegisterPeer(array $peerData) {
 		$peerLinkManager = $this->managers()->getManagerOf('peerLink');
 		$user = $this->app()->user();
@@ -274,7 +300,7 @@ class PeerController extends ApiBackController {
 
 		$peerData = array(
 			'userId' => $user->id(),
-			'public' => (isset($peerData['public']) && $peerData['public']) ? true : false,
+			'isPublic' => (isset($peerData['isPublic']) && $peerData['isPublic']) ? true : false,
 			'app' => (string) $peerData['app']
 		);
 

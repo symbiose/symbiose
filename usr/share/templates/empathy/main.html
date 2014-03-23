@@ -24,8 +24,11 @@
 				<h2>Chat</h2>
 				<p class="lead">Log in to your <select class="login-service"></select> account to chat with friends.</p>
 				<form>
-					<input type="text" class="login-username" placeholder="Username"><br />
-					<input type="password" class="login-password" placeholder="Password"><br />
+					<div class="login-credentials">
+						<input type="text" class="login-username" placeholder="Username"><br />
+						<input type="password" class="login-password" placeholder="Password">
+					</div>
+
 					<input type="submit" value="Log in">
 				</form>
 			</div>
@@ -104,4 +107,12 @@
 	</x-tabs>
 
 	
+</x-window>
+
+<x-window stylesheet="/usr/share/css/empathy/main.css" width="600" height="400" icon="apps/chat">
+	<div class="videos">
+		<ul class="video-remote"></ul>
+		<div class="video-info"></div>
+		<video class="video-local" muted></video>
+	</div>
 </x-window>

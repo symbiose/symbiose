@@ -42,8 +42,12 @@ class WebSocketController extends \lib\ApiBackController {
 			return false;
 		}
 
-		$pid = (int) trim($fileManager->read($pidFile));
-		$result = shell_exec('ps --no-headers -p '.$pid);
+		$pid = trim($fileManager->read($pidFile));
+		if (empty($pid)) {
+			return false;
+		}
+
+		$result = shell_exec('ps --no-headers -p '.(int) $pid);
 
 		if (empty($result)) {
 			return false;
@@ -116,7 +120,7 @@ class WebSocketController extends \lib\ApiBackController {
 			throw new RuntimeException('Cannot stop server: '.$result);
 		}
 
-		$fileManager->delete($pidFile);
+		$fileManager->write($pidFile, '');
 	}
 
 	public function executeRestartServer() {

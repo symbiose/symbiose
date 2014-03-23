@@ -187,10 +187,14 @@
 .friends-list .contact-actions .action-call {
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAYAAACZ3F9/AAAABmJLR0QAhgCJAIokbLR8AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gIaCCgluc4YMQAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAABB0lEQVQoz42SPUoEQRCFvyqHpnfZQBMxX1gQfzYVcwMTPYCBmHkbwcTMA3gEAwMPYOIPYmoiGAmDWzROjUmPjrJiv+xR/VFVr0ssJf5TjHGA+6HCyFVPzKxRSuR+JDBtYVy57wNoQbeJwEbnP2C1CFT3lR8elorA95SuFR47L3BfBAI00PTsTRE4CGFXYC0/fmpUbwGqXghSua87LLvqlZm1wxC2gb08Yt2onpuZf4ExxpG6HzcwBlhw34whzASmGZq56pmZvXWNqvxPB22GABwm8h1G7aqnZvbcX6HKsy+2c/Zr4a5VvTCz1981sZSIMQ7FfUdgy0GAlwou65Qe/gpNSm51nj4BN2Ff5I8WpFoAAAAASUVORK5CYII=);
 }
+.friends-list .contact-offline .contact-actions .action-call {
+	display: none;
+}
 .friends-list .contact-actions .action-url {
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAYAAACZ3F9/AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gIaDzYnhs5QRwAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAABwUlEQVQoz22SMWtTcRTFf+f/D886W3VwcDEiLi2K36C0lYRAoGBwchPpIijURVQEcVDoIAh+gQpCQsMLBroUJ+lcMghKRXQTHSR9Td57xyUpWj3T5XDvPedyjziCer1+3PYMEIBC0kGapvtH+zQtarVaAixLWrW9OKELSW9tv5S0labpeNofAZrNZqUsyzXg1YTfAN4AO8ACsArsz8/Pvx8MBiUTO4zH40Xbj4FU0tUY44Ner/csxrgO3AK6wJPhcLh0qLiysjKT5/lzSQmwLukrMFutVpdt/5B0QtJH4Iqks3Nzc+3BYJCHLMtmbC/Z3ga2gbIsyx5wDshs79n+DryzvTAajY4BBElhYnnH9qztPnAG2AdOA+cl/QI+AEme5xEghBBKSX1JXyS9BqrTM2KMu5LGZVkKSIC8UqkUAGFzc/MncNv2Q+DiH68K3W53CCBJwDVJ/RjjAUBoNBoJcH2ycci/CJJuAlXbL9rtdvZXABqNxsmiKHaBT8Al4JGkb7bXgAvA/SRJnnY6nRygMh0siuIecAq4DNQB274BfJZ0tyiKrenQoeIkbhuS9tI0vdNqtSqj0SjJsiyGEPL/ZfU32NPCKgC83loAAAAASUVORK5CYII=);
 }
-.friends-list .contact-offline .contact-actions .action-call {
+.friends-list .contact-actions .action-fileSending,
+.friends-list .contact-actions .action-otr {
 	display: none;
 }
 
@@ -286,6 +290,11 @@
 	background-image: -webkit-linear-gradient(#ececec, #f7f7f7);
 	background-image: linear-gradient(#ececec, #f7f7f7);
 }
+.conversation .msg .msg-content img,
+.conversation .msg .msg-content audio,
+.conversation .msg .msg-content video {
+	max-width: 100%;
+}
 .conversation .conversation-compose {
 	position: absolute;
 	display: none; /* hidden by default */
@@ -319,4 +328,68 @@
 .account-settings {
 	margin-left: 250px;
 	padding: 5px;
+}
+
+.videos {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+.videos .video-local, .videos .video-remote {
+	position: absolute;
+	background-color: black;
+}
+.videos .video-remote {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: auto;
+	text-align: center;
+}
+.videos .video-remote.video-remote-1,
+.videos .video-remote.video-remote-2,
+.videos .video-remote.video-remote-3,
+.videos .video-remote.video-remote-4 {
+	overflow: hidden;
+}
+.videos .video-remote li {
+	display: inline-block;
+	overflow: hidden;
+}
+.videos .video-remote video {
+	width: 100%;
+	height: 100%;
+}
+.videos .video-remote li { /* 3+ videos */
+	width: 49%;
+	height: 50%;
+}
+.videos .video-remote.video-remote-1 li { /* 1 video */
+	width: 100%;
+	height: 100%;
+}
+.videos .video-remote.video-remote-2 li { /* 2 videos */
+	width: 49%;
+	height: 100%;
+}
+.videos .video-info {
+	position: absolute;
+	display: none;
+}
+.videos .video-remote, .videos .video-info {
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+}
+.videos .video-local {
+	left: 0;
+	bottom: 0;
+	width: 20%;
+	margin: 10px;
+	-moz-transition: opacity 0.3s;
+	transition: opacity 0.3s;
+}
+.videos .video-local:hover {
+	opacity: 0;
 }

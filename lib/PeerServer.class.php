@@ -316,6 +316,10 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	public function insertPeer($peer) {
+		return $this->updatePeer($peer);
+	}
+
+	public function updatePeer($peer) {
 		$this->peers[$peer['connectionId']] = $peer;
 	}
 

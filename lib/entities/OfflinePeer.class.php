@@ -5,7 +5,7 @@ use \lib\Entity;
 use \InvalidArgumentException;
 
 class OfflinePeer extends Entity {
-	protected $userId, $public, $app;
+	protected $userId, $isPublic, $app;
 
 	// SETTERS
 
@@ -17,12 +17,12 @@ class OfflinePeer extends Entity {
 		$this->userId = $userId;
 	}
 
-	public function setPublic($isPublic) {
+	public function setIsPublic($isPublic) {
 		if (!is_bool($isPublic)) {
 			throw new InvalidArgumentException('Invalid peer public value "'.$isPublic.'"');
 		}
 
-		$this->public = $public;
+		$this->isPublic = $isPublic;
 	}
 
 	public function setApp($app) {
@@ -39,8 +39,8 @@ class OfflinePeer extends Entity {
 		return $this->userId;
 	}
 
-	public function public() {
-		return ($this->public == true) ? true : false;
+	public function isPublic() {
+		return ($this->isPublic == true) ? true : false;
 	}
 
 	public function app() {

@@ -1541,22 +1541,9 @@ Webos.require([
 				var that = this, t = this.translations();
 
 				var runOpenerFn = function() {
-					Webos.Application.listOpeners(file, function(openers) {
-						if (openers.length > 0) {
-							var prefered = openers[0];
-
-							for (var i = 0; i < openers.length; i++) {
-								if ($.inArray(file.get('extension'), openers[i].get('preferedOpen')) != -1) {
-									prefered = openers[i];
-									break;
-								}
-							}
-
-							W.Cmd.execute(prefered.get('command')+' "'+file.get('path')+'"');
-						} else {
-							that.openFileWindow(file);
-						}
-					});
+					Webos.Application.openFile(file, [function () {}, function () {
+						that.openFileWindow(file);
+					}]);
 				};
 				
 				if (file.get('extension') == 'js') {

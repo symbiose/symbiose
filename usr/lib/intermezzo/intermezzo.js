@@ -151,8 +151,8 @@ $.webos.widget('intermezzo', 'container', {
 			type = 'audio',
 			supplied = '',
 			filepath = this.options.file.get('realpath');
-		
-		switch (this.options.file.get('extension')) { // selon les types MIME, on cré une playlist différente
+
+		switch (this.options.file.get('extension')) { // selon les types MIME, on crée une playlist différente
 			case 'mp3':
 				fileObject = {
 					mp3: filepath

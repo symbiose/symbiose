@@ -98,7 +98,26 @@
 	};
 
 	// SETTERS
-	
+
+	Webos.Peer.attach = function (peerId, appName) {
+		var op = new Webos.Operation();
+
+		new Webos.ServerCall({
+			'class': 'PeerController',
+			'method': 'attachPeer',
+			'arguments': {
+				'peerId': peerId,
+				'app': String(appName)
+			}
+		}).load([function(resp) {
+			op.setCompleted();
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	};
+
 	Webos.Peer.register = function(appName, isPublic) {
 		var op = new Webos.Operation();
 
@@ -108,7 +127,7 @@
 			'arguments': {
 				'peerLinkData': {
 					'app': String(appName),
-					'public': (isPublic) ? true : false
+					'isPublic': (isPublic) ? true : false
 				}
 			}
 		}).load([function(resp) {
