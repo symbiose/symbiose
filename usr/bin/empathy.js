@@ -2836,19 +2836,19 @@ Webos.require([
 						that.trigger('contact', contact);
 						contacts.push(contact);
 
-						var j = $.inArray(contact.username, offlinePeers);
+						var j = offlinePeers.indexOf(contact.username);
 						if (~j) {
-							offlinePeers = offlinePeers.slice(j, 1);
+							offlinePeers.splice(j, 1);
 						}
 						that._contactsPeerIds.push(contact.username);
 					}
 
 					for (var i = 0; i < offlinePeers.length; i++) {
-						/*that.trigger('contact', {
+						that.trigger('contact', {
 							username: offlinePeers[i],
 							account: peer.id,
 							presence: 'offline'
-						});*/
+						});
 					}
 
 					op.setCompleted(contacts);
