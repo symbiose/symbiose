@@ -170,14 +170,14 @@ $.webos.widget('window', 'container', {
 		if (this.options.height != undefined) {
 			this.setHeight(this.options.height);
 		}
-		
-		if (this.options.top) {
-			this.element.css('top', this.options.top);
-		}
+
 		if (this.options.left) {
-			this.element.css('left', this.options.left);
+			this.option('left', this.options.left);
 		}
-		
+		if (this.options.top) {
+			this.option('top', this.options.top);
+		}
+
 		if (typeof this.options.workspace == 'undefined' && $.w.window.workspace) {
 			this.options.workspace = $.w.window.workspace.getCurrent();
 		}
@@ -186,7 +186,7 @@ $.webos.widget('window', 'container', {
 		
 		this.draggable(true);
 		
-		this._setOption('resizable', (typeof this.options.resizable == 'undefined') ? true : this.options.resizable);
+		this.option('resizable', (typeof this.options.resizable == 'undefined') ? true : this.options.resizable);
 	},
 	_update: function(key, value) {
 		switch(key) {
@@ -444,6 +444,7 @@ $.webos.widget('window', 'container', {
 			that.options.states.maximized = true;
 			that._trigger('maximize', { type: 'maximize' }, { window: that.element });
 			that._trigger('resize', { type: 'resize' }, { window: that.element });
+			that._trigger('move', { type: 'resize' });
 		});
 
 		if (this.options.resizable) {
@@ -528,6 +529,7 @@ $.webos.widget('window', 'container', {
 			that.element.removeClass('animating');
 
 			that._trigger('resize', { type: 'resize' }, { window: that.element });
+			that._trigger('move', { type: 'resize' });
 		});
 	},
 	/**
@@ -568,6 +570,7 @@ $.webos.widget('window', 'container', {
 				that._trigger('minimize', { type: 'minimize' }, { window: that.element });
 				that.options.states.maximized = false;
 				that._trigger('resize', { type: 'resize' }, { window: that.element });
+				that._trigger('move', { type: 'resize' });
 			});
 
 			if (this.options.resizable) {
@@ -869,8 +872,11 @@ $.webos.widget('window', 'container', {
 		};
 		dimentions.top = (dimentions.top < 0) ? 0 : dimentions.top;
 		dimentions.left = (dimentions.left < 0) ? 0 : dimentions.left;
-		this.element.css('top', dimentions.top);
-		this.element.css('left', dimentions.left);
+
+		this.option({
+			left: dimentions.left,
+			top: dimentions.top
+		});
 	},
 	/**
 	 * Set this window's width.
@@ -1192,7 +1198,9 @@ $.webos.widget('window', 'container', {
 			}).one('mouseup', function(e) {
 				$(this).unbind('mousemove.window.widget.webos');
 				
-				var desktopPosX = $('#desktop').offset().left, desktopPosY = $('#desktop').offset().top;
+				var desktopPos = $('#desktop').offset(),
+					desktopPosX = desktopPos.left,
+					desktopPosY = desktopPos.top;
 				if (posX + that.element.width() < desktopPosX) {
 					that.element.css('left', 0);
 				}
@@ -1217,6 +1225,12 @@ $.webos.widget('window', 'container', {
 					that.maximize({ mode: maximizeHelperMode, position: maximizeHelperPos });
 					hideMaximizeHelper();
 				}
+
+				that.option({
+					left: posX,
+					top: posY
+				});
+				that._trigger('move');
 				
 				e.preventDefault();
 			});
