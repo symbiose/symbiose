@@ -61,8 +61,8 @@
 							Cli.echo('<p>Login incorrect.</p>');
 							Cli.login();
 						}]);
-					}, { label: 'Password :', type: 'password' });
-				}, { label: 'Login :' });
+					}, { label: 'Password:', type: 'password' });
+				}, { label: 'Login:' });
 			}
 		});
 	};
@@ -92,21 +92,34 @@
 					return;
 				}
 
-				var process = Cli._terminal.enterCmd(cmd, [function() {
-					var onStopFn = function() {
-						Cli.displayCmdPrompt();
-					};
-
-					if (process.isRunning()) {
-						process.on('stop', function() {
-							onStopFn();
-						});
-					} else {
-						onStopFn();
-					}
-				}, function(response) {
+				switch (cmd) {
+					case '':
 					Cli.displayCmdPrompt();
-				}]);
+					break;
+
+					case 'exit':
+					Webos.User.logout(function () {
+						Cli.login();
+					});
+					break;
+
+					default:
+					var process = Cli._terminal.enterCmd(cmd, [function() {
+						var onStopFn = function() {
+							Cli.displayCmdPrompt();
+						};
+
+						if (process.isRunning()) {
+							process.on('stop', function() {
+								onStopFn();
+							});
+						} else {
+							onStopFn();
+						}
+					}, function(response) {
+						Cli.displayCmdPrompt();
+					}]);
+				}
 			}, { label: label });
 		}, function(response) {
 			Cli.login();
