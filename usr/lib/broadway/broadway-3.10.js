@@ -2718,13 +2718,15 @@ function connect(opts)
 	var loc = (opts.host || window.location.toString()).replace("http:", "ws:").replace("https:", "wss:");
 	loc = loc.substr(0, loc.lastIndexOf('/')) + "/socket";
 
-	var supports_binary = newWS (loc + "-test").binaryType == "blob";
-	if (supports_binary) {
-		ws = newWS (loc + "-bin");
-		ws.binaryType = "arraybuffer";
-	} else {
-		ws = newWS (loc);
-	}
+	try {
+		var supports_binary = newWS (loc + "-test").binaryType == "blob";
+		if (supports_binary) {
+			ws = newWS (loc + "-bin");
+			ws.binaryType = "arraybuffer";
+		} else {
+			ws = newWS (loc);
+		}
+	} catch (e) {}
 
 	ws.onopen = function() {
 		inputSocket = ws;
