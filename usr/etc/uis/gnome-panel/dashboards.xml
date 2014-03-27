@@ -6,27 +6,27 @@
 		</attributes>
 		<applets>
 			<applet>
-				<attribute name="library" value="usr/lib/gnome/applets/mainmenu.js"/>
+				<attribute name="library" value="/usr/lib/gnome/applets/mainmenu.js"/>
 				<attribute name="name" value="MainMenu"/>
 				<attribute name="position" value="left"/>
 			</applet>
 			<applet>
-				<attribute name="library" value="usr/lib/gnome/applets/powermenu.js"/>
+				<attribute name="library" value="/usr/lib/gnome/applets/powermenu.js"/>
 				<attribute name="name" value="PowerMenu"/>
 				<attribute name="position" value="right"/>
 			</applet>
 			<applet>
-				<attribute name="library" value="usr/lib/gnome/applets/calendar.js"/>
+				<attribute name="library" value="/usr/lib/gnome/applets/calendar.js"/>
 				<attribute name="name" value="Calendar"/>
 				<attribute name="position" value="right"/>
 			</applet>
 			<applet>
-				<attribute name="library" value="usr/lib/gnome/applets/memenu.js"/>
+				<attribute name="library" value="/usr/lib/gnome/applets/memenu.js"/>
 				<attribute name="name" value="MeMenu"/>
 				<attribute name="position" value="right"/>
 			</applet>
 			<applet>
-				<attribute name="library" value="usr/lib/gnome/applets/notifications.js"/>
+				<attribute name="library" value="/usr/lib/gnome/applets/notifications.js"/>
 				<attribute name="name" value="NotificationsArea"/>
 				<attribute name="position" value="right"/>
 			</applet>
@@ -38,17 +38,17 @@
 		</attributes>
 		<applets>
 			<applet>
-				<attribute name="library" value="usr/lib/gnome/applets/desktopbutton.js"/>
+				<attribute name="library" value="/usr/lib/gnome/applets/desktopbutton.js"/>
 				<attribute name="name" value="DesktopButton"/>
 				<attribute name="position" value="left"/>
 			</applet>
 			<applet>
-				<attribute name="library" value="usr/lib/gnome/applets/windowsbuttons.js"/>
+				<attribute name="library" value="/usr/lib/gnome/applets/windowsbuttons.js"/>
 				<attribute name="name" value="WindowsButtons"/>
 				<attribute name="position" value="left"/>
 			</applet>
 			<applet>
-				<attribute name="library" value="usr/lib/gnome/applets/workspaceswitcher.js"/>
+				<attribute name="library" value="/usr/lib/gnome/applets/workspaceswitcher.js"/>
 				<attribute name="name" value="WorkspaceSwitcher"/>
 				<attribute name="position" value="right"/>
 			</applet>
