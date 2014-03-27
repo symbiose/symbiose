@@ -911,7 +911,7 @@ $.webos.widget('window', 'container', {
 	loading: function(value, opts) {
 		if (value) {
 			var options = $.extend({
-				message: 'Chargement...',
+				message: 'Loading...',
 				lock: true,
 				progress: null
 			}, opts);
