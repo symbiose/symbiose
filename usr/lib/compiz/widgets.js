@@ -959,7 +959,9 @@ $.webos.widget('window', 'container', {
 			}
 			
 			this._trigger('loadingstart');
-			this._trigger('progress', { type: 'progress' }, { value: options.progress });
+			if (typeof options.progress == 'number') {
+				this._trigger('progress', { type: 'progress' }, { value: options.progress });
+			}
 			this.options.states.loading = true;
 		} else {
 			if (this.is('ready')) {
@@ -980,10 +982,13 @@ $.webos.widget('window', 'container', {
 						.resizable('option', 'alsoResize', this.options._content);
 				}
 			}
-			
-			this._trigger('loadingstop');
-			this._trigger('progress', { type: 'progress' }, { value: 100 });
+
 			this.options.states.loading = false;
+			this._trigger('loadingstop');
+			if (typeof this.options.loading.progress == 'number') {
+				this.options.loading.progress = 100;
+				this._trigger('progress', { type: 'progress' }, { value: 100 });
+			}
 		}
 	},
 	/**
