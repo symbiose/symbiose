@@ -1,3 +1,68 @@
+/* Tabs */
+.webos-tabs {
+	display: block;
+}
+
+.webos-tabs > ul.tabs {
+	list-style-type: none;
+	list-style-position: inside;
+	padding: 0;
+	margin: 0;
+	position: relative;
+}
+.webos-tabs > ul.tabs li {
+	display: inline-block;
+}
+
+.webos-tabs > .contents > div {
+	display: none;
+}
+.webos-tabs > .contents > div.active {
+	display: block;
+}
+
+/* Notebooks */
+.webos-notebook {
+	display: block;
+}
+.webos-notebook > ul.tabs {
+	list-style-type: none;
+	list-style-position: inside;
+	padding: 0;
+	margin: 0;
+	position: relative;
+	white-space: nowrap;
+	overflow: hidden;
+	height: 26px;
+}
+.webos-notebook > ul.tabs > li {
+	display: inline-block;
+	position: relative;
+}
+.webos-notebook > ul.tabs > .tab-btn {
+	width: 170px;
+	text-align: center;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.webos-notebook > ul.tabs > .tab-btn .tab-btn-close {
+	float: left;
+}
+.webos-notebook > ul.tabs > .tab-btn-newtab {
+	float: left;
+}
+
+.webos-notebook > .contents {
+	height: calc(100% - 25px);
+}
+.webos-notebook > .contents > div {
+	display: none;
+	height: 100%;
+}
+.webos-notebook > .contents > div.active {
+	display: block;
+}
+
 /* Popover */
 .webos-popover {
 	position: relative;
