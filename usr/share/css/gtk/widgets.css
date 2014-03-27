@@ -98,3 +98,101 @@
 	-webkit-filter: brightness(50%);
 	filter: brightness(50%);
 }
+
+/* Menus */
+.webos-menuwindowheader ul { /* Liste */
+	padding: 0; /* pas de marge intérieure */
+	margin: 0; /* ni extérieure */
+	list-style-type: none; /* on supprime le style par défaut de la liste */
+	list-style-position: inside;
+	line-height: 19px; /* on définit une hauteur pour chaque élément */
+	text-align: center; /* on centre le texte qui se trouve dans la liste */
+}
+.webos-menuwindowheader ul:empty {
+	display: none;
+	visibility: hidden;
+	opacity: 0;
+}
+.webos-menuwindowheader * { /* Ensemble du menu */
+	position: relative;
+	z-index: 1050;
+}
+.webos-menuwindowheader ul { /* Menu de fenetre */
+	position: relative;
+	background-color: white;
+	min-width: 220px;
+	border: 1px solid black;
+}
+.webos-menuwindowheader .webos-menuitem .webos-menuitem { /* Sous-listes */
+	display: block;
+}
+.webos-menuwindowheader ul {
+	position: absolute;
+	display: none;
+}
+.webos-menuwindowheader ul.opened,
+.webos-menuwindowheader .webos-menuitem.hover > ul {
+	display: block;
+	opacity: 1;
+}
+.webos-menuwindowheader .webos-menuitem ul .webos-menuitem ul { /* Sous-sous-listes */
+	top: -2px;
+	left: 219px;
+}
+.webos-menuwindowheader .webos-menuitem { /* Item de menu */
+	text-align: left;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+.webos-menuwindowheader .webos-menuitem a {
+	text-decoration: none; /* on supprime le style par défaut des liens (la plupart du temps = souligné) */
+	overflow: hidden;
+	-o-text-overflow: ellipsis; /* pour Opera 9 */
+	text-overflow: ellipsis; /* pour le reste du monde */
+	white-space: nowrap;
+}
+.webos-menuwindowheader .webos-menuitem a:hover {
+	text-decoration: none;
+}
+.webos-menuwindowheader .webos-menuitem, .webos-menuwindowheader .webos-menuitem a {
+	color: black;
+}
+.webos-menuwindowheader .webos-menuitem ul .webos-menuitem { /* Item de sous-liste */
+	width: 100%;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+.webos-menuwindowheader .webos-menuitem img.icon { /* Icone d'item */
+	float: left;
+	max-height: 19px;
+	max-width: 19px;
+	margin-right: 2px;
+}
+.webos-menuwindowheader > .webos-menuitem {
+	/*float: left;*/
+	display: inline-block;
+}
+.webos-menuwindowheader .separator { /* Separateur */
+	border-top: solid 1px black;
+}
+
+.menu-container {
+	display: inline-block;
+}
+.menu-container.menu-container-left {
+	float:left;
+}
+.menu-container.menu-container-left .menu li {
+	display:block;
+	float:left;
+}
+.menu-container.menu-container-right {
+	float:right;
+}
+.menu-container.menu-container-center {
+	display:block;
+	margin:auto;
+}
