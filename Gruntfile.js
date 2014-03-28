@@ -3,13 +3,25 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 		jshint: {
-			// define the files to lint
-			files: ['boot/lib/**/*.js'],
-			options: {
-				globals: {
-					jQuery: true,
-					console: true,
-					module: false
+			boot: {
+				// define the files to lint
+				src: ['boot/lib/**/*.js', '!boot/lib/**/*.min.js'],
+				options: {
+					globals: {
+						jQuery: true,
+						console: true,
+						module: false
+					}
+				}
+			},
+			usr: {
+				src: ['usr/**/*.js', '!usr/**/*.min.js'],
+				options: {
+					globals: {
+						jQuery: true,
+						console: true,
+						module: false
+					}
 				}
 			}
 		},
@@ -109,6 +121,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
+	//grunt.loadNpmTasks('grunt-contrib-qunit');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-copy');
@@ -300,9 +313,7 @@ module.exports = function(grunt) {
 		'gen-launcher:applications'
 	]);
 
-	//TODO: outdated
 	grunt.registerTask('standalone', 'Build a standalone version of the web desktop.', [
-		//'jshint',
 		'clean',
 		'gen-boot',
 		'gen-ui',
@@ -313,7 +324,6 @@ module.exports = function(grunt) {
 	]);
 
 	grunt.registerTask('build', 'Build the web desktop.', [
-		//'jshint',
 		'clean',
 		'gen-boot',
 		'gen-ui',
