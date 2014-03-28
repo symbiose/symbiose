@@ -23,8 +23,9 @@ Key features
 * Multiple interfaces: Elementary OS, GNOME Shell, GNOME Panel (GNOME 2), Windows 7-like, mobile, CLI
 * Easy configuration with a _System settings_ app and simple config files
 * FTP, Dropbox and Google Drive integration
-* LDAP authentication support
+* [LDAP authentication](https://github.com/symbiose/symbiose/wiki/LDAP-authentication) support
 * Firefox Marketplace apps integration
+* Native GTK3 apps can be displayed on the web desktop using [Broadway](https://github.com/symbiose/symbiose/wiki/Broadway)
 * Available in English, French, German, Italian and Spanish
 * WebSocket support
 * And more!
@@ -46,7 +47,7 @@ Have a bug ? Please create an issue here on GitHub : https://github.com/symbiose
 Installing
 ----------
 
-To install Symbiose you just need to unzip files on your web server and to set them read and write permissions for web server user.
+To install Symbiose you just need to unzip files on your web server and to set them read and write permissions for web server user. You can also build Symbiose to make it faster.
 
 For more information, please see the wiki : https://github.com/symbiose/symbiose/wiki/Installing.
 
