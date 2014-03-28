@@ -28,6 +28,7 @@ Key features
 * Native GTK3 apps can be displayed on the web desktop using [Broadway](https://github.com/symbiose/symbiose/wiki/Broadway)
 * Available in English, French, German, Italian and Spanish
 * WebSocket support
+* Can be used in standalone mode (which just requires a static server, no PHP)
 * And more!
 
 Quick start
@@ -61,6 +62,8 @@ Software requirements
  * Firefox (latest version)
  * Chromium (latest version)
  * Internet Explorer 9+
+
+> **NB**: Symbiose can also run in standalone mode, which doesn't require PHP.
 
 Authors
 -------
