@@ -488,14 +488,26 @@
 			groupRequests: false
 		},
 		supports: function() {
-			return Webos.standalone;
+			return Webos.standalone || Webos.built;
 		},
 		canTransport: function(req) {
-			if (req._options.host) {
+			if (req._options && req._options.host) { //Request on another webos
 				return false;
 			}
 
-			return true;
+			if (Webos.built && !Webos.isInstanceOf(req, Webos.ServerCall.Group)) {
+				var moduleName = req._data.module,
+					actionName = req._data.action;
+
+				if (moduleName == 'theme' && actionName == 'loadCss') {
+					return true;
+				}
+				if (moduleName == 'file' && actionName == 'getContents') { //Better than calling the API (files are cached)
+					return true;
+				}
+			}
+
+			return Webos.standalone;
 		},
 		doRequest: function(req, callback) {
 			var that = Webos.ServerCall.standalone;
@@ -628,6 +640,7 @@ console.log('todo', reqData);
 							return;
 						}
 
+						var loadBooterOp = Webos.Operation.create();
 						var uiRootPath = '/boot/uis/'+uiName;
 
 						var createBooter = function(html, js, css) {
@@ -650,7 +663,38 @@ console.log('todo', reqData);
 							});
 						};
 
+						var ressources = {};
+						loadBooterOp.on('progress', function (data) {
+							if (data.value == 100) {
+								loadBooterOp.setCompleted();
+							}
+						});
+						loadBooterOp.on('complete', function (data) {
+							createBooter(ressources.html, ressources.js, ressources.css);
+						});
+
 						W.File.get(uiRootPath+'/index.html').readAsText([function (html) {
+							ressources.html = html;
+							loadBooterOp.addProgress(34);
+						}, function (resp) {
+							op.setCompleted(true, resp);
+						}]);
+
+						W.File.get(uiRootPath+'/main.min.js').readAsText([function (js) {
+							ressources.js = js;
+							loadBooterOp.addProgress(34);
+						}, function (resp) {
+							op.setCompleted(true, resp);
+						}]);
+
+						W.File.get(uiRootPath+'/style.min.css').readAsText([function (css) {
+							ressources.css = css;
+							loadBooterOp.addProgress(34);
+						}, function (resp) {
+							loadBooterOp.addProgress(34);
+						}]);
+
+						/*W.File.get(uiRootPath+'/index.html').readAsText([function (html) {
 							W.File.get(uiRootPath+'/main.min.js').readAsText([function (js) {
 								W.File.get(uiRootPath+'/style.min.css').readAsText([function (css) {
 									createBooter(html, js, css);
@@ -662,7 +706,7 @@ console.log('todo', reqData);
 							}]);
 						}, function (resp) {
 							op.setCompleted(true, resp);
-						}]);
+						}]);*/
 					};
 
 					if (args.ui) {
