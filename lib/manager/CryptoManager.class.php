@@ -72,6 +72,9 @@ class CryptoManager extends Manager {
 			if (strlen($hash) == 40) { //SHA1 support for old accounts (before 1.0 beta 3)
 				$hashGenerator = 'sha1';
 			}
+			if (substr($hash, 0, 6) == 'eyeos:') { //Eyeos hashes support
+				$hashGenerator = 'eyeos';
+			}
 
 			$passwordHash = $this->generateHash($hashGenerator, $password);
 
@@ -208,11 +211,24 @@ class CryptoManager extends Manager {
 		return crypt($password, $salt);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function generateSha512Hash($password, $salt) {
 		return hash('sha512', $password.$salt);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function generateSha1Hash($password, $salt) {
 		return sha1($password.$salt);
+	}
+
+	/**
+	 * @deprecated
+	 */
+	public function generateEyeosHash($password, $salt) {
+		return 'eyeos:'.md5($password . md5($password));
 	}
 }
