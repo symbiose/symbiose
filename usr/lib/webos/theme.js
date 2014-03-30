@@ -1,6 +1,10 @@
-new Webos.ScriptFile('/usr/lib/webos/config.js');
-
 (function () {
+
+if (Webos.Theme) {
+	return;
+}
+
+Webos.require('/usr/lib/webos/config.js', function () {
 	/**
 	 * A theme.
 	 * @param {Webos.ConfigFile} configFile The config file associated with the theme.
@@ -262,4 +266,6 @@ new Webos.ScriptFile('/usr/lib/webos/config.js');
 			callback.error(response);
 		}));
 	};
+});
+
 })();

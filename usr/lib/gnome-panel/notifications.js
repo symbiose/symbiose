@@ -10,72 +10,71 @@ Cette Classe requiert les fichiers suivants:
 
 */
 
-new W.ScriptFile('/usr/lib/gnome/jquery.jgrowl.js');
+Webos.require('/usr/lib/gnome/jquery.jgrowl.js', function () {
+	window.SNotification = function (options) {
+		this.options = options; // on récupère les options que l'utilisateur a défini
 
-function SNotification (options) {
+		var self = this; // on conserve l'objet
 
-	this.options = options; // on récupère les options que l'utilisateur a défini
-
-	var self = this; // on conserve l'objet
-
-	this.init = function () { // méthode qui crée la notification demandée
-		$.jGrowl(options.message, {
-			imageURL: 		W.Icon.toIcon(options.icon).realpath(48),
-			header: 		options.title,
-			life: 			parseInt(options.life) * 1000,
-			open: function(e,m,o) {
-				$(e).hover(function(event){
-					var position = $(e).offset();
-					var dimentions = { height: $(e).outerHeight(), width: $(e).outerWidth() };
-					$('body').mousemove(function(event) {
-						if ((event.pageX < position.left || event.pageX > position.left + dimentions.width) &&
-						(event.pageY < position.top || event.pageY > position.top + dimentions.height)) {
-							$('body').unbind(event);
-							//alert('mouse: x'+event.pageX+', y'+event.pageY+'; element: x'+position.left+', y'+position.top);
-							$(e).show();
-						}
+		this.init = function () { // méthode qui crée la notification demandée
+			$.jGrowl(options.message, {
+				imageURL: 		W.Icon.toIcon(options.icon).realpath(48),
+				header: 		options.title,
+				life: 			parseInt(options.life) * 1000,
+				open: function(e,m,o) {
+					$(e).hover(function(event){
+						var position = $(e).offset();
+						var dimentions = { height: $(e).outerHeight(), width: $(e).outerWidth() };
+						$('body').mousemove(function(event) {
+							if ((event.pageX < position.left || event.pageX > position.left + dimentions.width) &&
+							(event.pageY < position.top || event.pageY > position.top + dimentions.height)) {
+								$('body').unbind(event);
+								//alert('mouse: x'+event.pageX+', y'+event.pageY+'; element: x'+position.left+', y'+position.top);
+								$(e).show();
+							}
+						});
+						$(e).hide();
 					});
-					$(e).hide();
-				});
-				
-				if (options.open != undefined) {
-					options.open(e,m,o);
+					
+					if (options.open != undefined) {
+						options.open(e,m,o);
+					}
 				}
-			}
-		});
-	};
+			});
+		};
 
-	this.init(); // on lance l'initialisation
-}
-
-$.webos.notification = function(options) {
-	return new SNotification(options);
-};
-
-Webos.AppIndicator = function WAppIndicator(options) {
-	this.options = options;
-	
-	this.element = $('<li></li>').appendTo(SIndicator.container);
-	var indicator = $('<a href="#"></a>').appendTo(this.element);
-	$('<img />', { src: W.Icon.toIcon(options.icon).realpath(22), 'class': 'icon' }).appendTo(indicator);
-	indicator.append(options.title);
-	$('<ul></ul>').html((typeof options.menu != 'undefined') ? options.menu : '').appendTo(this.element);
-	
-	this.remove = function() {
-		this.element.remove();
-	};
-	
-	if (typeof options.click != 'undefined') {
-		indicator.click(options.click);
+		this.init(); // on lance l'initialisation
 	}
-};
 
-function SIndicator(item) {
-	item.appendTo(SIndicator.container);
-	
-	this.remove = function() {
-		item.remove();
+	$.webos.notification = function(options) {
+		return new SNotification(options);
 	};
-}
 
-SIndicator.container = $('<ul></ul>', { 'class': 'menu' });
+	Webos.AppIndicator = function (options) {
+		this.options = options;
+		
+		this.element = $('<li></li>').appendTo(SIndicator.container);
+		var indicator = $('<a href="#"></a>').appendTo(this.element);
+		$('<img />', { src: W.Icon.toIcon(options.icon).realpath(22), 'class': 'icon' }).appendTo(indicator);
+		indicator.append(options.title);
+		$('<ul></ul>').html((typeof options.menu != 'undefined') ? options.menu : '').appendTo(this.element);
+		
+		this.remove = function() {
+			this.element.remove();
+		};
+		
+		if (typeof options.click != 'undefined') {
+			indicator.click(options.click);
+		}
+	};
+
+	window.SIndicator = function (item) {
+		item.appendTo(SIndicator.container);
+		
+		this.remove = function() {
+			item.remove();
+		};
+	}
+
+	SIndicator.container = $('<ul></ul>', { 'class': 'menu' });
+});

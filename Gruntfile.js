@@ -117,16 +117,15 @@ module.exports = function(grunt) {
 		}
 	});
 
-	// Load the plugin that provides the "uglify" task.
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	//grunt.loadNpmTasks('grunt-contrib-qunit');
+	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-convert');
-
 
 	grunt.registerTask('gen-boot', 'Concatenate boot files.', function() {
 		var bootIncludes = grunt.file.readJSON('etc/boot-includes.json'), bootIncludesList = [];
@@ -206,11 +205,13 @@ module.exports = function(grunt) {
 		grunt.config('uglify.ui', {
 			files: uisJsUglify
 		});
-
-		//TODO: minify CSS
+		grunt.config('cssmin.ui', {
+			files: uisCssMinify
+		});
 
 		grunt.task.run('concat:ui');
 		grunt.task.run('uglify:ui');
+		grunt.task.run('cssmin:ui');
 	});
 
 	grunt.registerTask('gen-theme', 'Concatenate theme files.', function() {
@@ -253,15 +254,17 @@ module.exports = function(grunt) {
 			},
 			files: themesConcat
 		});
-
-		//TODO: minify CSS
+		grunt.config('cssmin.theme', {
+			files: themesMinify
+		});
 
 		grunt.task.run('concat:theme');
+		grunt.task.run('cssmin:theme');
 	});
 
 	grunt.registerTask('gen-launcher', 'Concatenate launchers.', function(type) {
-		var type = (type || 'applications'),
-			rootPath = 'dist/usr/share/'+type+'/';
+		type = (type || 'applications');
+		var rootPath = 'dist/usr/share/'+type+'/';
 
 		var itemsList = grunt.file.expand({
 			cwd: rootPath
@@ -302,6 +305,16 @@ module.exports = function(grunt) {
 		grunt.file.write('build/usr/share/'+type+'.json', JSON.stringify(items));
 	});
 
+	grunt.registerTask('gen-icon', 'Build icon themes index files.', function() {
+		var rootPath = 'usr/share/icons/';
+
+		var items = grunt.file.expand({
+			cwd: rootPath
+		}, '**/*.{png,svg}');
+
+		grunt.file.write('build/usr/share/icons/index.json', JSON.stringify(items));
+	});
+
 	grunt.registerTask('convert-ui', 'Convert UIs files.', [
 		'convert:ui'
 	]);
@@ -318,6 +331,7 @@ module.exports = function(grunt) {
 		'gen-boot',
 		'gen-ui',
 		'gen-theme',
+		'gen-icon',
 		'copy:standalone',
 		'convert-ui',
 		'convert-launcher'
@@ -332,7 +346,8 @@ module.exports = function(grunt) {
 
 		//Useless tasks here: the webos API is used instead for now
 		//'convert-ui',
-		//'convert-launcher'
+		//'convert-launcher',
+		//'gen-icon'
 	]);
 
 	//TODO: outdated

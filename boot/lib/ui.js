@@ -379,6 +379,12 @@ Webos.UserInterface.showLoadingScreen = function() {
 			$('#webos-loading').fadeIn();
 		}
 	}
+
+	$(document).on('keyup.console.ui', function (e) {
+		if (e.which == 27) { //Esc
+			Webos.UserInterface.showConsole();
+		}
+	});
 };
 /**
  * Set the loading screen's text.
@@ -399,6 +405,8 @@ Webos.UserInterface.hideLoadingScreen = function() {
 	} else {
 		$('#webos-loading').fadeOut('fast');
 	}
+
+	$(document).off('keyup.console.ui');
 };
 
 /**
@@ -524,19 +532,37 @@ Webos.UserInterface.Booter.prototype = {
 		//Chargement du Javascript
 		this.notify('loadstateupdate', { state: 'scripts' });
 		operation.setProgress(20);
+
 		var scriptsNbr = 0;
 		for (var index in data.js) { scriptsNbr++; }
+
+		var loadedScriptsNbr = 0;
+		var scriptLoaded = function (index) {
+			loadedScriptsNbr++;
+
+			if (loadedScriptsNbr == scriptsNbr - 1) {
+				that.notify('dependenciesload');
+			}
+		};
+
 		var i = 0;
 		for (var index in data.js) {
-			(function loadUIScript(js) {
+			(function (js) {
 				if (!js) {
 					return;
 				}
 
 				that.notify('loadstateupdate', { state: 'scripts', item: index });
 
-				js = 'try {'+js+"\n"+'} catch(error) { Webos.Error.catchError(error); }';
-				Webos.Script.run(js, index); //On execute le code
+				//js = 'try {'+js+"\n"+'} catch(error) { Webos.Error.catchError(error); }';
+				//Webos.Script.run(js, index); //On execute le code
+
+				Webos.require({
+					path: index,
+					contents: js
+				}).on('complete', function () {
+					scriptLoaded(index);
+				});
 
 				i++;
 				operation.setProgress(20 + (i / scriptsNbr) * 70);
@@ -545,7 +571,7 @@ Webos.UserInterface.Booter.prototype = {
 		this.notify('loadstateupdate', { state: 'scripts' });
 		operation.setProgress(90);
 
-		if (this._autoLoad) {
+		if (!this._async) {
 			this.finishLoading();
 		}
 
@@ -553,20 +579,35 @@ Webos.UserInterface.Booter.prototype = {
 	},
 	/**
 	 * Disable autoload.
-	 * The function Webos.UserInterface.Booter#finishLoading() should be called.
+	 * The function `finishLoading()` should be called.
+	 * @deprecated Use `async()` instead.
 	 */
 	disableAutoLoad: function() {
-		this._autoLoad = false;
+		this._async = true;
+	},
+	/**
+	 * Make this booter asynchronous.
+	 * @return {Function} A function to call when the interface is ready.
+	 */
+	async: function () {
+		var that = this;
+
+		this._async = true;
+
+		return function () {
+			that.finishLoading();
+		};
 	},
 	/**
 	 * Notify that the UI is loaded.
+	 * @private
 	 */
 	finishLoading: function () {
 		if (this.loaded()) {
 			return;
 		}
 
-		delete this._autoLoad;
+		delete this._async;
 
 		this.notify('loadstateupdate', { state: 'cleaning' });
 

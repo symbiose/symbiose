@@ -8,7 +8,7 @@
 			title: 'Message',
 			message: '',
 			shortMessage: '',
-			icon: new W.Icon('status/info'),
+			icon: 'status/info',
 			life: 7,
 			widgets: []
 		},
@@ -338,7 +338,7 @@ Webos.AppIndicator = function WAppIndicator(options) {
 	});
 };*/
 
-function SIndicator(item) {
+window.SIndicator = function (item) {
 	item.appendTo(SIndicator.container);
 	
 	this.remove = function() {

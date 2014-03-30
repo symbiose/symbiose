@@ -1,6 +1,12 @@
-W.UserInterface.Booter.current().disableAutoLoad();
+(function () {
 
-Webos.require('/usr/lib/gnome/ini.js');
+var booter = W.UserInterface.Booter.current(),
+	done = booter.async();
+
+Webos.require({
+	path: '/usr/lib/gnome/ini.js',
+	optionnal: true
+});
 
 //On definit la hauteur du bureau
 var resizeDesktopFn = function() {
@@ -41,7 +47,7 @@ Webos.Error.setErrorHandler(function(error) {
 			title: 'Error',
 			resizable: false,
 			width: 400,
-			icon: new W.Icon('status/error')
+			icon: 'status/error'
 		});
 
 		var img = $('<img />', { 'src': new W.Icon('status/error'), 'alt': 'error' }).css('float', 'left');
@@ -82,14 +88,18 @@ Webos.Error.setErrorHandler(function(error) {
 	
 	$.w.notification({
 		title: 'An error occured',
-		icon: new W.Icon('status/error'),
+		icon: 'status/error',
 		shortMessage: shortMessage,
 		message: message,
 		widgets: notifBtns
 	});
 });
 
-Webos.Theme.once('load', function() {
-	resizeDesktopFn();
-	W.UserInterface.Booter.current().finishLoading();
+Webos.require('/usr/lib/webos/theme.js', function () {
+	Webos.Theme.once('load', function() {
+		resizeDesktopFn();
+		done();
+	});
 });
+
+})();

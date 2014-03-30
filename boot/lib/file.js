@@ -358,7 +358,7 @@ Webos.File.prototype = {
 	 * @return {Boolean}         True if the MIME type matches, false otherwise.
 	 */
 	matchesMimeType: function (mimeType) {
-		var fileMimeType = this.get('mime_type').split(';')[0];
+		var fileMimeType = (this.get('mime_type') || '').split(';')[0];
 
 		if (mimeType.indexOf('*') !== -1) {
 			mimeType = mimeType.replace(/[-\/\\^$+?.()|[\]{}]/g, '\\$&').replace('*', '(.+)');
@@ -1954,6 +1954,9 @@ var homePoint = new Webos.File.MountPoint({
 }, '~');
 Webos.File.mount(homePoint);
 
+//Compatibility shim for Blob
+var Blob = window.Blob || window.mozBlob || window.webkitBlob;
+
 /**
  * A blob file.
  * @param {Blob} blob The native Blob object.
@@ -1967,7 +1970,7 @@ Webos.BlobFile = function (blob, data) {
 
 	var data = {};
 
-	data.basename = data.basename || 'file';
+	data.basename = data.basename || 'file-'+Math.floor(Math.random()*(new Date()).getTime());
 	data.path = data.basename;
 	data.dirname = '';
 	data.realpath = null;
@@ -2067,6 +2070,12 @@ Webos.BlobFile.create = function (blob, data) {
 	return new Webos.BlobFile(blob, data);
 };
 
+Webos.BlobFile.fromString = function (contents, data) {
+	var blob = new Blob([contents], { type: data.mime_type || undefined });
+
+	return Webos.BlobFile.create(blob, data);
+};
+
 /**
  * A local file (i.e. a file which is on the user's computer).
  * @param {File} file The native File object.
@@ -2110,15 +2119,6 @@ Webos.LocalFile.prototype = {
 	}
 };
 Webos.inherit(Webos.LocalFile, Webos.BlobFile); //Héritage de Webos.BlobFile
-
-/**
- * Create a new local file.
- * @param  {File} file The local file.
- * @return {Webos.LocalFile} The local file.
- */
-Webos.LocalFile.create = function (file) {
-	return new Webos.LocalFile(file);
-};
 
 /**
  * True if local files are supported.
@@ -2225,4 +2225,7 @@ Webos.User.bind('logout', function() {
 	}
 });
 
-new Webos.ScriptFile('/usr/lib/webos/fstab.js');
+Webos.require({
+	path: '/usr/lib/webos/fstab.js',
+	optionnal: true
+});

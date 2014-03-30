@@ -164,8 +164,8 @@
 					
 					$(this).animate(o.animateOpen, o.openDuration, o.easing, function() {
 						// Fixes some anti-aliasing issues with IE filters.
-						if ($.browser.msie && (parseInt($(this).css('opacity'), 10) === 1 || parseInt($(this).css('opacity'), 10) === 0))
-							this.style.removeAttribute('filter');
+						//if ($.browser.msie && (parseInt($(this).css('opacity'), 10) === 1 || parseInt($(this).css('opacity'), 10) === 0))
+						//	this.style.removeAttribute('filter');
 
 						$(this).data("jGrowl").created = new Date();
 						
@@ -244,9 +244,9 @@
 			}, parseInt(this.defaults.check));
 			this.interval = interval;
 			
-			if ($.browser.msie && parseInt($.browser.version) < 7 && !window["XMLHttpRequest"]) {
-				$(this.element).addClass('ie6');
-			}
+			//if ($.browser.msie && parseInt($.browser.version) < 7 && !window["XMLHttpRequest"]) {
+			//	$(this.element).addClass('ie6');
+			//}
 		},
 
 		/** Shutdown jGrowl, removing it and clearing the interval **/

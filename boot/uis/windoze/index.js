@@ -1,4 +1,7 @@
-W.UserInterface.Booter.current().disableAutoLoad();
+(function () {
+
+var booter = W.UserInterface.Booter.current(),
+	done = booter.async();
 
 //On definit la hauteur du bureau
 var resizeDesktopFn = function() {
@@ -14,28 +17,30 @@ $(document).scroll(function() {
 
 var loadThemeFn = function() {
 	//Chargement du theme
-	W.Theme.get([function(theme) {
-		theme.load(function() {
-			var bgRule = 'url("'+W.File.get(theme.get('background')).get('realpath')+'") no-repeat fixed center center / cover';
+	Webos.require('/usr/lib/webos/theme.js', function () {
+		W.Theme.get([function(theme) {
+			theme.load(function() {
+				var bgRule = 'url("'+W.File.get(theme.get('background')).get('realpath')+'") no-repeat fixed center center / cover';
 
-			var windowCss = '.webos-window {', bgWindowCss = '.webos-window:not(.bg-window) {';
-			var vendorPrefixes = ['-moz-', '-webkit-', ''];
-			for (var i = 0; i < vendorPrefixes.length; i++) {
-				var vendorPrefix = vendorPrefixes[i];
+				var windowCss = '.webos-window {', bgWindowCss = '.webos-window:not(.bg-window) {';
+				var vendorPrefixes = ['-moz-', '-webkit-', ''];
+				for (var i = 0; i < vendorPrefixes.length; i++) {
+					var vendorPrefix = vendorPrefixes[i];
 
-				windowCss += 'background: '+vendorPrefix+'linear-gradien(top, rgba(160,160,160,0.4) 0%, rgba(160,160,160,0.4) 100%), '+bgRule+';';
-				bgWindowCss += 'background: '+vendorPrefix+'linear-gradient(top, rgba(180,180,180,0.4) 0%, rgba(180,180,180,0.4) 100%), '+bgRule+';';
-			}
+					windowCss += 'background: '+vendorPrefix+'linear-gradien(top, rgba(160,160,160,0.4) 0%, rgba(160,160,160,0.4) 100%), '+bgRule+';';
+					bgWindowCss += 'background: '+vendorPrefix+'linear-gradient(top, rgba(180,180,180,0.4) 0%, rgba(180,180,180,0.4) 100%), '+bgRule+';';
+				}
 
-			windowCss += '}';
-			bgWindowCss += '}';
+				windowCss += '}';
+				bgWindowCss += '}';
 
-			Webos.Stylesheet.insertCss(windowCss, '#'+W.UserInterface.Booter.current().element().attr('id'));
-			Webos.Stylesheet.insertCss(bgWindowCss, '#'+W.UserInterface.Booter.current().element().attr('id'));
-		});
-	}, function(response) {
-		response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
-	}]);
+				Webos.Stylesheet.insertCss(windowCss, '#'+W.UserInterface.Booter.current().element().attr('id'));
+				Webos.Stylesheet.insertCss(bgWindowCss, '#'+W.UserInterface.Booter.current().element().attr('id'));
+			});
+		}, function(response) {
+			response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
+		}]);
+	});
 };
 
 Webos.User.bind('login logout', function() {
@@ -431,7 +436,7 @@ Webos.Translation.load(function(t) {
 
 
 //Notifications
-function SIndicator(item) {
+window.SIndicator = function (item) {
 	item.appendTo(SIndicator.container);
 	
 	this.remove = function() {
@@ -446,7 +451,7 @@ Webos.Error.setErrorHandler(function(error) {
 		title: 'Erreur',
 		resizable: false,
 		width: 400,
-		icon: new W.Icon('status/error')
+		icon: 'status/error'
 	});
 	
 	var message, details;
@@ -485,5 +490,7 @@ Webos.Error.setErrorHandler(function(error) {
 
 W.ServerCall.one('complete', function() {
 	resizeDesktopFn();
-	W.UserInterface.Booter.current().finishLoading();
+	done();
 });
+
+})();

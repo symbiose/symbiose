@@ -1604,7 +1604,7 @@ $.webos.window.confirm = function(opts) {
 	
 	var confirm = $.webos.window.dialog({
 		title: options.title,
-		icon: new W.Icon('actions/help'),
+		icon: 'actions/help',
 		parentWindow: options.parentWindow,
 		resizable: false,
 		hideable: false,
@@ -1677,13 +1677,13 @@ $.webos.window.messageDialog = function(opts) {
 	var icon = new W.Icon('status/info');
 	switch (options.type) {
 		case 'information':
-			icon = new W.Icon('status/info');
+			icon = 'status/info';
 			break;
 		case 'error':
-			icon = new W.Icon('status/error');
+			icon = 'status/error';
 			break;
 		case 'warning':
-			icon = new W.Icon('status/warning');
+			icon = 'status/warning';
 			break;
 	}
 	

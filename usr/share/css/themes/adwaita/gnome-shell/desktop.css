@@ -60,12 +60,13 @@ body {
 }
 
 /* Ensemble de l'interface */
-{ 
+.gnome-shell { 
+	width: 100%;
+	height: 100%;
 	padding: 0px;
 	margin: 0px;
 	font-size: 14px;
 	font-family: Cantarell, 'Droid Sans', Ubuntu, 'DejaVu Sans', Arial, sans-serif;
-	background-color: #27001f;
 	overflow: hidden;
 	position: absolute;
 }

@@ -1,4 +1,4 @@
-function SNotification(opts) {
+window.SNotification = function (opts) {
 	return $.webos.notification(opts);
 }
 SNotification.element = $('<div></div>', { 'class': 'notifications-area' }).css('display', 'none').appendTo(W.UserInterface.Booter.current().element());
@@ -71,7 +71,7 @@ $.webos.widget('notification', 'container', {
 		title: 'Message',
 		message: '',
 		shortMessage: '',
-		icon: new W.Icon('/usr/share/images/gnome/light.png'),
+		icon: '/usr/share/images/gnome/light.png',
 		life: 7,
 		widgets: []
 	},
@@ -411,7 +411,7 @@ Webos.AppIndicator = function WAppIndicator(options) {
 	});
 };
 
-function SIndicator(item) {
+window.SIndicator = function (item) {
 	item.appendTo(SIndicator.container);
 	
 	this.remove = function() {

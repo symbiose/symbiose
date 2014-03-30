@@ -33,7 +33,7 @@
 			title: 'Message',
 			message: '',
 			shortMessage: '',
-			icon: new W.Icon('/usr/share/images/gnome/light.png'),
+			icon: '/usr/share/images/gnome/light.png',
 			widgets: []
 		},
 		_name: 'notification',
@@ -250,7 +250,7 @@ $.webos.appIndicator = function(options) {
 	return $('<li></li>').appIndicator(options);
 };
 
-Webos.AppIndicator = function WAppIndicator(options) {
+Webos.AppIndicator = function (options) {
 	this.options = options;
 
 	var that = this;
@@ -351,7 +351,7 @@ Webos.AppIndicator = function WAppIndicator(options) {
 	});
 };
 
-function SIndicator(item) {
+window.SIndicator = function (item) {
 	item.appendTo(SIndicator.container);
 	
 	this.remove = function() {

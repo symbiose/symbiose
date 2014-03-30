@@ -20,7 +20,7 @@ Webos.Error.setErrorHandler(function(error) {
 		title: 'Erreur',
 		resizable: false,
 		width: 400,
-		icon: new W.Icon('status/error')
+		icon: 'status/error'
 	});
 	
 	var message, details;

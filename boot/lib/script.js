@@ -242,7 +242,10 @@ Webos.require = function (files, callback, options) {
 	var loadedFiles = 0;
 	var onLoadFn = function(file) {
 		loadedFiles++;
-		delete Webos.require._stacks[file.get('path')];
+
+		if (file && Webos.require._stacks[file.get('path')]) {
+			delete Webos.require._stacks[file.get('path')];
+		}
 
 		if (loadedFiles == list.length) {
 			callback.success();
@@ -251,27 +254,70 @@ Webos.require = function (files, callback, options) {
 	};
 
 	for (var i = 0; i < list.length; i++) {
-		(function(requiredFile) {
+		(function(i, requiredFile) {
 			if (typeof requiredFile != 'object') {
 				requiredFile = { path: requiredFile };
 			}
+
+			/*!
+			 * Options:
+			 *  * `path`: the file path
+			 *  * `contents`: alternatively, you can specify the file's contents
+			 *  * `process`: if false, the file will just be loaded, not processed. If a function, will be called to process the file with the file's contents as first parameter.
+			 *
+			 * CSS options:
+			 *  * `styleContainer`: the CSS style container, on which teh rules will be applied
+			 * 
+			 * Javascript options:
+			 *  * `context`: the context in which the script will be executed
+			 *  * `arguments`: some arguments to provide to the script
+			 *  * `exportApis`: APIs names to export to global scope
+			 *  * `optionnal`: do not wait for the file to be fully loaded before continuing
+			 * 
+			 * @type {Object}
+			 */
 			requiredFile = $.extend({
 				path: '',
+				contents: '',
 				context: null,
 				arguments: [],
 				styleContainer: null,
 				exportApis: [],
-				process: true
+				process: true,
+				optionnal: false,
+				type: 'text/javascript'
 			}, options, requiredFile);
 
-			var file = W.File.get(requiredFile.path);
-			var call = file.readAsText([function(contents) {
-				if (!requiredFile.process) {
+			var file;
+			if (requiredFile.contents) {
+				file = Webos.BlobFile.fromString(requiredFile.contents, {
+					mime_type: requiredFile.type,
+					path: requiredFile.path
+				});
+			} else if (requiredFile.path) {
+				var path = requiredFile.path;
+				if (typeof path == 'string') { //Compatibility with old scripts
+					path = path.replace(/^\.\//, '');
+				}
+
+				file = W.File.get(path, { is_dir: false });
+			} else {
+				onLoadFn();
+				return;
+			}
+
+			var processFile = function (contents) {
+				if (requiredFile.process === false) {
+					onLoadFn(file);
+					return;
+				}
+				if (typeof requiredFile.process == 'function') {
+					requiredFile.process(contents, requiredFile);
 					onLoadFn(file);
 					return;
 				}
 
-				if (file.get('extension') == 'js') {
+				if (file.get('extension') == 'js' || file.matchesMimeType('text/javascript')) {
 					var previousFile = Webos.require._currentFile;
 					Webos.require._stacks[file.get('path')] = [];
 					Webos.require._currentFile = file.get('path');
@@ -299,31 +345,45 @@ Webos.require = function (files, callback, options) {
 
 					Webos.require._currentFile = previousFile;
 
-					var stack = Webos.require._stacks[file.get('path')];
-					var group = Webos.Operation.group(stack);
-					if (group.observables().length > 0 && !group.completed()) {
-						group.one('success', function() {
-							onLoadFn(file);
-						});
-						group.oneEach('error', function() {
-							callback.error();
-						});
-					} else {
+					if (requiredFile.optionnal) {
 						onLoadFn(file);
+					} else {
+						var stack = Webos.require._stacks[file.get('path')];
+						var group = Webos.Operation.group(stack);
+						if (group.observables().length > 0 && !group.completed()) {
+							group.one('success', function() {
+								onLoadFn(file);
+							});
+							group.oneEach('error', function() {
+								callback.error();
+							});
+						} else {
+							onLoadFn(file);
+						}
 					}
-				} else if (file.get('extension') == 'css') {
+				} else if (file.get('extension') == 'css' || file.matchesMimeType('text/css')) {
 					Webos.Stylesheet.insertCss(contents, requiredFile.styleContainer);
 					onLoadFn(file);
 				} else {
 					callback.error(Webos.Callback.Result.error('Unknown file type: "'+file.get('extension')+'" (file path: "'+file.get('path')+'")'));
 				}
-			}, callback.error]);
-		})(list[i]);
+			};
+
+			if (requiredFile.contents) {
+				processFile(requiredFile.contents);
+			} else if (requiredFile.path) {
+				var call = file.readAsText([function(contents) {
+					processFile(contents);
+				}, callback.error]);
+			}
+		})(i, list[i]);
 	}
 
 	if (Webos.require._currentFile) {
 		Webos.require._stacks[Webos.require._currentFile].push(loadOperation);
 	}
+
+	return loadOperation;
 };
 
 /**

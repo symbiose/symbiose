@@ -1,4 +1,20 @@
 (function () {
+
+if (Webos.Icon) {
+	return;
+}
+
+var deps = ['/usr/lib/webos/theme.js'], iconsIndex = null;
+if (Webos.standalone) { //Preload index file
+	deps.push({
+		path: '/usr/share/icons/index.json',
+		process: function (contents) {
+			iconsIndex = $.parseJSON(contents);
+		}
+	});
+}
+
+Webos.require(deps, function () {
 	Webos.Icon = function (name, size, theme) {
 		if (typeof name == 'undefined') {
 			name = 'apps/default';
@@ -8,9 +24,10 @@
 			size = Webos.Icon.sizes[size];
 		}
 		
-		this.setName(name);
-		this.setSize((typeof size == 'undefined' || isNaN(parseInt(size))) ? 48 : parseInt(size));
+		this._originalName = name;
+		this.setSize((typeof size == 'undefined') ? 48 : size);
 		this.setTheme(theme);
+		this.setName(name);
 
 		if (!/^[\/(~\/)]/.test(this.name)) {
 			Webos.Icon._cache[this.id()] = this;
@@ -19,7 +36,7 @@
 	Webos.Icon.prototype = {
 		id: function (size, theme) {
 			if (/^[\/(~\/)]/.test(this.name)) {
-				return undefined;
+				return;
 			}
 			
 			size = (typeof size == 'undefined') ? this.size : size;
@@ -29,7 +46,7 @@
 			}
 			
 			if (this.type == 'themes') {
-				var theme = (typeof theme == 'undefined') ? ((typeof this.theme == 'undefined') ? Webos.Theme.current().get('icons') : this.theme) : size;
+				theme = (typeof theme == 'undefined') ? ((typeof this.theme == 'undefined') ? Webos.Theme.current().get('icons') : this.theme) : size;
 				return this.type+'/'+theme+'/'+size+'/'+this.name;
 			} else {
 				return this.type+'/'+size+'/'+this.name;
@@ -40,7 +57,7 @@
 			if (typeof id == 'undefined') {
 				return this.name;
 			} else {
-				return Webos.Icon.path+'/'+id+'.png';
+				return Webos.Icon._path+'/'+id+'.png';
 			}
 		},
 		realpath: function (size, theme) {
@@ -48,20 +65,26 @@
 
 			var url = '';
 			if (typeof id == 'undefined') {
-				var iconFile = W.File.get(this.name);
+				var iconName = this.name;
+				if (this.extension) {
+					iconName += '.'+this.extension;
+				}
+
+				var iconFile = W.File.get(iconName);
 				url = iconFile.get('realpath');
 			} else {
 				if (Webos.standalone) {
-					var ext = 'png';
-					if (Webos.Icon.supportsSvg()) {
-						id = this.id('scalable', theme);
-						ext = 'svg';
+					var iconPath = '', availableIcon = Webos.Icon._findInIndex(this);
+					if (availableIcon) {
+						iconPath = Webos.Icon._path+'/'+availableIcon.originalName();
+					} else {
+						//url = Webos.Icon.toIcon().realpath();
 					}
 
-					iconPath = Webos.Icon.path+'/'+id+'.'+ext;
-
-					var iconFile = W.File.get(iconPath);
-					url = iconFile.get('realpath');
+					if (iconPath) {
+						var iconFile = W.File.get(iconPath);
+						url = iconFile.get('realpath');
+					}
 				} else {
 					url = 'sbin/rawdatacall.php?type=icon&index='+id;
 
@@ -82,35 +105,83 @@
 			
 			return false;
 		},
-		setName: function (name) {
-			var nameArray = name.split('/');
-			var type = Webos.Icon.types[0];
-			if ($.inArray(nameArray[0], Webos.Icon.types) != -1) {
-				type = nameArray[0];
-				nameArray.shift();
-				name = nameArray.join('/');
+		matches: function (icon) {
+			if (!this.is(icon)) {
+				return 0;
 			}
+
+			var score = 1;
+
+			if (this.size <= icon.size) {
+				score++;
+			}
+			if (this.size == icon.size || icon.size == 'scalable') {
+				score++;
+			}
+			if (this.theme == icon.theme) {
+				score++;
+			}
+
+			return score;
+		},
+		setName: function (name) {
+			var ext = (/\./.test(name)) ? /[^.]+$/.exec(name)[0] : '';
+			if (ext) {
+				name = name.substr(0, name.lastIndexOf('.'));
+
+				this.setExtension(ext);
+			}
+
+			var nameArray = name.split('/'),
+				type = Webos.Icon.types[0];
+			if (~$.inArray(nameArray[0], Webos.Icon.types)) {
+				type = nameArray.shift();
+			}
+
+			if (type == 'themes' && nameArray.length == 4) {
+				this.setTheme(nameArray.shift());
+			}
+			if ((type == 'themes' && nameArray.length == 3) || (type != 'themes' && nameArray.length == 2)) {
+				this.setSize(nameArray.shift());
+			}
+
+			name = nameArray.join('/');
 			
 			this.name = name;
 			this.type = type;
 		},
 		setSize: function (size) {
-			this.size = parseInt(size) || 48;
+			if (size != 'scalable') {
+				size = parseInt(size);
+
+				if (isNaN(size)) {
+					return false;
+				}
+			}
+
+			this.size = size || 48;
 		},
 		setTheme: function (theme) {
-			this.theme = theme;
+			this.theme = theme || Webos.Theme.current().get('icons');
+		},
+		setExtension: function (ext) {
+			this.extension = ext;
+		},
+		originalName: function () {
+			return this._originalName;
 		},
 		toString: function () {
 			return this.realpath();
 		}
 	};
 
-	Webos.Icon.types = ['themes', 'applications'];
-	Webos.Icon.path = '/usr/share/icons';
+	Webos.Icon.types = ['themes', 'applications', 'categories'];
+	Webos.Icon._path = '/usr/share/icons';
 	Webos.Icon.sizes = {
 		button: 24
 	};
 	Webos.Icon._cache = {};
+	Webos.Icon._index = iconsIndex;
 	Webos.Icon.toIcon = function(arg) {
 		if (arg instanceof Webos.Icon) {
 			return arg;
@@ -140,4 +211,38 @@
 					"svg"
 				).createSVGRect);
 	};
+
+	Webos.Icon._findInIndex = function (iconToFind) {
+		iconToFind = W.Icon.toIcon(iconToFind);
+
+		var matches = [];
+		for (var i = 0; i < Webos.Icon._index.length; i++) {
+			var icon = Webos.Icon._index[i];
+
+			if (typeof icon == 'string') {
+				icon = Webos.Icon.toIcon(icon);
+				Webos.Icon._index[i] = icon;
+			}
+
+			var score = iconToFind.matches(icon);
+			if (score > 0) {
+				matches.push({
+					icon: icon,
+					score: score
+				});
+			}
+		}
+
+		if (!matches.length) {
+			return null;
+		}
+
+		matches.sort(function (a, b) {
+			return b.score - a.score;
+		});
+
+		return matches[0].icon;
+	};
+});
+
 })();

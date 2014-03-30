@@ -1,3 +1,9 @@
+(function () {
+
+if (Webos.ConfigFile) {
+	return;
+}
+
 /**
  * Crée une instance de Webos.ConfigFile.
  * @param {Object} data La configuration.
@@ -198,3 +204,5 @@ Webos.ConfigFile.clearCache = function() {
 Webos.User.bind('logout', function() {
 	Webos.ConfigFile.clearCache();
 });
+
+})();

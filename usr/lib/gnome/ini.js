@@ -10,13 +10,14 @@ rootEl.scroll(function () { //Prevent from scrolling
 	}
 });
 
-var loadThemeFn = function() {
-	//Chargement du theme
-	W.Theme.get(new W.Callback(function(theme) {
-		theme.load();
-	}, function(response) {
-		response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
-	}));
+var loadThemeFn = function() { //Chargement du theme
+	Webos.require('/usr/lib/webos/theme.js', function () {
+		Webos.Theme.get([function(theme) {
+			theme.load();
+		}, function(response) {
+			response.triggerError('Impossible de r&eacute;cup&eacute;rer les pr&eacute;f&eacute;rences d\'affichage');
+		}]);
+	});
 };
 
 Webos.User.bind('login logout', function() {

@@ -1,4 +1,5 @@
-W.UserInterface.Booter.current().disableAutoLoad();
+var booter = W.UserInterface.Booter.current(),
+	done = booter.async();
 
 (function() {
 	var Stunning = {
@@ -327,11 +328,13 @@ W.UserInterface.Booter.current().disableAutoLoad();
 
 	Stunning._initTheme = function() {
 		var loadTheme = function() {
-			W.Theme.get([function(theme) {
-				theme.load();
-			}, function(response) {
-				response.triggerError('Cannot load theme');
-			}]);
+			Webos.require('/usr/lib/webos/theme.js', function () {
+				W.Theme.get([function(theme) {
+					theme.load();
+				}, function(response) {
+					response.triggerError('Cannot load theme');
+				}]);
+			});
 		};
 
 		Webos.User.bind('login logout', function() {
@@ -549,7 +552,7 @@ W.UserInterface.Booter.current().disableAutoLoad();
 				title: 'Error',
 				resizable: false,
 				width: 400,
-				icon: new W.Icon('status/error')
+				icon: 'status/error'
 			});
 
 			var img = $('<img />', { 'src': new W.Icon('status/error'), 'alt': 'error' }).css('float', 'left');
@@ -581,7 +584,7 @@ W.UserInterface.Booter.current().disableAutoLoad();
 		
 		$.w.notification({
 			title: 'An error occured',
-			icon: new W.Icon('status/error'),
+			icon: 'status/error',
 			shortMessage: shortMessage,
 			message: message,
 			widgets: [
@@ -592,6 +595,6 @@ W.UserInterface.Booter.current().disableAutoLoad();
 	});
 
 	W.ServerCall.one('complete', function() {
-		W.UserInterface.Booter.current().finishLoading();
+		done();
 	});
 })();
