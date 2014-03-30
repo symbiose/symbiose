@@ -63,20 +63,24 @@ Webos.Error.logError = function(error) {
 
 	Webos.Error.list.push(error);
 	
-	if (typeof console != 'undefined') {
+	if (window.console && console.log) {
 		var consoleMsg;
 		if (error instanceof W.Error) {
 			consoleMsg = error.name+' [#'+error.code+']: '+error.text+"\n"+error.stack.join("\n");
 		} else {
 			consoleMsg = error.name + ': ' + error.message + "\nStack trace :\n" + error.stack;
 		}
-		
-		if (typeof console != 'undefined') {
-			if (typeof console.warn != 'undefined') {
-				console.warn(consoleMsg);
-			} else {
-				console.log(consoleMsg);
-			}
+
+
+		if (console.error) {
+			console.error(consoleMsg);
+		} else {
+			console.log(consoleMsg);
+		}
+		if (console.dir) {
+			console.dir(error);
+		} else {
+			console.log(error);
 		}
 	}
 	
@@ -91,6 +95,9 @@ Webos.Error.logError = function(error) {
 Webos.Error.catchError = function(error) {
 	if (!error.process) {
 		error.process = Webos.Process.current();
+	}
+	if (!error.stack) {
+		error.stack = Webos.Error.getStackTrace();
 	}
 
 	Webos.Error.logError(error);
@@ -187,7 +194,7 @@ Webos.Error.getStackTrace = function() {
 			currentFunction = currentFunction.caller;
 		}
 	}
-	return callstack;
+	return callstack || '';
 };
 
 /**
