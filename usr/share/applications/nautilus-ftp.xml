@@ -7,4 +7,5 @@
 	<attribute name="command" value="nautilus-mounter FTPFile"/>
 	<attribute name="icon" value="places/folder-remote"/>
 	<attribute name="category" value="internet"/>
+	<attribute name="hidden" value="1"/>
 </shortcut>

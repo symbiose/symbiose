@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Calendar"/>
+	<attribute name="title" lang="fr_FR" value="Calendrier"/>
+	<attribute name="description" value="Manage events"/>
+	<attribute name="description" lang="fr_FR" value="Gérer des événements"/>
+	<attribute name="command" value="mockapp maya"/>
+	<attribute name="icon" value="apps/calendar"/>
+	<attribute name="category" value="office"/>
+	<attribute name="menu" value="applications"/>
+</shortcut>

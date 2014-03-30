@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Download Elementary OS"/>
+	<attribute name="title" lang="fr_FR" value="Télécharger Elementary OS"/>
+	<attribute name="description" value="Download Elementary OS"/>
+	<attribute name="description" lang="fr_FR" value="Télécharger Elementary OS"/>
+	<attribute name="command" value="mockapp --download"/>
+	<attribute name="icon" value="actions/media-import-audio-cd"/>
+	<attribute name="category" value="accessories"/>
+	<attribute name="menu" value="applications"/>
+</shortcut>

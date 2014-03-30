@@ -10,4 +10,5 @@
 	<attribute name="icon" value="actions/interface"/>
 	<attribute name="menu" value="applications"/>
 	<attribute name="category" value="accessories"/>
+	<attribute name="hidden" value="1"/>
 </shortcut>

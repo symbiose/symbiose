@@ -1,0 +1,13 @@
+.geary-header {
+	padding: 5px;
+}
+
+.geary-header .webos-button:not(:hover):not(:active) {
+	border-color: transparent;
+	background: none;
+	box-shadow: none;
+}
+
+img.geary-content {
+	display: block;
+}

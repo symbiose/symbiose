@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shortcut>
+	<attribute name="title" value="Geary"/>
+	<attribute name="description" value="Read and write e-mails"/>
+	<attribute name="description" lang="fr_FR" value="Lire et écrire des e-mails"/>
+	<attribute name="command" value="mockapp geary"/>
+	<attribute name="icon" value="apps/email-client"/>
+	<attribute name="category" value="internet"/>
+	<attribute name="menu" value="applications"/>
+</shortcut>

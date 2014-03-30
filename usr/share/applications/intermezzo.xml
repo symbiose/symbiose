@@ -12,4 +12,5 @@
 	<attribute name="category" value="soundandvideo"/>
 	<attribute name="open" value="mp3,oga,mp4,m4v,ogg,ogv"/>
 	<attribute name="type" value="audio-player,video-player"/>
+	<attribute name="hidden" value="1"/>
 </shortcut>

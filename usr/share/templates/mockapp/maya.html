@@ -1,0 +1,23 @@
+<x-window-main icon="apps/calendar" stylesheet="/usr/share/css/mockapp/maya.css" resizable="0">
+	<h1>Calendar</h1>
+
+	<header>
+		<div class="maya-header">
+			<div class="pull-left">
+				<x-button class="btn-event-new" title="New event"><x-icon src="actions/event-new" size="24"></x-icon></x-button>
+
+				<x-button class="btn-event-edit" title="Edit"><x-icon src="actions/edit" size="24"></x-icon></x-button>
+				<x-button class="btn-event-delete" title="Delete"><x-icon src="actions/edit-delete" size="24"></x-icon></x-button>
+			</div>
+
+			<div class="pull-right">
+				<x-searchEntry class="search-entry"></x-searchEntry>
+				<x-button class="btn-settings" title="Settings"><x-icon src="actions/document-properties" size="24"></x-icon></x-button>
+			</div>
+
+			<span class="clearfix"></span>
+		</div>
+	</header>
+
+	<img src="usr/share/images/mockapp/maya.png" alt="" class="maya-content">
+</x-window-main>

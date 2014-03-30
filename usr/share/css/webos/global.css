@@ -56,3 +56,14 @@ html, body {
 	font-family: 'Ubuntu Mono', monospace;
 	font-size: 16px;
 }
+
+.pull-left {
+	float: left;
+}
+.pull-right {
+	float: right;
+}
+.clearfix {
+	display: block;
+	clear: both;
+}

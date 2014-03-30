@@ -1,0 +1,29 @@
+<x-window-main icon="apps/email-client" stylesheet="/usr/share/css/mockapp/geary.css" resizable="0">
+	<h1>Geary</h1>
+
+	<header>
+		<div class="geary-header">
+			<div class="pull-left">
+				<x-button class="btn-message-new" title="New message"><x-icon src="actions/mail-message-new" size="24"></x-icon></x-button>
+
+				<x-button class="btn-message-reply-sender" title="Reply"><x-icon src="actions/mail-reply-sender" size="24"></x-icon></x-button>
+				<x-button class="btn-message-reply-all" title="Reply all"><x-icon src="actions/mail-reply-all" size="24"></x-icon></x-button>
+				<x-button class="btn-message-forward" title="Forward"><x-icon src="actions/mail-forward" size="24"></x-icon></x-button>
+
+				<x-button><x-icon src="actions/dialog-apply" size="24"></x-icon></x-button>
+				<x-button class="btn-message-tag" title="Tag"><x-icon src="actions/tag-new" size="24"></x-icon></x-button>
+				<x-button class="btn-message-move" title="Move"><x-icon src="actions/mail-move" size="24"></x-icon></x-button>
+
+				<x-button class="btn-message-archive" title="Archive"><x-icon src="actions/mail-archive" size="24"></x-icon></x-button>
+			</div>
+
+			<div class="pull-right">
+				<x-button class="btn-settings" title="Settings"><x-icon src="actions/document-properties" size="24"></x-icon></x-button>
+			</div>
+
+			<span class="clearfix"></span>
+		</div>
+	</header>
+
+	<img src="usr/share/images/mockapp/geary.png" alt="" class="geary-content">
+</x-window-main>

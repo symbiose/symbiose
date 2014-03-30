@@ -172,6 +172,7 @@
 
 /* CONTENU DE LA FENETRE */
 .webos-window .content {
+	position: relative;
 	background-color: white;
 	color: #6f6f6f;
 	overflow: auto;

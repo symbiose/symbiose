@@ -11,4 +11,5 @@
 	<attribute name="menu" value="system"/>
 	<attribute name="category" value="administration"/>
 	<attribute name="open" value="ini,js"/>
+	<attribute name="hidden" value="1"/>
 </shortcut>

@@ -10,4 +10,5 @@
 	<attribute name="icon" value="mimes/package"/>
 	<attribute name="menu" value="system"/>
 	<attribute name="category" value="administration"/>
+	<attribute name="hidden" value="1"/>
 </shortcut>

@@ -7,4 +7,5 @@
 	<attribute name="command" value="nautilus-mounter GoogleDriveFile"/>
 	<attribute name="icon" value="applications/google-drive"/>
 	<attribute name="category" value="internet"/>
+	<attribute name="hidden" value="1"/>
 </shortcut>

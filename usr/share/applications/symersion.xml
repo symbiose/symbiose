@@ -8,4 +8,5 @@
 	<attribute name="icon" value="actions/go-home"/>
 	<attribute name="menu" value="applications"/>
 	<attribute name="category" value="accessories"/>
+	<attribute name="hidden" value="1"/>
 </shortcut>
