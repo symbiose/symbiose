@@ -96,9 +96,6 @@ Webos.Error.catchError = function(error) {
 	if (!error.process) {
 		error.process = Webos.Process.current();
 	}
-	if (!error.stack) {
-		error.stack = Webos.Error.getStackTrace();
-	}
 
 	Webos.Error.logError(error);
 
