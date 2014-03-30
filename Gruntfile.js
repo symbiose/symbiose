@@ -94,7 +94,7 @@ module.exports = function(grunt) {
 						src: ['boot/**', 'etc/**', 'home/**', 'lib/**', 'sbin/**', 'usr/**', 'var/**'],
 						dest: 'build/'
 					},
-					{src: [/*'index.php',*/ '.htaccess'], dest: 'build/'}
+					{src: [/*'index.php',*/ 'README.md', 'COPYING', '.htaccess'], dest: 'build/'}
 				]
 			},
 
@@ -105,7 +105,7 @@ module.exports = function(grunt) {
 					{
 						expand: true,
 						dot: true,
-						src: ['boot/uis/**', 'usr/**', 'etc/ske1/**', 'etc/uis.json'],
+						src: ['boot/uis/**', 'usr/**', 'etc/ske1/**', 'etc/uis.json', 'README.md', 'COPYING'],
 						dest: 'build/'
 					}
 				]
