@@ -15,10 +15,10 @@ Webos.Script = function (js, args, url) {
 	
 	var options = args.getOptions(), params = args.getParams();
 
-	if (js != '' && js != null) {
+	if (js !== '' && js !== null) {
 		js = 'try { '+js+' \n} catch(error) { W.Error.catchError(error); }';
 	}
-	
+
 	//On ajoute la sandbox
 	js = '(function(args) { '+js+"\n"+' })(new W.Arguments({ options: '+JSON.stringify(options)+', params: '+JSON.stringify(params)+' }));';
 
@@ -228,7 +228,7 @@ Webos.require = function (files, callback, options) {
 
 	var list = [];
 	if (files instanceof Array) {
-		if (files.length == 0) {
+		if (!files.length) {
 			callback.success();
 			return;
 		}
@@ -424,7 +424,7 @@ Webos.eval = function (scripts, callback, options) {
 
 	var list = [];
 	if (scripts instanceof Array) {
-		if (files.length == 0) {
+		if (files.length === 0) {
 			callback.success();
 			return;
 		}
@@ -486,7 +486,7 @@ Webos.eval = function (scripts, callback, options) {
  * @todo Simplify argument's management.
  */
 Webos.Arguments = function (args) {
-	this.args = $.extend({}, args);
+	this.args = args || {};
 	if (typeof this.args.options == 'undefined') { this.args.options = {}; }
 	if (typeof this.args.params == 'undefined') { this.args.params = []; }
 	
@@ -515,26 +515,26 @@ Webos.Arguments = function (args) {
 
 /**
  * Parse a command.
- * @param   {String} cmd The command.
+ * @param   {String} fullCmd  The command.
  * @returns {Webos.Arguments} The parsed arguments.
  * @static
  * @deprecated  The use of Webos.Arguments is deprecated.
  */
-Webos.Arguments.parse = function(cmd) {
-	if (Webos.isInstanceOf(cmd, Webos.Arguments)) {
-		return cmd;
+Webos.Arguments.parse = function(fullCmd) {
+	if (Webos.isInstanceOf(fullCmd, Webos.Arguments)) {
+		return fullCmd;
 	}
-	if (typeof cmd == 'object') {
-		return new Webos.Arguments(cmd);
+	if (typeof fullCmd == 'object') {
+		return new Webos.Arguments(fullCmd);
 	}
 
-	var cmdArray = cmd.split(' ');
-	cmdArray.shift(); //On enleve le premier element : c'est la commande
-	var argsStr = cmdArray.join(' ');
+	var parsedCmd = Webos.Arguments._parseFullCmd(fullCmd),
+		argsStr = parsedCmd.args;
 	
-	var args = {
+	var parsed = {
 		options: {},
-		params: []
+		params: [],
+		cmd: parsedCmd.cmd
 	};
 	var cacheBase = {
 		strStarted: false,
@@ -560,28 +560,28 @@ Webos.Arguments.parse = function(cmd) {
 					cache.strIndex += char; //On ajoute le "
 				}
 			} else {
-				if (cache.strStarted == false) { //Si c'est le premier
+				if (cache.strStarted === false) { //Si c'est le premier
 					cache.strStarted = true; //On le sauvegarde
 				} else { //Sinon, fin de chaine
 					cache.strStarted = false;
 				}
 			}
-		} else if (char == ' ' && cache.strStarted != true) { //Si c'est un espace et qu'on n'est pas dans une chaine
+		} else if (char == ' ' && cache.strStarted !== true) { //Si c'est un espace et qu'on n'est pas dans une chaine
 			if (cache.strType == 'options') { //Si c'est une option
 				if (cache.strOptionType == 'short') { //Option courte
 					cache.strStage = 'content';
 				} else {
-					args.options[cache.strIndex] = cache.strContent; //On sauvegarde
+					parsed.options[cache.strIndex] = cache.strContent; //On sauvegarde
 					cache = $.extend({}, cacheBase); //On remet le cache a zero
 				}
 			} else { //Sinon, c'est un argument
-				args.params.push(cache.strIndex); //On sauvegarde
+				parsed.params.push(cache.strIndex); //On sauvegarde
 				cache = $.extend({}, cacheBase); //On remet le cache a zero
 			}
 		} else if (char == '-') { //Si c'est un tiret
 			if (cache.previous == '-') { //Si le caractere precedant etait aussi un tiret, c'est une option type --fruit=abricot
 				cache.strOptionType = 'long'; //Type de l'option
-			} else if (cache.previous == ' ' || cache.previous == '') { //Si c'etait un espace blanc, c'est une option type -aBv
+			} else if (cache.previous == ' ' || !cache.previous) { //Si c'etait un espace blanc, c'est une option type -aBv
 				cache.strType = 'options'; //C'est une option
 				cache.strOptionType = 'short'; //Type de l'option
 				cache.strStage = 'index'; //On remplit l'index
@@ -604,7 +604,7 @@ Webos.Arguments.parse = function(cmd) {
 					if (cache.strOptionType == 'long') { //Si c'est une option type --fruit=abricot
 						cache.strIndex += char; //On remplit l'index
 					} else { //Sinon, c'est une option type -aBv
-						args.options[char] = ''; //On ajoute l'option
+						parsed.options[char] = ''; //On ajoute l'option
 						//On definit les parametres au cas ou il y a une autre option apres
 						cache = $.extend({}, cacheBase); //On reinitialise le cache
 						cache.strType = 'options'; //C'est une option
@@ -623,11 +623,34 @@ Webos.Arguments.parse = function(cmd) {
 	//On vide le cache du dernier caractere
 	if (cache.strIndex) {
 		if (cache.strType == 'options') {
-			args.options[cache.strIndex] = cache.strContent;
+			parsed.options[cache.strIndex] = cache.strContent;
 		} else {
-			args.params.push(cache.strIndex);
+			parsed.params.push(cache.strIndex);
 		}
 	}
 
-	return new Webos.Arguments(args);
+	return new Webos.Arguments(parsed);
+};
+
+Webos.Arguments._parseFullCmd = function (fullCmd) {
+	var parsed = {
+		cmd: '',
+		args: ''
+	};
+
+	var firstSep = fullCmd.indexOf(' ');
+	if (~firstSep) {
+		parsed.cmd = fullCmd.split(0, firstSep);
+		parsed.args = fullCmd.split(firstSep + 1);
+	} else {
+		parsed.cmd = fullCmd;
+	}
+
+	return parsed;
+};
+
+Webos.Arguments.getCommand = function (fullCmd) {
+	var parsedCmd = Webos.Arguments._parseFullCmd(fullCmd);
+
+	return parsedCmd.cmd;
 };

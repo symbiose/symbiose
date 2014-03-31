@@ -7,7 +7,8 @@
 Webos.Cmd = function (options) {
 	//TODO: support commands with spaces delimited by ""
 
-	this.cmdText = options.cmd; //Commande complete
+	this.fullCmd = options.cmd; //Commande complete
+	this.cmdText = this.fullCmd; //@deprecated
 	this.cmd = this.cmdText.split(' ').shift(); //Nom de la commande
 	this.terminal = options.terminal; //Terminal d'ou la commande sera lancee
 	
