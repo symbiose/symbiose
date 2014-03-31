@@ -15,6 +15,7 @@ Webos.require([
 		_$appsViewBtns: $('#elementary-apps .apps-header .apps-view-btn-group'),
 		_$calendar: $('#header .calendar'),
 		_$memenu: $('#header .memenu'),
+		_fullCmds2Windows: {},
 		_cmds2Windows: {},
 		_translations: new Webos.Translation(),
 		_appsView: 'grid',
@@ -37,22 +38,37 @@ Webos.require([
 			};
 
 			//On stocke la correspondance commande <-> fenetre lors de l'ouverture des fenetres
-			$(document).on('windowopen.launcher.elementary', function(event, ui) {
-				var process = Webos.Process.get(ui.window.window('pid'));
-				if (typeof process != 'undefined') {
-					if (that._cmds2Windows[process.cmd]) {
-						that._cmds2Windows[process.cmd] = that._cmds2Windows[process.cmd].add(ui.window);
-					} else {
-						that._cmds2Windows[process.cmd] = ui.window;
+			$(document).on('windowopen.launcher.elementary', function(event, data) {
+				var $win = $(event.target);
+
+				var process = Webos.Process.get($win.window('pid'));
+				if (process) {
+					if (!that._fullCmds2Windows[process.fullCmd]) {
+						that._fullCmds2Windows[process.fullCmd] = $();
 					}
+					that._fullCmds2Windows[process.fullCmd] = that._fullCmds2Windows[process.fullCmd].add($win);
+
+					if (!that._cmds2Windows[process.cmd]) {
+						that._cmds2Windows[process.cmd] = $();
+					}
+					that._cmds2Windows[process.cmd] = that._cmds2Windows[process.cmd].add($win);
 				}
-			}).on('windowclose.launcher.elementary', function(event, ui) { //Lors de leur fermeture, on detruit cette relation
-				var process = Webos.Process.get(ui.window.window('pid'));
-				if (typeof process != 'undefined' && that._cmds2Windows[process.cmd]) {
-					if (that._cmds2Windows[process.cmd].length > 1) {
-						that._cmds2Windows[process.cmd] = that._cmds2Windows[process.cmd].not(ui.window);
-					} else {
-						delete that._cmds2Windows[process.cmd];
+			}).on('windowclose.launcher.elementary', function(event, data) { //Lors de leur fermeture, on detruit cette relation
+				var $win = $(event.target);
+
+				var process = Webos.Process.get($win.window('pid'));
+				if (typeof process != 'undefined') {
+					if (that._fullCmds2Windows[process.fullCmd]) {
+						that._fullCmds2Windows[process.fullCmd] = that._fullCmds2Windows[process.fullCmd].not($win);
+						if (!that._fullCmds2Windows[process.fullCmd].length) {
+							delete that._fullCmds2Windows[process.fullCmd];
+						}
+					}
+					if (that._cmds2Windows[process.cmd]) {
+						that._cmds2Windows[process.cmd] = that._cmds2Windows[process.cmd].not($win);
+						if (!that._cmds2Windows[process.cmd].length) {
+							delete that._cmds2Windows[process.cmd];
+						}
 					}
 				}
 			}).on('windowafteropen.launcher.elementary windowclose.launcher.elementary', function() {
@@ -277,7 +293,9 @@ Webos.require([
 					(function(i, app) {
 						//On detecte les fenetres correspondant au favori
 						var appWindows = $();
-						if (that._cmds2Windows[app.get('command')]) {
+						if (that._fullCmds2Windows[app.get('command')]) {
+							appWindows = that._fullCmds2Windows[app.get('command')];
+						} else if (that._cmds2Windows[app.get('command')]) {
 							appWindows = that._cmds2Windows[app.get('command')];
 						}
 
@@ -311,8 +329,8 @@ Webos.require([
 
 						//Detect apps corresponding to this window
 						var windowApp;
-						for (var appCmd in that._cmds2Windows) {
-							that._cmds2Windows[appCmd].each(function () {
+						for (var appCmd in that._fullCmds2Windows) {
+							that._fullCmds2Windows[appCmd].each(function () {
 								if (thisWindow.window('id') === $(this).window('id')) {
 									windowApp = appCmd;
 									return false;
@@ -321,6 +339,20 @@ Webos.require([
 
 							if (windowApp) {
 								break;
+							}
+						}
+						if (!windowApp) {
+							for (var appCmd in that._cmds2Windows) {
+								that._cmds2Windows[appCmd].each(function () {
+									if (thisWindow.window('id') === $(this).window('id')) {
+										windowApp = appCmd;
+										return false;
+									}
+								});
+
+								if (windowApp) {
+									break;
+								}
 							}
 						}
 

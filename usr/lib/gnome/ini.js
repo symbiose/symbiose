@@ -59,7 +59,9 @@ Webos.Translation.load(function(t) {
 				});
 
 				nautilusDesktopFiles.one('nautilusreadcomplete', function() {
-					resizeDesktopFn();
+					if (typeof resizeDesktopFn == 'function') {
+						resizeDesktopFn();
+					}
 				}).one('nautilusreaderror', function(e, data) {
 					data.response.logError();
 					return false;

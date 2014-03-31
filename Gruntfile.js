@@ -148,52 +148,51 @@ module.exports = function(grunt) {
 
 	grunt.registerTask('gen-ui', 'Concatenate UI files.', function() {
 		var uisConcat = {}, uisJsUglify = [], uisCssMinify = [];
-		if (grunt.file.isDir('dist/boot/uis')) {
-			var uisList = grunt.file.expand({
-				cwd: 'dist/boot/uis/',
-				filter: 'isDirectory'
-			}, '*');
+		
+		var uisList = grunt.file.expand({
+			cwd: 'dist/boot/uis/',
+			filter: 'isDirectory'
+		}, '*');
 
-			for (var i = 0; i < uisList.length; i++) {
-				var uiName = uisList[i];
-				var rootPath = 'dist/boot/uis/'+uiName;
+		for (var i = 0; i < uisList.length; i++) {
+			var uiName = uisList[i];
+			var rootPath = 'dist/boot/uis/'+uiName;
 
-				if (!grunt.file.exists(rootPath+'/config.json')) {
-					continue;
-				}
-
-				var uiMetadata = grunt.file.readJSON(rootPath+'/config.json');
-
-				var deps = uiMetadata.userinterface.includes[0].file,
-					jsDepsList = [],
-					cssDepsList = [];
-				for (var j = 0; j < deps.length; j++) {
-					var filePath = deps[j].path[0];
-
-					if (/\.js$/.test(filePath)) {
-						jsDepsList.push('./'+filePath);
-					} else if (/\.css$/.test(filePath)) {
-						cssDepsList.push('./'+filePath);
-					}
-				}
-
-				jsDepsList.push('boot/uis/'+uiName+'/index.js');
-
-				var jsPath = 'build/boot/uis/'+uiName+'/main.min.js',
-					cssPath = 'build/boot/uis/'+uiName+'/style.min.css';
-
-				uisConcat[jsPath] = jsDepsList;
-				uisConcat[cssPath] = cssDepsList;
-
-				uisJsUglify.push({
-					src: jsPath,
-					dest: jsPath
-				});
-				uisCssMinify.push({
-					src: cssPath,
-					dest: cssPath
-				});
+			if (!grunt.file.exists(rootPath+'/config.json')) {
+				continue;
 			}
+
+			var uiMetadata = grunt.file.readJSON(rootPath+'/config.json');
+
+			var deps = uiMetadata.userinterface.includes[0].file,
+				jsDepsList = [],
+				cssDepsList = [];
+			for (var j = 0; j < deps.length; j++) {
+				var filePath = deps[j].path[0];
+
+				if (/\.js$/.test(filePath)) {
+					jsDepsList.push('./'+filePath);
+				} else if (/\.css$/.test(filePath)) {
+					cssDepsList.push('./'+filePath);
+				}
+			}
+
+			jsDepsList.push('boot/uis/'+uiName+'/index.js');
+
+			var jsPath = 'build/boot/uis/'+uiName+'/main.min.js',
+				cssPath = 'build/boot/uis/'+uiName+'/style.min.css';
+
+			uisConcat[jsPath] = jsDepsList;
+			uisConcat[cssPath] = cssDepsList;
+
+			uisJsUglify.push({
+				src: jsPath,
+				dest: jsPath
+			});
+			uisCssMinify.push({
+				src: cssPath,
+				dest: cssPath
+			});
 		}
 
 		grunt.config('concat.ui', {
@@ -315,10 +314,6 @@ module.exports = function(grunt) {
 		grunt.file.write('build/usr/share/icons/index.json', JSON.stringify(items));
 	});
 
-	grunt.registerTask('convert-ui', 'Convert UIs files.', [
-		'convert:ui'
-	]);
-
 	grunt.registerTask('convert-launcher', 'Convert launchers.', [
 		'convert:categories',
 		'convert:applications',
@@ -328,12 +323,12 @@ module.exports = function(grunt) {
 
 	grunt.registerTask('standalone', 'Build a standalone version of the web desktop.', [
 		'clean',
+		'convert:ui',
 		'gen-boot',
 		'gen-ui',
 		'gen-theme',
 		'gen-icon',
 		'copy:standalone',
-		'convert-ui',
 		'convert-launcher'
 	]);
 

@@ -445,6 +445,32 @@ Webos.File.prototype = {
 		return op;
 	},
 	/**
+	 * Read this file's content as a data URL.
+	 * @param  {Webos.Callback}  callback The callback.
+	 * @return {Webos.Operation}          The operation.
+	 */
+	readAsDataUrl: function (callback) {
+		var that = this;
+
+		var op = Webos.Operation.create();
+		op.addCallbacks(callback);
+
+		this.readAsBlob([function (blob) {
+			var reader = new FileReader();
+			reader.onload = function(e) {
+				op.setCompleted(e.target.result);
+			};
+			reader.onerror = function(e) {
+				op.setCompleted(Webos.Callback.Result.error(e.target.result));
+			};
+			reader.readAsDataURL(blob);
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	},
+	/**
 	 * Get this file/directory's content.
 	 * @param {Webos.Callback} callback The callback. If this file is a directory, an array of files will be provided.
 	 */
@@ -1954,6 +1980,90 @@ var homePoint = new Webos.File.MountPoint({
 }, '~');
 Webos.File.mount(homePoint);
 
+/**
+ * A string file.
+ * @param {String} contents The file's content.
+ * @param {Object} data The file data.
+ * @constructor
+ * @augments {Webos.File}
+ * @since 1.0beta5
+ */
+Webos.StringFile = function (contents, data) {
+	this._contents = contents || '';
+
+	if (!data) {
+		data = {};
+	}
+
+	data.basename = data.basename || 'file-'+Math.floor(Math.random()*(new Date()).getTime());
+	data.path = data.basename;
+	data.dirname = '';
+	data.realpath = null;
+	data.is_dir = false;
+	data.size = contents.length;
+	data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
+
+	data.readable = true;
+	data.writable = false;
+
+	Webos.File.call(this, data); //On appelle la classe parente
+};
+/**
+ * Webos.StringFile's prototype.
+ * @namespace Webos.StringFile
+ */
+Webos.StringFile.prototype = {
+	_toBlob: function () {
+		return new Blob([this._contents], { type: this.get('mime_type') });
+	},
+	realpath: function() {
+		if (!this._get('realpath')) {
+			var URL = window.URL || window.webkitURL;
+			if (URL && URL.createObjectURL) {
+				this.hydrate({
+					realpath: URL.createObjectURL(this._toBlob())
+				});
+			}
+		}
+
+		return this._get('realpath');
+	},
+	load: function(callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		callback.success(this);
+	},
+	readAsText: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+		
+		callback.success(this._contents);
+	},
+	readAsBinary: function(callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+
+		callback.success(window.btoa(this._contents));
+	},
+	readAsBlob: function (callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+
+		callback.success(this._toBlob());
+	}
+};
+Webos.inherit(Webos.StringFile, Webos.File); //Héritage de Webos.File
+
+/**
+ * Create a new string file.
+ * @param {String} contents The file's content.
+ * @param {Object} data The file data.
+ * @return {Webos.StringFile} The string file.
+ */
+Webos.StringFile.create = function (contents, data) {
+	return new Webos.StringFile(contents, data);
+};
+
 //Compatibility shim for Blob
 var Blob = window.Blob || window.mozBlob || window.webkitBlob;
 
@@ -1968,7 +2078,9 @@ var Blob = window.Blob || window.mozBlob || window.webkitBlob;
 Webos.BlobFile = function (blob, data) {
 	this._file = blob;
 
-	var data = {};
+	if (!data) {
+		data = {};
+	}
 
 	data.basename = data.basename || 'file-'+Math.floor(Math.random()*(new Date()).getTime());
 	data.path = data.basename;
@@ -1977,7 +2089,7 @@ Webos.BlobFile = function (blob, data) {
 	data.is_dir = false;
 	data.size = blob.size;
 	data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
-	data.mime_type = blob.type;
+	data.mime_type = blob.type || data.mime_type;
 
 	data.readable = true;
 	data.writable = false;

@@ -14,6 +14,7 @@ if (Webos.standalone) { //Preload index file
 	});
 }
 
+
 Webos.require(deps, function () {
 	Webos.Icon = function (name, size, theme) {
 		if (typeof name == 'undefined') {

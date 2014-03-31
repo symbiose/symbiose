@@ -61,7 +61,7 @@ Software requirements
 * Client: a fast and modern web browser (e.g. the latest *Mozilla Firefox*). Tested on:
  * Firefox (latest version)
  * Chromium (latest version)
- * Internet Explorer 9+
+ * Internet Explorer 10+, if you're lucky!
 
 > **NB**: Symbiose can also run in standalone mode, which doesn't require PHP.
 
