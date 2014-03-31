@@ -38,7 +38,11 @@ var proc = this, args = proc.getArguments(), term = proc.getTerminal();
 
 	W.xtag.loadUI('/usr/share/templates/mockapp/'+appName+'.html', function(windows) {
 		var $win = $(windows).filter(':eq(0)');
-		
+
+		$win.find('img').on('load', function () {
+			$win.window('center');
+		});
+
 		var $itsJustAMockApp = $.w.entryContainer().appendTo($win.window('content')).hide().css({
 			position: 'absolute',
 			top: 0,
