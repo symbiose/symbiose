@@ -640,8 +640,8 @@ Webos.Arguments._parseFullCmd = function (fullCmd) {
 
 	var firstSep = fullCmd.indexOf(' ');
 	if (~firstSep) {
-		parsed.cmd = fullCmd.split(0, firstSep);
-		parsed.args = fullCmd.split(firstSep + 1);
+		parsed.cmd = fullCmd.substr(0, firstSep);
+		parsed.args = fullCmd.substr(firstSep + 1);
 	} else {
 		parsed.cmd = fullCmd;
 	}
