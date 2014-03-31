@@ -290,7 +290,7 @@ Webos.require = function (files, callback, options) {
 
 			var file;
 			if (requiredFile.contents) {
-				file = Webos.BlobFile.fromString(requiredFile.contents, {
+				file = Webos.StringFile.create(requiredFile.contents, {
 					mime_type: requiredFile.type,
 					path: requiredFile.path
 				});
