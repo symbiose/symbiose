@@ -276,11 +276,13 @@ body {
 	padding: 0 3px;
 }
 #launcher ul li {
+	position: relative;
 	display: inline-block;
 	width: 48px;
 	height: 48px;
 	padding: 0 5px 3px 5px;
 }
+
 #launcher .app-active {
 	background: -moz-linear-gradient(transparent 32px, #f9f9f9 32px, #b3b5b6);
 	background: -webkit-linear-gradient(transparent 32px, #f9f9f9 32px, #b3b5b6);
@@ -289,6 +291,22 @@ body {
 #launcher ul li img.app-icon {
 	width: 48px;
 	height: 48px;
+}
+@keyframes bounce {
+	0% {
+		transform:translateY(0);
+	}
+	50% {
+		transform:translateY(-10px);
+	}
+	100% {
+		transform:translateY(0);
+	}
+}
+#launcher ul .app-launched img.app-icon {
+	animation-duration: .4s;
+	animation-name: bounce;
+	animation-iteration-count: 2;
 }
 #launcher ul li .app-indicators {
 	width: 48px;

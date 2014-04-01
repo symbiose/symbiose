@@ -75,10 +75,14 @@ $.webos.widget('window', 'container', {
 		}
 
 		var windowHeaderContents = $(),
-			windowHeaderEl = windowChildren.filter('header');
+			windowHeaderEl = windowChildren.filter('header'),
+			windowStyleEls = windowChildren.filter('style');
 		if (windowHeaderEl.length) {
 			windowHeaderContents = windowHeaderEl.children().detach();
 			windowTitleEl.remove();
+		}
+		if (windowStyleEls) {
+			windowStyleEls.detach();
 		}
 
 		var windowContents = this.element.contents().detach();
@@ -154,6 +158,9 @@ $.webos.widget('window', 'container', {
 
 		if (windowHeaderContents.length) {
 			windowHeaderContents.appendTo(this.header());
+		}
+		if (windowStyleEls.length) {
+			windowStyleEls.prependTo(this.element);
 		}
 		
 		this.options._content = $('<div></div>', {
@@ -1315,10 +1322,11 @@ $.webos.widget('window', 'container', {
 		} else {
 			var that = this;
 
-			Webos.require(stylesheet, function() {
+			Webos.require({
+				path: stylesheet,
+				styleContainer: this.element
+			}, function() {
 				that._trigger('stylesheetload', { type: 'stylesheetload' }, { window: that.element });
-			}, {
-				styleContainer: this.selector()
 			});
 		}
 	},
