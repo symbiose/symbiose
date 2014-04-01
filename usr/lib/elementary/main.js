@@ -243,7 +243,6 @@ Webos.require([
 						} else {
 							$item.click(function() {
 								W.Cmd.execute(data.app.get('command'));
-
 								$(this).addClass('app-launched');
 							});
 						}
