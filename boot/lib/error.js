@@ -64,18 +64,29 @@ Webos.Error.logError = function(error) {
 	Webos.Error.list.push(error);
 	
 	if (window.console && console.log) {
-		var consoleMsg;
-		if (error instanceof W.Error) {
-			consoleMsg = error.name+' [#'+error.code+']: '+error.text+"\n"+error.stack.join("\n");
-		} else {
-			consoleMsg = error.name + ': ' + error.message + "\nStack trace :\n" + error.stack;
-		}
+		var consoleMsg, traceAvailable = !!console.trace;
 
+		if (error instanceof W.Error) {
+			consoleMsg = error.name+' [#'+error.code+']: '+error.text;
+
+			if (!traceAvailable) {
+				consoleMsg += "\n"+error.stack.join("\n");
+			}
+		} else {
+			consoleMsg = error.name + ': ' + error.message + "\nStack trace :";
+
+			if (!traceAvailable && error.stack) {
+				consoleMsg += "\n"+error.stack;
+			}
+		}
 
 		if (console.error) {
 			console.error(consoleMsg);
 		} else {
 			console.log(consoleMsg);
+		}
+		if (traceAvailable) {
+			console.trace();
 		}
 		if (console.dir) {
 			console.dir(error);
