@@ -38,6 +38,19 @@ Webos.Stylesheet = function (path, container) {
  */
 Webos.Stylesheet._cache = {};
 
+Webos.Stylesheet._supportsScoped = null;
+Webos.Stylesheet.supportsScoped = function () {
+	if (typeof Webos.Stylesheet._supportsScoped == 'boolean') {
+		return Webos.Stylesheet._supportsScoped;
+	}
+
+	var check = document.createElement( 'style' ),
+		scopeSupported = (undefined !== check.scoped);
+
+	Webos.Stylesheet._supportsScoped = scopeSupported;
+	return scopeSupported;
+};
+
 /**
  * Apply some CSS rules .
  * @param {String} css CSS rules.
@@ -45,7 +58,10 @@ Webos.Stylesheet._cache = {};
  * @static
  */
 Webos.Stylesheet.insertCss = function (css, container) {
-	if (container) {
+	var scoped = (Webos.Stylesheet.supportsScoped() && container && $(container).length);
+	//scoped = false; //Doesn't work very well
+
+	if (!scoped && container) {
 		if (typeof container != 'string') {
 			container = '#'+$(container).attr('id');
 		}
@@ -57,7 +73,7 @@ Webos.Stylesheet.insertCss = function (css, container) {
 				
 				p1 = p1.replace(/\s+/g, ' ');
 				
-				if (/^\s*@/.test(p1)) { //Not a selector ?
+				if (/(^\s*@|%\s*$)/.test(p1)) { //Not a selector ?
 					if (/^\s*(@.+;)+/.test(p1)) {
 						result += /@.+;/g.exec(p1).join('');
 					} else {
@@ -72,15 +88,18 @@ Webos.Stylesheet.insertCss = function (css, container) {
 				return result;
 			});
 	}
-	
-	//Insert CSS rules
-	var cssTag = document.createElement('style');
-	cssTag.setAttribute('type', 'text/css');
-	var cssText = document.createTextNode(css);
-	cssTag.appendChild(cssText);
-	$('head').append(cssTag);
 
-	return $(cssTag);
+	//Insert CSS rules
+	var $cssTag = $('<style></style>', { 'type': 'text/css' }).text(css);
+
+	if (scoped) {
+		$cssTag.prop('scoped', true);
+		$(container).prepend($cssTag);
+	} else {
+		$('head').append($cssTag);
+	}
+
+	return $cssTag;
 };
 
 Webos.Stylesheet.removeCss = function (stylesheet) {
