@@ -2,7 +2,8 @@
 <!--[if lt IE 7 ]><html class="ie ie6"> <![endif]-->
 <!--[if IE 7 ]><html class="ie ie7"> <![endif]-->
 <!--[if IE 8 ]><html class="ie ie8"> <![endif]-->
-<!--[if (gte IE 9)|!(IE)]><!--><html> <!--<![endif]-->
+<!--[if IE 9 ]><html class="ie ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--><html> <!--<![endif]-->
 <head>
 	<title>Symbiose</title>
 	<meta charset="utf-8" />
@@ -53,6 +54,7 @@
 			<p><?php echo $t->get('Loading...'); ?></p>
 		</div>
 	</div>
+	<!-- Javascript disabled -->
 	<noscript id="webos-unsupported">
 		<div class="center">
 			<p class="error">
@@ -61,5 +63,15 @@
 		</div>
 	</noscript>
 	<div id="webos-loading-console" style="display: none;"></div>
+	<!-- Browser unsupported -->
+	<!--[if lt IE 10 ]>
+	<div id="webos-unsupported">
+		<div class="center">
+			<p class="error">
+				<strong><?php echo $t->get('Your web browser doesn\'t support ${webos}', array('webos' => 'Symbiose')); ?></strong> : <?php echo $t->get('A recent browser is required to launch it.'); ?><br /><?php echo $t->get('Please update your web browser (${download-link}).', array('download-link' => '<a href="http://www.mozilla.org/firefox/new/" target="_blank">'.$t->get('download ${browser}', array('browser' => 'Mozilla Firefox')).'</a>')); ?>
+			</p>
+		</div>
+	</div>
+	<![endif]-->
 </body>
 </html>

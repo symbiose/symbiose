@@ -5,7 +5,7 @@
  * @augments {Webos.Model}
  * @since 1.0alpha3
  */
-Webos.Translation = function WTranslation(data) {
+Webos.Translation = function (data) {
 	Webos.Model.call(this, data);
 };
 Webos.Translation.prototype = {

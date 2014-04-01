@@ -21,7 +21,6 @@
 		<file path="/usr/lib/elementary/menus.js"/>
 		<file path="/usr/lib/elementary/notifications.js"/>
 
-		<file path="/usr/lib/gnome/network.js"/>
 		<file path="/usr/lib/gnome/power.js"/>
 		
 		<file path="/usr/lib/nautilus/nautilus.js"/>
