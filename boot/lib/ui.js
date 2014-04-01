@@ -228,7 +228,7 @@ Webos.UserInterface.load = function(name, callback) {
 		if (error instanceof Webos.Error) {
 			msg += error.toString();
 		} else {
-			msg += error.name + ' : ' + error.message + '<br />Stack trace :<br />' + error.stack.replace(/\n/g, '<br />') + '';
+			msg += error.name + ' : ' + error.message + '<br />Stack trace :<br />' + (error.stack || '').replace(/\n/g, '<br />') + '';
 		}
 
 		Webos.UserInterface.writeConsole(msg);
