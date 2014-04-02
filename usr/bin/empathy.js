@@ -91,12 +91,22 @@ Webos.require([
 		}
 	};
 
+	/**
+	 * Create a new Empathy instance.
+	 * @constructor
+	 * @author Emersion <contact@emersion.fr>
+	 */
 	var Empathy = function () {
 		Webos.Observable.call(this);
 
 		this.initialize();
 	};
 
+	/**
+	 * List all available services.
+	 * @var {Object}
+	 * @private
+	 */
 	Empathy._services = {
 		facebook: {
 			type: 'xmpp',
@@ -121,13 +131,27 @@ Webos.require([
 			title: 'PeerJS'
 		}
 	};
+	/**
+	 * Get a service.
+	 * @param {String} serviceName The service name.
+	 * @return {Object} The service data.
+	 */
 	Empathy.service = function (serviceName) {
 		return this._services[serviceName];
 	};
+	/**
+	 * List services.
+	 * @return {Object} An object containing services.
+	 */
 	Empathy.listServices = function () {
 		return this._services;
 	};
 
+	/**
+	 * Get a service API.
+	 * @param {String} serviceType The service type.
+	 * @return {Object} The service API.
+	 */
 	Empathy.serviceApi = function (serviceType) {
 		var serviceApiName = serviceType[0].toUpperCase() + serviceType.substr(1),
 			serviceApi = this[serviceApiName];
@@ -135,6 +159,12 @@ Webos.require([
 		return serviceApi;
 	};
 
+	/**
+	 * Create a new connection.
+	 * @param {String} serviceType The service type.
+	 * @param {Object} options Options.
+	 * @return {Object} The connection.
+	 */
 	Empathy.createConnection = function (serviceType, options) {
 		var serviceApi = Empathy.serviceApi(serviceType);
 
@@ -145,6 +175,11 @@ Webos.require([
 		return serviceApi.create(options);
 	};
 
+	/**
+	 * Get priority from presence.
+	 * @param {String} presence The presence.
+	 * @return {Number} The priority.
+	 */
 	Empathy.priorityFromPresence = function (presence) {
 		var priority = -128;
 
