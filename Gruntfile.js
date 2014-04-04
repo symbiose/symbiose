@@ -346,7 +346,7 @@ module.exports = function(grunt) {
 	]);
 
 	//TODO
-	grunt.registerTask('text', 'Run tests.', []);
+	grunt.registerTask('test', 'Run tests.', []);
 
 	//TODO: outdated
 	/*grunt.registerTask('quickbuild', 'Quickly re-build the web desktop.', [
