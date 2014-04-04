@@ -314,14 +314,14 @@ body {
 }
 #launcher ul li .app-badge {
 	position: absolute;
-	text-align: center;
 	display: inline-block;
-	top: 0;
 	right: 0;
+	top: 0;
 	min-width: 19px;
 	padding: 3px;
 	border: 1px solid #c73040;
 	border-radius: 20px;
+	text-align: center;
 	background-color: #da1c2f;
 	background: -moz-linear-gradient(#fc5666, #c01929);
 	background: -webkit-linear-gradient(#fc5666, #c01929);
@@ -331,6 +331,31 @@ body {
 }
 #launcher ul li .app-badge:empty {
 	display: none;
+}
+#launcher ul li .app-progressbar {
+	display: none;
+	position: absolute;
+	left: 10px;
+	bottom: 8px;
+	width: 37px;
+	height: 3px;
+	border: 1px solid #3a3a3a;
+	border-radius: 2px;
+	background-color: #444647;
+}
+#launcher ul li .app-progressbar.progressbar-undefined {
+	display: block;
+	background-image: url('usr/share/images/themes/elementary/desktop/app-loader.gif');
+	background-repeat: repeat-x;
+}
+#launcher ul li .app-progressbar.progressbar-defined {
+	display: block;
+	background-image: linear-gradient(#404040, #4d5255);
+}
+#launcher ul li .app-progressbar.progressbar-defined .progressbar-inner {
+	height: 3px;
+	background-color: #e6e6e6;
+	background-image: linear-gradient(#cccccc, #e6e6e6, #cccccc);
 }
 #launcher ul li .app-title {
 	position: absolute;

@@ -152,7 +152,7 @@ Webos.require([
 				var windows = $.w.window.workspace.getCurrent().getWindows();
 
 				//Si rien n'est ouvert et qu'il n'y a aucun favori, on cache le lanceur et on s'arrete la
-				if (favorites.length == 0 && windows.length == 0) {
+				if (!favorites.length && !windows.length) {
 					that.hideLauncher();
 					return;
 				}
@@ -194,18 +194,15 @@ Webos.require([
 							if (isActive) {
 								$item.addClass('app-active');
 							}
-							data.windows
-								.off('windowtoforeground.launcher.elementary windowshow.launcher.elementary')
-								.on('windowtoforeground.launcher.elementary windowshow.launcher.elementary', function () {
 
+							var eventHandlers = {
+								'windowtoforeground.launcher.elementary windowshow.launcher.elementary': function () {
 									$item.addClass('app-active');
-								})
-								.off('windowtobackground.launcher.elementary windowhide.launcher.elementary')
-								.on('windowtobackground.launcher.elementary windowhide.launcher.elementary', function () {
+								},
+								'windowtobackground.launcher.elementary windowhide.launcher.elementary': function () {
 									$item.removeClass('app-active');
-								})
-								.off('windowbadge.launcher.elementary')
-								.on('windowbadge.launcher.elementary', function (e, data) {
+								},
+								'windowbadge.launcher.elementary': function () {
 									var badgeVal = $(this).window('option', 'badge');
 
 									if (badgeVal) {
@@ -213,7 +210,25 @@ Webos.require([
 									} else {
 										$item.find('.app-badge').empty();
 									}
-								});
+								},
+								'windowloadingstart.launcher.elementary': function (e, data) {
+									$item.find('.app-progressbar').addClass('progressbar-undefined');
+								},
+								'windowloadingstop.launcher.elementary': function (e, data) {
+									$item.find('.app-progressbar').removeClass('progressbar-undefined');
+								},
+								'windowprogress.launcher.elementary': function (e, data) {
+									if (data.value == 100) {
+
+									} else {
+
+									}
+								}
+							};
+
+							for (var eventName in eventHandlers) {
+								data.windows.off(eventName).on(eventName, eventHandlers[eventName]);
+							}
 
 							$item.click(function() {
 								//if (appWindow.window('workspace').id() != $.w.window.workspace.getCurrent().id()) {
@@ -268,6 +283,9 @@ Webos.require([
 						}
 						badge += '</div>';
 						$item.append(badge);
+
+						var progressBar = '<div class="app-progressbar"><div class="progressbar-inner" style="width:30%;"></div></div>';
+						$item.append(progressBar);
 					}
 
 					$item.append('<div class="app-title"><span class="app-title-inner">'+data.title+'</span></div>');
