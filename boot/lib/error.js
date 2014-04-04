@@ -5,7 +5,7 @@
  * @since 1.0 alpha 1
  * @constructor
  */
-Webos.Error = function WError(message, details, code) {
+Webos.Error = function (message, details, code) {
 	this.name = 'Webos.Error';
 	this.stack = Webos.Error.getStackTrace();
 	this.process = Webos.Process.current();
@@ -25,11 +25,11 @@ Webos.Error = function WError(message, details, code) {
 		message: this.message.replace("\n",'<br />'),
 		details: this.details.replace("\n",'<br />'),
 		process: (this.process) ? 'Process : '+this.process.getPid()+'; command : "'+this.process.cmdText+'"' : '',
-		text: (this.message + ((this.details != '') ? ("\n"+this.details) : '')).replace("\n",'<br />')
+		text: (this.message + ((this.details) ? ("\n"+this.details) : '')).replace("\n",'<br />')
 	};
 
 	this.message = $('<span></span>').html(this.message).text(); //On enleve les tags HTML
-	this.text = this.message + ((this.details != '') ? ("\n"+this.details) : '');
+	this.text = this.message + ((this.details) ? ("\n"+this.details) : '');
 	this.processText = (this.process) ? 'Process : '+this.process.getPid()+'; command : "'+this.process.cmdText+'"' : '';
 
 	this.toString = function() {
@@ -161,9 +161,10 @@ Webos.Error.getStackTrace = function() {
 	try {
 		i.dont.exist += 0; // doesn't exist - that's the point
 	} catch(e) {
+		var lines, i;
 		if (e.stack) { // Firefox or Chrome
-			var lines = e.stack.split('\n');
-			for (var i=0, len=lines.length; i < len; i++) {
+			lines = e.stack.split('\n');
+			for (i = 0, len = lines.length; i < len; i++) {
 				if (lines[i].match(/^\s*[A-Za-z0-9\-_\$.\s]+\(?/)) {
 					callstack.push(lines[i]);
 				}
@@ -176,8 +177,8 @@ Webos.Error.getStackTrace = function() {
 			isCallstackPopulated = true;
 		}
 		else if (window.opera && e.message) { // Opera
-			var lines = e.message.split('\n');
-			for (var i=0, len=lines.length; i < len; i++) {
+			lines = e.message.split('\n');
+			for (i = 0, len = lines.length; i < len; i++) {
 				if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
 					var entry = lines[i];
 					// Append next line also since it has the file info

@@ -140,7 +140,7 @@ Webos.Terminal.prototype = {
 	 * @param {String} path The new location.
 	 */
 	setLocation: function (path) {
-		this._data['location'] = path;
+		this._data.location = path;
 	},
 	/**
 	 * Recuperer un chemin absolu depuis un chemin relatif par rapport au dossier courant.
@@ -218,13 +218,13 @@ Webos.Terminal.prototype = {
 							if (val == 'Y' || val == 'n') {
 								triggerResult(val);
 							} else {
-								if (originalOptions.label.indexOf('\n') != 0) {
+								if (originalOptions.label.indexOf('\n') !== 0) {
 									originalOptions.label = '\n' + originalOptions.label;
 								}
 								that.prompt(callback, originalOptions);
 							}
 							break;
-						case 'text':
+						//case 'text':
 						default:
 							triggerResult(val);
 					}
@@ -232,7 +232,7 @@ Webos.Terminal.prototype = {
 			}
 		};
 
-		var callbackName = 'Webos.Terminal._list['+this.getId()+']._promptCallback'
+		var callbackName = 'Webos.Terminal._list['+this.getId()+']._promptCallback';
 		options.label += '<input type="text" onkeydown="'+callbackName+'(event || window.event, this);"';
 
 		if (options.type == 'yn') {

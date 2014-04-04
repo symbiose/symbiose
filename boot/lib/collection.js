@@ -5,7 +5,7 @@
 	 * @param {Function} [type] This collection's type (the entities' class).
 	 * @constructor
 	 */
-	var Collection = function WCollection(entities, type) {
+	var Collection = function (entities, type) {
 		this._type = undefined;
 		this._data = [];
 
@@ -42,7 +42,7 @@
 		 * @param {Function} [type] If specified, the type of the collection will be set.
 		 * @returns {Function|undefined} If no type is specified, the collection's type will be returned.
 		 */
-		type: function $_WCollection_type(type) {
+		type: function (type) {
 			if (typeof type == 'undefined') {
 				return this._type;
 			} else {
@@ -54,17 +54,17 @@
 
 				this._type = type;
 
-				this._methods = [];
+				var makeMethodHandler = function (methodName) {
+					return (function() {
+						var args = arguments;
+						that.each(function() {
+							this[methodName].apply(this, args);
+						});
+					});
+				};
 				for (var attr in type.prototype) {
 					if (!this[attr] && typeof type.prototype[attr] == 'function') {
-						this[attr] = (function() {
-							return (function() {
-								var args = arguments;
-								that.each(function() {
-									this[attr].apply(this, args);
-								});
-							});
-						})();
+						this[attr] = makeMethodHandler(attr);
 					}
 				}
 			}
@@ -73,7 +73,7 @@
 		 * Add an entity to the collection.
 		 * @param entity The entity to add.
 		 */
-		add: function $_WCollection_add(entity) {
+		add: function (entity) {
 			if (this.type() && !Webos.isInstanceOf(entity, this.type())) {
 				return false;
 			}
@@ -84,7 +84,7 @@
 		 * Remove an entity in the collection.
 		 * @param {Number} i The index of the entity in the collection.
 		 */
-		remove: function $_WCollection_remove(i) {
+		remove: function (i) {
 			this._data = this._data.slice(0,i).concat(this._data.slice(i+1));
 		},
 		/**
@@ -92,7 +92,7 @@
 		 * The function will be executed in the context of each entity, one by one. If the callback returns false, no more entities will be processed.
 		 * @param {Function} fn The callback.
 		 */
-		each: function $_WCollection_each(fn) {
+		each: function (fn) {
 			if (typeof fn != 'function') {
 				return false;
 			}
@@ -108,7 +108,7 @@
 		 * Get a list of entities contained in the collection.
 		 * @returns {Array} An array containing all entities.
 		 */
-		list: function $_WCollection_list() {
+		list: function () {
 			return this._data;
 		},
 		/**
@@ -116,14 +116,14 @@
 		 * @param {Number} i The index of the entity in the collection.
 		 * @returns The corresponding entity.
 		 */
-		item: function $_WCollection_item(i) {
+		item: function (i) {
 			return this._data[i];
 		},
 		/**
 		 * Get the number of entities contained in the collection.
 		 * @returns {Number} The number of entities.
 		 */
-		length: function $_WCollection_length() {
+		length: function () {
 			return this._data.length;
 		}
 	};
