@@ -345,6 +345,9 @@ module.exports = function(grunt) {
 		//'gen-icon'
 	]);
 
+	//TODO
+	grunt.registerTask('text', 'Run tests.', []);
+
 	//TODO: outdated
 	/*grunt.registerTask('quickbuild', 'Quickly re-build the web desktop.', [
 		//'jshint',
