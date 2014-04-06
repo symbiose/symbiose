@@ -315,7 +315,7 @@ GTerminalWindow.prototype = {
 	_updateTerminalTitle: function (term, tabIndex) {
 		term = term || this._terminal;
 
-		if (!term || !term.length) {
+		if (!term || !$(term).length) {
 			return;
 		}
 
