@@ -1778,31 +1778,83 @@ Webos.require([
 	};
 	Webos.inherit(Empathy, Webos.Observable);
 
+	/**
+	 * An Empathy connection interface.
+	 * @param {Object} [options] The connection's options.
+	 * @constructor
+	 * @augments {Webos.Observable}
+	 * @author emersion
+	 */
 	Empathy.Interface = function (options) {
 		Webos.Observable.call(this);
 
 		options = options || {};
 		this._options = options;
 	};
+	/**
+	 * The connection interface's prototype.
+	 */
 	Empathy.Interface.prototype = {
+		/**
+		 * The connection type.
+		 * @var {String}
+		 * @private
+		 */
 		_type: '',
+		/**
+		 * The connection's features.
+		 * @var {Array}
+		 * @private
+		 */
 		_features: [],
+		/**
+		 * True if the connection needs credentials, false otherwise.
+		 * @var {Boolean}
+		 * @private
+		 */
 		_needsCredentials: false,
+		/**
+		 * Get this connection's options.
+		 * @return {Object} The options.
+		 */
 		options: function () {
 			return this._options;
 		},
+		/**
+		 * Get an option.
+		 * @param {String} key The option key.
+		 * @return {String} The option value.
+		 */
 		option: function (key) {
 			return this._options[key];
 		},
+		/**
+		 * Get this connection type.
+		 * @return {String} The connection type.
+		 */
 		type: function () {
 			return this._type;
 		},
+		/**
+		 * Get this connection's features.
+		 * @return {Array} The connection's features.
+		 */
 		features: function () {
 			return this._features;
 		},
+		/**
+		 * Check if this connection has a feature or not.
+		 * @param {String} feat The feature name.
+		 * @return {Boolean} True if the connection has the specified feature, false otherwise.
+		 */
 		hasFeature: function (feat) {
 			return ~$.inArray(feat, this._features);
 		},
+		/**
+		 * Remove a connection's feature.
+		 * @param {String} feat The feature name.
+		 * @private
+		 */
 		_removeFeature: function (feat) {
 			var featIndex = this._features.indexOf(feat);
 
@@ -1810,28 +1862,77 @@ Webos.require([
 				this._features.splice(featIndex, 1);
 			}
 		},
+		/**
+		 * Check if this connection needs credentials.
+		 * @return {Boolean} True if this connection needs credentials, false otherwise.
+		 */
 		needsCredentials: function () {
 			return this._needsCredentials;
 		},
+		/**
+		 * Connect this interface.
+		 * @return {Webos.Operation} The operation.
+		 */
 		connect: function () {},
+		/**
+		 * Disconnect this interface.
+		 */
+		disconnect: function () {},
+		/**
+		 * List all contacts.
+		 * @return {Webos.Operation} The operation.
+		 */
 		listContacts: function () {},
+		/**
+		 * Get a contact's picture.
+		 * @return {Webos.Operation} The operation.
+		 */
 		getContactPicture: function (username) {}
 	};
 	Webos.inherit(Empathy.Interface, Webos.Observable);
 
+	/**
+	 * A message interface (i.e. a connection interface which is able to send messages).
+	 * It has the feature `message`.
+	 * @param {Object} [options] The connection's options.
+	 * @constructor
+	 * @augments {Empathy.Interface}
+	 * @author emersion
+	 */
 	Empathy.MessageInterface = function (options) {
 		this._features.push('message');
 
 		Empathy.Interface.call(this, options);
 	};
+	/**
+	 * Empathy.MessageInterface's prototype.
+	 */
 	Empathy.MessageInterface.prototype = {
-		_receiveMessage: function (msg) {
+		/**
+		 * Should be called when a message is received.
+		 * @param {Object} msg The message data.
+		 * @private
+		 */
+		receiveMessage: function (msg) {
 			this.trigger('message messagereceived', msg);
 		},
+		/**
+		 * Send a message.
+		 * @param {Object} msg The message data. Should contain these fields: `to` the recipient's username, `body` the message body.
+		 * @return {Webos.Operation} The operation.
+		 */
 		sendMessage: function (msg) {}
 	};
 	Webos.inherit(Empathy.MessageInterface, Empathy.Interface);
 
+	/**
+	 * A message interface which supports OTR (Off-The-Record encryption).
+	 * It has the feature `otr`.
+	 * @param {Object} [options] The connection's options.
+	 * @constructor
+	 * @augments {Empathy.MessageInterface}
+	 * @author emersion
+	 */
 	Empathy.OtrMessageInterface = function (options) {
 		this._features.push('otr');
 
@@ -1839,13 +1940,32 @@ Webos.require([
 	};
 	Webos.Observable.build(Empathy.OtrMessageInterface);
 
+	/**
+	 * The OTR private key.
+	 * @var {Object}
+	 * @private
+	 */
 	Empathy.OtrMessageInterface._otrPrivKey = null;
+	/**
+	 * Check if OTR is available.
+	 * @return {Boolean} True if OTR is available, false otherwise.
+	 */
 	Empathy.OtrMessageInterface.otrAvailable = function () {
 		return !!Empathy.OtrMessageInterface._otrPrivKey;
 	};
+	/**
+	 * Check if OTR is ready for use.
+	 * @return {Boolean} True if OTR is ready, false otherwise.
+	 */
 	Empathy.OtrMessageInterface.otrReady = function () {
 		return !!Empathy.OtrMessageInterface._otrPrivKey;
 	};
+	/**
+	 * Create/import/get the OTR key.
+	 * @param {String} [base64Key] If specified, the base64-encoded key will be imported.
+	 * @return {Webos.Operation} The operation.
+	 * @private
+	 */
 	Empathy.OtrMessageInterface._createKey = function (base64Key) {
 		var that = this;
 		var op = Webos.Operation.create();
@@ -1896,6 +2016,10 @@ Webos.require([
 
 		return op;
 	};
+	/**
+	 * Export the OTR key.
+	 * @return {Webos.Operation} The operation.
+	 */
 	Empathy.OtrMessageInterface.exportKey = function () {
 		var that = this;
 		var op = Webos.Operation.create();
@@ -1907,6 +2031,11 @@ Webos.require([
 
 		return op;
 	};
+	/**
+	 * Import an OTR key.
+	 * @param {String} base64Key The base64-encoded key which will be imported.
+	 * @return {Webos.Operation} The operation.
+	 */
 	Empathy.OtrMessageInterface.importKey = function (base64Key) {
 		var that = this;
 		var op = Webos.Operation.create();
@@ -1917,6 +2046,11 @@ Webos.require([
 
 		return op;
 	};
+	/**
+	 * Generate the OTR key.
+	 * @param {Boolean} [regenerate] If set to true, this will force to regenerate the key even if it has been already generated.
+	 * @return {Webos.Operation} The operation.
+	 */
 	Empathy.OtrMessageInterface.generateKey = function (regenerate) {
 		var that = this;
 		var op = Webos.Operation.create();
@@ -1932,6 +2066,9 @@ Webos.require([
 		return op;
 	};
 
+	/**
+	 * Empathy.OtrMessageInterface's prototype.
+	 */
 	Empathy.OtrMessageInterface.prototype = {
 		_otr: {},
 		otrAvailable: function () {
@@ -2075,29 +2212,79 @@ Webos.require([
 	};
 	Webos.inherit(Empathy.OtrMessageInterface, Empathy.MessageInterface);
 
+	/**
+	 * A call interface (i.e. a connection interface which is able to make calls with other users).
+	 * It has the feature `call`.
+	 * @param {Object} [options] The connection's options.
+	 * @constructor
+	 * @augments {Empathy.Interface}
+	 * @author emersion
+	 */
 	Empathy.CallInterface = function (options) {
 		this._features.push('call');
 
 		Empathy.Interface.call(this, options);
 	};
+	/**
+	 * Empathy.CallInterface's prototype.
+	 */
 	Empathy.CallInterface.prototype = {
+		/**
+		 * Initiate a new call.
+		 * @param {Object} call The call data. Should contain these fields: `to` the call recipient.
+		 * @return {Webos.operation} The operation.
+		 */
 		call: function (call) {},
+		/**
+		 * Answer a to an incoming call.
+		 * @param {Number} callId The call ID.
+		 * @return {Webos.operation} The operation.
+		 */
 		answerCall: function (callId) {},
+		/**
+		 * End a call.
+		 * @param {Number} callId The call ID.
+		 * @return {Webos.operation} The operation.
+		 */
 		endCall: function (callId) {}
 	};
 	Webos.inherit(Empathy.CallInterface, Empathy.Interface);
 
+	/**
+	 * A file sending interface (i.e. a connection interface which is able to send files to other users).
+	 * It has the feature `fileSending`.
+	 * @param {Object} [options] The connection's options.
+	 * @constructor
+	 * @augments {Empathy.Interface}
+	 * @author emersion
+	 */
 	Empathy.FileSendingInterface = function (options) {
 		this._features.push('fileSending');
 
 		Empathy.Interface.call(this, options);
 	};
+	/**
+	 * Empathy.CallInterface's prototype.
+	 */
 	Empathy.FileSendingInterface.prototype = {
+		/**
+		 * Send a file.
+		 * @param {Object} fileSending The file sending.
+		 * Should contain these fields: `to` the recipient's username, `file` the file to send, as Blob.
+		 * Can contain these fields: `basename` the file's basename (e.g. `mysuperpicture.jpg`).
+		 * @return {Webos.operation} The operation.
+		 */
 		sendFile: function (fileSending) {}
 	};
 	Webos.inherit(Empathy.FileSendingInterface, Empathy.Interface);
 
-
+	/**
+	 * An XMPP connection.
+	 * @param {Object} [options] The connection's options.
+	 * @constructor
+	 * @augments {Empathy.Interface}
+	 * @author emersion
+	 */
 	Empathy.Xmpp = function (options) {
 		Empathy.OtrMessageInterface.call(this, options);
 		Empathy.CallInterface.call(this, options);
@@ -2610,11 +2797,21 @@ Webos.require([
 	Webos.inherit(Empathy.Xmpp, Empathy.OtrMessageInterface);
 	Webos.inherit(Empathy.Xmpp, Empathy.CallInterface);
 
+	/**
+	 * Create a new XMPP connection.
+	 * @return {Empathy.Xmpp} The connection.
+	 */
 	Empathy.Xmpp.create = function () {
 		return new Empathy.Xmpp();
 	};
 
-	//Peerjs
+	/**
+	 * A PeerJS connection.
+	 * @param {Object} [options] The connection's options.
+	 * @constructor
+	 * @augments {Empathy.Interface}
+	 * @author emersion
+	 */
 	Empathy.Peerjs = function (options) {
 		Empathy.MessageInterface.call(this, options);
 		Empathy.CallInterface.call(this, options);
@@ -3097,11 +3294,18 @@ Webos.require([
 	Webos.inherit(Empathy.Peerjs, Empathy.CallInterface);
 	Webos.inherit(Empathy.Peerjs, Empathy.FileSendingInterface);
 
+	/**
+	 * Create a new PeerJS connection.
+	 * @return {Empathy.Peerjs} The connection.
+	 */
 	Empathy.Peerjs.create = function () {
 		return new Empathy.Peerjs();
 	};
 
-	//Static methods
+	/**
+	 * Open a new Empathy window.
+	 * @return {Empathy} The new Empathy instance.
+	 */
 	Empathy.open = function () {
 		return new Empathy();
 	};
