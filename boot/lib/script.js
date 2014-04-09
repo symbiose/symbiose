@@ -288,6 +288,10 @@ Webos.require = function (files, callback, options) {
 				type: 'text/javascript'
 			}, options, requiredFile);
 
+			if (!requiredFile.context && Webos.Process && Webos.Process.current()) {
+				requiredFile.context = Webos.Process.current();
+			}
+
 			var file;
 			if (requiredFile.contents) {
 				file = Webos.StringFile.create(requiredFile.contents, {

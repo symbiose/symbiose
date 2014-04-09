@@ -69,13 +69,13 @@ Webos.Error.logError = function(error) {
 		if (error instanceof W.Error) {
 			consoleMsg = error.name+' [#'+error.code+']: '+error.text;
 
-			if (!traceAvailable) {
+			if (error.stack) {
 				consoleMsg += "\n"+error.stack.join("\n");
 			}
 		} else {
 			consoleMsg = error.name + ': ' + error.message + "\nStack trace :";
 
-			if (!traceAvailable && error.stack) {
+			if (error.stack) {
 				consoleMsg += "\n"+error.stack;
 			}
 		}
@@ -85,7 +85,7 @@ Webos.Error.logError = function(error) {
 		} else {
 			console.log(consoleMsg);
 		}
-		if (traceAvailable) {
+		if (traceAvailable && !error.stack) {
 			console.trace();
 		}
 		if (console.dir) {

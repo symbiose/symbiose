@@ -11,7 +11,7 @@ Webos.Cmd = function (options) {
 	this.cmdText = this.fullCmd; //@deprecated
 	this.cmd = this.cmdText.split(' ').shift(); //Nom de la commande
 	this.terminal = options.terminal; //Terminal d'ou la commande sera lancee
-	
+
 	if (options.args) {
 		options.args = Webos.Arguments.parse(options.args);
 	} else {
