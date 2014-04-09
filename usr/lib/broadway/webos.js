@@ -1,4 +1,10 @@
+var proc = this, term = proc.getTerminal();
+
 Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
+	if (Webos.broadway) {
+		return;
+	}
+
 	var grab = {};
 	grab.window = null;
 	grab.ownerEvents = false;
@@ -13,7 +19,7 @@ Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
 		var x = 0;
 		var y = 0;
 		var el = surface.canvas;
-		while (el != null && el != surface.frame) {
+		while (el && el != surface.frame) {
 			x += el.offsetLeft;
 			y += el.offsetTop;
 
@@ -153,6 +159,7 @@ Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
 				canvas.style.visibility = 'hidden';
 			} else {
 				var $win = $.w.window({
+					title: ' ',
 					top: x,
 					left: y,
 					width: width,
@@ -168,7 +175,7 @@ Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
 
 					sendConfigureNotify(surface);
 				}).on('windowresize', function () {
-					var winDim = $win.window('contentDimentions')
+					var winDim = $win.window('contentDimentions');
 					surface.width = winDim.width;
 					surface.height = winDim.height;
 
@@ -266,7 +273,7 @@ Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
 				return;
 
 			surface.transientParent = parentId;
-			if (parentId != 0 && surfaces[parentId]) {
+			if (parentId && surfaces[parentId]) {
 				var parentSurface = surfaces[parentId];
 
 				if (surface.isTemp) {
@@ -371,12 +378,45 @@ Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
 
 	Webos.broadway._doc = document.createElement('div');
 
-	Webos.broadway.connect = function () {
+	Webos.broadway._$appIndicator = $();
+
+	Webos.broadway.connect = function (opts) {
+		opts = $.extend({
+			host: 'http://localhost:8080'
+		}, opts);
+
+		term.echo('Connecting to '+opts.host+'...');
+
+		if (/^[a-z0-9]+:\/\/[a-zA-Z0-9-.]+(:[0-9]+)?$/.test(opts.host)) {
+			opts.host += '/';
+		}
+
 		broadway.connect({
 			cmd: cmds,
-			host: 'http://localhost:8080/',
+			host: opts.host,
 			document: Webos.broadway._doc
 		});
+
+		if ($.webos.appIndicator) {
+			$indicator = $.webos.appIndicator({
+				title: 'Broadway',
+				icon: 'actions/interface'
+			});
+			Webos.broadway._$appIndicator = $indicator;
+
+			$.w.menuItem('Disconnect')
+				.click(function() {
+					broadway.disconnect();
+					Webos.broadway._$appIndicator.appIndicator('hide');
+				})
+				.appendTo($indicator.appIndicator('content'));
+
+			$indicator.appIndicator('show');
+		}
+	};
+
+	Webos.broadway.disconnect = function () {
+		broadway.disconnect();
 	};
 
 	var desktopOffset = $('#desktop').offset();

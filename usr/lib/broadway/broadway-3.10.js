@@ -2732,12 +2732,20 @@ function connect(opts)
 		inputSocket = ws;
 	};
 	ws.onclose = function() {
-		if (inputSocket != null)
-			alert ("disconnected");
+		if (inputSocket != null) {
+			log('Disconnected.');
+		}
+
 		inputSocket = null;
+
+		window.broadway.disconnect = function () {};
 	};
 	ws.onmessage = function(event) {
 		handleMessage(event.data);
+	};
+
+	window.broadway.disconnect = function () {
+		ws.close();
 	};
 }
 
