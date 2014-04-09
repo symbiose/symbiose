@@ -9,6 +9,9 @@
 	var Operation = function () {
 		Webos.Observable.call(this);
 	};
+	/**
+	 * Operation's prototype.
+	 */
 	Operation.prototype = {
 		/**
 		 * True if this operation is started, false otherwise.

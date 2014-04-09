@@ -6,6 +6,9 @@
 Webos.Observable = function WObservable() {
 	this._observers = [];
 };
+/**
+ * Webos.Observable's prototype.
+ */
 Webos.Observable.prototype = {
 	/**
 	 * A list of all observers.
