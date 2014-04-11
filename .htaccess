@@ -30,4 +30,6 @@ AddType video/ogg ogg
 AddType video/webm webm
 AddType video/webm webmv
 
+AddType image/svg+xml svg
+
 AddType application/x-web-app-manifest+json webapp
