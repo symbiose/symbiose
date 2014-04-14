@@ -152,13 +152,12 @@ var GConf = function (category) {
 					args: new W.Arguments({
 						params: [that._window]
 					})
+				},
+				process: function () {
+					that._window.window('loading', false);
+					return true; //Process the file normally
 				}
-			}, [function () {
-				that._window.window('loading', false);
-			}, function (resp) {
-				that._window.window('loading', false);
-				resp.triggerError();
-			}]);
+			});
 		};
 		
 		this.search = function(value) {

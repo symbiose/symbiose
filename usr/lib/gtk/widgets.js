@@ -3397,6 +3397,80 @@ $.webos.alertContainer.prototype = {
 $.webos.widget('alertContainer', 'container');
 
 /**
+ * A color picker.
+ * @param  {string} defaultColor The default color.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.colorPicker = function(defaultColor) {
+	return $('<div></div>').colorPicker({
+		color: defaultColor
+	});
+};
+/**
+ * A color picker.
+ * @type {Object}
+ */
+$.webos.colorPicker.prototype = {
+	_name: 'color-picker',
+	_paletteColors: {
+		red: ['#E78E89', '#DA4D45', '#AD2A23'],
+		orange: ['#F7A575', '#F37329', '#C14E0B'],
+		yellow: ['#FDE8AB', '#FBD25D', '#F9BC0F'],
+		green: ['#CCDF7B', '#B3CF3B', '#809525'],
+		blue: ['#8ECAF2', '#47A8E9', '#1881C8'],
+		pink: ['#D997D8', '#C35CC2', '#983897'],
+		black: ['#000', '#333', '#666', '#999', '#CCC', '#FFF']
+	},
+	options: {
+		mode: 'palette',
+		value: '#000' //Black
+	},
+	_create: function () {
+		var that = this;
+
+		this._super('_create');
+
+		var $palette = $('<div></div>', { 'class': 'picker-palette' }).appendTo(this.element);
+
+		for (var paletteVaration in this._paletteColors) {
+			var variationColors = this._paletteColors[paletteVaration];
+
+			var variation = '<ul class="palette-variation palette-variation-'+paletteVaration+'">';
+			for (var i = 0; i < variationColors.length; i++) {
+				var color = variationColors[i];
+
+				variation += '<li style="background-color: '+color+';" data-color="'+color+'"></li>';
+			}
+			variation += '</ul>';
+
+			$palette.append(variation);
+		}
+
+		$palette.on('click', 'li', function () {
+			var newColor = $(this).data('color');
+			$palette.find('li.color-picked').removeClass('color-picked');
+			$(this).addClass('color-picked');
+
+			that.options.value = newColor;
+			that._trigger('change', { type: 'change' }, { color: newColor });
+		});
+	},
+	_update: function(key, value) {
+		var that = this;
+
+		switch (key) {
+			case 'color':
+				color = String(color);
+
+				this.options.value = color;
+				break;
+		}
+	}
+};
+$.webos.widget('colorPicker', 'container');
+
+/**
  * A draggable element.
  * Use the widget `ui_draggable` for jQuery UI's draggable widget.
  * @constructor

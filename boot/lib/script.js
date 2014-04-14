@@ -316,7 +316,11 @@ Webos.require = function (files, callback, options) {
 					return;
 				}
 				if (typeof requiredFile.process == 'function') {
-					requiredFile.process(contents, requiredFile);
+					var result = requiredFile.process(contents, requiredFile);
+					if (result === true) {
+						requiredFile.process = true;
+						processFile(contents);
+					}
 					onLoadFn(file);
 					return;
 				}

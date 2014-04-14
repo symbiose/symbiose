@@ -385,3 +385,10 @@ input[type="submit"][disabled]:active,
 	left: 30px;
 	margin-left: -11px;
 }
+
+/* Color picker */
+.webos-color-picker .picker-palette li.color-picked {
+	background-image: url('usr/share/images/themes/elementary/inputs/color-picker.svg');
+	background-position: center center;
+	background-repeat: no-repeat;
+}

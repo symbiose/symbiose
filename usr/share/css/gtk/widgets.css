@@ -92,6 +92,35 @@
 	float: right;
 }
 
+/* Color picker */
+.webos-color-picker {
+	display: block;
+	padding: 3px;
+}
+.webos-color-picker .picker-palette ul {
+	list-style-type: none;
+	display: inline-block;
+	margin: 6px;
+	padding: 0;
+	overflow: hidden;
+	border-radius: 3px;
+}
+.webos-color-picker .picker-palette li {
+	display: block;
+	position: relative;
+	width: 36px;
+	height: 36px;
+}
+.webos-color-picker .picker-palette ul.palette-variation-black {
+	display: block;
+	margin: 0;
+}
+.webos-color-picker .picker-palette ul.palette-variation-black li {
+	display: inline-block;
+	border-radius: 3px;
+	margin: 6px;
+}
+
 /* Icons */
 .webos-icon img {
 	max-width: 100%;

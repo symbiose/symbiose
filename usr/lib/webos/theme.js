@@ -23,7 +23,7 @@ Webos.require('/usr/lib/webos/config.js', function () {
 		data = $.extend({}, defaults, data);
 		
 		if (typeof data.animations == 'string') {
-			data.animations = parseInt(data.animations) || 0;
+			data.animations = parseInt(data.animations, 10) || 0;
 		}
 		
 		Webos.Model.call(this, data);
@@ -87,12 +87,12 @@ Webos.require('/usr/lib/webos/config.js', function () {
 			var $el = $(el);
 
 			var bgImg = Webos.File.get(this.get('background')).get('realpath'),
-			bgColor = this.get('backgroundColor'),
-			bgRepeat = this.get('backgroundRepeat'),
-			bgCover = (bgRepeat == 'no-repeat') ? true : false;
+				bgColor = this.get('backgroundColor'),
+				bgRepeat = this.get('backgroundRepeat'),
+				bgCover = (bgRepeat == 'no-repeat') ? true : false;
 
 			if (this.get('hideBackground')) {
-				$el.css('background-color', bgColor);
+				$el.css('background', bgColor);
 				return;
 			}
 
@@ -181,7 +181,8 @@ Webos.require('/usr/lib/webos/config.js', function () {
 			return true;
 		},
 		sync: function(callback) {
-			callback = Webos.Callback.toCallback(callback);
+			var op = Webos.Operation.create();
+			op.addCallbacks(callback);
 			
 			var that = this;
 			
@@ -195,8 +196,8 @@ Webos.require('/usr/lib/webos/config.js', function () {
 				}
 			}
 			
-			if (nbrChanges == 0) {
-				callback.success(this);
+			if (nbrChanges === 0) {
+				op.setCompleted();
 				return;
 			}
 			
@@ -208,6 +209,9 @@ Webos.require('/usr/lib/webos/config.js', function () {
 
 						switch (key) {
 							case 'background':
+							case 'backgroundColor':
+							case 'backgroundRepeat':
+							case 'hideBackground':
 								that._loadBackground(true);
 								break;
 							case 'animations':
@@ -218,8 +222,13 @@ Webos.require('/usr/lib/webos/config.js', function () {
 						that.notify('update', { key: key, value: that._data[key].value });
 					}
 				}
-				callback.success(that);
-			}, callback.error]);
+
+				op.setCompleted();
+			}, function (resp) {
+				op.setCompleted(resp);
+			}]);
+
+			return op;
 		}
 	};
 	Webos.inherit(Webos.Theme, Webos.Model);

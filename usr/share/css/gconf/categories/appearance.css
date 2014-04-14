@@ -1,48 +1,9 @@
-strong {
-	margin: 4px;
+.bg-list {
+	height: 250px;
 }
-
-.backgroundslist {
-	float: left;
-	height: 380px;
-	width: 230px;
+.bg-options {
+	float: right;
 }
-
-.backgroundslist .webos-iconslistitem {
-	height: 59px;
-	width: 59px;
-}
-
-.backgroundslist img {
-	max-height: 43px;
-	max-width: 43px;
-}
-
-.actualbackground {
-	margin-left: 225px;
-	overflow: visible;
-}
-
-.actualbackground .screen {
-	width: 336px;
-	height: 310px;
-	background-image: url('usr/share/images/gconf/categories/appearance/screen.png');
-	margin-left: 75px;
-	margin-top: 55px;
-	padding-top: 19px;
-	padding-left: 13px;
-	padding-right: 13px;
-	padding-bottom: 106px;
-	overflow: hidden;
-}
-.actualbackground .screen img {
-	height: 100%;
-	width: 100%;
-}
-
-.animating img {
-	visibility: hidden;
-}
-.animating .screen {
-	background-image: none;
+.bg-options > * {
+	display: inline-block;
 }

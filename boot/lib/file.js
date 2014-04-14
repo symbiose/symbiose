@@ -781,11 +781,11 @@ Webos.File.load = function(path, callback) {
  */
 Webos.File.listDir = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
-	
+
 	var file = Webos.File.get(path, { is_dir: true }); //On construit notre objet
 
 	//Puis on récupére son contenu
-	file.contents([function(list) {
+	return file.contents([function(list) {
 		callback.success(list);
 	}, callback.error]);
 };

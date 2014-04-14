@@ -1722,6 +1722,91 @@ $.webos.window.messageDialog = function(opts) {
 };
 
 /**
+ * A color picker window.
+ * @param {Function} [pick] The callback.
+ * @param {Object} [opts] The color picker's options.
+ * @constructor
+ * @augments $.w.window
+ * @see $.webos.colorPicker
+ */
+$.webos.window.colorPicker = function(pick, opts) {
+	pick = pick || function () {console.log(arguments);};
+
+	var $win = $.webos.window({
+		title: 'Pick a color',
+		resizable: false,
+		dialog: true
+	});
+
+	var $ctn = $win.window('content');
+	var $colorPicker = $.w.colorPicker().colorPicker('option', opts).appendTo($ctn);
+
+	var $btns = $.w.buttonContainer().appendTo($ctn);
+	$.w.button('Cancel').click(function () {
+		$win.window('close');
+	}).appendTo($btns);
+	$.w.button('Pick').click(function () {
+		$win.window('close');
+
+		if (typeof pick == 'function') {
+			pick($colorPicker.colorPicker('option', 'value'));
+		}
+	}).appendTo($btns);
+
+	return $win;
+};
+
+/**
+ * A color picker button.
+ * @param {Function} [pick] The callback.
+ * @param {Object} [opts] The color picker's options.
+ * @constructor
+ * @augments $.webos.button
+ * @see $.webos.window.colorPicker
+ * @see $.webos.colorPicker
+ */
+$.webos.colorPickerBtn = function(pick, opts) {
+	return $('<span></span>').colorPickerBtn({
+		colorPicker: opts,
+		pick: pick
+	});
+};
+/**
+ * A color picker button.
+ */
+$.webos.colorPickerBtn.prototype = {
+	options: {
+		pick: function () {},
+		colorPicker: {}
+	},
+	_create: function () {
+		var that = this;
+
+		this._super('_create');
+
+		this.element.empty();
+		var $color = $('<span></span>').css({
+			display: 'inline-block',
+			width: 50,
+			height: 16,
+			marginTop: 3,
+			backgroundColor: this.options.colorPicker.value || '#000'
+		}).appendTo(this.element);
+
+		this.element.click(function () {
+			$.webos.window.colorPicker(function (color) {
+				$color.css('background-color', color);
+
+				if (typeof that.options.pick == 'function') {
+					that.options.pick(color);
+				}
+			}, that.options.colorPicker).window('open');
+		});
+	}
+};
+$.webos.widget('colorPickerBtn', 'button');
+
+/**
  * Z-index range used to arrange windows.
  * @private
  */
