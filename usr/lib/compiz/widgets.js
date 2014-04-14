@@ -1742,6 +1742,12 @@ $.webos.window.colorPicker = function(pick, opts) {
 	var $colorPicker = $.w.colorPicker().colorPicker('option', opts).appendTo($ctn);
 
 	var $btns = $.w.buttonContainer().appendTo($ctn);
+	$.w.button('Custom').click(function () {
+		$colorPicker.colorPicker('toggleMode');
+
+		var lbl = ($colorPicker.colorPicker('option', 'mode') == 'palette') ? 'Custom' : 'Palette';
+		$(this).button('option', 'label', lbl);
+	}).appendTo($btns);
 	$.w.button('Cancel').click(function () {
 		$win.window('close');
 	}).appendTo($btns);

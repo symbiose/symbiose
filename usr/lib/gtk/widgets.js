@@ -3431,6 +3431,7 @@ $.webos.colorPicker.prototype = {
 
 		this._super('_create');
 
+		// Palette
 		var $palette = $('<div></div>', { 'class': 'picker-palette' }).appendTo(this.element);
 
 		for (var paletteVaration in this._paletteColors) {
@@ -3449,23 +3450,58 @@ $.webos.colorPicker.prototype = {
 
 		$palette.on('click', 'li', function () {
 			var newColor = $(this).data('color');
-			$palette.find('li.color-picked').removeClass('color-picked');
+
+			that.option('value', newColor);
+
 			$(this).addClass('color-picked');
 
-			that.options.value = newColor;
 			that._trigger('change', { type: 'change' }, { color: newColor });
 		});
+
+		// Custom
+		var $custom = $('<div></div>', { 'class': 'picker-custom' }).hide().appendTo(this.element);
+		var $colorInput = $('<input />', { type: 'color', value: this.options.value }).change(function (e) {
+			e.stopPropagation();
+
+			var newColor = $(this).val();
+
+			that.option('value', newColor);
+			that._trigger('change', { type: 'change' }, { color: newColor });
+		}).appendTo($custom);
 	},
 	_update: function(key, value) {
 		var that = this;
 
 		switch (key) {
-			case 'color':
-				color = String(color);
+			case 'value':
+				value = String(value);
 
-				this.options.value = color;
+				this.options.value = value;
+				this.element.find('input[type="color"]').val(value);
+				this.element.find('li.color-picked').removeClass('color-picked');
 				break;
+			case 'mode':
+				var $modeCtn = this.element.children('.picker-'+value);
+
+				if (!$modeCtn.length) {
+					return false;
+				}
+
+				this.element.children().hide();
+				$modeCtn.show();
+
+				if (value == 'custom') {
+					$modeCtn.find('input[type="color"]').click();
+				}
 		}
+	},
+	supportsColorInput: function () {
+		var i = document.createElement("input");
+		i.setAttribute("type", "color");
+		return (i.type !== "text");
+	},
+	toggleMode: function () {
+		this.option('mode', (this.options.mode == 'palette') ? 'custom' : 'palette');
 	}
 };
 $.webos.widget('colorPicker', 'container');
