@@ -8,7 +8,7 @@ use \RuntimeException;
  * @author $imon
  */
 class WebSocketController extends \lib\ApiBackController {
-	const SERVER_PID_FILE = '/etc/websocket-server-pid';
+	const SERVER_PID_FILE = '/var/run/websocket-server.pid';
 	const SERVER_CONFIG_FILE = '/etc/websocket-server.json';
 	const SERVER_LOG_FILE = '/var/log/websocket-server.log';
 
