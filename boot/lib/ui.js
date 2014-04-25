@@ -519,12 +519,20 @@ Webos.UserInterface.Booter.prototype = {
 
 		//Chargement du CSS
 		this.notify('loadstateupdate', { state: 'stylesheets' });
-		var cssNbr = 0;
-		for (var index in data.css) { cssNbr++; }
-		var i = 0;
-		for (var index in data.css) {
+
+		var cssNbr = 0, index, i = 0;
+		for (index in data.css) { cssNbr++; }
+
+		for (index in data.css) {
 			this.notify('loadstateupdate', { state: 'stylesheets', item: index });
-			Webos.Stylesheet.insertCss(data.css[index], '#userinterface-'+this.id());
+
+			Webos.require({
+				path: index,
+				contents: data.css[index],
+				type: 'text/css',
+				styleContainer: '#userinterface-'+this.id()
+			});
+
 			i++;
 			operation.setProgress(10 + (i / cssNbr) * 10);
 		}
@@ -534,9 +542,26 @@ Webos.UserInterface.Booter.prototype = {
 		operation.setProgress(20);
 
 		var scriptsNbr = 0;
-		for (var index in data.js) { scriptsNbr++; }
+		for (index in data.js) { scriptsNbr++; }
 
 		var loadedScriptsNbr = 0;
+		var loadScript = function (js, index) {
+			if (!js) {
+				return;
+			}
+
+			that.notify('loadstateupdate', { state: 'scripts', item: index });
+
+			Webos.require({
+				path: index,
+				contents: js
+			}).on('complete', function () {
+				scriptLoaded(index);
+			});
+
+			i++;
+			operation.setProgress(20 + (i / scriptsNbr) * 70);
+		};
 		var scriptLoaded = function (index) {
 			loadedScriptsNbr++;
 
@@ -545,28 +570,9 @@ Webos.UserInterface.Booter.prototype = {
 			}
 		};
 
-		var i = 0;
-		for (var index in data.js) {
-			(function (js) {
-				if (!js) {
-					return;
-				}
-
-				that.notify('loadstateupdate', { state: 'scripts', item: index });
-
-				//js = 'try {'+js+"\n"+'} catch(error) { Webos.Error.catchError(error); }';
-				//Webos.Script.run(js, index); //On execute le code
-
-				Webos.require({
-					path: index,
-					contents: js
-				}).on('complete', function () {
-					scriptLoaded(index);
-				});
-
-				i++;
-				operation.setProgress(20 + (i / scriptsNbr) * 70);
-			})(data.js[index]);
+		i = 0;
+		for (index in data.js) {
+			loadScript(data.js[index], index);
 		}
 		this.notify('loadstateupdate', { state: 'scripts' });
 		operation.setProgress(90);

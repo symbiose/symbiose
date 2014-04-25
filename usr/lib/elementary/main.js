@@ -844,7 +844,7 @@ Webos.require([
 		destroyMeMenu: function () {
 			Webos.User.off('login.memenu.elementary logout.memenu.elementary');
 		},
-		init: function () {
+		_init: function () {
 			var that = this;
 
 			this.initWindowsEvents();
@@ -853,9 +853,21 @@ Webos.require([
 			Webos.Translation.load(function(t) {
 				that._translations = t;
 
-				that.renderLauncher();
-				that.initApps();
 				that.initMeMenu();
+			}, 'elementary');
+
+			Webos.UserInterface.Booter.once('switch', function () {
+				that.destroy();
+			});
+		},
+		init: function () {
+			var that = this;
+
+			Webos.Translation.load(function(t) {
+				that._translations = t;
+
+				that.initApps();
+				that.renderLauncher();
 
 				Webos.Theme.on('load.elementary', function() {
 					that.renderLauncher();
@@ -869,10 +881,6 @@ Webos.require([
 
 				that.trigger('ready');
 			}, 'elementary');
-
-			Webos.UserInterface.Booter.once('switch', function () {
-				that.destroy();
-			});
 		},
 		destroy: function () {
 			this.destroyWindowsEvents();
@@ -888,5 +896,5 @@ Webos.require([
 
 	Webos.Observable.build(Elementary);
 
-	Elementary.init();
+	Elementary._init();
 });

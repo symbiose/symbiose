@@ -1040,13 +1040,27 @@ console.log('todo', reqData);
 		_lastRespId: null,
 		_pendingOperations: {},
 		supports: function () {
-			return (typeof window.WebSocket != 'undefined');
-		},
-		canTransport: function(serverCall) {
+			//Standalone mode, static server
 			if (Webos.standalone) {
 				return false;
 			}
 
+			//Browser doesn't support websockets
+			if (!window.WebSocket) {
+				return false;
+			}
+
+			if (this.options.server) {
+				return this.options.server.started;
+			} else {
+				//Unknown status, try to connect
+				this.connect([function () {}, function () {}]);
+
+				//To not slow down loading times, disable websockets until we've got the status
+				return false;
+			}
+		},
+		canTransport: function(serverCall) {
 			return (serverCall._options.async !== false);
 		},
 		socket: function() {
@@ -1067,8 +1081,8 @@ console.log('todo', reqData);
 			return i;
 		},
 		getServerStatus: function(callback) {
-			var operation = new Webos.Operation();
-			operation.addCallbacks(callback);
+			var op = new Webos.Operation();
+			op.addCallbacks(callback);
 
 			new Webos.ServerCall({
 				'class': 'WebSocketController',
@@ -1080,12 +1094,12 @@ console.log('todo', reqData);
 				var serverStatus = res.getData();
 				Webos.ServerCall.websocket.options.server = serverStatus;
 
-				operation.setCompleted(serverStatus);
+				op.setCompleted(serverStatus);
 			}, function(res) {
-				operation.setCompleted(res);
+				op.setCompleted(res);
 			}]);
 
-			return operation;
+			return op;
 		},
 		startServer: function(callback) {
 			console.log('Starting server...');
@@ -1245,7 +1259,7 @@ console.log('todo', reqData);
 				Webos.ServerCall.websocket._connectOperation = null;
 			});
 
-			Webos.ServerCall.websocket.getServerStatus([function(serverStatus) {
+			this.getServerStatus([function(serverStatus) {
 				gotServerStatus(serverStatus);
 			}, function(res) {
 				operation.setCompleted(res);

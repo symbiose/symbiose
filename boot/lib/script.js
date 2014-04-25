@@ -292,19 +292,32 @@ Webos.require = function (files, callback, options) {
 				requiredFile.context = Webos.Process.current();
 			}
 
+			if (typeof requiredFile.path == 'string') {
+				requiredFile.path = requiredFile.path.replace(/^\.\//, '/'); //Compatibility with old scripts
+				requiredFile.path = Webos.File.beautifyPath(requiredFile.path);
+			}
+
 			var file;
 			if (requiredFile.contents) {
-				file = Webos.StringFile.create(requiredFile.contents, {
+				file = Webos.VirtualFile.create(requiredFile.contents, {
 					mime_type: requiredFile.type,
 					path: requiredFile.path
 				});
+
+				if (requiredFile.path) {
+					Webos.require._cache[requiredFile.path] = file;
+				}
 			} else if (requiredFile.path) {
 				var path = requiredFile.path;
-				if (typeof path == 'string') { //Compatibility with old scripts
-					path = path.replace(/^\.\//, '');
-				}
 
-				file = W.File.get(path, { is_dir: false });
+				//Check if the file is in the cache
+				if (Webos.require._cache[path]) {
+					file = Webos.require._cache[path];
+					console.log('... loading from cache: '+path);
+				} else {
+					file = W.File.get(path, { is_dir: false });
+					console.log('loading from network: '+path);
+				}
 			} else {
 				onLoadFn();
 				return;
@@ -411,6 +424,12 @@ Webos.require._stacks = {};
 Webos.require._currentFile = null;
 
 Webos.require._currentOperation = null;
+
+/**
+ * Cache for files with explicit contents
+ * @type {Object}
+ */
+Webos.require._cache = {};
 
 /**
  * Evaluate Javascript scripts.
