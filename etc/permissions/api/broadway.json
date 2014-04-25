@@ -1,0 +1,20 @@
+{
+	"executeStartServer":[{
+		"permission":"file.system.write"
+	}],
+	"executeStopServer":[{
+		"permission":"file.system.write"
+	}],
+	"executeRestartServer":[{
+		"permission":"file.system.write"
+	}],
+	"executeStartApp":[{
+		"permission":"file.system.write"
+	}],
+	"executeGetServerConfig":[{
+		"permission":"file.system.read"
+	}],
+	"executeGetAllServersStatus":[{
+		"permission":"file.system.read"
+	}]
+}

@@ -8,6 +8,8 @@ Webos.require('/usr/lib/broadway/webos.js', function () {
 
 	Webos.broadway.connect(opts);
 
+	term.echo('Connecting to '+opts.host+'...');
+
 	proc.one('stop', function () {
 		Webos.broadway.disconnect();
 	});

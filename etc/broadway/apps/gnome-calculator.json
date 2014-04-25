@@ -1,0 +1,5 @@
+{
+	"title": "Calculatrice",
+	"enabled": true,
+	"cmd": "gnome-calculator"
+}

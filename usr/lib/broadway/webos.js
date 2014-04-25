@@ -1,5 +1,3 @@
-var proc = this, term = proc.getTerminal();
-
 Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
 	if (Webos.broadway) {
 		return;
@@ -385,8 +383,6 @@ Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
 			host: 'http://localhost:8080'
 		}, opts);
 
-		term.echo('Connecting to '+opts.host+'...');
-
 		if (/^[a-z0-9]+:\/\/[a-zA-Z0-9-.]+(:[0-9]+)?$/.test(opts.host)) {
 			opts.host += '/';
 		}
@@ -462,5 +458,86 @@ Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
 		}
 
 		$(Webos.broadway._doc).trigger(jQuery.Event(eventName, eventData));
+	};
+
+	Webos.broadway.Server = function (data, opts) {
+		this._opts = opts;
+
+		Webos.Model.call(this, data);
+	};
+	Webos.broadway.Server.prototype = {
+		startApp: function (appName) {
+			var op = Webos.Operation.create();
+
+			new Webos.ServerCall({
+				'class': 'BroadwayController',
+				'method': 'startApp',
+				'arguments': {
+					'appName': appName,
+					'serverId': this.get('id'),
+					'opts': this._opts
+				}
+			}).load([function() {
+				op.setCompleted();
+			}, function (resp) {
+				op.setCompleted(resp);
+			}]);
+
+			return op;
+		},
+		stopServer: function () {
+			var op = Webos.Operation.create();
+
+			new Webos.ServerCall({
+				'class': 'BroadwayController',
+				'method': 'stopServer',
+				'arguments': {
+					'serverId': this.get('id'),
+					'opts': this._opts
+				}
+			}).load([function() {
+				op.setCompleted();
+			}, function (resp) {
+				op.setCompleted(resp);
+			}]);
+
+			return op;
+		}
+	};
+	Webos.inherit(Webos.broadway.Server, Webos.Model);
+
+	Webos.broadway.startServer = function (opts) {
+		var op = Webos.Operation.create();
+
+		new Webos.ServerCall({
+			'class': 'BroadwayController',
+			'method': 'startServer',
+			'arguments': opts || {}
+		}).load([function(resp) {
+			var data = resp.getData(),
+				server = new Webos.broadway.Server(data, opts);
+			
+			op.setCompleted(server);
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	};
+
+	Webos.broadway.startServerAndConnect = function (opts) {
+		var op = Webos.Operation.create();
+
+		Webos.broadway.startServer(opts).then(function (server) {
+			Webos.broadway.connect({
+				host: window.location.protocol+'//'+window.location.host+':'+server.get('port')
+			});
+
+			op.setCompleted(server);
+		}, function (resp) {
+			op.setCompleted(resp);
+		});
+
+		return op;
 	};
 });

@@ -1,0 +1,8 @@
+{
+	"title": "LibreOffice",
+	"enabled": true,
+	"cmd": "soffice",
+	"env": {
+		"SAL_USE_VCLPLUGIN":"gtk3"
+	}
+}
