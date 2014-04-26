@@ -111,13 +111,13 @@
 
 			var $proxyConfig = $();
 
-			var proxySwitcher = $.w.switchButton('Enable proxy ', this.config().enableProxy).on('switchbuttonchange', function(e, data) {
-				that._proxyEnabled = data.value;
-				$proxyConfig.toggle(data.value);
+			var proxySwitcher = $.w.switchButton('Enable proxy ', this.config().enableProxy).on('switchbuttonchange', function() {
+				that._config.enableProxy = $(this).switchButton('value');
+				$proxyConfig.toggle(that._config.enableProxy);
 			}).appendTo(form);
 
-			var proxyUrl = $.w.textEntry('Proxy URL ', this.config().proxyUrl).on('textentrychange', function(e, data) {
-				that._config.proxyUrl = data.value;
+			var proxyUrl = $.w.textEntry('Proxy URL ', this.config().proxyUrl).on('textentrychange', function() {
+				that._config.proxyUrl = $(this).textEntry('value');
 			}).appendTo(form);
 			$proxyConfig = $proxyConfig.add(proxyUrl);
 
@@ -129,8 +129,8 @@
 
 			for (var flag in proxyFlagsDesc) {
 				(function(flag, label) {
-					var switcher = $.w.switchButton(label+' ', that.config().proxyFlags[flag]).on('switchbuttonchange', function(e, data) {
-						that._config.proxyFlags[flag] = data.value;
+					var switcher = $.w.switchButton(label+' ', that.config().proxyFlags[flag]).on('switchbuttonchange', function() {
+						that._config.proxyFlags[flag] = $(this).switchButton('value');
 					}).appendTo(form);
 
 					$proxyConfig = $proxyConfig.add(switcher);
@@ -214,14 +214,15 @@
 				if (that.config().enableProxy) {
 					var proxyHref = that._$iframe[0].contentWindow.location.href,
 					proxyQuery = proxyHref.split('?')[1],
-					proxyParams = proxyQuery.split('&'),
+					proxyParamsList = proxyQuery.split('&'),
 					proxyUrl = url;
 
-					for (var i = 0; i < proxyParams.length; i++) {
-						proxyParams[i] = proxyParams[i].split('=');
-					}
+					var proxyParams = {};
+					for (var i = 0; i < proxyParamsList.length; i++) {
+						var item = proxyParamsList[i].split('=');
 
-					proxyParams = _.object(proxyParams);
+						proxyParams[item[0]] = item[1];
+					}
 
 					var encodedUrl;
 					if (proxyParams.____pgfa) {
@@ -233,16 +234,16 @@
 					if (encodedUrl) {
 						try {
 							proxyUrl = window.atob(decodeURIComponent(encodedUrl));
-						} catch(e) {
+						} catch(e1) {
 							try {
 								proxyUrl = window.atob(decodeURIComponent(decodeURIComponent(encodedUrl)));
-							} catch(e) {
+							} catch(e2) {
 								proxyUrl = encodedUrl;
 							}
 						}
 					}
 
-					that._urlInput.val(proxyUrl);
+					that._$win.find('.input-url').val(proxyUrl);
 					that._url = proxyUrl;
 				}
 			}).error(function() {
