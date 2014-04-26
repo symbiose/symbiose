@@ -74,11 +74,11 @@ Webos.DataFile.prototype = {
 		};
 
 		var clone = function(value) {
-			if (_.isString(value) || _.isNumber(value) || _.isBoolean(value) || !value) {
+			if (~['string', 'number', 'boolean'].indexOf(typeof value) || !value) {
 				return value;
-			} else if (_.isArray(value)) {
+			} else if (value instanceof Array) {
 				return cloneArray(value);
-			} else if (_.isObject(value)) {
+			} else if (typeof value == 'object') {
 				return cloneObject(value);
 			} else {
 				return value;
