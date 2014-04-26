@@ -278,7 +278,7 @@ Webos.require = function (files, callback, options) {
 			 */
 			requiredFile = $.extend({
 				path: '',
-				contents: '',
+				contents: null,
 				context: null,
 				arguments: [],
 				styleContainer: null,
@@ -298,7 +298,7 @@ Webos.require = function (files, callback, options) {
 			}
 
 			var file;
-			if (requiredFile.contents) {
+			if (typeof requiredFile.contents == 'string') {
 				file = Webos.VirtualFile.create(requiredFile.contents, {
 					mime_type: requiredFile.type,
 					path: requiredFile.path
