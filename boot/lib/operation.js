@@ -41,9 +41,8 @@
 			var that = this;
 
 			if (typeof event == 'object') {
-				var events = event;
-				for (var eventName in events) {
-					var fn = events[eventName];
+				for (var eventName in event) {
+					fn = event[eventName];
 					if (typeof fn != 'function') {
 						continue;
 					}

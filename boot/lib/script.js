@@ -161,24 +161,27 @@ Webos.ScriptFile._cache = {};
  */
 Webos.ScriptFile.load = function () {
 	var group = new Webos.ServerCall.Group([], { async: false });
-	for (var i = 0; i < arguments.length; i++) {
-		(function (path) {
-			group.add(new Webos.ServerCall({
-				'class': 'FileController',
-				'method': 'getContents',
-				'arguments': {
-					file: path
-				},
-				async: false
-			}), function(response) {
-				var js = response.getStandardChannel();
 
-				if (js) {
-					js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
-					Webos.Script.run(js, path);
-				}
-			});
-		})(arguments[i]);
+	var handlePath = function (path) {
+		group.add(new Webos.ServerCall({
+			'class': 'FileController',
+			'method': 'getContents',
+			'arguments': {
+				file: path
+			},
+			async: false
+		}), function(response) {
+			var js = response.getStandardChannel();
+
+			if (js) {
+				js = 'try {'+js+"\n"+'} catch(error) { W.Error.catchError(error); }';
+				Webos.Script.run(js, path);
+			}
+		});
+	};
+
+	for (var i = 0; i < arguments.length; i++) {
+		handlePath(arguments[i]);
 	}
 	
 	group.load();
@@ -200,13 +203,17 @@ function include(path, args, thisObj) {
 		method: 'get',
 		async: false,
 		dataType: 'text',
-		success: function(data, textStatus, jqXHR) {
+		success: function(contents, textStatus, jqXHR) {
 			if (typeof args == 'undefined') { //Si les arguments sont vides
 				args = new W.Arguments({});
 			}
-			
-			var fn = new Function('args', data);
-			fn.call(thisObj, args);
+
+			Webos.Script.run(contents, {
+				arguments: {
+					args: args
+				},
+				sourceUrl: path
+			});
 		}
 	});
 }
@@ -253,151 +260,153 @@ Webos.require = function (files, callback, options) {
 		}
 	};
 
-	for (var i = 0; i < list.length; i++) {
-		(function(i, requiredFile) {
-			if (typeof requiredFile != 'object') {
-				requiredFile = { path: requiredFile };
+	var handleFile = function (i, requiredFile) {
+		if (typeof requiredFile != 'object') {
+			requiredFile = { path: requiredFile };
+		}
+
+		/*!
+		 * Options:
+		 *  * `path`: the file path
+		 *  * `contents`: alternatively, you can specify the file's contents
+		 *  * `process`: if false, the file will just be loaded, not processed. If a function, will be called to process the file with the file's contents as first parameter.
+		 *
+		 * CSS options:
+		 *  * `styleContainer`: the CSS style container, on which teh rules will be applied
+		 * 
+		 * Javascript options:
+		 *  * `context`: the context in which the script will be executed
+		 *  * `arguments`: some arguments to provide to the script
+		 *  * `exportApis`: APIs names to export to global scope
+		 *  * `optionnal`: do not wait for the file to be fully loaded before continuing
+		 * 
+		 * @type {Object}
+		 */
+		requiredFile = $.extend({
+			path: '',
+			contents: null,
+			context: null,
+			arguments: [],
+			styleContainer: null,
+			exportApis: [],
+			process: true,
+			optionnal: false,
+			type: 'text/javascript'
+		}, options, requiredFile);
+
+		if (!requiredFile.context && Webos.Process && Webos.Process.current()) {
+			requiredFile.context = Webos.Process.current();
+		}
+
+		if (typeof requiredFile.path == 'string') {
+			requiredFile.path = requiredFile.path.replace(/^\.\//, '/'); //Compatibility with old scripts
+			requiredFile.path = Webos.File.beautifyPath(requiredFile.path);
+		}
+
+		var file;
+		if (typeof requiredFile.contents == 'string') {
+			file = Webos.VirtualFile.create(requiredFile.contents, {
+				mime_type: requiredFile.type,
+				path: requiredFile.path
+			});
+
+			if (requiredFile.path) {
+				Webos.require._cache[requiredFile.path] = file;
 			}
+		} else if (requiredFile.path) {
+			var path = requiredFile.path;
 
-			/*!
-			 * Options:
-			 *  * `path`: the file path
-			 *  * `contents`: alternatively, you can specify the file's contents
-			 *  * `process`: if false, the file will just be loaded, not processed. If a function, will be called to process the file with the file's contents as first parameter.
-			 *
-			 * CSS options:
-			 *  * `styleContainer`: the CSS style container, on which teh rules will be applied
-			 * 
-			 * Javascript options:
-			 *  * `context`: the context in which the script will be executed
-			 *  * `arguments`: some arguments to provide to the script
-			 *  * `exportApis`: APIs names to export to global scope
-			 *  * `optionnal`: do not wait for the file to be fully loaded before continuing
-			 * 
-			 * @type {Object}
-			 */
-			requiredFile = $.extend({
-				path: '',
-				contents: null,
-				context: null,
-				arguments: [],
-				styleContainer: null,
-				exportApis: [],
-				process: true,
-				optionnal: false,
-				type: 'text/javascript'
-			}, options, requiredFile);
-
-			if (!requiredFile.context && Webos.Process && Webos.Process.current()) {
-				requiredFile.context = Webos.Process.current();
-			}
-
-			if (typeof requiredFile.path == 'string') {
-				requiredFile.path = requiredFile.path.replace(/^\.\//, '/'); //Compatibility with old scripts
-				requiredFile.path = Webos.File.beautifyPath(requiredFile.path);
-			}
-
-			var file;
-			if (typeof requiredFile.contents == 'string') {
-				file = Webos.VirtualFile.create(requiredFile.contents, {
-					mime_type: requiredFile.type,
-					path: requiredFile.path
-				});
-
-				if (requiredFile.path) {
-					Webos.require._cache[requiredFile.path] = file;
-				}
-			} else if (requiredFile.path) {
-				var path = requiredFile.path;
-
-				//Check if the file is in the cache
-				if (Webos.require._cache[path]) {
-					file = Webos.require._cache[path];
-					console.log('... loading from cache: '+path);
-				} else {
-					file = W.File.get(path, { is_dir: false });
-					console.log('loading from network: '+path);
-				}
+			//Check if the file is in the cache
+			if (Webos.require._cache[path]) {
+				file = Webos.require._cache[path];
+				console.log('... loading from cache: '+path);
 			} else {
-				onLoadFn();
+				file = W.File.get(path, { is_dir: false });
+				console.log('loading from network: '+path);
+			}
+		} else {
+			onLoadFn();
+			return;
+		}
+
+		var processFile = function (contents) {
+			if (requiredFile.process === false) {
+				onLoadFn(file);
+				return;
+			}
+			if (typeof requiredFile.process == 'function') {
+				var result = requiredFile.process(contents, requiredFile);
+				if (result === true) {
+					requiredFile.process = true;
+					processFile(contents);
+				}
+				onLoadFn(file);
 				return;
 			}
 
-			var processFile = function (contents) {
-				if (requiredFile.process === false) {
-					onLoadFn(file);
-					return;
+			if (file.get('extension') == 'js' || file.matchesMimeType('text/javascript')) {
+				var previousFile = Webos.require._currentFile;
+				Webos.require._stacks[file.get('path')] = [];
+				Webos.require._currentFile = file.get('path');
+
+				if (typeof requiredFile.exportApis != 'undefined') {
+					if (!(requiredFile.exportApis instanceof Array)) {
+						requiredFile.exportApis = [requiredFile.exportApis];
+					}
+
+					var exportApiCode = '';
+					for (var i = 0; i < requiredFile.exportApis.length; i++) {
+						var apiName = requiredFile.exportApis[i];
+						exportApiCode += 'if (typeof '+apiName+' != "undefined") { window.'+apiName+' = '+apiName+'; }\n';
+					}
+
+					contents += '\n'+exportApiCode;
 				}
-				if (typeof requiredFile.process == 'function') {
-					var result = requiredFile.process(contents, requiredFile);
-					if (result === true) {
-						requiredFile.process = true;
-						processFile(contents);
-					}
-					onLoadFn(file);
-					return;
-				}
 
-				if (file.get('extension') == 'js' || file.matchesMimeType('text/javascript')) {
-					var previousFile = Webos.require._currentFile;
-					Webos.require._stacks[file.get('path')] = [];
-					Webos.require._currentFile = file.get('path');
+				contents = 'try { '+contents+' \n} catch(error) { W.Error.catchError(error); }';
+				Webos.Script.run(contents, {
+					scourceUrl: file.get('path'),
+					context: requiredFile.context,
+					arguments: requiredFile.arguments
+				});
 
-					if (typeof requiredFile.exportApis != 'undefined') {
-						if (!(requiredFile.exportApis instanceof Array)) {
-							requiredFile.exportApis = [requiredFile.exportApis];
-						}
+				Webos.require._currentFile = previousFile;
 
-						var exportApiCode = '';
-						for (var i = 0; i < requiredFile.exportApis.length; i++) {
-							var apiName = requiredFile.exportApis[i];
-							exportApiCode += 'if (typeof '+apiName+' != "undefined") { window.'+apiName+' = '+apiName+'; }\n';
-						}
-
-						contents += '\n'+exportApiCode;
-					}
-
-					contents = 'try { '+contents+' \n} catch(error) { W.Error.catchError(error); }';
-					Webos.Script.run(contents, {
-						scourceUrl: file.get('path'),
-						context: requiredFile.context,
-						arguments: requiredFile.arguments
-					});
-
-					Webos.require._currentFile = previousFile;
-
-					if (requiredFile.optionnal) {
-						onLoadFn(file);
-					} else {
-						var stack = Webos.require._stacks[file.get('path')];
-						var group = Webos.Operation.group(stack);
-						if (group.observables().length > 0 && !group.completed()) {
-							group.one('success', function() {
-								onLoadFn(file);
-							});
-							group.oneEach('error', function() {
-								callback.error();
-							});
-						} else {
-							onLoadFn(file);
-						}
-					}
-				} else if (file.get('extension') == 'css' || file.matchesMimeType('text/css')) {
-					Webos.Stylesheet.insertCss(contents, requiredFile.styleContainer);
+				if (requiredFile.optionnal) {
 					onLoadFn(file);
 				} else {
-					callback.error(Webos.Callback.Result.error('Unknown file type: "'+file.get('extension')+'" (file path: "'+file.get('path')+'")'));
+					var stack = Webos.require._stacks[file.get('path')];
+					var group = Webos.Operation.group(stack);
+					if (group.observables().length > 0 && !group.completed()) {
+						group.one('success', function() {
+							onLoadFn(file);
+						});
+						group.oneEach('error', function() {
+							callback.error();
+						});
+					} else {
+						onLoadFn(file);
+					}
 				}
-			};
-
-			if (requiredFile.contents) {
-				processFile(requiredFile.contents);
-			} else if (requiredFile.path) {
-				var call = file.readAsText([function(contents) {
-					processFile(contents);
-				}, callback.error]);
+			} else if (file.get('extension') == 'css' || file.matchesMimeType('text/css')) {
+				Webos.Stylesheet.insertCss(contents, requiredFile.styleContainer);
+				onLoadFn(file);
+			} else {
+				callback.error(Webos.Callback.Result.error('Unknown file type: "'+file.get('extension')+'" (file path: "'+file.get('path')+'")'));
 			}
-		})(i, list[i]);
+		};
+
+		if (requiredFile.contents) {
+			processFile(requiredFile.contents);
+		} else if (requiredFile.path) {
+			var call = file.readAsText([function(contents) {
+				processFile(contents);
+			}, callback.error]);
+		}
+	};
+
+	for (var i = 0; i < list.length; i++) {
+		handleFile(i, list[i]);
 	}
 
 	if (Webos.require._currentFile) {
@@ -430,80 +439,6 @@ Webos.require._currentOperation = null;
  * @type {Object}
  */
 Webos.require._cache = {};
-
-/**
- * Evaluate Javascript scripts.
- * @param  {Array|String}   scripts    Script(s).
- * @param  {Webos.Callback} callback   The callback.
- * @param  {Object}         [options]  Options.
- * @static
- */
-Webos.eval = function (scripts, callback, options) {
-	callback = Webos.Callback.toCallback(callback);
-	options = $.extend({
-		styleContainer: null
-	}, options);
-
-	if (!scripts) { //No file to load
-		callback.success();
-		return;
-	}
-
-	var list = [];
-	if (scripts instanceof Array) {
-		if (files.length === 0) {
-			callback.success();
-			return;
-		}
-		list = scripts;
-	} else {
-		list = [String(scripts)];
-	}
-
-	var loadedFiles = 0;
-	var onLoadFn = function() {
-		loadedFiles++;
-		if (loadedFiles == list.length) {
-			callback.success();
-		}
-	};
-
-	for (var i = 0; i < list.length; i++) {
-		(function(contents) {
-			var id = new Date().getTime();
-
-			var previousFile = Webos.require._currentFile;
-			Webos.require._stacks[id] = [];
-			Webos.require._currentFile = id;
-
-			var fn = new Function(contents);
-			try {
-				fn();
-			} catch(error) {
-				W.Error.catchError(error);
-			}
-
-			Webos.require._currentFile = previousFile;
-
-			var stack = Webos.require._stacks[id];
-			var group = Webos.Observable.group(stack);
-			if (group.observables().length > 0) {
-				group.one('success', function() {
-					onLoadFn();
-				});
-				group.oneEach('error', function() {
-					callback.error();
-				});
-			} else {
-				onLoadFn();
-			}
-
-			if (Webos.require._currentFile) {
-				Webos.require._stacks[Webos.require._currentFile].push(call);
-			}
-		})(list[i]);
-	}
-};
 
 /**
  * Arguments to be provided to a script.

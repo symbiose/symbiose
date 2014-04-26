@@ -166,8 +166,10 @@ Webos.UserInterface._list = [];
  * @returns {Webos.UserInterface} The user interface.
  */
 Webos.UserInterface.get = function(name, data) {
+	var ui;
+
 	for (var i = 0; i < Webos.UserInterface._list.length; i++) {
-		var ui = Webos.UserInterface._list[i];
+		ui = Webos.UserInterface._list[i];
 
 		if (ui.get('name') == name) {
 			if (data) {
@@ -177,7 +179,7 @@ Webos.UserInterface.get = function(name, data) {
 		}
 	}
 
-	var ui = new Webos.UserInterface((data || {}), name);
+	ui = new Webos.UserInterface((data || {}), name);
 	Webos.UserInterface._list.push(ui);
 
 	return ui;
@@ -326,7 +328,7 @@ Webos.UserInterface.getList = function(callback) {
 
 			list.push(Webos.UserInterface.get(uiData.name, {
 				'labels': uiLabels,
-				'default': uiData['isDefault'],
+				'default': uiData.isDefault,
 				'displayname': uiData.attributes.displayname,
 				'enabled': true
 			}));
