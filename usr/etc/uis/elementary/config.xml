@@ -2,6 +2,7 @@
 <config>
 	<attribute name="desktop" value="elementary"/>
 	<attribute name="icons" value="elementary"/>
-	<attribute name="background" value=""/>
+	<attribute name="background" value="/usr/share/images/backgrounds/blue-wall.png"/>
+	<attribute name="backgroundRepeat" value="repeat"/>
 	<attribute name="animations" value="1"/>
 </config>
