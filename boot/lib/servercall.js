@@ -295,10 +295,10 @@
 			this.setStarted();
 
 			var handleCall = function (call) {
-				if (call._status == 1 && call.id() != this.id()) {
+				if (call._status == 1 && call.id() != that.id()) {
 					var isEqual = true;
 					for (var attr in call._data) {
-						if (call._data[attr] != this._data[attr]) {
+						if (call._data[attr] != that._data[attr]) {
 							isEqual = false;
 							break;
 						}
