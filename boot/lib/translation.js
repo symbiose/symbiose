@@ -31,9 +31,9 @@ Webos.Translation.prototype = {
 					if (typeof variables[condition] == 'undefined') {
 						return str;
 					} else if (variables[condition]) {
-						return replaceVariablesFn(ifValue);
+						return replaceVariables(ifValue);
 					} else {
-						return replaceVariablesFn(elseValue);
+						return replaceVariables(elseValue);
 					}
 				} else {
 					if (typeof variables[str] != 'undefined') {
