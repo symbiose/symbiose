@@ -177,7 +177,8 @@ Webos.Translation.load(function(t) {
 			Webos.require('/usr/lib/nautilus/widgets.js', function() {
 				var nautilusDesktopFiles = $.w.nautilus({
 					multipleWindows: true,
-					directory: t.get('~/Desktop')
+					directory: t.get('~/Desktop'),
+					organizeIcons: true
 				});
 
 				nautilusDesktopFiles.one('nautilusreadcomplete', function() {
@@ -185,7 +186,7 @@ Webos.Translation.load(function(t) {
 				}).one('nautilusreaderror', function(e, data) {
 					data.response.logError();
 					return false;
-				});;
+				});
 
 				desktopFiles.replaceWith(nautilusDesktopFiles);
 				desktopFiles = nautilusDesktopFiles;
