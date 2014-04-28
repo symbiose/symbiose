@@ -231,7 +231,7 @@ Webos.Translation.load(function(t) {
 			hideStartMenu();
 		} else {
 			showStartMenu();
-		};
+		}
 	});
 
 	Webos.require('/usr/lib/webos/applications.js', function() {
@@ -242,7 +242,8 @@ Webos.Translation.load(function(t) {
 				var $applications = $('<ul></ul>');
 				for (var key in apps) {
 					(function(key, app) {
-						if (typeof app.get('hidden') != 'undefined' && parseInt(app.get('hidden')) == 1) {
+						if (typeof app.get('hidden') != 'undefined' &&
+							parseInt(app.get('hidden'), 10) == 1) {
 							return;
 						}
 
@@ -443,7 +444,7 @@ window.SIndicator = function (item) {
 	this.remove = function() {
 		item.remove();
 	};
-}
+};
 SIndicator.container = $('#systemtray').hide();
 
 //On definit la fonction de gestion des erreurs
