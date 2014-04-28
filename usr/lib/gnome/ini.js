@@ -65,7 +65,7 @@ Webos.Translation.load(function(t) {
 				}).one('nautilusreaderror', function(e, data) {
 					data.response.logError();
 					return false;
-				});;
+				});
 
 				desktopFiles.replaceWith(nautilusDesktopFiles);
 				desktopFiles = nautilusDesktopFiles;
