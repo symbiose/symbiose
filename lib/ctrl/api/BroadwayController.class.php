@@ -162,7 +162,8 @@ class BroadwayController extends \lib\ApiBackController {
 			'id' => $serverId,
 			'user' => $user->id(),
 			'display' => $display,
-			'port' => $port
+			'port' => $port,
+			'pid' => (int) $pid
 		);
 		$dbFile->write($db);
 

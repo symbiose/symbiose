@@ -1,4 +1,8 @@
-Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
+Webos.require([
+	'/usr/lib/broadway/broadway-3.12.js',
+	{ path:'/usr/lib/webos/zlib-old.min.js', exportApis: 'Zlib' }
+], function () {
+	console.log('checking Zlib...', typeof window.Zlib);
 	if (Webos.broadway) {
 		return;
 	}
@@ -246,7 +250,7 @@ Webos.require('/usr/lib/broadway/broadway-3.10.js', function () {
 
 			var surface = surfaces[id];
 
-			if (!surface.visible) {
+			if (!surface || !surface.visible) {
 				return;
 			}
 
