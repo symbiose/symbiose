@@ -294,13 +294,11 @@
 
 			this.setStarted();
 
-			for (var i = 0; i < Webos.ServerCall.list.length; i++) {
-				var call = Webos.ServerCall.list[i];
-				
-				if (call._status == 1 && call.id() != this.id()) {
+			var handleCall = function (call) {
+				if (call._status == 1 && call.id() != that.id()) {
 					var isEqual = true;
 					for (var attr in call._data) {
-						if (call._data[attr] != this._data[attr]) {
+						if (call._data[attr] != that._data[attr]) {
 							isEqual = false;
 							break;
 						}
@@ -310,8 +308,14 @@
 						call.on('complete', function() {
 							that.setCompleted(call.result());
 						});
-						return this;
+						return true;
 					}
+				}
+			};
+
+			for (var i = 0; i < Webos.ServerCall.list.length; i++) {
+				if (handleCall(Webos.ServerCall.list[i])) {
+					return this;
 				}
 			}
 
@@ -572,10 +576,11 @@ console.log('todo', reqData);
 					var op = Webos.Operation.create();
 
 					var filePath = args.file,
-						file = W.File.get(filePath);
+						file = W.File.get(filePath),
+						errMsg = '';
 
 					if (!file) {
-						var errMsg = 'Cannot read file "'+filePath+'": invalid file path';
+						errMsg = 'Cannot read file "'+filePath+'": invalid file path';
 						op.setCompleted(true, {
 							statusCode: 400,
 							channels: {
@@ -587,7 +592,7 @@ console.log('todo', reqData);
 					}
 
 					if (file.get('is_dir')) {
-						var errMsg = 'Cannot read file "'+file.get('path')+'": reading directories is not supported in standalone mode';
+						errMsg = 'Cannot read file "'+file.get('path')+'": reading directories is not supported in standalone mode';
 						op.setCompleted(true, {
 							statusCode: 405,
 							channels: {
@@ -800,7 +805,7 @@ console.log('todo', reqData);
 						if (eventData.value == 99 && !this.completed()) {
 							//Favorites
 							for (var appName in favorites) {
-								var appIndex = parseInt(favorites[appName]);
+								var appIndex = parseInt(favorites[appName], 10);
 
 								if (appIndex > 0 && data.applications[appName]) {
 									data.applications[appName].favorite = appIndex;
@@ -1040,13 +1045,27 @@ console.log('todo', reqData);
 		_lastRespId: null,
 		_pendingOperations: {},
 		supports: function () {
-			return (typeof window.WebSocket != 'undefined');
-		},
-		canTransport: function(serverCall) {
+			//Standalone mode, static server
 			if (Webos.standalone) {
 				return false;
 			}
 
+			//Browser doesn't support websockets
+			if (!window.WebSocket) {
+				return false;
+			}
+
+			if (this.options.server) {
+				return this.options.server.started;
+			} else {
+				//Unknown status, try to connect
+				this.connect([function () {}, function () {}]);
+
+				//To not slow down loading times, disable websockets until we've got the status
+				return false;
+			}
+		},
+		canTransport: function(serverCall) {
 			return (serverCall._options.async !== false);
 		},
 		socket: function() {
@@ -1067,8 +1086,8 @@ console.log('todo', reqData);
 			return i;
 		},
 		getServerStatus: function(callback) {
-			var operation = new Webos.Operation();
-			operation.addCallbacks(callback);
+			var op = new Webos.Operation();
+			op.addCallbacks(callback);
 
 			new Webos.ServerCall({
 				'class': 'WebSocketController',
@@ -1080,12 +1099,12 @@ console.log('todo', reqData);
 				var serverStatus = res.getData();
 				Webos.ServerCall.websocket.options.server = serverStatus;
 
-				operation.setCompleted(serverStatus);
+				op.setCompleted(serverStatus);
 			}, function(res) {
-				operation.setCompleted(res);
+				op.setCompleted(res);
 			}]);
 
-			return operation;
+			return op;
 		},
 		startServer: function(callback) {
 			console.log('Starting server...');
@@ -1133,14 +1152,16 @@ console.log('todo', reqData);
 			return call;
 		},
 		connect: function(callback) {
+			var operation;
+
 			if (Webos.ServerCall.websocket._connecting) {
-				var operation = Webos.ServerCall.websocket._connectOperation;
+				operation = Webos.ServerCall.websocket._connectOperation;
 				operation.addCallbacks(callback);
 
 				return operation;
 			}
 
-			var operation = new Webos.Operation();
+			operation = new Webos.Operation();
 			operation.addCallbacks(callback);
 
 			var gotServerStatus = function(serverStatus) {
@@ -1245,7 +1266,7 @@ console.log('todo', reqData);
 				Webos.ServerCall.websocket._connectOperation = null;
 			});
 
-			Webos.ServerCall.websocket.getServerStatus([function(serverStatus) {
+			this.getServerStatus([function(serverStatus) {
 				gotServerStatus(serverStatus);
 			}, function(res) {
 				operation.setCompleted(res);
@@ -1417,7 +1438,7 @@ console.log('todo', reqData);
 	 * @static
 	 * @private
 	 */
-	Webos.ServerCall.addCallToList = function $_WServerCall_addCallToList(call) {
+	Webos.ServerCall.addCallToList = function (call) {
 		var id = Webos.ServerCall.list.push(call) - 1;
 		Webos.ServerCall.notify('callregister', { call: call });
 		return id;
@@ -1429,7 +1450,7 @@ console.log('todo', reqData);
 	 * @static
 	 * @private
 	 */
-	Webos.ServerCall.callStart = function $_WServerCall_callStart(call) {
+	Webos.ServerCall.callStart = function (call) {
 		if (Webos.ServerCall.getNbrPendingCalls() == 1) {
 			Webos.ServerCall.notify('start', { list: Webos.ServerCall.list });
 		}
@@ -1442,8 +1463,8 @@ console.log('todo', reqData);
 	 * @static
 	 * @private
 	 */
-	Webos.ServerCall.callComplete = function $_WServerCall_callComplete(call) {
-		if (Webos.ServerCall.getNbrPendingCalls() == 0) {
+	Webos.ServerCall.callComplete = function (call) {
+		if (Webos.ServerCall.getNbrPendingCalls() === 0) {
 			Webos.ServerCall.notify('complete', { list: Webos.ServerCall.list });
 		}
 		Webos.ServerCall.notify('callcomplete', { call: call });
@@ -1455,7 +1476,7 @@ console.log('todo', reqData);
 	 * @static
 	 * @private
 	 */
-	Webos.ServerCall._addToLoadStack = function $_WServerCall__addToLoadStack(call) {
+	Webos.ServerCall._addToLoadStack = function (call) {
 		Webos.ServerCall._loadStack.push(call);
 
 		if (Webos.ServerCall._loadStack.length == 1) {
@@ -1480,7 +1501,7 @@ console.log('todo', reqData);
 	 * @static
 	 * @private
 	 */
-	Webos.ServerCall._removeFromLoadStack = function $_WServerCall__removeFromLoadStack(callToRemove) {
+	Webos.ServerCall._removeFromLoadStack = function (callToRemove) {
 		var stack = [];
 		for (var i = 0; i < Webos.ServerCall._loadStack.length; i++) {
 			var call = Webos.ServerCall._loadStack[i];
@@ -1497,7 +1518,7 @@ console.log('todo', reqData);
 	 * @returns {Webos.ServerCall[]} A list of server calls.
 	 * @static
 	 */
-	Webos.ServerCall.getList = function $_WServerCall_getList(status) {
+	Webos.ServerCall.getList = function (status) {
 		var list = [];
 		for (var i = 0; i < Webos.ServerCall.list.length; i++) {
 			if (typeof status == 'undefined' || Webos.ServerCall.list[i]._status == status) {
@@ -1512,7 +1533,7 @@ console.log('todo', reqData);
 	 * @returns {Webos.ServerCall[]} A list of server calls.
 	 * @static
 	 */
-	Webos.ServerCall.getPendingCalls = function $_WServerCall_getPendingCalls() {
+	Webos.ServerCall.getPendingCalls = function () {
 		return Webos.ServerCall.getList(1);
 	};
 
@@ -1521,7 +1542,7 @@ console.log('todo', reqData);
 	 * @returns {Number} The number of completed calls.
 	 * @static
 	 */
-	Webos.ServerCall.getCompletedCalls = function $_WServerCall_getCompletedCalls() {
+	Webos.ServerCall.getCompletedCalls = function () {
 		return Webos.ServerCall.getList(2);
 	};
 
@@ -1530,7 +1551,7 @@ console.log('todo', reqData);
 	 * @returns {Number} The number of pending calls.
 	 * @static
 	 */
-	Webos.ServerCall.getNbrPendingCalls = function $_WServerCall_getNbrPendingCalls() {
+	Webos.ServerCall.getNbrPendingCalls = function () {
 		return Webos.ServerCall.getPendingCalls().length;
 	};
 
@@ -1540,7 +1561,7 @@ console.log('todo', reqData);
 	 * @returns {Webos.ServerCall.Group} The group.
 	 * @static
 	 */
-	Webos.ServerCall.join = function $_WServerCall_join() {
+	Webos.ServerCall.join = function () {
 		var requests = [];
 		for (var i = 0; i < arguments.length; i++) {
 			var arg = arguments[i];
@@ -1563,7 +1584,7 @@ console.log('todo', reqData);
 	 * @augments {Webos.Operation}
 	 * @since 1.0beta1
 	 */
-	Webos.ServerCall.Group = function WServerCallGroup() {
+	Webos.ServerCall.Group = function () {
 		Webos.Operation.call(this);
 
 		this._initialize.apply(this, arguments);
@@ -1635,18 +1656,18 @@ console.log('todo', reqData);
 			return id;
 		},
 		acceptedTransports: function () {
-			var transports = Webos.ServerCall.transportsForCall(this),
-				usedTransport = null;
+			var transports = {},
+				usedTransport = null,
+				i,
+				transName = '', transApi = null;
 
-			var transports = {};
-
-			for (var i = 0; i < this._requests.length; i++) {
+			for (i = 0; i < this._requests.length; i++) {
 				var req = this._requests[i];
 
 				var reqTransports = req.acceptedTransports();
 
-				for (var transName in reqTransports) {
-					var transApi = reqTransports[transName];
+				for (transName in reqTransports) {
+					transApi = reqTransports[transName];
 
 					if (!transApi.canTransportRequestGroups()) { //Supports request groups ?
 						continue;
@@ -1663,9 +1684,9 @@ console.log('todo', reqData);
 			var reqsNbr = this._requests.length,
 				usedTransportsList = [];
 
-			for (var transName in transports) {
-				var reqsIndexes = transports[transName],
-					transApi = Webos.ServerCall.transport(transName);
+			for (transName in transports) {
+				var reqsIndexes = transports[transName];
+				transApi = Webos.ServerCall.transport(transName);
 
 				if (reqsNbr == reqsIndexes.length) {
 					usedTransportsList.push(transApi);
@@ -1678,7 +1699,7 @@ console.log('todo', reqData);
 
 			var usedTransports = {};
 
-			for (var i = 0; i < usedTransportsList.length; i++) {
+			for (i = 0; i < usedTransportsList.length; i++) {
 				var trans = usedTransportsList[i];
 
 				usedTransports[trans.name()] = trans;
@@ -1813,13 +1834,15 @@ console.log('todo', reqData);
 		 */
 		load: function(callback) {
 			if (callback) {
+				var i;
+
 				if (callback instanceof Array && callback.length == this._requests.length) {
-					for (var i = 0; i < this._requests.length; i++) {
+					for (i = 0; i < this._requests.length; i++) {
 						this._requests[i].addCallbacks(this._callbacks[i]);
 					}
 				} else {
 					callback = Webos.Callback.toCallback(callback);
-					for (var i = 0; i < this._requests.length; i++) {
+					for (i = 0; i < this._requests.length; i++) {
 						this._requests[i].addCallbacks(callback);
 					}
 				}
@@ -1931,7 +1954,7 @@ console.log('todo', reqData);
 		 * @return {Number} The status class.
 		 */
 		getStatusClass: function() {
-			return parseInt(String(this._data.statusCode).substr(0, 1));
+			return parseInt(String(this._data.statusCode).substr(0, 1), 10);
 		},
 		/**
 		 * Get the response's error, if there is one.

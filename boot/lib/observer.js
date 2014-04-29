@@ -32,9 +32,8 @@ Webos.Observable.prototype = {
 		var that = this;
 
 		if (typeof event == 'object') {
-			var events = event;
-			for (var eventName in events) {
-				var fn = events[eventName];
+			for (var eventName in event) {
+				fn = event[eventName];
 				if (typeof fn != 'function') {
 					continue;
 				}
@@ -105,10 +104,10 @@ Webos.Observable.prototype = {
 	 * @param  {Function}        [fn]  The callback.
 	 */
 	off: function (key, fn) {
-		var observers = [];
+		var observers = [], i, el;
 		if (typeof key == 'number') {
-			for (var i = 0; i < this._observers.length; i++) {
-				var el = this._observers[i];
+			for (i = 0; i < this._observers.length; i++) {
+				el = this._observers[i];
 				if (key != el.id) {
 					observers.push(el);
 				}
@@ -116,8 +115,9 @@ Webos.Observable.prototype = {
 		} else {
 			key = String(key);
 			var events = key.split(' ');
-			for (var i = 0; i < this._observers.length; i++) {
-				var el = this._observers[i], keep = true;
+			for (i = 0; i < this._observers.length; i++) {
+				el = this._observers[i];
+				keep = true;
 
 				if (fn && el.fn === fn) {
 					keep = false;
@@ -211,14 +211,17 @@ Webos.Observable.Group = function WObservableGroup(observables) {
 
 	// xxxEach() methods
 	var that = this;
+
+	var handleMethod = function (method) {
+		var thisMethodName = method + 'Each';
+		that[thisMethodName] = function() {
+			var args = Array.prototype.slice.call(arguments);
+			return this._eachObservable(method, args);
+		};
+	};
+
 	for (var method in Webos.Observable.prototype) {
-		(function(method) {
-			var thisMethodName = method + 'Each';
-			that[thisMethodName] = function() {
-				var args = Array.prototype.slice.call(arguments);
-				return this._eachObservable(method, args);
-			};
-		})(method);
+		handleMethod(method);
 	}
 };
 Webos.Observable.Group.prototype = {

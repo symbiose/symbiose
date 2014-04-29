@@ -1,5 +1,10 @@
 .bg-list {
-	height: 250px;
+	height: 260px;
+	margin-bottom: 5px;
+}
+.bg-list .webos-iconslistitem img {
+	width: 50px;
+	height: 31px;
 }
 .bg-options {
 	float: right;

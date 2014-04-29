@@ -87,31 +87,33 @@ var init = function (isLoggedIn) {
 	W.File.listDir(W.Theme.backgroundsDir, function(files) {
 		backgroundsList.empty();
 		var actualBgListed = false;
+
+		var handleFile = function (file) {
+			if (file.get('is_dir')) {
+				return;
+			}
+			
+			var thumbnailsDirArray = file.get('realpath').split('/');
+			delete thumbnailsDirArray[thumbnailsDirArray.length - 1];
+			var thumbnailsDir = thumbnailsDirArray.join('/')+'/thumbnails';
+			var item =  $.w.iconsListItem(thumbnailsDir+'/'+file.get('basename')).click(function() {
+				updateTheme({
+					background: file.get('path')
+				});
+			});
+			
+			if (W.Theme.current().get('background') == file.get('path')) {
+				actualBgItem = item;
+				actualBgListed = true;
+				item.iconsListItem('active', true);
+				backgroundsList.prepend(item);
+			} else {
+				backgroundsList.append(item);
+			}
+		};
 		
 		for (var index in files) {
-			(function(file) {
-				if (files[index].getAttribute('is_dir')) {
-					return;
-				}
-				
-				var thumbnailsDirArray = file.get('realpath').split('/');
-				delete thumbnailsDirArray[thumbnailsDirArray.length - 1];
-				var thumbnailsDir = thumbnailsDirArray.join('/')+'/thumbnails';
-				var item =  $.w.iconsListItem(thumbnailsDir+'/'+file.get('basename')).click(function() {
-					updateTheme({
-						background: file.get('path')
-					});
-				});
-				
-				if (W.Theme.current().get('background') == file.get('path')) {
-					actualBgItem = item;
-					actualBgListed = true;
-					item.iconsListItem('active', true);
-					backgroundsList.prepend(item);
-				} else {
-					backgroundsList.append(item);
-				}
-			})(files[index]);
+			handleFile(files[index]);
 		}
 		
 		if (!actualBgListed) {
@@ -174,7 +176,7 @@ var init = function (isLoggedIn) {
 			updateTheme({
 				icons: iconsSelector.selectButton('value')
 			}).fail(function () {
-				iconsSelector.selectButton('value', W.Theme.current().icons());
+				iconsSelector.selectButton('value', W.Theme.current().get('icons'));
 			});
 		})
 		.appendTo(themeContainer);
@@ -193,20 +195,11 @@ var init = function (isLoggedIn) {
 
 	var animationsSelector = $.w.switchButton('Animations', W.Theme.current().get('animations'))
 		.bind('switchbuttonchange', function() {
-			var animations = animationsSelector.switchButton('value');
-
-			if (!W.Theme.current().set('animations', animations)) {
-				W.Error.trigger('Cannot change animations settings');
-				return;
-			}
-
-			confWindow.window('loading', true);
-			W.Theme.current().sync(new W.Callback(function() {
-				confWindow.window('loading', false);
-			}, function(response) {
-				confWindow.window('loading', false);
-				response.triggerError('Cannot change animations settings');
-			}));
+			updateTheme({
+				animations: animationsSelector.switchButton('value')
+			}).fail(function () {
+				iconsSelector.selectButton('value', W.Theme.current().get('animations'));
+			});
 		})
 		.appendTo(themeContainer);
 };

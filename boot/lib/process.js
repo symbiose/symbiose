@@ -167,7 +167,6 @@
 			});
 
 			delete Webos.Process.list[this.getPid()];
-			delete this;
 		},
 		/**
 		 * Get this process' state.

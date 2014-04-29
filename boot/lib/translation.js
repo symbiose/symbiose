@@ -17,40 +17,42 @@ Webos.Translation.prototype = {
 	 */
 	get: function (key, variables) {
 		var translation = this._get(key);
-		
+
 		if (!translation) {
 			translation = key;
 		}
-		
+
 		if (typeof variables == 'object') {
-			var replaceVariablesFn = function(translation) {
-				while(/\$\{.+\}/.test(translation)) {
-					translation = translation.replace(/\$\{(.+?)\}/, function(match, str) {
-						var strArray = str.split('|', 3);
-						if (strArray.length > 1) {
-							isCondition = true;
-							var condition = strArray[0], ifValue = strArray[1], elseValue = strArray[2] || '';
-							if (typeof variables[condition] == 'undefined') {
-								return str;
-							} else if (variables[condition]) {
-								return replaceVariablesFn(ifValue);
-							} else {
-								return replaceVariablesFn(elseValue);
-							}
-						} else {
-							if (typeof variables[str] != 'undefined') {
-								return variables[str];
-							} else {
-								return str;
-							}
-						}
-					});
+			var replaceFn = function(match, str) {
+				var strArray = str.split('|', 3);
+				if (strArray.length > 1) {
+					isCondition = true;
+					var condition = strArray[0], ifValue = strArray[1], elseValue = strArray[2] || '';
+					if (typeof variables[condition] == 'undefined') {
+						return str;
+					} else if (variables[condition]) {
+						return replaceVariables(ifValue);
+					} else {
+						return replaceVariables(elseValue);
+					}
+				} else {
+					if (typeof variables[str] != 'undefined') {
+						return variables[str];
+					} else {
+						return str;
+					}
 				}
-				
+			};
+
+			var replaceVariables = function(translation) {
+				while(/\$\{.+\}/.test(translation)) {
+					translation = translation.replace(/\$\{(.+?)\}/, replaceFn);
+				}
+
 				return translation;
 			};
-			
-			translation = replaceVariablesFn(translation);
+
+			translation = replaceVariables(translation);
 		}
 		
 		return translation;
@@ -113,7 +115,7 @@ Webos.Translation.parse = function (contents) {
 		if (words.length < 2) {
 			continue;
 		}
-		if (words[0].length == 0) {
+		if (words[0].length === 0) {
 			continue;
 		}
 		
@@ -126,7 +128,7 @@ Webos.Translation.parse = function (contents) {
 			translation += words[j];
 		}
 		
-		if (translation.length == 0) {
+		if (translation.length === 0) {
 			continue;
 		}
 		
@@ -203,13 +205,15 @@ Webos.Translation.setLanguage = function $_WTranslation_setLanguage(locale, call
 Webos.Locale = function WLocale(data, functions, name) {
 	this._name = name;
 	this._data = data;
+
+	var index;
 	
-	for (var index in functions) {
+	for (index in functions) {
 		this[index] = functions[index];
 	}
 	if (name != Webos.Locale._defaultLocale) {
 		var defaultLocale = Webos.Locale.get(Webos.Locale._defaultLocale);
-		for (var index in defaultLocale) {
+		for (index in defaultLocale) {
 			if (typeof this[index] == 'undefined') {
 				this[index] = defaultLocale[index];
 			}
@@ -285,7 +289,7 @@ Webos.Locale._list = {};
  * @returns {Boolean}       True if the string represents a locale's name, false otherwise.
  */
 Webos.Locale._check = function (locale) {
-	return /[a-z]{2}_[A-Z]{2}/.test(locale);
+	return (/[a-z]{2}_[A-Z]{2}/).test(locale);
 };
 
 /**
@@ -538,7 +542,7 @@ new Webos.Locale({
 		var integer = '';
 		var count = 0;
 		for (var i = parts[0].length - 1; i >= 0; i--) {
-			if (count % 3 == 0 && i != parts[0].length - 1) {
+			if (count % 3 === 0 && i != parts[0].length - 1) {
 				integer = this._get('integerGroupsSeparator') + integer;
 			}
 			integer = parts[0].charAt(i) + integer;
@@ -563,13 +567,13 @@ new Webos.Locale({
 		return this.month(nbr).slice(0, 3) + '.';
 	},
 	date: function(date) {
-		return this.day(date.getDay()) + ' ' + 
-			date.getDate() + ' ' + 
+		return this.day(date.getDay()) + ' ' +
+			date.getDate() + ' ' +
 			this.month(date.getMonth());
 	},
 	dateAbbreviation: function(date) {
-		return this.dayAbbreviation(date.getDay()) + ' ' + 
-			date.getDate() + ' ' + 
+		return this.dayAbbreviation(date.getDay()) + ' ' +
+			date.getDate() + ' ' +
 			this.monthAbbreviation(date.getMonth());
 	},
 	time: function(date, showSeconds) {
@@ -581,13 +585,13 @@ new Webos.Locale({
 			return nbr;
 		};
 		
-		return addZeroFn(date.getHours()) + ':' + 
-			addZeroFn(date.getMinutes()) + 
+		return addZeroFn(date.getHours()) + ':' +
+			addZeroFn(date.getMinutes()) +
 			((showSeconds) ? (':' + addZeroFn(date.getSeconds())) : '');
 	},
 	completeDate: function(date) {
-		return this.dateAbbreviation(date) + ' ' + 
-			date.getFullYear() + ' ' + 
+		return this.dateAbbreviation(date) + ' ' +
+			date.getFullYear() + ' ' +
 			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
 	},
 	currency: function(value) {
@@ -609,18 +613,18 @@ new Webos.Locale({
 		return this._get('monthsAbbreviations')[nbr];
 	},
 	date: function(date) {
-		return this.day(date.getDay()) + ' ' + 
-			date.getDate() + ' ' + 
+		return this.day(date.getDay()) + ' ' +
+			date.getDate() + ' ' +
 			this.month(date.getMonth()).toLowerCase();
 	},
 	dateAbbreviation: function(date) {
-		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' + 
-			date.getDate() + ' ' + 
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' +
+			date.getDate() + ' ' +
 			this.monthAbbreviation(date.getMonth()).toLowerCase();
 	},
 	completeDate: function(date) {
-		return this.dateAbbreviation(date) + ' ' + 
-			date.getFullYear() + ' ' + 
+		return this.dateAbbreviation(date) + ' ' +
+			date.getFullYear() + ' ' +
 			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
 	},
 	currency: function(value) {
@@ -645,13 +649,13 @@ new Webos.Locale({
 		return this._get('monthsAbbreviations')[nbr];
 	},
 	date: function(date) {
-		return this.day(date.getDay()) + ', den ' + 
-			date.getDate() + '. ' + 
+		return this.day(date.getDay()) + ', den ' +
+			date.getDate() + '. ' +
 			this.month(date.getMonth()).toLowerCase();
 	},
 	dateAbbreviation: function(date) {
-		return this.dayAbbreviation(date.getDay()).toLowerCase() + ', den ' + 
-			date.getDate() + '. ' + 
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ', den ' +
+			date.getDate() + '. ' +
 			this.monthAbbreviation(date.getMonth()).toLowerCase();
 	},
 	currency: function(value) {
@@ -669,18 +673,18 @@ new Webos.Locale({
 	currency: '&#x20AC;'
 }, {
 	date: function(date) {
-		return this.day(date.getDay()) + ' ' + 
-			date.getDate() + ' ' + 
+		return this.day(date.getDay()) + ' ' +
+			date.getDate() + ' ' +
 			this.month(date.getMonth()).toLowerCase();
 	},
 	dateAbbreviation: function(date) {
-		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' + 
-			date.getDate() + ' ' + 
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' +
+			date.getDate() + ' ' +
 			this.monthAbbreviation(date.getMonth()).toLowerCase();
 	},
 	completeDate: function(date) {
-		return this.dateAbbreviation(date) + ' ' + 
-			date.getFullYear() + ' ' + 
+		return this.dateAbbreviation(date) + ' ' +
+			date.getFullYear() + ' ' +
 			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
 	}
 }, 'it_IT');
@@ -699,18 +703,18 @@ new Webos.Locale({
 		return this._get('monthsAbbreviations')[nbr];
 	},
 	date: function(date) {
-		return this.day(date.getDay()) + ' ' + 
-			date.getDate() + ' ' + 
+		return this.day(date.getDay()) + ' ' +
+			date.getDate() + ' ' +
 			this.month(date.getMonth()).toLowerCase();
 	},
 	dateAbbreviation: function(date) {
-		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' + 
-			date.getDate() + ' ' + 
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' +
+			date.getDate() + ' ' +
 			this.monthAbbreviation(date.getMonth()).toLowerCase();
 	},
 	completeDate: function(date) {
-		return this.dateAbbreviation(date) + ' ' + 
-			date.getFullYear() + ' ' + 
+		return this.dateAbbreviation(date) + ' ' +
+			date.getFullYear() + ' ' +
 			this.time(date, true) + ' GMT' + Math.floor(date.getTimezoneOffset() / 60);
 	},
 	currency: function(value) {

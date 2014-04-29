@@ -25,7 +25,7 @@ Webos.Error.setErrorHandler(function(error) {
 		shortMessage = error.html.message;
 		message = error.html.text.replace('<br />', ' - ');
 		details = error.toString();
-		isReportable = (error.code == 0 || String(error.code).substr(0, 1) == 5);
+		isReportable = (error.code === 0 || String(error.code).substr(0, 1) == 5);
 	} else {
 		shortMessage = error.message;
 		message = error.name + ' : ' + error.message;
@@ -97,6 +97,8 @@ Webos.Error.setErrorHandler(function(error) {
 
 Webos.require('/usr/lib/webos/theme.js', function () {
 	Webos.Theme.once('load', function() {
+		Elementary.init();
+
 		resizeDesktopFn();
 		done();
 	});

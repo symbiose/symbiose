@@ -198,7 +198,7 @@ Webos.require('/usr/lib/webos/config.js', function () {
 			
 			if (nbrChanges === 0) {
 				op.setCompleted();
-				return;
+				return op;
 			}
 			
 			this._configFile.sync([function() {

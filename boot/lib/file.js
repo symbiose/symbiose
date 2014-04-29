@@ -127,8 +127,7 @@ Webos.base64 = {
 	// method for UTF-8 decoding
 	utf8Decode: function (utftext) {
 		var string = "";
-		var i = 0;
-		var c = c1 = c2 = 0;
+		var i = 0, c = 0, c1 =  0, c2 = 0;
  
 		while ( i < utftext.length ) {
  
@@ -203,7 +202,7 @@ Webos.File.prototype = {
 					data.dirname = path.replace(/\/[^\/]*\/?$/, '');
 				} else if (path.indexOf('/') == -1 || path == '/') {
 					data.dirname = undefined;
-				} else if (path.indexOf('/') == 0) {
+				} else if (path.indexOf('/') === 0) {
 					data.dirname = '/';
 				}
 			}
@@ -223,7 +222,7 @@ Webos.File.prototype = {
 
 		if (typeof data.is_binary == 'undefined') {
 			if (data.mime_type) {
-				data.is_binary = (data.mime_type.indexOf('text/') != 0);
+				data.is_binary = (data.mime_type.indexOf('text/') !== 0);
 			} else if (!this.exists('is_binary')) {
 				data.is_binary = true;
 			}
@@ -254,8 +253,8 @@ Webos.File.prototype = {
 	 * @private
 	 */
 	_updateData: function(data) {
-		var updatedData = {};
-		for (var key in data) {
+		var key, updatedData = {};
+		for (key in data) {
 			if (this._get(key) !== data[key]) {
 				updatedData[key] = data[key];
 			}
@@ -304,7 +303,7 @@ Webos.File.prototype = {
 				});
 			}
 		} else {
-			for (var key in updatedData) {
+			for (key in updatedData) {
 				this.notify('update', { key: key, value: updatedData[key] });
 			}
 
@@ -336,8 +335,6 @@ Webos.File.prototype = {
 		}
 		
 		Webos.File.clearCache(this.get('path'));
-
-		delete this;
 	},
 	/**
 	 * Trigger an error because the current action is unavailable on this type of file.
@@ -662,7 +659,7 @@ Webos.File._mountPointByPath = function (path) {
 
 	var devices = Webos.File.mountedDevices(), matchingDevices = [];
 	for (var local in devices) {
-		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
+		if (Webos.File.cleanPath(path).indexOf(local) === 0) {
 			matchingDevices.push(local);
 		}
 	}
@@ -801,14 +798,16 @@ Webos.File.createFile = function(path, callback) {
 	
 	//Le fichier est-il dans un volume monte ?
 	var devices = Webos.File.mountedDevices();
+
+	var handleMountPoint = function (local, point) {
+		return Webos[point.get('driver')].createFile(path, point, [function(file) {
+			callback.success(file);
+		}, callback.error]);
+	};
+
 	for (var local in devices) {
-		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			(function(point) {
-				Webos[point.get('driver')].createFile(path, point, [function(file) {
-					callback.success(file);
-				}, callback.error]);
-			})(devices[local]);
-			return;
+		if (Webos.File.cleanPath(path).indexOf(local) === 0) {
+			return handleMountPoint(local, devices[local]);
 		}
 	}
 
@@ -837,14 +836,16 @@ Webos.File.createFolder = function(path, callback) {
 	
 	//Le fichier est-il dans un volume monte ?
 	var devices = Webos.File.mountedDevices();
+
+	var handleMountPoint = function (local, point) {
+		return Webos[point.get('driver')].createFolder(path, point, [function(file) {
+			callback.success(file);
+		}, callback.error]);
+	};
+
 	for (var local in devices) {
-		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			(function(point) {
-				Webos[point.get('driver')].createFolder(path, point, [function(file) {
-					callback.success(file);
-				}, callback.error]);
-			})(devices[local]);
-			return;
+		if (Webos.File.cleanPath(path).indexOf(local) === 0) {
+			return handleMountPoint(local, devices[local]);
 		}
 	}
 
@@ -914,7 +915,7 @@ Webos.File.copy = function(source, dest, callback) {
 			if (!filesList || !dirCreated) {
 				return;
 			}
-			if (filesList.length == 0) {
+			if (filesList.length === 0) {
 				callback.success();
 				return;
 			}
@@ -929,17 +930,19 @@ Webos.File.copy = function(source, dest, callback) {
 				}
 			};
 
+			var handleFile = function (file) {
+				copyFn(file, dest.get('path') + '/' + file.get('basename'), [function(newFile) {
+					copiedFilesNbr++;
+					triggerCallbackFn();
+				}, function(response) {
+					errorsNbr++;
+					errorRes = response;
+					triggerCallbackFn();
+				}]);
+			};
+
 			for (var i = 0; i < filesList.length; i++) {
-				(function(file) {
-					copyFn(file, dest.get('path') + '/' + file.get('basename'), [function(newFile) {
-						copiedFilesNbr++;
-						triggerCallbackFn();
-					}, function(response) {
-						errorsNbr++;
-						errorRes = response;
-						triggerCallbackFn();
-					}]);
-				})(filesList[i]);
+				handleFile(filesList[i]);
 			}
 		};
 
@@ -1122,12 +1125,9 @@ Webos.File.search = function(options, callback) {
 		searchesResults = searchesResults.concat(results);
 	};
 
-	var mountedList = Webos.File.mountedDevices();
-	for (var localPath in mountedList) {
-		var point = mountedList[localPath];
-
+	var handleMountPoint = function (localPath, point) {
 		if (searchDir.get('path') == localPath ||
-			localPath.indexOf(searchDir.get('path')+'/') == 0) {
+			localPath.indexOf(searchDir.get('path')+'/') === 0) {
 			//Search in this device
 			if (typeof Webos[point.get('driver')].search == 'function') {
 				var devOp = Webos.Operation.create();
@@ -1147,6 +1147,11 @@ Webos.File.search = function(options, callback) {
 				operation.setCompleted(Webos.Callback.Result.error('Operation not supported'));
 			}
 		}
+	};
+
+	var mountedList = Webos.File.mountedDevices();
+	for (var localPath in mountedList) {
+		handleMountPoint(localPath, mountedList[localPath]);
 	}
 
 	var searchesOps = Webos.Observable.group(searchesOpsList);
@@ -1203,12 +1208,12 @@ Webos.File.clearCache = function(path, clearParentCache) {
 };
 
 /**
- * Clean a path.
- * @param {String} path The path to clean.
- * @return {String} The cleaned path.
+ * Beautify a path.
+ * @param {String} path The path to beautify.
+ * @return {String} The beautified path.
  * @static
  */
-Webos.File.cleanPath = function(path) {
+Webos.File.beautifyPath = function(path) {
 	path = String(path);
 	
 	return path
@@ -1216,6 +1221,17 @@ Webos.File.cleanPath = function(path) {
 		.replace('/./', '/')
 		.replace(/\/\.$/, '/')
 		.replace(/(.+)\/$/, '$1');
+};
+
+/**
+ * Clean a path.
+ * @param {String} path The path to clean.
+ * @return {String} The cleaned path.
+ * @static
+ * @deprecated Use Webos.File.beautifyPath() instead.
+ */
+Webos.File.cleanPath = function(path) {
+	return Webos.File.beautifyPath(path);
 };
 
 /**
@@ -1228,10 +1244,10 @@ Webos.File.bytesToSize = function(bytes) {
 	var sizes = ['bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
 	if (bytes <= 1)
 		return bytes+' '+sizes[0];
-	var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-	return ((i == 0) ? (bytes / Math.pow(1024, i))
-			: (bytes / Math.pow(1024, i)).toFixed(1))
-			+ ' ' + sizes[i];
+	var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10);
+	return ((i === 0) ? (bytes / Math.pow(1024, i))
+		: (bytes / Math.pow(1024, i)).toFixed(1)) +
+		' ' + sizes[i];
 };
 
 /**
@@ -1981,42 +1997,58 @@ var homePoint = new Webos.File.MountPoint({
 Webos.File.mount(homePoint);
 
 /**
- * A string file.
- * @param {String} contents The file's content.
+ * A virtual file.
+ * @param {String|Array} contents The file's content. Can be either a string, or an array of virtual files.
  * @param {Object} data The file data.
  * @constructor
  * @augments {Webos.File}
  * @since 1.0beta5
  */
-Webos.StringFile = function (contents, data) {
-	this._contents = contents || '';
-
+Webos.VirtualFile = function (contents, data) {
 	if (!data) {
 		data = {};
 	}
 
+	if (typeof data.is_dir != 'boolean') { //Is this file a dir?
+		if (contents instanceof Array) { //A directory
+			data.is_dir = true;
+		} else if (typeof contents == 'string' || !contents) { //If it's a string, it's a file
+			data.is_dir = false;
+		} else { //Not supported
+			return false;
+		}
+	}
+
 	data.basename = data.basename || 'file-'+Math.floor(Math.random()*(new Date()).getTime());
-	data.path = data.basename;
+	data.path = data.path || data.basename;
 	data.dirname = '';
 	data.realpath = null;
-	data.is_dir = false;
 	data.size = contents.length;
-	data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
+	//data.extension = (/[.]/.exec(data.path)) ? /[^.]+$/.exec(data.path)[0] : null;
 
 	data.readable = true;
 	data.writable = false;
 
+	if (data.is_dir) {
+		this._contents = contents || {};
+	} else {
+		this._contents = contents || '';
+	}
+
 	Webos.File.call(this, data); //On appelle la classe parente
 };
 /**
- * Webos.StringFile's prototype.
- * @namespace Webos.StringFile
+ * Webos.VirtualFile's prototype.
  */
-Webos.StringFile.prototype = {
+Webos.VirtualFile.prototype = {
 	_toBlob: function () {
 		return new Blob([this._contents], { type: this.get('mime_type') });
 	},
 	realpath: function() {
+		if (this.get('is_dir')) {
+			return false;
+		}
+
 		if (!this._get('realpath')) {
 			var URL = window.URL || window.webkitURL;
 			if (URL && URL.createObjectURL) {
@@ -2036,6 +2068,10 @@ Webos.StringFile.prototype = {
 	readAsText: function(callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
+
+		if (this.get('is_dir')) {
+			return this._unsupportedMethod(callback);
+		}
 		
 		callback.success(this._contents);
 	},
@@ -2043,25 +2079,77 @@ Webos.StringFile.prototype = {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 
+		if (this.get('is_dir')) {
+			return this._unsupportedMethod(callback);
+		}
+
 		callback.success(window.btoa(this._contents));
 	},
 	readAsBlob: function (callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 
+		if (this.get('is_dir')) {
+			return this._unsupportedMethod(callback);
+		}
+
 		callback.success(this._toBlob());
+	},
+	contents: function (callback) {
+		callback = Webos.Callback.toCallback(callback);
+
+		if (this.get('is_dir')) {
+			callback.success(this._contents);
+		} else {
+			return this.readAsText(callback);
+		}
 	}
 };
-Webos.inherit(Webos.StringFile, Webos.File); //Héritage de Webos.File
+Webos.inherit(Webos.VirtualFile, Webos.File); //Héritage de Webos.File
 
 /**
- * Create a new string file.
- * @param {String} contents The file's content.
+ * Create a new virtual file.
+ * @param {String|Array} contents The file's content. Can be either a string, or an array of virtual files.
  * @param {Object} data The file data.
- * @return {Webos.StringFile} The string file.
+ * @return {Webos.VirtualFile} The virtual file.
  */
-Webos.StringFile.create = function (contents, data) {
-	return new Webos.StringFile(contents, data);
+Webos.VirtualFile.create = function (contents, data) {
+	return new Webos.VirtualFile(contents, data);
+};
+
+/**
+ * A string file.
+ * @type {Function}
+ * @deprecated Use Webos.VirtualFile instead.
+ */
+Webos.StringFile = Webos.VirtualFile;
+
+/**
+ * An object directory.
+ * @param {Object} contents The file's content.
+ * @param {Object} data The file data.
+ * @constructor
+ * @augments {Webos.File}
+ * @since 1.0beta5
+ */
+Webos.ObjectDir = function (contents, data) {
+	this._contents = contents || {};
+
+	if (!data) {
+		data = {};
+	}
+
+	data.basename = data.basename || 'file-'+Math.floor(Math.random()*(new Date()).getTime());
+	data.path = data.path || data.basename;
+	data.dirname = '';
+	data.realpath = null;
+	data.is_dir = true;
+	data.size = contents.length;
+
+	data.readable = true;
+	data.writable = false;
+
+	Webos.File.call(this, data); //On appelle la classe parente
 };
 
 //Compatibility shim for Blob
@@ -2246,7 +2334,7 @@ Webos.LocalFile.support = (window.File && window.FileReader) ? true : false;
  * @since 1.0beta4
  */
 Webos.DownloadableFile = function (data) {
-	var data = $.extend({
+	data = $.extend({
 		basename: 'download',
 		mime_type: 'application/octet-stream'
 	}, data);

@@ -6,8 +6,8 @@
  * @augments {Webos.Model}
  * @since 1.0alpha1
  */
-Webos.User = function WUser(id, data) {
-	this._id = parseInt(id);
+Webos.User = function (id, data) {
+	this._id = parseInt(id, 10);
 	Webos.Model.call(this, data);
 };
 Webos.User.prototype = {
@@ -194,8 +194,6 @@ Webos.User.prototype = {
 			if (that.isLogged()) {
 				Webos.User.logout(callback);
 			}
-
-			delete that;
 		}, function(response) {
 			callback.error(response);
 		}));
@@ -437,7 +435,7 @@ Webos.User._pingInterval = 6 * 60 * 1000;
 Webos.User._startPingTimer = function () {
 	if (Webos.User._pingTimer === null) {
 		Webos.User._pingTimer = setInterval(function() {
-			if (!typeof Webos.User.logged != 'number') {
+			if (typeof Webos.User.logged != 'number') {
 				Webos.User._stopPingTimer();
 				return;
 			}

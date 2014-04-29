@@ -91,7 +91,7 @@ Webos.Model.prototype = {
 	 * @returns {Object} The data.
 	 */
 	data: function() {
-		return _.clone(this._data);
+		return $.extend({}, this._data);
 	},
 	/**
 	 * Set a value associated with a key in the model's data.
@@ -151,7 +151,7 @@ Webos.Model.prototype = {
 	 * @return {Boolean} True if it's empty, false otherwise.
 	 */
 	isEmpty: function () {
-		return (Object.keys(this._data).length == 0);
+		return (Object.keys(this._data).length === 0);
 	},
 	/**
 	 * Remove a value in the model's data.
@@ -240,7 +240,10 @@ Webos.Model.prototype = {
 
 			return (this._unsynced[key].state == 1);
 		} else {
-			return (!_.isEmpty(this._unsynced));
+			for (key in this._unsynced) {
+				return true;
+			}
+			return false;
 		}
 	},
 	/**
