@@ -265,38 +265,9 @@ Webos.require([
 					that.openUploadWindow();
 				}).appendTo(contextmenu);
 				if (Webos.Clipboard) {
-					var pasteItem = $.webos.menuItem(t.get('Paste'), true).click(function() {
-						var item = Webos.Clipboard.get();
-						if (item && item.is(Webos.File)) {
-							item.paste(function(file) {
-								if (item.operation() == 'cut') {
-									that._move(file, dir, function(dest) {
-										item.setData(dest);
-										item.pasted();
-									});
-								} else {
-									that._copy(file, dir, function(dest) {
-										item.pasted();
-									});
-								}
-							}, true);
-						}
-					}).appendTo(contextmenu);
-
-					var clipboardItem = Webos.Clipboard.get();
-					pasteItem.menuItem('option', 'disabled', !(clipboardItem && clipboardItem.is(Webos.File)));
-
-					var copyCallbackId = Webos.Clipboard.bind('copy cut', function(data) {
-						var item = Webos.Clipboard.get();
-						pasteItem.menuItem('option', 'disabled', !(item && item.is(Webos.File)));
-					});
-					var clearCallbackId = Webos.Clipboard.bind('clear', function() {
-						pasteItem.menuItem('option', 'disabled', true);
-					});
-					that.element.one('nautilusreadstart', function() {
-						Webos.Clipboard.unbind(copyCallbackId);
-						Webos.Clipboard.unbind(clearCallbackId);
-					});
+					var pasteMenuItem = that._getPasteMenuItem(dir);
+					pasteMenuItem.menuItem('option', 'separator', true);
+					pasteMenuItem.appendTo(contextmenu);
 				}
 				$.webos.menuItem(t.get('Refresh'), true).click(function() {
 					that.refresh();
@@ -715,22 +686,30 @@ Webos.require([
 			});
 			
 			var contextmenu = $.w.contextMenu(item);
+
+			var getItemsSelection = function () {
+				return (that.getSelection().length === 0) ? item : that.getSelection();
+			};
+			var getFilesSelection = function () {
+				var files = [];
+				getItemsSelection().each(function() {
+					files.push($(this).data('file')());
+				});
+				return files;
+			};
 			
 			$.webos.menuItem(t.get('Open')).click(function() {
-				var files = (that.getSelection().length === 0) ? item : that.getSelection();
-				files.each(function() {
+				getItemsSelection().each(function() {
 					$(this).data('nautilus').open();
 				});
 			}).appendTo(contextmenu);
 			$.webos.menuItem(t.get('Open with...')).click(function() {
-				var files = (that.getSelection().length === 0) ? item : that.getSelection();
-				files.each(function() {
+				getItemsSelection().each(function() {
 					$(this).data('nautilus').openWith();
 				});
 			}).appendTo(contextmenu);
 			$.webos.menuItem(t.get('Download')).click(function() {
-				var files = (that.getSelection().length === 0) ? item : that.getSelection();
-				files.each(function() {
+				getItemsSelection().each(function() {
 					$(this).data('nautilus').download();
 				});
 			}).appendTo(contextmenu);
@@ -738,74 +717,40 @@ Webos.require([
 				item.data('nautilus').rename();
 			}).appendTo(contextmenu);
 			$.webos.menuItem(t.get('Delete')).click(function() {
-				var files = (that.getSelection().length === 0) ? item : that.getSelection();
-				files.each(function() {
+				getItemsSelection().each(function() {
 					$(this).data('nautilus').remove();
 				});
 			}).appendTo(contextmenu);
 			if (Webos.Clipboard) {
 				$.webos.menuItem(t.get('Copy'), true).click(function() {
-					Webos.Clipboard.copy(file);
+					Webos.Clipboard.copy(getFilesSelection());
 				}).appendTo(contextmenu);
 				$.webos.menuItem(t.get('Cut')).click(function() {
-					Webos.Clipboard.cut(file);
+					Webos.Clipboard.cut(getFilesSelection());
 				}).appendTo(contextmenu);
 
 				if (file.get('is_dir')) {
-					var pasteItem = $.webos.menuItem(t.get('Paste')).click(function() {
-						var itemToPaste = Webos.Clipboard.get();
-						if (itemToPaste && itemToPaste.is(Webos.File)) {
-							itemToPaste.paste(function(fileToPaste) {
-								if (itemToPaste.operation() == 'cut') {
-									that._move(fileToPaste, file, function(dest) {
-										itemToPaste.setData(dest);
-										itemToPaste.pasted();
-									});
-								} else {
-									that._copy(fileToPaste, file, function(dest) {
-										itemToPaste.pasted();
-									});
-								}
-							}, true);
-						}
-					}).appendTo(contextmenu);
-
-					var clipboardItem = Webos.Clipboard.get();
-					pasteItem.menuItem('option', 'disabled', !(clipboardItem && clipboardItem.is(Webos.File)));
-
-					var copyCallbackId = Webos.Clipboard.bind('copy cut', function(data) {
-						var item = Webos.Clipboard.get();
-						pasteItem.menuItem('option', 'disabled', !(item && item.is(Webos.File)));
-					});
-					var clearCallbackId = Webos.Clipboard.bind('clear', function() {
-						pasteItem.menuItem('option', 'disabled', true);
-					});
-					that.element.one('nautilusreadstart', function() {
-						Webos.Clipboard.unbind(copyCallbackId);
-						Webos.Clipboard.unbind(clearCallbackId);
-					});
+					this._getPasteMenuItem(file).appendTo(contextmenu);
 				}
 			}
 			$.webos.menuItem(t.get('Share'), true).click(function() {
-				var files = (that.getSelection().length == 0) ? item : that.getSelection();
-				files.each(function() {
+				getItemsSelection().each(function() {
 					$(this).data('nautilus').share();
 				});
 			}).appendTo(contextmenu);
 			$.webos.menuItem(t.get('Properties')).click(function() {
-				var files = (that.getSelection().length == 0) ? item : that.getSelection();
-				files.each(function() {
+				getItemsSelection().each(function() {
 					$(this).data('nautilus').openProperties();
 				});
 			}).appendTo(contextmenu);
-			
+
 			contextmenu.bind('contextmenuopen', function() {
 				if (!item.is('.active')) {
 					that.getSelection().removeClass('active').trigger('unselect');
 					item.addClass('active');
 				}
 			});
-			
+
 			if (file.get('is_dir')) {
 				var overIcon = that._getFileIcon(file, 'dropover');
 				item.droppable({
@@ -821,7 +766,11 @@ Webos.require([
 						var sourceFile = ui.draggable.draggable('option', 'sourceFile'),
 							destFile = item.data('file')();
 
-						ui.draggable.trigger('nautilusdrop', [{ source: sourceFile, dest: destFile, droppable: item }]);
+						ui.draggable.trigger('nautilusdrop', [{
+							source: sourceFile,
+							dest: destFile,
+							droppable: item
+						}]);
 					},
 					over: function() {
 						if (overIcon != iconPath) {
@@ -836,13 +785,23 @@ Webos.require([
 				});
 			}
 			
-			var droppableAreas = [];
+			var $dragging = $(), //Items currently being dragged
+				droppableAreas = [];
+
 			item.draggable({
 				sourceFile: file,
 				dragImage: icon.clone().css({ 'max-width': '48px', 'max-height': '48px' }),
+				start: function () {
+					var currentSel = that.getSelection();
+					if (currentSel.filter(item).length) {
+						$dragging = currentSel;
+					} else {
+						$dragging = item;
+					}
+				},
 				stop: function(event) {
 					setTimeout(function() {
-						if (droppableAreas.length == 0) {
+						if (!droppableAreas.length) {
 							return;
 						}
 
@@ -890,29 +849,50 @@ Webos.require([
 							}]);
 						};
 
+						var handleDropArea = function (data) {
+							var drops = [data];
+
+							if ($dragging.length) {
+								drops = [];
+								$dragging.each(function () {
+									drops.push({
+										source: $(this).data('file')(),
+										dest: data.dest,
+										droppable: $(this)
+									});
+								});
+								$dragging = $();
+							}
+
+							for (var i = 0; i < drops.length; i++) {
+								doDrop(drops[i]);
+							}
+						};
+
 						if (droppableAreas.length == 1) {
-							doDrop(droppableAreas[0]);
+							handleDropArea(droppableAreas[0]);
 						} else {
 							//TODO: integrate z-index support in draggable widget
 							var maxZIndex = -1, maxZIndexArea = null;
+
+							var handleZIndex = function(zIndex, dropArea) {
+								if (/[0-9]/.test(zIndex)) {
+									zIndex = parseInt(zIndex, 10);
+									if (maxZIndex <= zIndex) {
+										maxZIndex = zIndex;
+										maxZIndexArea = dropArea;
+									}
+								}
+							};
+
 							for (var i = 0; i < droppableAreas.length; i++) {
 								var dropArea = droppableAreas[i],
 									$droppable = dropArea.droppable;
 
-								var handleZIndex = function(zIndex) {
-									if (/[0-9]/.test(zIndex)) {
-										zIndex = parseInt(zIndex);
-										if (maxZIndex <= zIndex) {
-											maxZIndex = zIndex;
-											maxZIndexArea = dropArea;
-										}
-									}
-								};
-
-								handleZIndex($droppable.css('z-index'));
+								handleZIndex($droppable.css('z-index'), dropArea);
 
 								$droppable.parents().each(function() {
-									handleZIndex($(this).css('z-index'));
+									handleZIndex($(this).css('z-index'), dropArea);
 								});
 							}
 
@@ -920,7 +900,7 @@ Webos.require([
 								maxZIndexArea = droppableAreas.pop(); //No z-index, the one which is over others is the last one
 							}
 
-							doDrop(maxZIndexArea);
+							handleDropArea(maxZIndexArea);
 						}
 
 						droppableAreas = [];
@@ -972,6 +952,66 @@ Webos.require([
 			if (this.options.display == 'list') {
 				this.content().list('content').append(item);
 			}
+		},
+		_getPasteMenuItem: function (file) {
+			var that = this, t = this.translations();
+
+			var canPaste = function (itemToPaste) {
+				return (itemToPaste && (itemToPaste.is(Array) || itemToPaste.is(Webos.File)));
+			};
+
+			var pasteItem = $.webos.menuItem(t.get('Paste')).click(function() {
+				var itemToPaste = Webos.Clipboard.get();
+
+				if (canPaste(itemToPaste)) {
+					itemToPaste.paste(function(filesToPaste) {
+						var handleFile = function (fileToPaste) {
+							if (itemToPaste.operation() == 'cut') {
+								that._move(fileToPaste, file, function(dest) {
+									itemToPaste.setData(dest);
+									itemToPaste.pasted();
+								});
+							} else {
+								that._copy(fileToPaste, file, function(dest) {
+									itemToPaste.pasted();
+								});
+							}
+						};
+
+						if (filesToPaste instanceof Array) {
+							for (var i = 0; i < filesToPaste.length; i++) {
+								var fileToPaste = filesToPaste[i];
+
+								//Not a file
+								if (!Webos.isInstanceOf(fileToPaste, Webos.File)) {
+									continue;
+								}
+
+								handleFile(fileToPaste);
+							}
+						} else {
+							handleFile(filesToPaste);
+						}
+					}, true);
+				}
+			});
+
+			var clipboardItem = Webos.Clipboard.get();
+			pasteItem.menuItem('option', 'disabled', !canPaste(clipboardItem));
+
+			var copyCallbackId = Webos.Clipboard.bind('copy cut', function(data) {
+				var item = Webos.Clipboard.get();
+				pasteItem.menuItem('option', 'disabled', !canPaste(item));
+			});
+			var clearCallbackId = Webos.Clipboard.bind('clear', function() {
+				pasteItem.menuItem('option', 'disabled', true);
+			});
+			that.element.one('nautilusreadstart', function() {
+				Webos.Clipboard.unbind(copyCallbackId);
+				Webos.Clipboard.unbind(clearCallbackId);
+			});
+
+			return pasteItem;
 		},
 		_setIconPos: function (file, pos) {
 			if (!this.options.organizeIcons) {
@@ -1740,6 +1780,9 @@ Webos.require([
 			if (source.get('path') == dest.get('path') || (source.get('dirname') == dest.get('path') && dest.get('is_dir'))) { //Copy a file in the same dir
 				destPath = source.get('dirname')+'/'+t.get('Copy of ')+source.get('basename');
 				dest = W.File.get(destPath);
+			} else if (source.get('is_dir') && dest.get('is_dir')) {
+				destPath = dest.get('path')+'/'+source.get('basename');
+				dest = W.File.get(destPath);
 			}
 
 			var progressId = $.w.nautilus.progresses.add(0, t.get('Copying ${source} to ${dest}', { source: source.get('basename'), dest: dest.get('basename') }));
@@ -1760,6 +1803,11 @@ Webos.require([
 			source = W.File.get(source);
 			dest = W.File.get(dest);
 			callback = W.Callback.toCallback(callback);
+
+			if (source.get('is_dir') && dest.get('is_dir')) {
+				destPath = dest.get('path')+'/'+source.get('basename');
+				dest = W.File.get(destPath);
+			}
 
 			var progressId = $.w.nautilus.progresses.add(0, t.get('Moving ${source} to ${dest}', { source: source.get('basename'), dest: dest.get('basename') }));
 
