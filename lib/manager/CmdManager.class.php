@@ -14,7 +14,7 @@ abstract class CmdManager extends \lib\Manager {
 	 * Executables' directories.
 	 * @var array
 	 */
-	protected $executablesDirs = array('/bin','/usr/bin');
+	protected $executablesDirs = array('/usr/bin');
 	/**
 	 * Executables' extensions.
 	 * @var array
