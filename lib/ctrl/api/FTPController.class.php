@@ -21,11 +21,11 @@ class FTPController extends \lib\ApiBackController {
 		if (!array_key_exists('port', $data) || empty($data['port'])) {
 			throw new InvalidArgumentException('Empty FTP server port', 400);
 		}
-		if (!array_key_exists('user', $data) || empty($data['host'])) {
-			throw new InvalidArgumentException('Empty FTP server user', 400);
+		if (!array_key_exists('user', $data)) {
+			$data['user'] = '';
 		}
-		if (!array_key_exists('password', $data) || empty($data['password'])) {
-			throw new InvalidArgumentException('Empty FTP server password', 400);
+		if (!array_key_exists('password', $data)) {
+			$data['password'] = '';
 		}
 
 		$conn = ftp_connect($data['host'], $data['port']);
@@ -35,6 +35,11 @@ class FTPController extends \lib\ApiBackController {
 		}
 
 		if (ftp_login($conn, $data['user'], $data['password'])) {
+			// Turn passive mode on
+			if (ftp_pasv($conn, true) === false) {
+				throw new \RuntimeException('Cannot connect to FTP server "'.$loginData['host'].':'.$loginData['port'].'" (cannot turn passive mode on)', 502);
+			}
+
 			$this->conn = $conn;
 			return $conn;
 		} else {
