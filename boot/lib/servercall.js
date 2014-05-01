@@ -506,9 +506,11 @@
 				if (moduleName == 'theme' && actionName == 'loadCss') {
 					return true;
 				}
-				if (moduleName == 'file' && actionName == 'getContents') { //Better than calling the API (files are cached)
-					return true;
-				}
+
+				// Only works with files - not directories
+				//if (moduleName == 'file' && actionName == 'getContents') { //Better than calling the API (files are cached)
+				//	return true;
+				//}
 			}
 
 			return Webos.standalone;
