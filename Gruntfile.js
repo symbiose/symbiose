@@ -315,23 +315,8 @@ module.exports = function(grunt) {
 	});
 
 	grunt.registerTask('gen-i18n', 'Generate i18n files.', function() {
-		var localesRoot = 'usr/share/locale';
-		/*var localesList = grunt.file.expand({
-			cwd: localesRoot,
-			filter: 'isDirectory'
-		}, '*');
-		for (var i = 0; i < localesList.length; i++) {
-			var localeName = localesList[i];
-			var localePath = localesRoot+'/'+localeName;
-
-			var i18nFiles = grunt.file.expand(localePath+'/*.ini');
-
-			for (var j = 0; j < i18nFiles.length; j++) {
-				var i18nName = i18nFiles[j];
-
-				
-			}
-		}*/
+		var localesRoot = 'usr/share/locale',
+			localesDest = 'build/'+localesRoot;
 
 		var parseIni = function (contents) {
 			var lines = contents
@@ -371,6 +356,7 @@ module.exports = function(grunt) {
 			return output;
 		};
 
+		//First, generate english reference files
 		var localePath = localesRoot+'/fr_FR',
 			outputDir = localesRoot+'/en',
 			i18nFiles = grunt.file.expand({
@@ -381,22 +367,49 @@ module.exports = function(grunt) {
 			grunt.file.mkdir(outputDir);
 		}
 
-		for (var j = 0; j < i18nFiles.length; j++) {
-			var i18nName = i18nFiles[j],
-				i18nPath = localePath+'/'+i18nName;
+		var i18nName, i18nPath, input, data, outputPath, output;
+		for (var i = 0; i < i18nFiles.length; i++) {
+			i18nName = i18nFiles[i];
+			i18nPath = localePath+'/'+i18nName;
 
-			var input = grunt.file.read(i18nPath),
-				data = parseIni(input);
+			input = grunt.file.read(i18nPath);
+			data = parseIni(input);
 
 			//Only keep keys
 			for (var key in data) {
 				data[key] = key;
 			}
 
-			var outputPath = outputDir+'/'+i18nName,
-				output = formatIni(data);
+			outputPath = outputDir+'/'+i18nName;
+			output = formatIni(data);
 
 			grunt.file.write(outputPath, output);
+		}
+
+		//Then, 
+		var localesList = grunt.file.expand({
+			cwd: localesRoot,
+			filter: 'isDirectory'
+		}, '*');
+		for (i = 0; i < localesList.length; i++) {
+			var localeName = localesList[i];
+			localePath = localesRoot+'/'+localeName;
+
+			i18nFiles = grunt.file.expand({
+				cwd: localePath
+			}, '*.ini');
+
+			for (var j = 0; j < i18nFiles.length; j++) {
+				i18nName = i18nFiles[j];
+				i18nPath = localePath+'/'+i18nName;
+				outputPath = localesDest+'/'+localeName+'/'+i18nName;
+
+				input = grunt.file.read(i18nPath);
+				data = parseIni(input);
+				output = formatIni(data);
+
+				grunt.file.write(outputPath, output);
+			}
 		}
 	});
 
