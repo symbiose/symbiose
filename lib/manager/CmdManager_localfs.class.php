@@ -34,9 +34,9 @@ class CmdManager_localfs extends CmdManager {
 		}
 
 		if (empty($executablePath)) {
-			throw new \RuntimeException('"'.$cmd['cmd'].'" : unknown command');
+			throw new \RuntimeException('"'.$cmd['executable'].'": unknown command');
 		}
-		
+
 		return $executablePath;
 	}
 }
