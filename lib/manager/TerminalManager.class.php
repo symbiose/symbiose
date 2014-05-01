@@ -17,7 +17,9 @@ abstract class TerminalManager extends Manager {
 	 * @return Cmd                The new command.
 	 */
 	public function buildCmd($rawCmd, $terminalId) {
-		return new Cmd(array('cmd' => $rawCmd));
+		$cmd = new Cmd;
+		$cmd->setCmd($rawCmd);
+		return $cmd;
 	}
 
 	/**
