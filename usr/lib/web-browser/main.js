@@ -17,11 +17,11 @@
 		_$configForm: $(),
 		_config: {
 			homepage: 'https://www.duckduckgo.com/?kd=-1&kn=-1',
-			enableProxy: false,
-			proxyUrl: '../phproxy-improved/',
+			enableProxy: true,
+			proxyUrl: 'http://symbiose-proxy.herokuapp.com/',
 			proxyFlags: {
 				'include_form'    : false,
-				'remove_scripts'  : false,
+				'remove_scripts'  : true,
 				'accept_cookies'  : true,
 				'show_images'     : true,
 				'show_referer'    : true,
@@ -212,10 +212,17 @@
 				that._$win.window('loading', false);
 
 				if (that.config().enableProxy) {
-					var proxyHref = that._$iframe[0].contentWindow.location.href,
-					proxyQuery = proxyHref.split('?')[1],
-					proxyParamsList = proxyQuery.split('&'),
-					proxyUrl = url;
+					var proxyHref = '';
+
+					try {
+						proxyHref = that._$iframe[0].contentWindow.location.href;
+					} catch (e) {
+						return;
+					}
+
+					var proxyQuery = proxyHref.split('?')[1],
+						proxyParamsList = proxyQuery.split('&'),
+						proxyUrl = url;
 
 					var proxyParams = {};
 					for (var i = 0; i < proxyParamsList.length; i++) {
