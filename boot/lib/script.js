@@ -250,6 +250,10 @@ Webos.require = function (files, callback, options) {
 	var onLoadFn = function(file) {
 		loadedFiles++;
 
+		if (file) {
+			console.log('  Loaded: '+file.get('path'));
+		}
+
 		if (file && Webos.require._stacks[file.get('path')]) {
 			delete Webos.require._stacks[file.get('path')];
 		}
@@ -319,10 +323,10 @@ Webos.require = function (files, callback, options) {
 			//Check if the file is in the cache
 			if (Webos.require._cache[path]) {
 				file = Webos.require._cache[path];
-				console.log('... loading from cache: '+path);
+				console.log('  Loading from cache: '+path);
 			} else {
 				file = W.File.get(path, { is_dir: false });
-				console.log('loading from network: '+path);
+				console.log('Loading from network: '+path);
 			}
 		} else {
 			onLoadFn();
