@@ -1,0 +1,5 @@
+{
+	"title": "Terminal",
+	"enabled": true,
+	"cmd": "gnome-terminal"
+}

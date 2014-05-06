@@ -2,7 +2,6 @@ Webos.require([
 	'/usr/lib/broadway/broadway-3.12.js',
 	{ path:'/usr/lib/webos/rawinflate.min.js', context: window }
 ], function () {
-	console.log('checking Zlib...', typeof window.Zlib);
 	if (Webos.broadway) {
 		return;
 	}

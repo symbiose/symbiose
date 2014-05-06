@@ -207,6 +207,7 @@ class BroadwayController extends \lib\ApiBackController {
 
 		$cmd = 'GDK_BACKEND=broadway';
 		$cmd .= ' BROADWAY_DISPLAY=:'.(int) $server['display'];
+		//$cmd .= ' DISPLAY=:0';//.(int) $server['display'];
 		//$cmd .= ' HOME="'.$webosRoot.'/home/'.$user->username().'/"';
 
 		if (isset($app['env']) && is_array($app['env'])) {
@@ -217,11 +218,11 @@ class BroadwayController extends \lib\ApiBackController {
 		$cmd .= ' ';
 
 		if (isset($opts['username']) && isset($opts['password'])) {
-			$cmd = $cmd.'echo "'.$opts['password'].'" | su "'.$opts['username'].'" -c "'.$baseCmd.'"';
+			$cmd = 'echo "'.$opts['password'].'" | su - "'.$opts['username'].'" -c "export DISPLAY=:0 '.$cmd.';env;'.$baseCmd.'"';
 		} else {
 			$cmd .= $baseCmd;
 		}
-
+file_put_contents('var/log/broadway-cmd.txt', $cmd);
 		shell_exec($cmd.' > "'.$webosRoot.'/'.self::SERVER_APPS_LOG_FILE.'" 2>&1 & echo $!');
 	}
 

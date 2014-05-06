@@ -1,0 +1,8 @@
+{
+	"title": "LibreOffice Writer",
+	"enabled": true,
+	"cmd": "soffice --writer",
+	"env": {
+		"SAL_USE_VCLPLUGIN":"gtk3"
+	}
+}
