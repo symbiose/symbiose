@@ -36,6 +36,10 @@ $.webos.widget('terminal', 'container', {
 		return this.options._terminal;
 	},
 	promptStr: function() {
+		if (!this.options._terminal) {
+			return '';
+		}
+
 		var data = this.options._terminal.data();
 
 		var promptStr = '';
@@ -334,7 +338,7 @@ GTerminalWindow.prototype = {
 		}
 
 		var prompt = this._terminal.terminal('prompt');
-		if (prompt.length) {
+		if (prompt.length && $.w.widget.is(prompt, 'textEntry')) {
 			prompt.textEntry('content').focus();
 		} else {
 			var lastInput = this._terminal.terminal('outputContainer').find('input').last();
