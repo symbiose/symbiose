@@ -21,13 +21,13 @@
 			proxyUrl: 'http://symbiose-proxy.herokuapp.com/',
 			proxyFlags: {
 				'include_form'    : false,
-				'remove_scripts'  : true,
+				'remove_scripts'  : false,
 				'accept_cookies'  : true,
 				'show_images'     : true,
 				'show_referer'    : true,
 				'rotate13'        : false,
 				'base64_encode'   : true,
-				'strip_meta'      : true,
+				'strip_meta'      : false,
 				'strip_title'     : false,
 				'session_cookies' : true
 			}
