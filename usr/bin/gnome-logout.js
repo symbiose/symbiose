@@ -31,9 +31,35 @@ Webos.Translation.load(function(t) {
 	$.w.button(t.get('Logout'))
 		.click(function() {
 			logoutWindow.window('loading', true);
-			Webos.User.logout(new W.Callback(function() {
-				logoutWindow.window('close');
-			}));
+			Webos.User.logout([function() {
+				W.UserInterface.getList([function(list) {
+					logoutWindow.window('close');
+
+					var guestUi,
+						currentUi = Webos.UserInterface.Booter.current().name();
+					for (var i = 0; i < list.length; i++) {
+						var ui = list[i];
+
+						if (~ui.get('labels').indexOf('guestInterface') && ui.get('default')) {
+							if (!guestUi || !guestUi.get('default')) {
+								guestUi = ui;
+							} else if (currentUi == ui.get('name')) {
+								guestUi = null;
+								return;
+							}
+						}
+					}
+
+					if (guestUi && currentUi != guestUi.get('name')) {
+						W.UserInterface.load(guestUi.get('name'));
+					}
+				}, function() {
+					logoutWindow.window('close');
+				}]);
+			}, function (resp) {
+				logoutWindow.window('loading', false);
+				resp.triggerError();
+			}]);
 		})
 		.appendTo(buttonContainer);
 }, 'gnome');
