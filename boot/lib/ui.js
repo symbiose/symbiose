@@ -528,10 +528,12 @@ Webos.UserInterface.Booter.prototype = {
 		for (index in data.css) {
 			this.notify('loadstateupdate', { state: 'stylesheets', item: index });
 
+			//TODO: get style tags, revome them on unload
 			Webos.require({
 				path: index,
 				contents: data.css[index],
 				type: 'text/css',
+				forceExec: true,
 				styleContainer: '#userinterface-'+this.id()
 			});
 
@@ -556,7 +558,8 @@ Webos.UserInterface.Booter.prototype = {
 
 			Webos.require({
 				path: index,
-				contents: js
+				contents: js,
+				forceExec: true
 			}).on('complete', function () {
 				scriptLoaded(index);
 			});

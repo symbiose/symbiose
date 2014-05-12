@@ -88,11 +88,11 @@ Webos.Error.logError = function(error) {
 		if (traceAvailable && !error.stack) {
 			console.trace();
 		}
-		if (console.dir) {
+		/*if (console.dir) {
 			console.dir(error);
 		} else {
 			console.log(error);
-		}
+		}*/
 	}
 	
 	return error;

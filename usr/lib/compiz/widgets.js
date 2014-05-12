@@ -1324,7 +1324,8 @@ $.webos.widget('window', 'container', {
 
 			Webos.require({
 				path: stylesheet,
-				styleContainer: this.element
+				styleContainer: this.element,
+				forceExec: true
 			}, function() {
 				that._trigger('stylesheetload', { type: 'stylesheetload' }, { window: that.element });
 			});

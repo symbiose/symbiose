@@ -274,6 +274,7 @@ Webos.require = function (files, callback, options) {
 		 *  * `path`: the file path
 		 *  * `contents`: alternatively, you can specify the file's contents
 		 *  * `process`: if false, the file will just be loaded, not processed. If a function, will be called to process the file with the file's contents as first parameter.
+		 *  * `type`: the file's MIME type, required if path is not provided
 		 *
 		 * CSS options:
 		 *  * `styleContainer`: the CSS style container, on which teh rules will be applied
@@ -283,6 +284,7 @@ Webos.require = function (files, callback, options) {
 		 *  * `arguments`: some arguments to provide to the script
 		 *  * `exportApis`: APIs names to export to global scope
 		 *  * `optionnal`: do not wait for the file to be fully loaded before continuing
+		 *  * `forceExec`: force the script execution, even if it has been already executed
 		 * 
 		 * @type {Object}
 		 */
@@ -295,6 +297,7 @@ Webos.require = function (files, callback, options) {
 			exportApis: [],
 			process: true,
 			optionnal: false,
+			forceExec: false,
 			type: 'text/javascript'
 		}, options, requiredFile);
 
@@ -313,10 +316,6 @@ Webos.require = function (files, callback, options) {
 				mime_type: requiredFile.type,
 				path: requiredFile.path
 			});
-
-			if (requiredFile.path) {
-				Webos.require._cache[requiredFile.path] = file;
-			}
 		} else if (requiredFile.path) {
 			var path = requiredFile.path;
 
@@ -331,6 +330,16 @@ Webos.require = function (files, callback, options) {
 		} else {
 			onLoadFn();
 			return;
+		}
+
+		if (requiredFile.path) {
+			if (!Webos.require._cache[requiredFile.path]) {
+				Webos.require._cache[requiredFile.path] = file;
+			} else if (!requiredFile.forceExec) {
+				console.info('Not re-executing script: '+requiredFile.path);
+				onLoadFn(file);
+				return;
+			}
 		}
 
 		var processFile = function (contents) {

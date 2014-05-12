@@ -1,9 +1,5 @@
 (function () {
 
-if (Webos.Application) {
-	return;
-}
-
 /**
  * An application.
  * @constructor

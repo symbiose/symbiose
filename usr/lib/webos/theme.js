@@ -1,10 +1,10 @@
 (function () {
 
-if (Webos.Theme) {
-	return;
-}
-
 Webos.require('/usr/lib/webos/config.js', function () {
+	if (Webos.Theme) {
+		return;
+	}
+
 	/**
 	 * A theme.
 	 * @param {Webos.ConfigFile} configFile The config file associated with the theme.

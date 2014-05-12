@@ -1,5 +1,8 @@
 Webos.require([
-	'/usr/lib/webos/applications.js'
+	{
+		path: '/usr/lib/webos/applications.js',
+		forceExec: false
+	}
 ], function() {
 	if (window.Elementary) {
 		return;

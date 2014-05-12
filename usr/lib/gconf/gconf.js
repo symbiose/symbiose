@@ -156,7 +156,8 @@ var GConf = function (category) {
 				process: function () {
 					that._window.window('loading', false);
 					return true; //Process the file normally
-				}
+				},
+				forceExec: true
 			});
 		};
 		
