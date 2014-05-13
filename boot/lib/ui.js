@@ -534,7 +534,7 @@ Webos.UserInterface.Booter.prototype = {
 		var cssNbr = 0, index, i = 0;
 		for (index in data.css) { cssNbr++; }
 
-		var afterProcessCss = unction (stylesheet) {
+		var afterProcessCss = function (stylesheet) {
 			that._stylesheets.push(stylesheet);
 		};
 
