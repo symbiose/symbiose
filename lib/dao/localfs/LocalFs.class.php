@@ -342,12 +342,23 @@ class LocalFs {
 	 * @param  string $contents The contents to write.
 	 */
 	public function write($path, $contents) {
-		if (!is_writable($this->toInternalPath($path))) {
-			throw $this->acessDeniedException($path);
+		$internalPath = $this->toInternalPath($path);
+		$chmodFile = false;
+
+		if (file_exists($internalPath)) {
+			if (!is_writable($internalPath)) {
+				throw $this->acessDeniedException($path);
+			}
+		} else {
+			$chmodFile = true;
 		}
 
-		if (file_put_contents($this->toInternalPath($path), $contents) === false) {
+		if (file_put_contents($internalPath, $contents) === false) {
 			throw new \RuntimeException('Cannot write into file "'.$path.'"');
+		}
+
+		if ($chmodFile) { //If it's a new file, chmod it
+			chmod($internalPath, 0777);
 		}
 	}
 
