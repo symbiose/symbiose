@@ -247,7 +247,11 @@ Webos.require = function (files, callback, options) {
 	var loadOperation = new Webos.Operation();
 
 	var loadedFiles = 0;
-	var onLoadFn = function(file) {
+	var onLoadFn = function(fileData, file, arg) {
+		if (typeof fileData.afterProcess == 'function') {
+			fileData.afterProcess(arg);
+		}
+
 		loadedFiles++;
 
 		if (file) {
@@ -274,6 +278,7 @@ Webos.require = function (files, callback, options) {
 		 *  * `path`: the file path
 		 *  * `contents`: alternatively, you can specify the file's contents
 		 *  * `process`: if false, the file will just be loaded, not processed. If a function, will be called to process the file with the file's contents as first parameter.
+		 *  * `afterProcess`: a callback executed after the code execution. If it's a CSS file, the inserted tag is passed as argument.
 		 *  * `type`: the file's MIME type, required if path is not provided
 		 *
 		 * CSS options:
@@ -296,6 +301,7 @@ Webos.require = function (files, callback, options) {
 			styleContainer: null,
 			exportApis: [],
 			process: true,
+			afterProcess: null,
 			optionnal: false,
 			forceExec: false,
 			type: 'text/javascript'
@@ -328,23 +334,23 @@ Webos.require = function (files, callback, options) {
 				console.log('Loading from network: '+path);
 			}
 		} else {
-			onLoadFn();
+			onLoadFn(requiredFile);
 			return;
 		}
 
 		if (requiredFile.path) {
 			if (!Webos.require._cache[requiredFile.path]) {
 				Webos.require._cache[requiredFile.path] = file;
-			} else if (!requiredFile.forceExec) {
+			} else if (!requiredFile.forceExec && file.matchesMimeType('text/javascript')) {
 				console.info('Not re-executing script: '+requiredFile.path);
-				onLoadFn(file);
+				onLoadFn(requiredFile, file);
 				return;
 			}
 		}
 
 		var processFile = function (contents) {
 			if (requiredFile.process === false) {
-				onLoadFn(file);
+				onLoadFn(requiredFile, file);
 				return;
 			}
 			if (typeof requiredFile.process == 'function') {
@@ -353,7 +359,7 @@ Webos.require = function (files, callback, options) {
 					requiredFile.process = true;
 					processFile(contents);
 				}
-				onLoadFn(file);
+				onLoadFn(requiredFile, file);
 				return;
 			}
 
@@ -386,24 +392,24 @@ Webos.require = function (files, callback, options) {
 				Webos.require._currentFile = previousFile;
 
 				if (requiredFile.optionnal) {
-					onLoadFn(file);
+					onLoadFn(requiredFile, file);
 				} else {
 					var stack = Webos.require._stacks[file.get('path')];
 					var group = Webos.Operation.group(stack);
 					if (group.observables().length > 0 && !group.completed()) {
 						group.one('success', function() {
-							onLoadFn(file);
+							onLoadFn(requiredFile, file);
 						});
 						group.oneEach('error', function() {
 							callback.error();
 						});
 					} else {
-						onLoadFn(file);
+						onLoadFn(requiredFile, file);
 					}
 				}
 			} else if (file.get('extension') == 'css' || file.matchesMimeType('text/css')) {
-				Webos.Stylesheet.insertCss(contents, requiredFile.styleContainer);
-				onLoadFn(file);
+				var stylesheet = Webos.Stylesheet.insertCss(contents, requiredFile.styleContainer);
+				onLoadFn(requiredFile, file, stylesheet);
 			} else {
 				callback.error(Webos.Callback.Result.error('Unknown file type: "'+file.get('extension')+'" (file path: "'+file.get('path')+'")'));
 			}

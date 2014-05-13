@@ -237,9 +237,16 @@ Webos.require('/usr/lib/webos/config.js', function () {
 
 
 	Webos.Theme._current = null;
-	Webos.Theme.current = function() {
+	Webos.Theme.current = function () {
 		return Webos.Theme._current || new Webos.Theme(Webos.ConfigFile.get('~/.theme/'+Webos.UserInterface.Booter.current().name()+'/config.xml'));
 	};
+	Webos.Theme.getLoaded = function () {
+		return Webos.Theme._current;
+	};
+	Webos.Theme.isLoaded = function () {
+		return (!!Webos.Theme._current);
+	};
+
 	Webos.Theme._defaultBackground = '/usr/share/images/backgrounds/default.jpg';
 	Webos.Theme.defaultBackground = function() {
 		return Webos.Theme._defaultBackground;
@@ -250,7 +257,7 @@ Webos.require('/usr/lib/webos/config.js', function () {
 
 	Webos.Theme.get = function(callback) {
 		callback = Webos.Callback.toCallback(callback);
-		
+
 		var ui = Webos.UserInterface.Booter.current().name();
 		Webos.ConfigFile.loadUserConfig('~/.theme/'+ui+'/config.xml', '/usr/etc/uis/'+ui+'/config.xml', [function(config) {
 			var theme = new Webos.Theme(config);

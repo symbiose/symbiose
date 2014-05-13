@@ -205,7 +205,7 @@ Webos.UserInterface.current = function() {
  * @param  {Webos.Callback} callback The callback.
  */
 Webos.UserInterface.load = function(name, callback) {
-	var operation = new Webos.Operation();
+	var operation = Webos.Operation.create();
 	operation.addCallbacks(callback);
 
 	var lastLoadingMsg = '';
@@ -230,7 +230,7 @@ Webos.UserInterface.load = function(name, callback) {
 		if (error instanceof Webos.Error) {
 			msg += error.toString();
 		} else {
-			msg += error.name + ' : ' + error.message + '<br />Stack trace :<br />' + (error.stack || '').replace(/\n/g, '<br />') + '';
+			msg += error.name + ': ' + error.message + '<br />Stack trace:<br />' + (error.stack || '').replace(/\n/g, '<br />') + '';
 		}
 
 		Webos.UserInterface.writeConsole(msg);
@@ -384,7 +384,7 @@ Webos.UserInterface.showLoadingScreen = function() {
 
 	$(document).on('keyup.console.ui', function (e) {
 		if (e.which == 27) { //Esc
-			Webos.UserInterface.showConsole();
+			Webos.UserInterface.toggleConsole();
 		}
 	});
 };
@@ -445,6 +445,14 @@ Webos.UserInterface.hideConsole = function() {
 };
 
 /**
+ * Toggle the console.
+ * @since 1.0beta5
+ */
+Webos.UserInterface.toggleConsole = function() {
+	$('#webos-loading-console').toggle();
+};
+
+/**
  * A user interface booter.
  * It is able to start the UI.
  * @param {Object} data The booter's data.
@@ -459,6 +467,7 @@ Webos.UserInterface.Booter = function WUserInterfaceBooter(data, name) {
 	this._id = Webos.UserInterface.Booter._list.push(this) - 1;
 	this._name = name;
 	this._loaded = false;
+	this._stylesheets = [];
 
 	Webos.Observable.call(this);
 };
@@ -528,13 +537,14 @@ Webos.UserInterface.Booter.prototype = {
 		for (index in data.css) {
 			this.notify('loadstateupdate', { state: 'stylesheets', item: index });
 
-			//TODO: get style tags, revome them on unload
 			Webos.require({
 				path: index,
 				contents: data.css[index],
 				type: 'text/css',
-				forceExec: true,
-				styleContainer: '#userinterface-'+this.id()
+				styleContainer: '#userinterface-'+this.id(),
+				afterProcess: function (stylesheet) {
+					that._stylesheets.push(stylesheet);
+				}
 			});
 
 			i++;
@@ -652,6 +662,13 @@ Webos.UserInterface.Booter.prototype = {
 
 		//Il est plus rapide de vider l'element dans un premier temps, puis de l'enlever
 		this.element().empty().remove();
+
+		//Remove stylesheets
+		for (var i = 0; i < this._stylesheets.length; i++) {
+			Webos.Stylesheet.removeCss(this._stylesheets[i]);
+		}
+
+		this.notify('unload');
 	}
 };
 Webos.inherit(Webos.UserInterface.Booter, Webos.Observable);

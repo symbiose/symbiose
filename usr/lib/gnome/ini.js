@@ -1,3 +1,5 @@
+var booter = Webos.UserInterface.Booter.current();
+
 //On empeche de faire defiler la page
 $(document).scroll(function() {
 	$('body').scrollTop(0);
@@ -20,7 +22,7 @@ var loadThemeFn = function() { //Chargement du theme
 	});
 };
 
-Webos.User.bind('login logout', function() {
+Webos.User.on('login.ini.gnome logout.ini.gnome', function() {
 	loadThemeFn();
 });
 
@@ -32,10 +34,10 @@ var saveSession = function() {
 var reviveSession = function() {
 	Webos.Compiz.Reviver.revive([function() {}, function() {}]);
 };
-Webos.User.bind('beforelogout', function() {
+Webos.User.on('beforelogout.ini.gnome', function() {
 	saveSession();
 });
-Webos.User.bind('login', function() {
+Webos.User.on('login.ini.gnome', function() {
 	if (!$.webos.window.getWindows().length) { //Si aucune fenetre n'est ouverte
 		reviveSession();
 	}
@@ -51,7 +53,10 @@ Webos.Translation.load(function(t) {
 			desktopFiles = emptyDesktopFiles;
 		} else {
 			//On charge le contenu du bureau
-			Webos.require('/usr/lib/nautilus/widgets.js', function() {
+			Webos.require({
+				path: '/usr/lib/nautilus/widgets.js',
+				forceExec: true
+			}, function() {
 				var nautilusDesktopFiles = $.w.nautilus({
 					multipleWindows: true,
 					directory: t.get('~/Desktop'),
@@ -83,7 +88,7 @@ Webos.Translation.load(function(t) {
 		}, function() {}]);
 	};
 
-	Webos.User.bind('login logout', function(data) {
+	Webos.User.bind('login.ini.gnome logout.ini.gnome', function(data) {
 		loadDesktopFn(data.user);
 	});
 
@@ -93,3 +98,7 @@ Webos.Translation.load(function(t) {
 
 	reviveSession();
 }, 'gnome-shell');
+
+booter.once('unload', function () {
+	Webos.User.off('login.ini.gnome beforelogout.ini.gnome logout.ini.gnome');
+});
