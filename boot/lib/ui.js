@@ -534,6 +534,10 @@ Webos.UserInterface.Booter.prototype = {
 		var cssNbr = 0, index, i = 0;
 		for (index in data.css) { cssNbr++; }
 
+		var afterProcessCss = unction (stylesheet) {
+			that._stylesheets.push(stylesheet);
+		};
+
 		for (index in data.css) {
 			this.notify('loadstateupdate', { state: 'stylesheets', item: index });
 
@@ -542,9 +546,7 @@ Webos.UserInterface.Booter.prototype = {
 				contents: data.css[index],
 				type: 'text/css',
 				styleContainer: '#userinterface-'+this.id(),
-				afterProcess: function (stylesheet) {
-					that._stylesheets.push(stylesheet);
-				}
+				afterProcess: afterProcessCss
 			});
 
 			i++;
