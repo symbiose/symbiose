@@ -2924,7 +2924,7 @@ Webos.require([
 			return op;
 		},
 		disconnect: function () {
-			this._peer.disconnect();
+			this._peer.destroy();
 		},
 		_handleConnection: function (conn) {
 			var that = this, peer = this._peer;
