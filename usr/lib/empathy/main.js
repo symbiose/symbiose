@@ -457,7 +457,11 @@ Webos.require([
 
 				$contact.find('.contact-name').text(contact.name);
 				$contact.find('.contact-status').html('<span class="status-inner">'+readablePresence+'</span>');
-				$contact.find('.contact-picture').attr('src', contact.picture);
+				
+				var $picture = $contact.find('.contact-picture');
+				if ($picture.attr('src') != contact.picture) {
+					$picture.attr('src', contact.picture);
+				}
 
 				$contactActions.find('.action-url').toggle(!!contact.url);
 
@@ -1468,7 +1472,7 @@ Webos.require([
 				}));
 
 				var updatedContact = that.contact(contact.username);
-				if (updatedContact && updatedContact.presence && updatedContact.presence != 'offline') {
+				if (updatedContact && updatedContact.presence && updatedContact.presence != 'offline' && updatedContact.picture !== false) {
 					that._getContactPicture(connId, contact.username);
 				}
 			});
@@ -1479,13 +1483,16 @@ Webos.require([
 			var isLoggedInUser = (!!this._loggedInUsers[contact.username]),
 				currentContact = (isLoggedInUser) ? this._loggedInUsers[contact.username] : this._contacts[contact.username];
 
-			contact = $.extend({}, currentContact, {
+			contact = $.extend({
+				hasPicture: true
+			}, currentContact, {
 				username: contact.username,
 				conn: contact.conn,
 				name: contact.name,
 				presence: contact.presence,
 				priority: contact.priority,
 				picture: contact.picture,
+				hasPicture: contact.hasPicture,
 				url: contact.url
 			});
 
@@ -1494,6 +1501,9 @@ Webos.require([
 			contact.presence = contact.presence || 'offline';
 			contact.priority = Empathy.priorityFromPresence(contact.presence);
 
+			if (contact.picture === false) {
+				contact.hasPicture = false;
+			}
 			contact.picture = contact.picture || this._defaultContactIcon;
 
 			if (isLoggedInUser) {
@@ -1511,6 +1521,9 @@ Webos.require([
 
 			// Picture already loaded?
 			if (contact && contact.picture != this._defaultContactIcon) {
+				return;
+			}
+			if (contact && !contact.hasPicture) {
 				return;
 			}
 
@@ -1931,7 +1944,7 @@ Webos.require([
 		 * @param {Object} msg The message data.
 		 * @private
 		 */
-		receiveMessage: function (msg) {
+		_receiveMessage: function (msg) {
 			this.trigger('message messagereceived', msg);
 		},
 		/**
@@ -2690,6 +2703,8 @@ Webos.require([
 
 				if (img && type) {
 					contact.picture = 'data:'+type+';base64,'+img;
+				} else {
+					contact.picture = false;
 				}
 				if (fullname) {
 					contact.name = fullname;
@@ -2940,7 +2955,7 @@ Webos.require([
 							to: peer.id
 						});
 						break;
-					case 'file':
+					case 'file': //Receive a file
 						if (!data.contents || !data.contents.bytes || !window.Blob) {
 							break;
 						}
@@ -2954,6 +2969,42 @@ Webos.require([
 							from: conn.peer,
 							to: peer.id
 						});
+						break;
+					case 'contact': //Contact update
+						if (!data.contents || !data.contents.type) {
+							break;
+						}
+
+						if (data.contents.type == 'request') {
+							var sendPicture = function (imgUri) {
+								conn.send({
+									type: 'contact',
+									contents: {
+										type: 'response',
+										picture: imgUri || null
+									}
+								});
+							};
+
+							that.getContactPicture(peer.id).then(function (data) {
+								sendPicture(data.result);
+							}, function () {
+								sendPicture();
+							});
+						} else if (data.contents.type == 'response') {
+							var contact = {
+								username: conn.peer,
+								account: peer.id
+							};
+
+							if (typeof data.contents.picture != 'undefined') {
+								contact.picture = data.contents.picture || false;
+							}
+
+							that.trigger('contact', contact);
+						} else {
+							break;
+						}
 						break;
 					default:
 						console.warn('Empathy: Unknown PeerJS message type: '+data.type);
@@ -3114,7 +3165,38 @@ Webos.require([
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
 
-			op.setCompleted(false);
+			if (peerId == peer.id) {
+				Webos.User.getLogged([function (user) {
+					if (user) {
+						user.getAvatar([function (imgUri) {
+							op.setCompleted(imgUri);
+						}, function (resp) {
+							op.setCompleted(resp);
+						}]);
+					} else {
+						op.setCompleted(null);
+					}
+				}, function (resp) {
+					op.setCompleted(resp);
+				}]);
+				return op;
+			}
+
+			that._openConnection(peerId).on({
+				success: function (data) {
+					var conn = data.result;
+
+					conn.send({
+						type: 'contact',
+						contents: {
+							type: 'request'
+						}
+					});
+				},
+				error: function () {
+					op.setCompleted(false);
+				}
+			});
 
 			return op;
 		},
