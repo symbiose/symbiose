@@ -111,7 +111,8 @@ class PeerServer implements MessageComponentInterface {
 	protected function _sendMsgToClient(ConnectionInterface $from, $dst, $msg) {
 		$msgSent = false;
 
-		$src = $this->getPeerByConnId($from->resourceId)['id'];
+		$src = $this->getPeerByConnId($from->resourceId);
+		$src['id'];
 
 		try {
 			foreach($this->clients as $conn) {
@@ -149,7 +150,8 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	protected function _sendMsgToServer(ConnectionInterface $from, $dst, $msgData) {
-		$srcId = $this->getPeerByConnId($from->resourceId)['id'];
+		$srcId = $this->getPeerByConnId($from->resourceId);
+		$srcId['id'];
 		$src = $srcId.'@'.$this->hostname().':'.$this->port().'/peerjs';
 
 		$dstData = parse_url($dst);
@@ -198,8 +200,9 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	protected function _handleTransmission(ConnectionInterface $from, $msgData) {
-		$msgData['src'] = $this->getPeerByConnId($from->resourceId)['id'];
 
+		$msgData = $this->getPeerByConnId($from->resourceId);
+		$msgData['src']['id'];
 		$type = $msgData['type'];
 		$src = $msgData['src'];
 		$dst = (isset($msgData['dst'])) ? $msgData['dst'] : null;
