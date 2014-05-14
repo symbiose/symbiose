@@ -206,24 +206,32 @@
 			this.on('error', function(eventData) {
 				callbacks.fire('error', [eventData.result]);
 			});
+
+			return this;
 		},
 		/**
 		 * Abort this operation.
 		 */
 		abort: function () {
 			this.trigger('abort');
+
+			return this;
 		},
 		/**
 		 * Pause this operation.
 		 */
 		pause: function () {
 			this.trigger('pause');
+
+			return this;
 		},
 		/**
 		 * Resume this operation.
 		 */
 		resume: function () {
 			this.trigger('resume');
+
+			return this;
 		},
 		/**
 		 * Execute a callback then this operation is completed (success or error).
