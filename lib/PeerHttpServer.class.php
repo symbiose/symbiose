@@ -12,6 +12,8 @@ use \Exception;
  * HTTP PeerJS server.
  */
 class PeerHttpServer implements HttpServerInterface {
+	const PEERID_LENGTH = 10;
+
 	protected $peerServer;
 
 	public function __construct(PeerServer $peerServer) {
@@ -43,7 +45,7 @@ class PeerHttpServer implements HttpServerInterface {
 
 				if ($peerId === null) {
 					do {
-						$peerId = sha1(uniqid('', true) . mt_rand());
+						$peerId = substr(sha1(uniqid('', true) . mt_rand()), 0, self::PEERID_LENGTH);
 					} while ($this->peerServer->peerIdExists($peerId));
 				}
 
