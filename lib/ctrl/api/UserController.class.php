@@ -252,6 +252,25 @@ class UserController extends \lib\ApiBackController {
 	}
 
 	/**
+	 * Get a user's profile picture.
+	 * @param  int $userId The user id.
+	 */
+	public function executeGetAvatar($userId = null) {
+		$avatarManager = $this->managers()->getManagerOf('userAvatar');
+
+		$data = array('avatar' => null);
+		$userId = $this->_autocompleteUserId($userId);
+
+		if (!$avatarManager->exists($userId)) {
+			return $data;
+		}
+
+		$data['avatar'] = $avatarManager->getById($userId);
+
+		return $data;
+	}
+
+	/**
 	 * Get stats about users.
 	 */
 	public function executeGetStats() {

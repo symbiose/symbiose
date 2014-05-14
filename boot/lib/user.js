@@ -82,6 +82,40 @@ Webos.User.prototype = {
 		return this.getAuthorizations(callback);
 	},
 	/**
+	 * Get this user's profile picture.
+	 * @param  {Webos.Callback} callback
+	 * @return {Webos.Operation}
+	 */
+	getAvatar: function (callback) {
+		var op = Webos.Operation.create().addCallbacks(callback);
+
+		if (typeof this._avatar != 'undefined') {
+			op.setCompleted(this._avatar);
+			return op;
+		}
+
+		var that = this;
+
+		new Webos.ServerCall({
+			'class': 'UserController',
+			'method': 'getAvatar',
+			'arguments': {
+				'user': this.id()
+			}
+		}).load([function(resp) {
+			var data = resp.getData(),
+				avatar = data.avatar;
+			
+			that._avatar = avatar;
+
+			op.setCompleted(avatar);
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	},
+	/**
 	 * Set this user's real name.
 	 * @param   {String} value The real name.
 	 * @returns {Boolean}      False if there was an error, true otherwise.
