@@ -1203,6 +1203,9 @@ Webos.require([
 							this.connect(account);
 						} else {
 							var service = Empathy.service(account.service);
+							if (!service) {
+								return;
+							}
 
 							var $askPasswordWin = $.w.window({
 								title: 'Logging in '+account.username+' to '+service.title,
