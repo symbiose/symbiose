@@ -5,6 +5,7 @@
 /var/lib/jsondb/core/users.json
 /var/lib/jsondb/core/users_permissions.json
 /.git-ftp-ignore
+/.transifexrc
 /composer.phar
 .git.sav
 /build/

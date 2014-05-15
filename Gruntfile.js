@@ -25,6 +25,26 @@ module.exports = function(grunt) {
 				}
 			}
 		},
+		transifex: {
+			webos: {
+				options: {
+					targetDir: 'build/usr/share/locale',
+					filename : '_lang_/_resource_.ini',
+					project: 'symbiose-webos',
+					templateFn: function (strings) {
+						var output = '';
+
+						for (var i = 0; i < strings.length; i++) {
+							var string = strings[i];
+
+							output += string.key+'='+string.translation+'\n';
+						}
+
+						return output;
+					}
+				}
+			}
+		},
 		clean: {
 			tmp: {
 				src: ['tmp/**/*']
@@ -126,6 +146,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-convert');
+	grunt.loadNpmTasks('grunt-transifex');
 
 	grunt.registerTask('gen-boot', 'Concatenate boot files.', function() {
 		var bootIncludes = grunt.file.readJSON('etc/boot-includes.json'), bootIncludesList = [];
