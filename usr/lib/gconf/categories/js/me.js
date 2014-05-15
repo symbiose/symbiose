@@ -1,9 +1,6 @@
 var confWindow = args.getParam(0);
 var content = confWindow.window('content');
 
-var confWindow = args.getParam(0);
-var content = confWindow.window('content');
-
 confWindow.window('dialog', true);
 confWindow.window('stylesheet', '/usr/share/css/gconf/categories/users.css');
 
@@ -16,7 +13,30 @@ confWindow.window('stylesheet', '/usr/share/css/gconf/categories/users.css');
 	var editBtns = {};
 
 	var editUser_name_container = $.w.container().appendTo(editUser);
-	var editUser_picture = $('<img />', { src: new W.Icon('stock/person'), 'class': 'userpicture' }).appendTo(editUser_name_container);
+	var editUser_picture = $('<img />', { 'src': new W.Icon('stock/person') }).css({
+		maxHeight: '48px',
+		maxWidth: '48px'
+	});
+	var editUser_picture_btn = $.w.button(editUser_picture).addClass('userpicture').click(function () {
+		new NautilusFileSelectorWindow({
+			parentWindow: confWindow,
+			mime_type: 'image/png'
+		}, function(files) {
+			if (files.length) {
+				var file = files[0];
+
+				confWindow.window('loading', true);
+				file.readAsDataUrl([function (dataUrl) {
+					user.setAvatar(dataUrl).always(function () {
+						confWindow.window('loading', false);
+					});
+				}, function (resp) {
+					confWindow.window('loading', false);
+					resp.triggerError();
+				}]);
+			}
+		});
+	}).appendTo(editUser_name_container);
 	editUser_realname = $.w.label();
 	editBtns.realname = $.w.button().appendTo(editUser_realname);
 	var editUser_name_title = $('<h2></h2>').append(editUser_realname).appendTo(editUser_name_container);
@@ -199,6 +219,10 @@ confWindow.window('stylesheet', '/usr/share/css/gconf/categories/users.css');
 				editBtns.username.button('option', 'label', user.get('username'));
 				editBtns.email.button('option', 'label', user.get('email'));
 				editBtns.password.button('option', 'label', '&#x26ab;&#x26ab;&#x26ab;&#x26ab;&#x26ab;&#x26ab;&#x26ab;');
+
+				user.getAvatar(function (imgUri) {
+					editUser_picture.attr('src', imgUri || new W.Icon('stock/person'));
+				});
 			};
 
 			user.on('update', function() {

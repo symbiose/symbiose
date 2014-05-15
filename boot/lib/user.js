@@ -116,6 +116,35 @@ Webos.User.prototype = {
 		return op;
 	},
 	/**
+	 * Set this user's profile picture.
+	 * @param {String} imgUri The profile picture URI.
+	 * @param  {Webos.Callback} callback
+	 * @return {Webos.Operation}
+	 */
+	setAvatar: function (imgUri, callback) {
+		var op = Webos.Operation.create().addCallbacks(callback);
+
+		var that = this;
+
+		new Webos.ServerCall({
+			'class': 'UserController',
+			'method': 'setAvatar',
+			'arguments': {
+				'imgUri': imgUri,
+				'user': this.id()
+			}
+		}).load([function(resp) {
+			that._avatar = imgUri;
+
+			op.setCompleted();
+			that.notify('update', { avatar: imgUri });
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	},
+	/**
 	 * Set this user's real name.
 	 * @param   {String} value The real name.
 	 * @returns {Boolean}      False if there was an error, true otherwise.

@@ -430,6 +430,19 @@ class UserController extends \lib\ApiBackController {
 	}
 
 	/**
+	 * Set a user's profile picture.
+	 * @param string $imgUri The profile picture data URL.
+	 * @param int $userId The user id.
+	 */
+	public function executeSetAvatar($imgUri, $userId = null) {
+		$avatarManager = $this->managers()->getManagerOf('userAvatar');
+
+		$userId = $this->_autocompleteUserId($userId);
+
+		$avatarManager->setById($userId, $imgUri);
+	}
+
+	/**
 	 * Edit a user's authorizations.
 	 * @param array  $authsList  A list of authorizations.
 	 * @param int    $userId     The user id. If not provided, the user will be the logged in one.

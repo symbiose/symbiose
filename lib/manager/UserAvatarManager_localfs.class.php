@@ -2,12 +2,15 @@
 namespace lib\manager;
 
 use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Manage users' avatars.
  */
-abstract class UserAvatarManager_localfs extends UserAvatarManager {
+class UserAvatarManager_localfs extends UserAvatarManager {
 	const AVATARS_DIR = '/var/lib/users-avatars';
+	//const MAX_SIZE_PX = 150;
+	const MAX_SIZE_BYTES = 51200; // 50 * 1024
 
 	protected function getAvatarPath($userId) {
 		if (!is_int($userId)) {
@@ -36,8 +39,21 @@ abstract class UserAvatarManager_localfs extends UserAvatarManager {
 			throw new InvalidArgumentException('Invalid user profile picture "'.$imgData.'"');
 		}
 
-		$base64Data = substr($imgData, strlen($dataUriStart) + 1);
+		$base64Data = substr($imgData, strlen($dataUriStart));
 		$binaryData = base64_decode($base64Data);
+
+		/*if (function_exists('getimagesizefromstring')) {
+			$imgSize = getimagesizefromstring($binaryData);
+
+			if ($imgSize[0] > self::MAX_SIZE_PX || $imgSize[1] > self::MAX_SIZE_PX) {
+				throw new RuntimeException('Profile picture too large (provided: '.$imgSize[0].'x'.$imgSize[1].', max size: '.self::MAX_SIZE_PX.')');
+			}
+		}*/
+
+		$imgSize = strlen($binaryData);
+		if ($imgSize > self::MAX_SIZE_BYTES) {
+			throw new RuntimeException('Profile picture too large (provided: '.$imgSize.' bytes, max size: '.self::MAX_SIZE_BYTES.' bytes)');
+		}
 
 		if (!$this->dao->isDir(self::AVATARS_DIR)) {
 			$this->dao->mkdir(self::AVATARS_DIR, true);

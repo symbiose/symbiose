@@ -36,6 +36,10 @@
 		"argument":0,
 		"permission":"user.edit"
 	}],
+	"executeSetAvatar":[{
+		"argument":1,
+		"permission":"user.edit"
+	}],
 	"executeSetAuthorizations":[{
 		"argument":0,
 		"permission":"user.manage"
