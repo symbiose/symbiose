@@ -722,6 +722,12 @@ new Webos.Locale({
 	}
 }, 'es_ES');
 
+//Polish
+new Webos.Locale({
+	title: 'Polish'
+}, {}, 'pl_PL');
+
+
 //When the user logs in/out, reinitialize the language and the locale
 Webos.User.bind('login logout', function() {
 	Webos.Translation._language = null;
