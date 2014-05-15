@@ -334,7 +334,14 @@ Webos.require([
 				'manifestUrl': manifestUrl
 			}
 		}).load([function(res) {
-			var manifest = $.parseJSON(res.getData().manifest);
+			var manifest = null;
+
+			try { // trim() is important because of invisible chars causing JSON errors
+				manifest = $.parseJSON(res.getData().manifest.trim())
+			} catch (e) {
+				callback.error(W.Callback.Result.error('Cannot parse app manifest: '+e));
+				return;
+			}
 
 			callback.success(manifest);
 		}, callback.error]);
