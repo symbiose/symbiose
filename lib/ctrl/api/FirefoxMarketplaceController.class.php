@@ -85,7 +85,7 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 
 		//Download icons
 		$isIconDownloaded = false;
-		$iconName = 'firefox-marketplace.'.$appData['slug'];
+		$iconName = 'firefox-marketplace-'.$appData['slug'];
 		if (function_exists('curl_init')) {
 			$ch = curl_init();
 		}
@@ -188,7 +188,7 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 		$appData = $appDataFile->read();
 
 		//Remove icons
-		$iconName = 'firefox-marketplace.'.$appName;
+		$iconName = 'firefox-marketplace-'.$appName;
 		foreach($appData['app']['icons'] as $iconSize => $iconUrl) {
 			$iconPath = '/usr/share/icons/applications/'.((int) $iconSize).'/'.$iconName.'.png';
 
