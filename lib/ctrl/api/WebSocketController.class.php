@@ -89,6 +89,10 @@ class WebSocketController extends \lib\ApiBackController {
 
 		$cmd = 'php "'.$webosRoot.'/'.$this->serverScript.'"';
 		$pidFile = self::SERVER_PID_FILE;
+		$pidFileDir = $fileManager->dirname($pidFile);
+		if (!$fileManager->isDir($pidFileDir)) {
+			$fileManager->mkdir($pidFileDir, true);
+		}
 
 		$pid = shell_exec('nohup '.$cmd.' > "'.$webosRoot.'/'.self::SERVER_LOG_FILE.'" 2>&1 & echo $!');
 		chmod($webosRoot.'/'.self::SERVER_LOG_FILE, 0777);
