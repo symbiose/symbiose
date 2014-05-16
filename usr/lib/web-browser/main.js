@@ -29,7 +29,8 @@
 				'base64_encode'   : true,
 				'strip_meta'      : false,
 				'strip_title'     : false,
-				'session_cookies' : true
+				'session_cookies' : true,
+				'allow_304' 	  : true
 			}
 		},
 		_settingsPreviousUrl: '',
