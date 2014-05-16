@@ -30,6 +30,7 @@ input[type="button"], input[type="submit"], .webos-button {
 	min-height: 25px;
 	font-size: 1.1em;
 	font-weight: normal;
+	line-height: 20pt;
 	display: inline-block;
 	position: relative;
 	margin-left: .1em;
