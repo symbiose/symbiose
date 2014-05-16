@@ -174,10 +174,7 @@ Webos.Translation.load(function(t) {
 			desktopFiles = emptyDesktopFiles;
 		} else {
 			//On charge le contenu du bureau
-			Webos.require({
-				path: '/usr/lib/nautilus/widgets.js',
-				forceExec: true
-			}, function() {
+			Webos.require('/usr/lib/nautilus/widgets.js', function() {
 				var nautilusDesktopFiles = $.w.nautilus({
 					multipleWindows: true,
 					directory: t.get('~/Desktop'),

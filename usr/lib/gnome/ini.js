@@ -1,12 +1,12 @@
 var booter = Webos.UserInterface.Booter.current();
 
-//On empeche de faire defiler la page
-$(document).scroll(function() {
+//Prevent from scrolling
+$(window).add(document).scroll(function() {
 	$('body').scrollTop(0);
 });
 
 var rootEl = Webos.UserInterface.Booter.current().element();
-rootEl.scroll(function () { //Prevent from scrolling
+rootEl.scroll(function () {
 	if (rootEl.scrollTop() > 0) {
 		rootEl.scrollTop(0);
 	}
@@ -53,10 +53,7 @@ Webos.Translation.load(function(t) {
 			desktopFiles = emptyDesktopFiles;
 		} else {
 			//On charge le contenu du bureau
-			Webos.require({
-				path: '/usr/lib/nautilus/widgets.js',
-				forceExec: true
-			}, function() {
+			Webos.require('/usr/lib/nautilus/widgets.js', function() {
 				var nautilusDesktopFiles = $.w.nautilus({
 					multipleWindows: true,
 					directory: t.get('~/Desktop'),

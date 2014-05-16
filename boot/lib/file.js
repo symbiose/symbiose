@@ -1544,19 +1544,29 @@ Webos.WebosFile.prototype = {
 		}, callback.error]);
 	},
 	readAsText: function(callback) {
-		var that = this;
-		callback = Webos.Callback.toCallback(callback);
+		var that = this, op;
+
+		if (this._readAsTextOperation) {
+			op = this._readAsTextOperation;
+			op.addCallbacks(callback);
+			return op;
+		}
+
+		op = Webos.Operation.create().addCallbacks(callback);
 
 		if (!this.checkAuthorization('read', callback)) {
-			return false;
+			op.setCompleted(false);
+			return op;
 		}
 		
 		if (typeof this._contents != 'undefined') {
-			callback.success(this._contents);
-			return;
+			op.setCompleted(this._contents);
+			return op;
 		}
 
-		return new Webos.ServerCall({
+		this._readAsTextOperation = op;
+
+		new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'getContents',
 			arguments: {
@@ -1570,13 +1580,19 @@ Webos.WebosFile.prototype = {
 				is_dir: false
 			});
 
+			delete that._readAsTextOperation;
+
 			var contents = response.getStandardChannel();
 			that._contents = contents;
-			callback.success(contents);
+			op.setCompleted(contents);
 
 			that.notify('updatecontents', { contents: contents });
 			Webos.File.notify('load', { file: that });
-		}, callback.error]);
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
 	},
 	contents: function(callback) {
 		var that = this;

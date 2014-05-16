@@ -252,6 +252,10 @@ Webos.require = function (files, callback, options) {
 			fileData.afterProcess(arg);
 		}
 
+		if (file && !Webos.require._cache[fileData.path]) { //Not cached
+			Webos.require._cache[fileData.path] = file;
+		}
+
 		loadedFiles++;
 
 		if (file) {
@@ -338,14 +342,22 @@ Webos.require = function (files, callback, options) {
 			return;
 		}
 
-		if (requiredFile.path) {
-			if (!Webos.require._cache[requiredFile.path]) {
-				Webos.require._cache[requiredFile.path] = file;
-			} else if (!requiredFile.forceExec && file.matchesMimeType('text/javascript')) {
-				console.info('Not re-executing script: '+requiredFile.path);
-				onLoadFn(requiredFile, file);
-				return;
+		var checkCache = function () {
+			if (requiredFile.path) {
+				if (Webos.require._cache[requiredFile.path]) { //Cached
+					if (!requiredFile.forceExec && file.matchesMimeType('text/javascript')) {
+						console.info('Not re-executing script: '+requiredFile.path);
+						onLoadFn(requiredFile, file);
+						return true;
+					} else if (requiredFile.forceExec) {
+						console.warn('Re-executing script: '+requiredFile.path);
+					}
+				}
 			}
+		};
+
+		if (checkCache()) {
+			return;
 		}
 
 		var processFile = function (contents) {
@@ -360,6 +372,10 @@ Webos.require = function (files, callback, options) {
 					processFile(contents);
 				}
 				onLoadFn(requiredFile, file);
+				return;
+			}
+
+			if (checkCache()) {
 				return;
 			}
 
