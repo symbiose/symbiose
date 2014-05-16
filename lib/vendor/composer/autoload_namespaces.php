@@ -19,6 +19,7 @@ return array(
     'Guzzle\\Parser' => array($vendorDir . '/guzzle/parser'),
     'Guzzle\\Http' => array($vendorDir . '/guzzle/http'),
     'Guzzle\\Common' => array($vendorDir . '/guzzle/common'),
+    'FSi\\Component\\ACL' => array($vendorDir . '/fsi/acl/lib'),
     'Evenement' => array($vendorDir . '/evenement/evenement/src'),
     'CssMin' => array($vendorDir . '/nitra/php-min/CssMin'),
 );

@@ -1,0 +1,23 @@
+{
+    "name": "fsi/acl",
+    "type": "library",
+    "description": "FSi ACL Component",
+    "keywords": ["fsi", "component", "acl"],
+    "authors": [
+        {
+            "name": "Lukasz Cybula",
+            "email": "lukasz@fsi.pl"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "require-dev": {
+        "monolog/monolog": "1.2.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "FSi\\Component\\ACL": "lib/"
+        }
+    }
+}

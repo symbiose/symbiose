@@ -1,0 +1,5 @@
+/vendor
+/tests/temp
+composer.lock
+composer.phar
+autoload.php
