@@ -343,7 +343,7 @@ Webos.require = function (files, callback, options) {
 		}
 
 		var checkCache = function () {
-			if (requiredFile.path) {
+			if (requiredFile.path && typeof requiredFile.process != 'function') {
 				if (Webos.require._cache[requiredFile.path]) { //Cached
 					if (!requiredFile.forceExec && file.matchesMimeType('text/javascript')) {
 						console.info('Not re-executing script: '+requiredFile.path);
