@@ -619,7 +619,7 @@ Webos.Terminal.parseCmd = (function () {
 			white();
 			cmd.args = args();
 
-			cmd.cmd = text.substr(fromIndex, at);
+			cmd.cmd = text.substr(fromIndex, at - 1).trim();
 
 			return cmd;
 		},
