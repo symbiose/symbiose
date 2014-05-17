@@ -361,7 +361,9 @@ Webos.Terminal.prototype = {
 
 		this._output = '';
 
-		var stack = [];
+		var stack = [],
+			i;
+
 		if (typeof cmd == 'string') {
 			stack = Webos.Terminal.parseCmd(cmd);
 		} else if (typeof cmd === 'object') {
@@ -369,13 +371,13 @@ Webos.Terminal.prototype = {
 				cmd = [cmd];
 			}
 
-			for (var i = 0; i < cmd.length; i++) {
+			for (i = 0; i < cmd.length; i++) {
 				stack.push(cmd[i]);
 			}
 		}
 
-		var i = -1,
-			current;
+		var current;
+		i = -1;
 
 		var nextCmd = function () {
 			i++;
