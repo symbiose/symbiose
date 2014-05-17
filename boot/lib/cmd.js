@@ -652,7 +652,7 @@ Webos.Terminal.parseCmd = (function () {
 				c.outputs = [];
 
 				output.push(c);
-console.log(c);
+
 				while (true) {
 					if (ch === '>') {
 						c.outputs.push(writeOutput());
