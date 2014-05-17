@@ -5,17 +5,17 @@ var GConf = function (category) {
 
 	var that = this;
 
-	this.bind('translationsloaded', function() {
+	this.once('translationsloaded', function() {
 		var that = this, t = this._translations;
 
 		this._window = $.w.window.main({
 			title: t.get('System settings'),
 			resizable: false,
-			icon: new W.Icon('apps/administration'),
+			icon: 'apps/administration',
 			stylesheet: '/usr/share/css/gconf/main.css',
 			width: 740
 		});
-		
+
 		this._categories = undefined;
 		
 		this._showCategories = function(categories) {
@@ -149,9 +149,7 @@ var GConf = function (category) {
 				path: '/usr/lib/gconf/categories/js/'+name+'.js',
 				context: thisProcess,
 				arguments: {
-					args: new W.Arguments({
-						params: [that._window]
-					})
+					args: new W.Arguments([that._window])
 				},
 				process: function () {
 					that._window.window('loading', false);

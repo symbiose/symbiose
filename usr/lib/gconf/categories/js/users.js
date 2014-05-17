@@ -26,21 +26,21 @@ var editUser_disabled = $.w.label().appendTo(editUser);
 var editUser_authorizations = $.w.label().appendTo(editUser);
 editUser.append('<br />');
 var editUser_password_container = $.w.container().appendTo(editUser);
-$('<strong></strong>').html('Options de connexion').appendTo(editUser_password_container);
+$('<strong></strong>').html('Connection options').appendTo(editUser_password_container);
 var editUser_password = $.w.label().appendTo(editUser_password_container);
 
 var editables = {
 	'realname': {
 		element: editUser_name,
 		container: editUser_name_container,
-		label: 'Nom r&eacute;el : ',
+		label: 'Display name: ',
 		onEdit: function(user, realname) {
 			if (realname == user.get('realname')) {
 				return;
 			}
 			
 			if (!user.set('realname', realname)) {
-				W.Error.trigger('Impossible de modifier le nom r&eacute;el de l\'utilisateur "'+user.get('username')+'"');
+				W.Error.trigger('Cannot change the display name of "'+user.get('username')+'"');
 				return;
 			}
 			
@@ -50,20 +50,20 @@ var editables = {
 				confWindow.window('loading', false);
 			}, function(response) {
 				confWindow.window('loading', false);
-				response.triggerError('Impossible de modifier l\'utilisateur "'+user.get('username')+'"');
+				response.triggerError('Cannot edit user "'+user.get('username')+'"');
 			}));
 		}
 	},
 	'username': {
 		element: editUser_username,
-		label: 'Nom d\'utilisateur : ',
+		label: 'Username: ',
 		onEdit: function(user, username) {
 			if (username == user.get('username')) {
 				return;
 			}
 			
 			if (!user.set('username', username)) {
-				W.Error.trigger('Impossible de modifier l\'identifiant de l\'utilisateur "'+user.get('username')+'"');
+				W.Error.trigger('Cannot change the username of "'+user.get('username')+'"');
 				return;
 			}
 			
@@ -73,20 +73,20 @@ var editables = {
 				confWindow.window('loading', false);
 			}, function(response) {
 				confWindow.window('loading', false);
-				response.triggerError('Impossible de modifier l\'utilisateur "'+user.get('username')+'"');
+				response.triggerError('Cannot edit user "'+user.get('username')+'"');
 			}));
 		}
 	},
 	'email': {
 		element: editUser_email,
-		label: 'E-mail : ',
+		label: 'E-mail: ',
 		onEdit: function(user, email) {
 			if (email == user.get('email')) {
 				return;
 			}
 			
 			if (!user.set('email', email)) {
-				W.Error.trigger('Impossible de modifier l\'email de l\'utilisateur "'+user.get('username')+'"');
+				W.Error.trigger('Cannot change the e-mail of "'+user.get('username')+'"');
 				return;
 			}
 			
@@ -96,19 +96,19 @@ var editables = {
 				confWindow.window('loading', false);
 			}, function(response) {
 				confWindow.window('loading', false);
-				response.triggerError('Impossible de modifier l\'utilisateur "'+user.get('username')+'"');
+				response.triggerError('Cannot edit user "'+user.get('username')+'"');
 			}));
 		}
 	},
 	'disabled': {
 		element: editUser_disabled,
 		type: 'boolean',
-		label: 'Compte d&eacute;sactiv&eacute;',
+		label: 'Account disabled: ',
 		multiEdit: true,
 		onEdit: function(users, value) {
 			users.each(function() {
 				if (!this.set('disabled', value)) {
-					W.Error.trigger('Impossible de modifier la d&eacute;sactivation de l\'utilisateur "'+user.get('username')+'"');
+					W.Error.trigger('Cannot enable or disable user "'+user.get('username')+'"');
 					return false;
 				}
 			});
@@ -128,21 +128,21 @@ var editables = {
 			});
 			group.oneEach('error', function(data) {
 				confWindow.window('loading', false);
-				data.result.triggerError('Impossible de modifier les utilisateurs s&eacute;lectionn&eacute;s');
+				data.result.triggerError('Cannot edit selected users');
 			});
 		}
 	},
 	'authorizations': {
 		element: editUser_authorizations,
 		type: 'authorizations',
-		label: 'Type de compte : ',
+		label: 'Permissions: ',
 		multiEdit: true,
 		onEdit: function(users, selection) {
 			confWindow.window('loading', true);
 
 			var showAuthSelector = function showAuthSelector(auth, callback) {
 				var editAuthorizationsWindow = $.w.window.dialog({
-					title: 'Modification des autorisations',
+					title: 'Editing permissions',
 					parentWindow: confWindow,
 					resizable: false
 				});
@@ -160,10 +160,10 @@ var editables = {
 				}
 				
 				var buttonContainer = $.w.buttonContainer().appendTo(form);
-				$.webos.button('Annuler').click(function() {
+				$.webos.button('Cancel').click(function() {
 					editAuthorizationsWindow.window('close');
 				}).appendTo(buttonContainer);
-				$.webos.button('Valider', true).appendTo(buttonContainer);
+				$.webos.button('Submit', true).appendTo(buttonContainer);
 				
 				form.submit(function() {
 					var authorizations = [];
@@ -197,7 +197,7 @@ var editables = {
 				});
 				group.oneEach('error', function(data) {
 					confWindow.window('loading', false);
-					data.result.triggerError('Impossible de modifier les autorisations des utilisateurs s&eacute;lectionn&eacute;s');
+					data.result.triggerError('Cannot change users permissions');
 				});
 			};
 
@@ -223,37 +223,37 @@ var editables = {
 			}
 		},
 		choices: {
-			'user': 'Utilisateur limit&eacute;',
-			'admin': 'Administrateur',
-			'guest': 'Visiteur',
-			'select': 'Autorisations sp&eacute;cifiques'
+			'user': 'Limited user',
+			'admin': 'Administrator',
+			'guest': 'Guest',
+			'select': 'Custom...'
 		}
 	},
 	'password': {
 		element: editUser_password,
 		container: editUser_password_container,
 		type: 'password',
-		label: 'Mot de passe : ',
+		label: 'Password: ',
 		onShowEdit: function(user) {
 			var editPasswordWindow = $.w.window.dialog({
-				title: 'Modification du mot de passe',
+				title: 'Change password',
 				parentWindow: confWindow,
 				resizable: false
 			});
 			
 			var form = $.w.entryContainer().appendTo(editPasswordWindow.window('content'));
 			
-			var actualPassword = $.w.passwordEntry('Mot de passe actuel :').appendTo(form);
-			var newPassword = $.w.passwordEntry('Nouveau mot de passe :').appendTo(form);
-			$.w.label('Fiabilit&eacute; du mot de passe :').appendTo(form);
+			var actualPassword = $.w.passwordEntry('Current password: ').appendTo(form);
+			var newPassword = $.w.passwordEntry('New password: ').appendTo(form);
+			$.w.label('Password strength: ').appendTo(form);
 			var passwordPowerIndicator = $.webos.progressbar().appendTo(form);
-			var verifNewPassword = $.w.passwordEntry('Confirmez le mot de passe :').appendTo(form);
+			var verifNewPassword = $.w.passwordEntry('Confirm password: ').appendTo(form);
 			
 			var buttonContainer = $.w.buttonContainer().appendTo(form);
-			$.webos.button('Annuler').click(function() {
+			$.webos.button('Cancel').click(function() {
 				editPasswordWindow.window('close');
 			}).appendTo(buttonContainer);
-			var applyButton = $.webos.button('Valider', true).button('disabled', true).appendTo(buttonContainer);
+			var applyButton = $.webos.button('Submit', true).button('disabled', true).appendTo(buttonContainer);
 			
 			newPassword.keyup(function() {
 				var passwordPower = Webos.User.evalPasswordPower(newPassword.passwordEntry('value'));
@@ -292,7 +292,7 @@ var editables = {
 					confWindow.window('loading', false);
 				}, function(response) {
 					confWindow.window('loading', false);
-					response.triggerError('Impossible de modifier le mot de passe de l\'utilisateur "'+user.get('username')+'"');
+					response.triggerError('Cannot change password of "'+user.get('username')+'"');
 				}));
 			});
 			
@@ -340,16 +340,16 @@ var enableUserEditFn = function(users) {
 
 			switch(editable.type) {
 				case 'password':
-					editButton = $.w.button('Modifier');
+					editButton = $.w.button('Edit');
 					editEntry = $.w.passwordEntry(editable.label);
-					editEntry.append($.w.button('Valider', true));
+					editEntry.append($.w.button('Submit', true));
 					break;
 				case 'authorizations':
 					editEntry = $.w.selectButton(editable.label, editable.choices).bind('change', function() {
 						editArea.submit();
 					}).selectButton('value', 'select');
-					editEntry.append($.w.button('Valider', true));
-					editButton = $.w.button('Modifier');
+					editEntry.append($.w.button('Submit', true));
+					editButton = $.w.button('Edit');
 
 					if (collection.length() == 1) {
 						collection.item(0).authorizations(new W.Callback(function(auth) {
@@ -369,20 +369,20 @@ var enableUserEditFn = function(users) {
 						}
 					});
 
-					var label = 'Modifier';
+					var label = 'Edit';
 					if (usersEnabled === true) {
-						label = 'Oui';
+						label = 'Yes';
 					} else if (usersEnabled === false) {
-						label = 'Non';
+						label = 'No';
 					}
 
 					editButton = $.w.button(label);
 					editEntry = $.w.checkButton(editable.label).checkButton('value', usersEnabled);
-					editEntry.append($.w.button('Valider', true));
+					editEntry.append($.w.button('Submit', true));
 					break;
 				case 'varchar':
 				default:
-					var label = 'Modifier', entryValue = '';
+					var label = 'Edit', entryValue = '';
 					if (collection.length() == 1) {
 						label = collection.item(0).get(key) || 'Vide';
 						entryValue = collection.item(0).get(key) || '';
@@ -390,7 +390,7 @@ var enableUserEditFn = function(users) {
 
 					editButton = $.w.button(label);
 					editEntry = $.w.textEntry(editable.label).textEntry('value', entryValue);
-					editEntry.append($.w.button('Valider', true));
+					editEntry.append($.w.button('Submit', true));
 			}
 
 			editArea.append(editEntry);
@@ -419,12 +419,12 @@ var enableUserEditFn = function(users) {
 						break;
 					case 'boolean':
 						newValue = editEntry.checkButton('value');
-						editButton.text((newValue) ? 'Oui' : 'Non');
+						editButton.text((newValue) ? 'Yes' : 'No');
 						break;
 					case 'varchar':
 					default:
 						newValue = editEntry.textEntry('value');
-						editButton.text(newValue || 'Vide');
+						editButton.text(newValue || 'Empty');
 				}
 				
 				editable.element.show();
@@ -451,13 +451,13 @@ var disableUserEditFn = function() {
 
 var createUserFn = function() {
 	var createUserWindow = $.w.window.dialog({
-		title: 'Cr&eacute;ation d\'un utilisateur',
+		title: 'Create a new user',
 		parentWindow: confWindow,
 		resizable: false
 	});
-	
+
 	var form = $.w.entryContainer().appendTo(createUserWindow.window('content'));
-	
+
 	var checkFormFns = [];
 	var checkFormFn = function() {
 		for (var i = 0; i < checkFormFns.length; i++) {
@@ -476,10 +476,10 @@ var createUserFn = function() {
 			switch(editable.type) {
 				case 'password':
 					editEntry = $.w.label();
-					var newPassword = $.w.passwordEntry('Nouveau mot de passe :').appendTo(editEntry);
-					$.w.label('Fiabilit&eacute; du mot de passe :').appendTo(editEntry);
+					var newPassword = $.w.passwordEntry('New password: ').appendTo(editEntry);
+					$.w.label('Password strength: ').appendTo(editEntry);
 					var passwordPowerIndicator = $.webos.progressbar().appendTo(editEntry);
-					var verifNewPassword = $.w.passwordEntry('Confirmez le mot de passe :').appendTo(editEntry);
+					var verifNewPassword = $.w.passwordEntry('Confirm password: ').appendTo(editEntry);
 					
 					newPassword.keyup(function() {
 						var passwordPower = Webos.User.evalPasswordPower(newPassword.passwordEntry('value'));
@@ -522,10 +522,10 @@ var createUserFn = function() {
 	}
 	
 	var buttonContainer = $.w.buttonContainer().appendTo(form);
-	$.webos.button('Annuler').click(function() {
+	$.webos.button('Cancel').click(function() {
 		createUserWindow.window('close');
 	}).appendTo(buttonContainer);
-	var applyButton = $.webos.button('Valider', true).button('disabled', true).appendTo(buttonContainer);
+	var applyButton = $.webos.button('Submit', true).button('disabled', true).appendTo(buttonContainer);
 	
 	form.keyup(function() {
 		if (checkFormFn() !== true) {
@@ -630,9 +630,9 @@ var refreshUsersListFn = function() {
 				return;
 			} else if (usersBeingEdited.length() == 1) {
 				var user = usersBeingEdited.item(0);
-				msg = '&Ecirc;tes-vous s&ucirc;r de vouloir supprimer l\'utilisateur <em>'+user.get('username')+'</em> ?';
+				msg = 'Do you really want to delete the user <em>'+user.get('username')+'</em>?';
 			} else {
-				msg = '&Ecirc;tes-vous s&ucirc;r de vouloir supprimer les '+usersBeingEdited.length()+' utilisateurs s&eacute;lectionn&eacute;s ?';
+				msg = 'Do you really want to delete '+usersBeingEdited.length()+' selected users?';
 			}
 
 			var confirm = $.w.window.confirm({
@@ -654,7 +654,7 @@ var refreshUsersListFn = function() {
 					});
 					group.oneEach('error', function(data) {
 						confWindow.window('loading', false);
-						data.result.triggerError('Impossible de supprimer les utilisateurs s&eacute;lectionn&eacute;s');
+						data.result.triggerError('Cannot delete selected users');
 					});
 				}
 			});
@@ -663,9 +663,9 @@ var refreshUsersListFn = function() {
 		
 		confWindow.window('loading', false);
 	}, function(response) {
-		form.hide().after('<p>Impossible de r&eacute;cup&eacute;rer la liste des utilisateurs.</p>');
+		form.hide().after('<p>Cannot retrieve users list.</p>');
 		confWindow.window('loading', false);
-		response.triggerError('Impossible de r&eacute;cup&eacute;rer la liste des utilisateurs.');
+		response.triggerError('Cannot retrieve users list');
 	}));
 };
 
