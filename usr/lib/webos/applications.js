@@ -421,10 +421,8 @@ Webos.Application.openFile = function (file, callback) {
 			}
 
 			W.Cmd.execute({
-				cmd: prefered.get('command'),
-				args: {
-					params: [file]
-				}
+				executable: prefered.get('command'),
+				args: [file]
 			});
 
 			op.setCompleted();

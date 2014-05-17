@@ -1566,6 +1566,10 @@ Webos.WebosFile.prototype = {
 
 		this._readAsTextOperation = op;
 
+		op.always(function () {
+			delete that._readAsTextOperation;
+		});
+
 		new Webos.ServerCall({
 			'class': 'FileController',
 			method: 'getContents',
@@ -1579,8 +1583,6 @@ Webos.WebosFile.prototype = {
 			that.hydrate({
 				is_dir: false
 			});
-
-			delete that._readAsTextOperation;
 
 			var contents = response.getStandardChannel();
 			that._contents = contents;
@@ -1733,7 +1735,7 @@ Webos.WebosFile.prototype = {
 			password: this.get('mountPointData').password
 		});
 
-		call.bind('success', function(data) {
+		call.one('success', function(data) {
 			var response = data.result;
 
 			that._contents = contents;
@@ -1748,7 +1750,7 @@ Webos.WebosFile.prototype = {
 	writeAsText: function(contents, callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
-		
+
 		if (this.get('is_dir')) {
 			this._unsupportedMethod(callback);
 			return;
@@ -1760,13 +1762,7 @@ Webos.WebosFile.prototype = {
 
 		var call = this._writeAsText(contents);
 
-		return call.load([function(response) {
-			that._contents = contents;
-
-			that.notify('updatecontents', { contents: contents });
-
-			that._updateData(response.getData());
-
+		return call.load([function (response) {
 			callback.success();
 		}, callback.error]);
 	},

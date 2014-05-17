@@ -1,52 +1,129 @@
 /**
- * Crée une instance de Webos.Cmd, representant une commande.
- * @param {Object} options Les options de la commande.
- * @since 1.0 alpha 1
+ * A terminal command.
+ * @param {Object} options The command's options.
+ * @since 1.0alpha1
  * @constructor
  */
-Webos.Cmd = function (options) {
-	//TODO: support commands with spaces delimited by ""
-
-	this.fullCmd = options.cmd; //Commande complete
-	this.cmdText = this.fullCmd; //@deprecated
-	this.cmd = this.cmdText.split(' ').shift(); //Nom de la commande
-	this.terminal = options.terminal; //Terminal d'ou la commande sera lancee
-
-	if (options.args) {
-		options.args = Webos.Arguments.parse(options.args);
-	} else {
-		options.args = Webos.Arguments.parse(options.cmd);
+Webos.Cmd = function (options, term) {
+	if (typeof options === 'string') {
+		options = Webos.Terminal.parseCmd(cmd)[0];
 	}
+
+	if (term) {
+		options.terminal = term;
+	}
+	if (!options.terminal) {
+		options.terminal = Webos.Terminal.create();
+	}
+
+	if (!options.cmd) {
+		options.cmd = options.executable;
+	}
+
+	this._options = options;
+
+	/*!
+	 * Compatibility shim.
+	 * @deprecated
+	 */
+	this.fullCmd = options.cmd; //Commande complete
+	this.cmdText = this.fullCmd;
+
+	this.cmd = options.executable; //Nom de la commande
+	this.terminal = options.terminal; //Terminal d'ou la commande sera lancee
 
 	//On appelle la classe parente
 	Webos.Process.call(this, {
-		args: options.args
+		args: Webos.Arguments.parse(options.args)
 	});
 };
+/**
+ * Webos.Cmd's prototype.
+ */
 Webos.Cmd.prototype = {
 	/**
-	 * Recuperer le terminal d'ou la commande est lancee.
-	 * @returns {Webos.Terminal} Le terminal.
+	 * Get this command's terminal.
+	 * @return {Webos.Terminal} The terminal.
 	 */
 	getTerminal: function() {
 		return this.terminal;
 	},
 	/**
-	 * Lancer la commande.
-	 * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que la commande aura ete executee.
+	 * Run this command.
+	 * @param {Webos.Callback} callback The callback.
+	 * @return {Webos.Operation} The operation.
 	 */
 	run: function(callback) {
-		callback = Webos.Callback.toCallback(callback);
-		var that = this;
-		
+		var that = this, op = Webos.Operation.create().addCallbacks(callback);
+
+		var writeOutputs = function (outputs, contents) {
+			var op = Webos.Operation.create(), completedOutputs = 0;
+
+			if (!outputs) {
+				outputs = [];
+			}
+
+			var outputCompleted = function (output) {
+				completedOutputs++;
+
+				if (completedOutputs >= outputs.length) {
+					op.setCompleted();
+				}
+			};
+
+			var handleOutput = function (output) {
+				if (output.type === 'file') {
+					var file = Webos.File.get(that._options.terminal.absolutePath(output.file));
+					if (!file) {
+						outputCompleted(output);
+						return;
+					}
+
+					var writeFile = function (contents) {
+						file.writeAsText(contents, [function () {
+							outputCompleted(output);
+						}, function (resp) {
+							outputCompleted(output);
+						}]);
+					};
+
+					if (output.append) {
+						file.readAsText([function (fileContents) {
+							writeFile(fileContents+contents);
+						}, function (resp) {
+							if (resp.getStatusCode() === 404) { // Non-existing file
+								writeFile(contents);
+							} else {
+								outputCompleted(output);
+							}
+						}]);
+					} else {
+						writeFile(contents);
+					}
+				} else if (output.type === 'function') {
+					output.callback(contents);
+					outputCompleted(output);
+				} else {
+					outputCompleted(output);
+				}
+			};
+
+			for (var i = 0; i < outputs.length; i++) {
+				handleOutput(outputs[i]);
+			}
+
+			return op;
+		};
+
 		new Webos.ServerCall({
 			'class': 'CmdController',
 			'method': 'execute',
-			'arguments': { 'cmd': this.cmdText, 'terminal': this.terminal.getId() }
+			'arguments': { 'cmd': this._options.cmd, 'terminal': this._options.terminal.getId() }
 		}).load([function(response) {
 			var out = response.getAllChannels();
 			if (out) {
 				that.getTerminal().echo(out);
+				writeOutputs(that._options.outputs, out);
 			}
 
 			var data = response.getData();
@@ -62,13 +139,36 @@ Webos.Cmd.prototype = {
 					authorizations: auth,
 					fn: data.script
 				});
-				Webos.Cmd.uber.run.call(that);
 
-				callback.success(that);
+				// Cannot write files dynamically
+				// If writing just before a process is stopped, callbacks won't be called
+				// And cache won't be updated
+				/*var echoEventName = 'echo.'+that.getPid()+'.cmd';
+				that._options.terminal.on(echoEventName, function (eventData) {
+					writeOutputs(that._options.outputs, eventData.text);
+				});
+
+				that.one('stop', function () {
+					that._options.terminal.off(echoEventName);
+				});*/
+
+				out = '';
+				var echoEventName = 'echo.'+that.getPid()+'.cmd';
+				that._options.terminal.on(echoEventName, function (eventData) {
+					out += eventData.text;
+				});
+				that.one('stop', function () {
+					that._options.terminal.off(echoEventName);
+					writeOutputs(that._options.outputs, out);
+				});
+
+				Webos.Process.prototype.run.call(that);
+
+				op.setCompleted();
 			} else {
-				this.stop();
+				that.stop();
 
-				callback.success(that);
+				op.setCompleted();
 			}
 		}, function(response) {
 			var out = response.getAllChannels();
@@ -76,16 +176,18 @@ Webos.Cmd.prototype = {
 				that.getTerminal().echo(out);
 			}
 
-			callback.error(response);
+			op.setCompleted(response);
 		}]);
+
+		return op;
 	}
 };
-Webos.inherit(Webos.Cmd, Webos.Process); //Heritage de Webos.Process
+Webos.inherit(Webos.Cmd, Webos.Process);
 
 /**
- * Executer une commande.
- * @param {String|Object} cmd La commande a executer, ou les options a passer au constructeur de `Webos.Cmd`.
- * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que la commande aura ete executee.
+ * Run a command.
+ * @param {String} cmd The command to execute.
+ * @param {Webos.Callback} callback The callback.
  * @static
  */
 Webos.Cmd.execute = function(cmd, callback) {
@@ -96,12 +198,11 @@ Webos.Cmd.execute = function(cmd, callback) {
 };
 
 /**
- * Crée une instance de Webos.Terminal, representant un terminal.
- * @param {Webos.Callback} callback La fonction de rappel qui sera appelee une fois que le terminal aura ete initialise.
+ * A terminal.
  * @since 1.0alpha1
  * @constructor
  */
-Webos.Terminal = function WTerminal() {
+Webos.Terminal = function () {
 	this._data = {
 		location: '~'
 	};
@@ -165,13 +266,18 @@ Webos.Terminal.prototype = {
 	},
 	/**
 	 * Output some content.
-	 * @param  {string} contents The content.
+	 * @param  {string} output The content.
 	 */
-	echo: function(contents) {
-		contents = String(contents).replace(/\n/g, '<br />').replace(/(^ | $)/g, '&nbsp;');
+	echo: function(output) {
+		output = String(output);
+
+		contents = output.replace(/\n/g, '<br />').replace(/(^ | $)/g, '&nbsp;');
+		text = $('<div></div>').html(output).text();
+
 		this._output += contents;
 		this.notify('echo', {
 			contents: contents,
+			text: text,
 			output: this._output,
 			cmd: this.cmd
 		});
@@ -250,20 +356,46 @@ Webos.Terminal.prototype = {
 	 * @return {Webos.Cmd} La commande.
 	 */
 	enterCmd: function(cmd, callback) {
+		var that = this;
+		callback = Webos.Callback.toCallback(callback);
+
 		this._output = '';
 
+		var stack = [];
 		if (typeof cmd == 'string') {
-			this.cmd = new Webos.Cmd({
-				cmd: cmd,
-				terminal: this
-			});
-		} else {
-			this.cmd = new Webos.Cmd($.extend({}, cmd, {
-				terminal: this
-			}));
+			stack = Webos.Terminal.parseCmd(cmd);
+		} else if (typeof cmd === 'object') {
+			if (!(cmd instanceof Array)) {
+				cmd = [cmd];
+			}
+
+			for (var i = 0; i < cmd.length; i++) {
+				stack.push(cmd[i]);
+			}
 		}
 
-		this.cmd.run(Webos.Callback.toCallback(callback));
+		var i = -1,
+			current;
+
+		var nextCmd = function () {
+			i++;
+			current = stack[i];
+
+			if (i >= stack.length) { // Finished!
+				callback.success();
+				return;
+			}
+
+			var cmd = new Webos.Cmd(current, that);
+			that.cmd = cmd;
+
+			cmd.run([function () {
+				nextCmd();
+			}, callback.error]);
+		};
+
+		nextCmd();
+
 		return this.cmd;
 	},
 	_refreshUserData: function(username, callback) {
@@ -386,6 +518,170 @@ Webos.Terminal.get = function(id) {
 	return Webos.Terminal._list[id];
 };
 
+/**
+ * Create a new terminal.
+ * @return {Webos.Terminal} The terminal.
+ */
 Webos.Terminal.create = function() {
 	return new Webos.Terminal();
 };
+
+/**
+ * Parse a terminal command.
+ * Inspired from _Javascript: the good parts_ by Douglas Crockford
+ */
+Webos.Terminal.parseCmd = (function () {
+	var at, // The index of the current character
+		ch, // The current character
+		text, // The command to parse
+
+		error = function (msg) { // Call error when something is wrong
+			throw {
+				name: 'SyntaxError',
+				message: msg,
+				at: at,
+				text: text,
+				toString: function () {
+					return this.name+': '+this.message+' (at character '+this.at+')';
+				}
+			};
+		},
+
+		next = function (c) {
+			//If c is provided, check that it matches the cuirrent character
+			if (c && c !== ch) {
+				error('Expected "'+c+'" instead of "'+ch+'"');
+			}
+
+			// Get the next character
+			// When there are no more characters, return an empty string
+			ch = text.charAt(at);
+			at += 1;
+			return ch;
+		},
+
+		string = function () { // Parse a string value
+			var string = '', delimiter = '';
+
+			if (ch == '\'' || ch == '"') {
+				delimiter = ch;
+			} else {
+				string = ch;
+			}
+
+			while (next()) {
+				if ((delimiter && ch === delimiter) || (!delimiter && ch <= ' ')) {
+					next();
+					return string;
+				} else if (ch === '\\') {
+					next();
+
+					if ((delimiter && ch !== delimiter) || (!delimiter && ch > ' ')) {
+						string += '\\';
+					}
+
+					string += ch;
+				} else {
+					string += ch;
+				}
+			}
+
+			if (delimiter) {
+				error('Bad string');
+			}
+
+			return string;
+		},
+
+		white = function () { // Skip whitespace
+			while (ch && ch <= ' ') {
+				next();
+			}
+		},
+
+		args = function () {
+			var args = [];
+
+			while (ch && ch !== '>' && ch !== '<' && ch !== '|' && ch !== ';') {
+				args.push(string());
+				white();
+			}
+
+			return args;
+		},
+
+		cmd = function () {
+			var fromIndex = at - 1, cmd = {
+				args: []
+			};
+
+			cmd.executable = string();
+			white();
+			cmd.args = args();
+
+			cmd.cmd = text.substr(fromIndex, at);
+
+			return cmd;
+		},
+
+		writeOutput = function () { // > and >>
+			var opts = {
+				type: 'file',
+				append: false,
+				channel: 1
+			};
+
+			next();
+			if (ch === '>') {
+				opts.append = true;
+				next();
+			}
+			white();
+
+			opts.file = string();
+
+			return opts;
+		},
+
+		parse = function () {
+			var output = [];
+
+			while (ch) {
+				var c = cmd();
+				c.input = null;
+				c.outputs = [];
+
+				output.push(c);
+console.log(c);
+				while (true) {
+					if (ch === '>') {
+						c.outputs.push(writeOutput());
+					} else if (ch === ';') {
+						next();
+					} else {
+						break;
+					}
+				}
+			}
+
+			return output;
+		};
+
+	return function (input) {
+		var output;
+
+		text = input;
+		at = 0;
+		ch = ' ';
+
+		white();
+		output = parse();
+		white();
+
+		if (ch) {
+			error('Syntax error');
+		}
+
+		return output;
+	};
+})();

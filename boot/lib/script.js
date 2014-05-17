@@ -9,20 +9,17 @@ Webos.Script = function (js, args, url) {
 	this.js = js;
 	this.args = args;
 
-	if (!args) { //Si les arguments sont vides
-		args = new Webos.Arguments({});
-	}
-	
-	var options = args.getOptions(), params = args.getParams();
-
-	if (js !== '' && js !== null) {
+	if (js) {
 		js = 'try { '+js+' \n} catch(error) { W.Error.catchError(error); }';
 	}
 
-	//On ajoute la sandbox
-	js = '(function(args) { '+js+"\n"+' })(new W.Arguments({ options: '+JSON.stringify(options)+', params: '+JSON.stringify(params)+' }));';
-
-	Webos.Script.run(js, url); //On execute le tout
+	//On execute le tout
+	Webos.Script.run(js, {
+		sourceUrl: url,
+		arguments: {
+			args: args || new Webos.Arguments()
+		}
+	});
 };
 
 /**
@@ -50,7 +47,7 @@ Webos.Script.run = function (js, options) {
 		arguments: null
 	}, options);
 
-	//Not good for debugging
+	// Disabled: not good for debugging
 	//js = js.replace(/\/\*([\s\S]*?)\*\//g, ''); //Remove comments
 
 	//Set source URL for debugging
@@ -188,35 +185,6 @@ Webos.ScriptFile.load = function () {
 	
 	return group;
 };
-
-/**
- * Include a script.
- * @param  {String} path    The file's path.
- * @param  {Array} [args]    Arguments to provide to the script.
- * @param  {Object} [thisObj] The scope in which the script will be executed.
- * @deprecated Use Webos.ScriptFile.load() or Webos.require() instead.
- */
-function include(path, args, thisObj) {
-	thisObj = thisObj || window;
-	this.ajax = $.ajax({
-		url: path,
-		method: 'get',
-		async: false,
-		dataType: 'text',
-		success: function(contents, textStatus, jqXHR) {
-			if (typeof args == 'undefined') { //Si les arguments sont vides
-				args = new W.Arguments({});
-			}
-
-			Webos.Script.run(contents, {
-				arguments: {
-					args: args
-				},
-				sourceUrl: path
-			});
-		}
-	});
-}
 
 /**
  * Include Javascript files and CSS stylesheets.
@@ -483,31 +451,80 @@ Webos.require._cache = {};
  * @todo Simplify argument's management.
  */
 Webos.Arguments = function (args) {
-	this.args = args || {};
-	if (typeof this.args.options == 'undefined') { this.args.options = {}; }
-	if (typeof this.args.params == 'undefined') { this.args.params = []; }
-	
-	this.isOption = function(name) { //Une option est-elle definie ?
-		return (typeof this.args.options[name] != 'undefined');
-	};
-	this.getOption = function(name) { //Recuperer le contenu de l'option
-		return this.args.options[name];
-	};
-	this.getOptions = function() { //Recuperer ttes les options
-		return this.args.options;
-	};
-	this.countNbrParams = function() { //Compter le nbr de parametres
-		return this.args.params.length;
-	};
-	this.isParam = function(no) { //Un parametre existe-t-il ?
-		return (typeof this.args.params[no] != 'undefined');
-	};
-	this.getParam = function(no) { //Recuperer un parametre
-		return this.args.params[no];
-	};
-	this.getParams = function() { //Recuperer ts les parametres
-		return this.args.params;
-	};
+	this._args = args || [];
+
+	this._schema = {};
+};
+Webos.Arguments.prototype = {
+	all: function () {
+		return this._args;
+	},
+	getOptions: function () {
+		var args = this._args, opts = {};
+
+		for (var i = 0; i < args.length; i++) {
+			var arg = args[i];
+
+			if (typeof arg === 'string' && arg[0] === '-') { // Option
+				if (arg[1] === '-') { // --abc=def
+					var items = arg.substr(2).split('=');
+					opts[items[0]] = items[1] || '';
+				} else { // -larth
+					arg = arg.substr(1);
+
+					for (var j = 0; j < arg.length; j++) {
+						opts[arg[j]] = '';
+					}
+
+					var nextArg = args[i + 1];
+					if (arg.length === 1 && (typeof nextArg !== 'string' || nextArg[0] !== '-')) { // -p password
+						opts[arg] = nextArg;
+						i++;
+					}
+				}
+			}
+		}
+
+		return opts;
+	},
+	getOption: function (opt) {
+		var opts = this.getOptions();
+
+		return opts[opt];
+	},
+	isOption: function (opt) {
+		return (typeof this.getOption(opt) !== 'undefined');
+	},
+	getParams: function () {
+		var args = this._args, params = [];
+
+		for (var i = 0; i < args.length; i++) {
+			if (typeof args[i] !== 'string') {
+				if (args[i][0] !== '-') {
+					params.push(args[i]);
+				} else {
+					if (args[i][1] !== '-' && args[i].length === 2) { // -p password
+						i++;
+					}
+				}
+			} else {
+				params.push(args[i]);
+			}
+		}
+
+		return params;
+	},
+	countNbrParams: function () {
+		return this.getParams().length;
+	},
+	getParam: function (paramIndex) {
+		var params = this.getParams();
+
+		return params[paramIndex];
+	},
+	isParam: function (paramIndex) {
+		return (typeof this.getParam(paramIndex) !== 'undefined');
+	}
 };
 
 /**
@@ -521,112 +538,12 @@ Webos.Arguments.parse = function(fullCmd) {
 	if (Webos.isInstanceOf(fullCmd, Webos.Arguments)) {
 		return fullCmd;
 	}
-	if (typeof fullCmd == 'object') {
+	if (fullCmd instanceof Array) {
 		return new Webos.Arguments(fullCmd);
 	}
 
-	var parsedCmd = Webos.Arguments._parseFullCmd(fullCmd),
-		argsStr = parsedCmd.args;
-	
-	var parsed = {
-		options: {},
-		params: [],
-		cmd: parsedCmd.cmd
-	};
-	var cacheBase = {
-		strStarted: false,
-		strType: '',
-		strIndex: '',
-		strContent: '',
-		previous: '',
-		strOptionType: '',
-		strStage: 'index'
-	};
-	var cache = $.extend({}, cacheBase);
-	
-	for (var i = 0; i < argsStr.length; i++) { //Pour chaque caractere char
-		var char = argsStr[i];
-		
-		if (char == '"') { //Delimiteur de chaine
-			if (cache.previous == '\\') { //Si on a echappe le delimiteur
-				if (cache.strStage == 'content') { //Si on remplit le contenu
-					cache.strContent = cache.strContent.substr(0, -1); //On enleve le \
-					cache.strContent += char; //On ajoute le "
-				} else { //Sinon on remplit l'index
-					cache.strIndex = cache.strIndex.substr(0, -1); //on enleve le \
-					cache.strIndex += char; //On ajoute le "
-				}
-			} else {
-				if (cache.strStarted === false) { //Si c'est le premier
-					cache.strStarted = true; //On le sauvegarde
-				} else { //Sinon, fin de chaine
-					cache.strStarted = false;
-				}
-			}
-		} else if (char == ' ' && cache.strStarted !== true) { //Si c'est un espace et qu'on n'est pas dans une chaine
-			if (cache.strType == 'options') { //Si c'est une option
-				if (cache.strOptionType == 'short') { //Option courte
-					cache.strStage = 'content';
-				} else {
-					parsed.options[cache.strIndex] = cache.strContent; //On sauvegarde
-					cache = $.extend({}, cacheBase); //On remet le cache a zero
-				}
-			} else { //Sinon, c'est un argument
-				parsed.params.push(cache.strIndex); //On sauvegarde
-				cache = $.extend({}, cacheBase); //On remet le cache a zero
-			}
-		} else if (char == '-') { //Si c'est un tiret
-			if (cache.previous == '-') { //Si le caractere precedant etait aussi un tiret, c'est une option type --fruit=abricot
-				cache.strOptionType = 'long'; //Type de l'option
-			} else if (cache.previous == ' ' || !cache.previous) { //Si c'etait un espace blanc, c'est une option type -aBv
-				cache.strType = 'options'; //C'est une option
-				cache.strOptionType = 'short'; //Type de l'option
-				cache.strStage = 'index'; //On remplit l'index
-			} else { //Sinon, ce n'est pas une option (e.g. fruit-de-mer)
-				if (cache.strStage == 'content') { //Si on remplit le contenu
-					cache.strContent += char; //On ajoute le -
-				} else { //Sinon, on remplit l'index
-					cache.strIndex += char; //On ajoute le -
-				}
-			}
-		} else if (char == '=') { //Si c'est un =
-			if (cache.strType == 'options' && cache.strOptionType == 'long') { //Si c'est une option type --fruit=abricot
-				cache.strStage = 'content'; //On remplit maintenant le contenu
-			}
-		} else { //Autre caractere
-			if (cache.strStage == 'content') { //Si on remplit le contenu
-				cache.strContent += char; //On ajoute le caractere
-			} else { //Sinon on remplit l'index
-				if (cache.strType == 'options') { //Si c'est une option
-					if (cache.strOptionType == 'long') { //Si c'est une option type --fruit=abricot
-						cache.strIndex += char; //On remplit l'index
-					} else { //Sinon, c'est une option type -aBv
-						parsed.options[char] = ''; //On ajoute l'option
-						//On definit les parametres au cas ou il y a une autre option apres
-						cache = $.extend({}, cacheBase); //On reinitialise le cache
-						cache.strType = 'options'; //C'est une option
-						cache.strOptionType = 'short'; //C'est une option type -aBv
-						cache.strStage = 'index'; //On remplit l'index
-						cache.strIndex = char;
-					}
-				} else { //Sinon c'est un argument
-					cache.strIndex += char; //On ajoute le caractere
-				}
-			}
-		}
-		cache.previous = char; //On definit le caractere precedant
-	}
-
-	//On vide le cache du dernier caractere
-	if (cache.strIndex) {
-		if (cache.strType == 'options') {
-			parsed.options[cache.strIndex] = cache.strContent;
-		} else {
-			parsed.params.push(cache.strIndex);
-		}
-	}
-
-	return new Webos.Arguments(parsed);
+	var parsedCmd = Webos.Terminal.parseCmd(fullCmd)[0];
+	return new Webos.Arguments(parsedCmd.args);
 };
 
 Webos.Arguments._parseFullCmd = function (fullCmd) {

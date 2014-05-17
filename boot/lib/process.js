@@ -24,7 +24,7 @@
 		this._state = 0; // 0 -> ready; 1 -> running; 2 -> idle; 3 -> killed.
 
 		//this.main = new Function('args', options.fn);
-		this.main = function () {
+		this.main = function (args) {
 			var js = options.fn;
 
 			var url = '';
@@ -32,9 +32,9 @@
 				url = that.cmd+'.js';
 			}
 
-			js = '(function (args) { '+js+'\n }).call(Webos.Process.get('+that.getPid()+'), Webos.Process.get('+that.getPid()+').getArguments());';
+			js = '(function (args) { '+js+'\n }).call(Webos.Process.get('+that.getPid()+'), args);';
 
-			Webos.Script.create(js, null, url);
+			Webos.Script.create(js, args, url);
 		};
 
 		if (typeof this.pid != 'undefined') {
