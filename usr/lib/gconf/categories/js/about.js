@@ -39,7 +39,8 @@ if (canReadSystemFiles) {
 	var usersDataList = $('<ul></ul>').addClass('usersDataList').appendTo(usersData);
 
 	tabs.on('tabsselect', function(e, data) {
-		switch (data.tab) {
+
+		switch (data.index) {
 			case 0:
 				confWindow.window('loading', true);
 

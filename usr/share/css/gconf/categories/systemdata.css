@@ -11,11 +11,11 @@
 	margin-top: 0px;
 }
 
-.usersdata .usersDataList li, .serverdata .serverDataList li {
+.usersDataList li, .serverDataList li {
 	list-style-type: none;
 	list-style-position: inside;
 }
 
-.usersdata .usersDataList li .detail, .serverdata .serverDataList li .detail {
+.usersDataList li .detail, .serverDataList li .detail {
 	color: gray;
 }
