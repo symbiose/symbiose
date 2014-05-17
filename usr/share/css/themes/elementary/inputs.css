@@ -137,7 +137,7 @@ input[type="submit"][disabled]:active,
 .webos-button-group > .webos-button:not(:last-child) {
 	border-top-right-radius: 0;
 	border-bottom-right-radius: 0;
-	margin-right: 0px;
+	margin-right: -5px;
 }
 .webos-button-group > .webos-button:active,
 .webos-button-group > .webos-button.active {
