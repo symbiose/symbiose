@@ -32,5 +32,17 @@
             "\\lib\\dao\\SessionProvider",
             "getSession"
         ]
+    },
+    "pdo": {
+        "callback": [
+            "\\lib\\dao\\PDOFactory",
+            "getConnexion"
+        ],
+        "config": {
+            "dsn": "mysql:host=localhost;dbname=symbiose",
+            "username": "root",
+            "password": "",
+            "driver_options": {}
+        }
     }
 }
