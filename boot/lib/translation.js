@@ -202,7 +202,7 @@ Webos.Translation.setLanguage = function $_WTranslation_setLanguage(locale, call
  * @param {Object} functions  An object containing functions which are specific to the locale.
  * @param {String} name       The locale's name.
  */
-Webos.Locale = function WLocale(data, functions, name) {
+Webos.Locale = function (data, functions, name) {
 	this._name = name;
 	this._data = data;
 
@@ -724,8 +724,34 @@ new Webos.Locale({
 
 //Polish
 new Webos.Locale({
-	title: 'Polish'
-}, {}, 'pl_PL');
+	title: 'Polish',
+	integerGroupsSeparator: ' ',
+	decimalSeparator: ',',
+	days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+	months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+	monthsAbbreviations: ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni', 'Juli', 'Aug.', 'Sept.', 'Okt.', 'Nov.', 'Dez.'],
+	currency: '&#x20AC;'
+}, {
+	dayAbbreviation: function(nbr) {
+		return this.day(nbr).slice(0, 2);
+	},
+	monthAbbreviation: function(nbr) {
+		return this._get('monthsAbbreviations')[nbr];
+	},
+	date: function(date) {
+		return this.day(date.getDay()) + ', den ' +
+			date.getDate() + '. ' +
+			this.month(date.getMonth()).toLowerCase();
+	},
+	dateAbbreviation: function(date) {
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ', den ' +
+			date.getDate() + '. ' +
+			this.monthAbbreviation(date.getMonth()).toLowerCase();
+	},
+	currency: function(value) {
+		return this.number(value) + ' ' + this._get('currency');
+	}
+}, 'pl_PL');
 
 
 //When the user logs in/out, reinitialize the language and the locale
