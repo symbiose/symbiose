@@ -8,6 +8,7 @@ $baseDir = dirname(dirname($vendorDir));
 return array(
     'WebSocketClient' => array($vendorDir . '/symbiose/websocket-client/src'),
     'Symfony\\Component\\Routing\\' => array($vendorDir . '/symfony/routing'),
+    'Symfony\\Component\\Process\\' => array($vendorDir . '/symfony/process'),
     'Symfony\\Component\\HttpFoundation\\' => array($vendorDir . '/symfony/http-foundation'),
     'Symfony\\Component\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher'),
     'React\\Stream' => array($vendorDir . '/react/stream'),
@@ -19,6 +20,7 @@ return array(
     'Guzzle\\Parser' => array($vendorDir . '/guzzle/parser'),
     'Guzzle\\Http' => array($vendorDir . '/guzzle/http'),
     'Guzzle\\Common' => array($vendorDir . '/guzzle/common'),
+    'Gitonomy\\Git' => array($vendorDir . '/gitonomy/gitlib/src', $vendorDir . '/gitonomy/gitlib/tests'),
     'FSi\\Component\\ACL' => array($vendorDir . '/fsi/acl/lib'),
     'Evenement' => array($vendorDir . '/evenement/evenement/src'),
     'CssMin' => array($vendorDir . '/nitra/php-min/CssMin'),

@@ -807,5 +807,110 @@
             "hashing",
             "password"
         ]
+    },
+    {
+        "name": "symfony/process",
+        "version": "v2.4.4",
+        "version_normalized": "2.4.4.0",
+        "target-dir": "Symfony/Component/Process",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/Process.git",
+            "reference": "8721f1476d5d38a43c7d6ccb6435b351cf8f3bb7"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/Process/zipball/8721f1476d5d38a43c7d6ccb6435b351cf8f3bb7",
+            "reference": "8721f1476d5d38a43c7d6ccb6435b351cf8f3bb7",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.3"
+        },
+        "time": "2014-04-27 13:34:57",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.4-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Symfony\\Component\\Process\\": ""
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Potencier",
+                "email": "fabien@symfony.com",
+                "homepage": "http://fabien.potencier.org",
+                "role": "Lead Developer"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "http://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony Process Component",
+        "homepage": "http://symfony.com"
+    },
+    {
+        "name": "gitonomy/gitlib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/gitonomy/gitlib.git",
+            "reference": "4a26a0af294c7537b622dfae2af5729533818986"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/gitonomy/gitlib/zipball/4a26a0af294c7537b622dfae2af5729533818986",
+            "reference": "4a26a0af294c7537b622dfae2af5729533818986",
+            "shasum": ""
+        },
+        "require": {
+            "symfony/process": "~2.4"
+        },
+        "require-dev": {
+            "psr/log": "~1"
+        },
+        "suggest": {
+            "psr/log": "Add some log"
+        },
+        "time": "2014-04-28 09:17:50",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-0": {
+                "Gitonomy\\Git": [
+                    "src/",
+                    "tests/"
+                ]
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Alexandre Salomé",
+                "email": "alexandre.salome@gmail.com",
+                "homepage": "http://alexandre-salome.fr"
+            },
+            {
+                "name": "Julien DIDIER",
+                "email": "genzo.wm@gmail.com",
+                "homepage": "http://www.jdidier.net"
+            }
+        ],
+        "description": "Library for accessing git",
+        "homepage": "http://gitonomy.com"
     }
 ]

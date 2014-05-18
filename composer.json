@@ -22,7 +22,8 @@
 		"nitra/php-min": "dev-master",
 		"ircmaxell/password-compat": "dev-master",
 		"evenement/evenement": "1.0.*",
-		"fsi/acl": "0.9.*"
+		"fsi/acl": "0.9.*",
+		"gitonomy/gitlib": "dev-master"
 	},
 	"autoload": {
 		"psr-0": {"JSMinPlus": "lib/vendor/nitra/php-min"}
