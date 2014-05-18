@@ -1448,6 +1448,9 @@ Webos.WebosFile = function (data, point) {
  * @namespace Webos.WebosFile
  */
 Webos.WebosFile.prototype = {
+	_createRequest: function (method, args) {
+		return Webos.WebosFile._createRequest(method, args, this.get('mountPoint'));
+	},
 	mountPointData: function () {
 		return this.get('mountPoint').get('data') || {};
 	},
@@ -1478,15 +1481,8 @@ Webos.WebosFile.prototype = {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
 		
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'getData',
-			arguments: {
-				path: this.get('webospath')
-			},
-			host: this.get('mountPointData').host,
-			username: this.get('mountPointData').username,
-			password: this.get('mountPointData').password
+		return this._createRequest('getData', {
+			path: this.get('webospath')
 		}).load([function(response) {
 			var data = response.getData();
 
@@ -1503,16 +1499,9 @@ Webos.WebosFile.prototype = {
 			return false;
 		}
 		
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'rename',
-			arguments: {
-				file: this.get('webospath'),
-				newName: newName
-			},
-			host: this.get('mountPointData').host,
-			username: this.get('mountPointData').username,
-			password: this.get('mountPointData').password
+		return this._createRequest('rename', {
+			file: this.get('webospath'),
+			newName: newName
 		}).load([function(response) {
 			var data = response.getData();
 
@@ -1529,15 +1518,8 @@ Webos.WebosFile.prototype = {
 			return false;
 		}
 		
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'delete',
-			arguments: {
-				file: this.get('webospath')
-			},
-			host: this.get('mountPointData').host,
-			username: this.get('mountPointData').username,
-			password: this.get('mountPointData').password
+		return this._createRequest('delete', {
+			file: this.get('webospath')
 		}).load([function() {
 			that._remove();
 			callback.success();
@@ -1570,15 +1552,8 @@ Webos.WebosFile.prototype = {
 			delete that._readAsTextOperation;
 		});
 
-		new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'getContents',
-			arguments: {
-				file: this.get('webospath')
-			},
-			host: this.get('mountPointData').host,
-			username: this.get('mountPointData').username,
-			password: this.get('mountPointData').password
+		this._createRequest('getContents', {
+			file: this.get('webospath')
 		}).load([function(response) {
 			that.hydrate({
 				is_dir: false
@@ -1610,15 +1585,8 @@ Webos.WebosFile.prototype = {
 		}
 		
 		if (this.get('is_dir')) {
-			return new Webos.ServerCall({
-				'class': 'FileController',
-				method: 'getContents',
-				arguments: {
-					file: this.get('webospath')
-				},
-				host: this.get('mountPointData').host,
-				username: this.get('mountPointData').username,
-				password: this.get('mountPointData').password
+			return this._createRequest('getContents', {
+				file: this.get('webospath')
 			}).load([function(response) {
 				var data = response.getData();
 				var list = [];
@@ -1646,10 +1614,6 @@ Webos.WebosFile.prototype = {
 			return this.readAsText(callback);
 		}
 	},
-	/**
-	 * Get this file's content, encoded in base64.
-	 * @param {Webos.Callback} callback The callback.
-	 */
 	readAsBinary: function(callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
@@ -1663,46 +1627,8 @@ Webos.WebosFile.prototype = {
 			return false;
 		}
 
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'getAsBinary',
-			arguments: {
-				file: this.get('webospath')
-			},
-			host: this.get('mountPointData').host,
-			username: this.get('mountPointData').username,
-			password: this.get('mountPointData').password
-		}).load([function(response) {
-			that.hydrate({
-				is_dir: false
-			});
-			
-			var contents = response.getStandardChannel();
-			callback.success(contents);
-		}, callback.error]);
-	},
-	readMinified: function(callback) {
-		var that = this;
-		callback = Webos.Callback.toCallback(callback);
-
-		if (this.get('is_dir')) {
-			this._unsupportedMethod(callback);
-			return;
-		}
-		
-		if (!this.checkAuthorization('read', callback)) {
-			return false;
-		}
-
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'getMinified',
-			arguments: {
-				file: this.get('webospath')
-			},
-			host: this.get('mountPointData').host,
-			username: this.get('mountPointData').username,
-			password: this.get('mountPointData').password
+		return this._createRequest('getAsBinary', {
+			file: this.get('webospath')
 		}).load([function(response) {
 			that.hydrate({
 				is_dir: false
@@ -1723,16 +1649,9 @@ Webos.WebosFile.prototype = {
 			return false;
 		}
 		
-		var call = new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'setContents',
-			arguments: {
-				file: this.get('webospath'),
-				contents: contents
-			},
-			host: this.get('mountPointData').host,
-			username: this.get('mountPointData').username,
-			password: this.get('mountPointData').password
+		var call = this._createRequest('setContents', {
+			file: this.get('webospath'),
+			contents: contents
 		});
 
 		call.one('success', function(data) {
@@ -1766,11 +1685,6 @@ Webos.WebosFile.prototype = {
 			callback.success();
 		}, callback.error]);
 	},
-	/**
-	 * Write this file's content, encoded in base64.
-	 * @param {String} contents The base64-encoded content.
-	 * @param {Webos.Callback} callback The callback.
-	 */
 	writeAsBinary: function(contents, callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
@@ -1784,22 +1698,20 @@ Webos.WebosFile.prototype = {
 			return false;
 		}
 		
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'setContentsAsBinary',
-			arguments: {
-				file: this.get('webospath'),
-				contents: contents
-			},
-			host: this.get('mountPointData').host,
-			username: this.get('mountPointData').username,
-			password: this.get('mountPointData').password
+		return this._createRequest('setContentsAsBinary', {
+			file: this.get('webospath'),
+			contents: contents
 		}).load([function(response) {
 			that._updateData(response.getData());
 
 			callback.success();
 		}, callback.error]);
 	},
+	/**
+	 * Share this file.
+	 * @param  {Webos.Callback} callback The callback.
+	 * @return {Webos.Operation}         The operation.
+	 */
 	share: function(callback) {
 		var that = this;
 		callback = Webos.Callback.toCallback(callback);
@@ -1808,15 +1720,8 @@ Webos.WebosFile.prototype = {
 			return false;
 		}
 
-		return new Webos.ServerCall({
-			'class': 'FileController',
-			method: 'share',
-			arguments: {
-				file: this.get('webospath')
-			},
-			host: this.get('mountPointData').host,
-			username: this.get('mountPointData').username,
-			password: this.get('mountPointData').password
+		return this._createRequest('share', {
+			file: this.get('webospath')
 		}).load([function(response) {
 			var shareData = response.getData();
 
@@ -1865,32 +1770,36 @@ Webos.WebosFile.mount = function(point, callback) {
 };
 
 Webos.WebosFile.get = function (file, point, data) {
-	path = String(file);
-	
-	if (file instanceof Webos.WebosFile) { //Already a WebosFile object?
+	if (file instanceof this) { //Already a WebosFile object?
 		return file;
 	} else {
-		return new Webos.WebosFile($.extend({}, data, {
+		var path = String(file);
+
+		return new this($.extend({}, data, {
 			path: point.getRelativePath(path)
 		}), point);
 	}
 };
 
-Webos.WebosFile.createFile = function(path, point, callback) {
-	callback = Webos.Callback.toCallback(callback);
-
+Webos.WebosFile._createRequest = function (method, args, point) {
 	var pointData = point.get('data') || {};
-	
+
 	return new Webos.ServerCall({
 		'class': 'FileController',
-		method: 'createFile',
-		arguments: {
-			file: point.getRelativePath(path)
-		},
+		method: method,
+		arguments: args || {},
 		host: pointData.host,
 		username: pointData.username,
 		password: pointData.password
-	}).load([function(resp) {
+	})
+};
+
+Webos.WebosFile.createFile = function(path, point, callback) {
+	callback = Webos.Callback.toCallback(callback);
+
+	return this._createRequest('createFile', {
+		path: point.getRelativePath(path)
+	}, point).load([function(resp) {
 		var file = Webos.File.get(path);
 		file._updateData(resp.getData());
 		callback.success(file);
@@ -1900,18 +1809,9 @@ Webos.WebosFile.createFile = function(path, point, callback) {
 Webos.WebosFile.createFolder = function(path, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
-	var pointData = point.get('data') || {};
-	
-	return new Webos.ServerCall({
-		'class': 'FileController',
-		method: 'createFolder',
-		arguments: {
-			file: point.getRelativePath(path)
-		},
-		host: pointData.host,
-		username: pointData.username,
-		password: pointData.password
-	}).load([function(resp) {
+	return this._createRequest('createFolder', {
+		path: point.getRelativePath(path)
+	}, point).load([function(resp) {
 		var file = Webos.File.get(path);
 		file._updateData(resp.getData());
 		callback.success(file);
@@ -1921,39 +1821,21 @@ Webos.WebosFile.createFolder = function(path, point, callback) {
 Webos.WebosFile.copy = function(source, dest, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
-	var pointData = point.get('data') || {};
-
-	return new Webos.ServerCall({
-		'class': 'FileController',
-		method: 'copy',
-		arguments: {
-			source: point.getRelativePath(source),
-			dest: point.getRelativePath(dest)
-		},
-		host: pointData.host,
-		username: pointData.username,
-		password: pointData.password
-	}).load([function(resp) {
+	return this._createRequest('copy', {
+		source: point.getRelativePath(source),
+		dest: point.getRelativePath(dest)
+	}, point).load([function(resp) {
 		callback.success(resp.getData());
 	}, callback.error]);
 };
 
 Webos.WebosFile.move = function(source, dest, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
-
-	var pointData = point.get('data') || {};
 	
-	return new Webos.ServerCall({
-		'class': 'FileController',
-		method: 'move',
-		arguments: {
-			source: point.getRelativePath(source),
-			dest: point.getRelativePath(dest)
-		},
-		host: pointData.host,
-		username: pointData.username,
-		password: pointData.password
-	}).load([function(resp) {
+	return this._createRequest('move', {
+		source: point.getRelativePath(source),
+		dest: point.getRelativePath(dest)
+	}, point).load([function(resp) {
 		callback.success(resp.getData());
 	}, callback.error]);
 };
@@ -1962,14 +1844,10 @@ Webos.WebosFile.search = function (options, point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
 	//Search in the webos's files
-	return new Webos.ServerCall({
-		'class': 'FileController',
-		method: 'search',
-		arguments: {
-			query: options.q,
-			inDir: point.getRelativePath(options.inDir)
-		}
-	}).load([function(resp) {
+	return this._createRequest('search', {
+		query: options.q,
+		inDir: point.getRelativePath(options.inDir)
+	}, point).load([function(resp) {
 		var data = resp.getData();
 		var list = [];
 		for (var key in data) {
@@ -1993,8 +1871,10 @@ Webos.WebosFile.search = function (options, point, callback) {
 	}, callback.error]);
 };
 
-// Mount / and ~
+// Register the driver
 Webos.File.registerDriver('WebosFile', { title: 'Webos', icon: 'places/folder-remote' });
+
+// Mount / and ~
 var rootPoint = new Webos.File.MountPoint({
 	remote: '/',
 	driver: 'WebosFile',
