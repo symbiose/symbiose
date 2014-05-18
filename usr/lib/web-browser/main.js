@@ -259,11 +259,16 @@
 				that._XFramesOptionError();
 			});
 		},
-		previous: function (diff) {
-			this._$iframe[0].contentWindow.history.go(-1);
+	       previous: function (diff) {
+	                if (this._url == 'https://duckduckgo.com/?kd=-1&kn=-1') {
+			this._$iframe[0].contentWindow.history.go(0);
+			} else {
+              		this._$iframe[0].contentWindow.history.back(-1);
+			}
+ 
 		},
 		next: function (diff) {
-			this._$iframe[0].contentWindow.history.go(1);
+			this._$iframe[0].contentWindow.history.forward(1);
 		},
 		goHome: function () {
 			this.browse('about:home');
