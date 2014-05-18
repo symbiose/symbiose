@@ -5,7 +5,7 @@ use \ZipArchive;
 
 /**
  * Manage files.
- * @author $imon
+ * @author emersion
  */
 class FileController extends \lib\ApiBackController {
 	const UPLOADS_CONFIG = '/etc/uploads.json';
@@ -19,7 +19,7 @@ class FileController extends \lib\ApiBackController {
 		$manager = $this->managers()->getManagerOf('file');
 
 		if (!$manager->exists($path)) {
-			throw new \RuntimeException('"'.$path.'" : no such file or directory', 404);
+			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
 		}
 
 		if ($manager->isDir($path)) {
@@ -49,7 +49,7 @@ class FileController extends \lib\ApiBackController {
 		$manager = $this->managers()->getManagerOf('file');
 
 		if (!$manager->exists($path)) {
-			throw new \RuntimeException('"'.$path.'" : no such file or directory', 404);
+			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
 		}
 
 		$this->responseContent->setChannel(1, base64_encode($manager->read($path)));
@@ -64,7 +64,7 @@ class FileController extends \lib\ApiBackController {
 		$manager = $this->managers()->getManagerOf('file');
 
 		if (!$manager->exists($path)) {
-			throw new \RuntimeException('"'.$path.'" : no such file or directory', 404);
+			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
 		}
 
 		$out = $manager->read($path);
@@ -80,7 +80,7 @@ class FileController extends \lib\ApiBackController {
 					$out = $minifier->minify($out);
 					break;
 				default:
-					throw new \RuntimeException('Cannot minify "'.$path.'" : unsupported file type', 406);
+					throw new \RuntimeException('Cannot minify "'.$path.'": unsupported file type', 406);
 			}
 		}
 
@@ -96,7 +96,7 @@ class FileController extends \lib\ApiBackController {
 		$manager = $this->managers()->getManagerOf('file');
 
 		if (!$manager->exists($path)) {
-			throw new \RuntimeException('"'.$path.'" : no such file or directory', 404);
+			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
 		}
 
 		$data = array(
