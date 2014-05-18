@@ -1206,8 +1206,8 @@ Webos.require([
 					var openTab = tabs.tabs('tab', t.get('Open with...'));
 
 					var openTabGenerated = false;
-					tabs.bind('tabsselect', function(e, data) {
-						if (data.tab == 1 && !openTabGenerated) { //Open with...
+					tabs.on('tabsselect', function(e, data) {
+						if (data.index == 1 && !openTabGenerated) { //Open with...
 							$.w.label(t.get('Select an application to open this file and other files of the same type :')).appendTo(openTab);
 							var list = $.w.list().appendTo(openTab);
 
