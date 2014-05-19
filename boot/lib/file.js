@@ -1791,7 +1791,7 @@ Webos.WebosFile._createRequest = function (method, args, point) {
 		host: pointData.host,
 		username: pointData.username,
 		password: pointData.password
-	})
+	});
 };
 
 Webos.WebosFile.createFile = function(path, point, callback) {
