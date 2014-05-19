@@ -1203,9 +1203,14 @@ Webos.require([
 
 			var displayProperties = function (file) {
 				if (!file.get('is_dir')) {
-					var openTab = tabs.tabs('tab', t.get('Open with...'));
+					var openTab = tabs.tabs('tab', t.get('Open with...')),
+						versionsTab;
 
-					var openTabGenerated = false;
+					if (Webos.isInstanceOf(file, Webos.VersionnedFile)) {
+						versionsTab = tabs.tabs('tab', t.get('Versions'));
+					}
+
+					var openTabGenerated = false, versionsTabGenerated = false;
 					tabs.on('tabsselect', function(e, data) {
 						if (data.index == 1 && !openTabGenerated) { //Open with...
 							$.w.label(t.get('Select an application to open this file and other files of the same type :')).appendTo(openTab);
@@ -1290,6 +1295,10 @@ Webos.require([
 							showAppsFn();
 
 							openTabGenerated = true;
+						} else if (versionsTab && data.index == 2 && !versionsTabGenerated) {
+
+
+							versionsTabGenerated = true;
 						}
 					});
 				}

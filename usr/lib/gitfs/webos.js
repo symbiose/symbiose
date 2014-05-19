@@ -13,6 +13,15 @@ Webos.VersionnedFile = function (data, point) {
  * Webos.VersionnedFile's prototype.
  */
 Webos.VersionnedFile.prototype = {
+	hydrate: function (data) {
+		if (!data.labels) {
+			data.labels = {};
+		}
+
+		data.labels.versionned = true;
+console.log(this.uber);
+		return Webos.File.prototype.hydrate.call(this, data);
+	},
 	getLog: function (opts) {
 		return this._unsupportedMethod();
 	},
