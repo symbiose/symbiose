@@ -739,7 +739,7 @@ new Webos.Locale({
 	//	return this._get('daysAbbreviations')[nbr];
 	//},
 	dayAbbreviation: function(nbr) {
-		return this.day(nbr).slice(0, 2);
+		return this.day(nbr).slice(0, 2) + '.';
 	},
 	monthAbbreviation: function(nbr) {
 		return this._get('monthsAbbreviations')[nbr];
