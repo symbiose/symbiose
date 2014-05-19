@@ -1201,7 +1201,7 @@ Webos.require([
 				}
 			};
 
-			var displayPropertiesFn = function (file) {
+			var displayProperties = function (file) {
 				if (!file.get('is_dir')) {
 					var openTab = tabs.tabs('tab', t.get('Open with...'));
 
@@ -1230,7 +1230,7 @@ Webos.require([
 
 											var item = $.w.listItem([title]);
 
-											item.bind('listitemselect', function() {
+											item.on('listitemselect', function() {
 												selectedApp = app;
 												defineDefaultBtn.button('option', 'disabled', prefered);
 												removeDefaultBtn.button('option', 'disabled', !prefered);
@@ -1354,7 +1354,7 @@ Webos.require([
 			};
 
 			if (file.exists('is_dir') && file.exists('size')) {
-				displayPropertiesFn(file);
+				displayProperties(file);
 				showRequestedTab();
 			} else {
 				propertiesWindow.window('loading', true);
@@ -1362,7 +1362,7 @@ Webos.require([
 				file.load([function(file) {
 					propertiesWindow.window('loading', false);
 
-					displayPropertiesFn(file);
+					displayProperties(file);
 					showRequestedTab();
 				}, function(response) {
 					propertiesWindow.window('close');
