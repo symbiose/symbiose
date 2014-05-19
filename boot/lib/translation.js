@@ -728,18 +728,13 @@ new Webos.Locale({
 	integerGroupsSeparator: ' ',
 	decimalSeparator: ',',
 	days: ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'],
-	// TODO: if this is possible, uncomment. Slicing the first 2 letters is incorrect in Polish.
-	// daysAbbreviations: ['Nie.', 'Pn.', 'Wt.', 'Śr.', 'Czw.', 'Pi.', 'Sob.'],
+	daysAbbreviations: ['Nie.', 'Pn.', 'Wt.', 'Śr.', 'Czw.', 'Pi.', 'Sob.'],
 	months: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
 	monthsAbbreviations: ['Sty.', 'Lut.', 'Mar.', 'Kwi.', 'Maj', 'Cze.', 'Lip.', 'Sie.', 'wrz.', 'Paź.', 'Lis.', 'Gru.'],
 	currency: 'zł'
 }, {
-	// TODO: if this is possible, uncomment. 
-	//dayAbbreviation: function(nbr) {
-	//	return this._get('daysAbbreviations')[nbr];
-	//},
 	dayAbbreviation: function(nbr) {
-		return this.day(nbr).slice(0, 2) + '.';
+		return this._get('daysAbbreviations')[nbr];
 	},
 	monthAbbreviation: function(nbr) {
 		return this._get('monthsAbbreviations')[nbr];
