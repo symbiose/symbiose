@@ -46,6 +46,10 @@ class LocalFs {
 	 * @param string $value The alias value.
 	 */
 	public function setAlias($key, $value) {
+		if (substr($value, -1) == '/') {
+			$value = substr($value, 0, -1);
+		}
+
 		$this->aliases[$key] = $value;
 	}
 
@@ -122,7 +126,7 @@ class LocalFs {
 
 			foreach ($this->aliases as $key => $value) {
 				if (substr($internalPath, 0, strlen($key)) == $key) {
-					$internalPath = $value . substr($internalPath, strlen($key));
+					$internalPath = $value . '/' . substr($internalPath, strlen($key));
 					$appliedAliasesNbr++;
 				}
 			}
@@ -150,6 +154,15 @@ class LocalFs {
 		//Remove the root path
 		if (substr($externalPath, 0, strlen($this->root())) == $this->root()) {
 			$externalPath = substr($externalPath, strlen($this->root()));
+		} else {
+			$realRootPath = realpath($this->root());
+			if (substr($externalPath, 0, strlen($realRootPath)) == $realRootPath) {
+				$externalPath = substr($externalPath, strlen($realRootPath));
+			}
+		}
+
+		if ($externalPath[0] != '/') {
+			return $internalPath;
 		}
 
 		//Aliases
@@ -158,8 +171,9 @@ class LocalFs {
 			$appliedAliasesNbr = 0;
 
 			foreach ($this->aliases as $key => $value) {
+				$value = '/'.$value;
 				if (substr($externalPath, 0, strlen($value)) == $value) {
-					$externalPath = $key . substr($externalPath, strlen($value));
+					$externalPath = $key . '/' . substr($externalPath, strlen($value));
 					$appliedAliasesNbr++;
 				}
 			}

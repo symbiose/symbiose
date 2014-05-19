@@ -8,7 +8,7 @@ class LocalFSFactory {
 		$fs = new localfs\LocalFs();
 
 		if ($user->isLogged()) {
-			$fs->setAlias('~', './home/'.$user->username().'/');
+			$fs->setAlias('~', 'home/'.$user->username().'/');
 		}
 
 		return $fs;
