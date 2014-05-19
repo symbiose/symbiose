@@ -285,6 +285,9 @@ Webos.File.prototype = {
 		}
 
 		var newPath = this.get('path');
+		if (!newPath) {
+			return;
+		}
 
 		if (oldPath != newPath) {
 			var thisData = $.extend({}, this.data());
@@ -296,6 +299,7 @@ Webos.File.prototype = {
 			var file = Webos.File.get(newPath);
 
 			if (Webos.isInstanceOf(file, this.constructor)) {
+				console.log(oldPath, newPath);
 				file._updateData(thisData);
 			} else {
 				file._updateData({
@@ -1591,9 +1595,15 @@ Webos.WebosFile.prototype = {
 				var data = response.getData();
 				var list = [];
 				for (var key in data) {
-					var webosFile = new Webos.WebosFile(data[key], that.get('mountPoint'));
+					var webosFile = new (that.constructor)(data[key], that.get('mountPoint'));
 					var file = Webos.File.get(webosFile.get('path'));
-					if (Webos.isInstanceOf(file, Webos.WebosFile)) {
+
+					if (!file) {
+						console.warn('File not found in "'+that.get('path')+'": "'+webosFile.get('path')+'"');
+						continue;
+					}
+
+					if (Webos.isInstanceOf(file, that.constructor)) {
 						file._updateData(webosFile.data());
 					} else {
 						file._updateData({
@@ -1881,12 +1891,24 @@ var rootPoint = new Webos.File.MountPoint({
 	data: {}
 }, '/');
 Webos.File.mount(rootPoint);
-var homePoint = new Webos.File.MountPoint({
+/*var homePoint = new Webos.File.MountPoint({
 	remote: '~',
 	driver: 'WebosFile',
 	data: {}
 }, '~');
-Webos.File.mount(homePoint);
+Webos.File.mount(homePoint);*/
+
+Webos.require({
+	path: '/usr/lib/gitfs/webos.js',
+	optionnal: true
+}, function () {
+	var homePoint = new Webos.File.MountPoint({
+		remote: '~',
+		driver: 'GitFile',
+		data: {}
+	}, '~');
+	Webos.File.mount(homePoint);
+});
 
 /**
  * A virtual file.
