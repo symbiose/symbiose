@@ -1296,7 +1296,20 @@ Webos.require([
 
 							openTabGenerated = true;
 						} else if (versionsTab && data.index == 2 && !versionsTabGenerated) {
-
+							//TODO
+							var $list = $.w.list().appendTo(versionsTab);
+							
+							file.getLog().then(function (versions) {
+								var handleVersion = function (ver) {
+									//TODO
+								};
+								
+								for (var i = 0; i < versions.length; i++) {
+									handleVersion(versions[i]);
+								}
+							}, function (resp) {
+								resp.triggerError();
+							}));
 
 							versionsTabGenerated = true;
 						}
