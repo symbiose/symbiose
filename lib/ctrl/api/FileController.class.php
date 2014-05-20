@@ -45,11 +45,13 @@ class FileController extends \lib\ApiBackController {
 
 			return $list;
 		} else {
-			$this->responseContent->setChannel(1, $manager->read($path));
+			$contents = $manager->read($path);
 
 			if (strpos($path, '/home/') !== 0 && strpos($path, '/etc/') !== 0) { //File is not in /home or in /etc
 				$this->responseContent->setCacheable(true);
 			}
+
+			return $contents;
 		}
 	}
 
@@ -61,26 +63,28 @@ class FileController extends \lib\ApiBackController {
 	public function executeGetAsBinary($path) {
 		$manager = $this->managers()->getManagerOf('file');
 
-		if (!$manager->exists($path)) {
-			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
+		if ($manager->isDir($path)) {
+			throw new \RuntimeException('"'.$path.'": is a directory (tried to open it as a binary file)', 405);
 		}
 
-		$this->responseContent->setChannel(1, base64_encode($manager->read($path)));
+		$contents = $this->executeGetContents($path);
+		return base64_encode($contents);
 	}
 
 	/**
 	 * Get a file's content, minified.
 	 * @param  string $path The file path.
 	 * @return string       The file's content, minified.
+	 * @deprecated
 	 */
 	public function executeGetMinified($path) {
 		$manager = $this->managers()->getManagerOf('file');
 
-		if (!$manager->exists($path)) {
-			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
+		if ($manager->isDir($path)) {
+			throw new \RuntimeException('"'.$path.'": is a directory (tried to open it as a minified file)', 405);
 		}
 
-		$out = $manager->read($path);
+		$out = $this->executeGetContents($path);
 
 		if ($manager->extension($manager->filename($path)) != 'min' && false) {
 			$ext = $manager->extension($path);

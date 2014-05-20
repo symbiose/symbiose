@@ -20,11 +20,10 @@ Webos.VersionnedFile.prototype = {
 
 		data.labels.versionned = true;
 
-		if (!data.version) {
-			data.version = '';
-		}
-
 		return this._super('hydrate', data);
+	},
+	version: function () {
+		return this._get('version') || '';
 	},
 	getLog: function (opts) {
 		return this._unsupportedMethod();

@@ -157,8 +157,24 @@ class GitController extends FileController {
 
 				return $list;
 			} else { // Blob
-				$this->responseContent->setChannel(1, $entity->getContent());
+				return $entity->getContent();
 			}
+		}
+	}
+
+	public function executeGetAsBinary($path, $revision = null) {
+		$manager = $this->managers()->getManagerOf('file');
+
+		if (empty($revision)) {
+			return parent::executeGetAsBinary($path);
+		} else {
+			$entity = $this->getEntity($path, $revision);
+
+			if ($entity instanceof Tree) {
+				throw new \RuntimeException('"'.$path.'": is a directory (tried to open it as a binary file), at revision "'.$revision.'"', 405);
+			}
+
+			return base64_encode($entity->getContent());
 		}
 	}
 
@@ -170,7 +186,9 @@ class GitController extends FileController {
 		} else {
 			$entity = $this->getEntity($path, $revision);
 
-			return array_merge($this->getPathData($path), $this->getEntityData($entity));
+			return array_merge($this->getPathData($path), $this->getEntityData($entity), array(
+				'version' => $revision
+			));
 		}
 	}
 

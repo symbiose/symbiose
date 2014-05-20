@@ -1341,7 +1341,7 @@ Webos.require([
 
 								var version = $selection.data('version');
 
-								return oldFile = version.getFile(file.get('path'));
+								return version.getFile(file.get('path'));
 							};
 
 							$.w.button(t.get('Open this version')).click(function () {
