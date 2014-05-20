@@ -9,7 +9,9 @@
 	display: none;
 	-moz-box-shadow: 5px 4px 12px black;  
 	-webkit-box-shadow: 5px 4px 12px black; 
-	box-shadow: 5px 4px 12px black;  
+	box-shadow: 5px 4px 12px black;
+	font-size: 14px;
+	font-family: Cantarell, 'Droid Sans', Ubuntu, 'DejaVu Sans', Arial, sans-serif;
 }
 
 ul.webos-contextmenu li {

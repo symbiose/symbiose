@@ -1,3 +1,43 @@
+/* Webly Sleek UI Light */
+@font-face {
+	font-family: 'Webly Light';
+	font-style: normal;
+	font-weight: normal;
+		src: local('Webly Light'), local('Webly-Light')
+		url('usr/share/fonts/webly/weblysleekuil.woff') format('woff'),
+		url('usr/share/fonts/webly/weblysleekuil.ttf') format('truetype');
+}
+
+/* Webly Sleek UI Light Italic */
+@font-face {
+	font-family: 'Webly Light';
+	font-style: italic;
+	font-weight: normal;
+	src: local('Webly Light Italic'), local('Webly-Light-Italic'),
+		url('usr/share/fonts/webly/weblysleekuili.woff') format('woff'),
+		url('usr/share/fonts/webly/weblysleekuili.ttf') format('truetype');
+}
+
+/* Webly Sleek UI Semilight */
+@font-face {
+	font-family: 'Webly Semilight';
+	font-style: normal;
+	font-weight: normal;
+	src: local('Webly Semilight'),local('Webly-Semilight'),
+		url('usr/share/fonts/webly/weblysleekuisl.woff') format('woff'),
+		url('usr/share/fonts/webly/weblysleekuisl.ttf') format('truetype');
+}
+
+/* Webly Sleek UI Semilight Italic */
+@font-face {
+	font-family: 'Webly Semilight';
+	font-style: italic;
+	font-weight: normal;
+	src: local('Webly Semilight Italic'), local('Webly-Semilight-Italic'),
+		url('usr/share/fonts/webly/weblysleekuisli.woff') format('woff'),
+		url('usr/share/fonts/webly/weblysleekuisli.ttf') format('truetype');
+}
+
 /* Generic context menu styles */
 .webos-contextmenu, .webos-contextmenu li ul {
 	position: absolute;
@@ -11,6 +51,8 @@
 	-moz-box-shadow: 5px 4px 12px black;
 	-webkit-box-shadow: 5px 4px 12px black;
 	box-shadow: 5px 4px 12px black;
+	font-size: 12px;
+	font-family: Segoe UI, Webly Semilight, Arial, sans-serif;
 }
 
 ul.webos-contextmenu li {

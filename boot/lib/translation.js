@@ -727,29 +727,30 @@ new Webos.Locale({
 	title: 'Polish',
 	integerGroupsSeparator: ' ',
 	decimalSeparator: ',',
-	days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-	months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-	monthsAbbreviations: ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni', 'Juli', 'Aug.', 'Sept.', 'Okt.', 'Nov.', 'Dez.'],
-	currency: '&#x20AC;'
+	days: ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'],
+	daysAbbreviations: ['Nie.', 'Pn.', 'Wt.', 'Śr.', 'Czw.', 'Pi.', 'Sob.'],
+	months: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
+	monthsAbbreviations: ['Sty.', 'Lut.', 'Mar.', 'Kwi.', 'Maj', 'Cze.', 'Lip.', 'Sie.', 'wrz.', 'Paź.', 'Lis.', 'Gru.'],
+	currency: 'zł'
 }, {
 	dayAbbreviation: function(nbr) {
-		return this.day(nbr).slice(0, 2);
+		return this._get('daysAbbreviations')[nbr];
 	},
 	monthAbbreviation: function(nbr) {
 		return this._get('monthsAbbreviations')[nbr];
 	},
 	date: function(date) {
-		return this.day(date.getDay()) + ', den ' +
-			date.getDate() + '. ' +
+		return this.day(date.getDay()) + ' ' +
+			date.getDate() + ' ' +
 			this.month(date.getMonth()).toLowerCase();
 	},
 	dateAbbreviation: function(date) {
-		return this.dayAbbreviation(date.getDay()).toLowerCase() + ', den ' +
-			date.getDate() + '. ' +
+		return this.dayAbbreviation(date.getDay()).toLowerCase() + ' ' +
+			date.getDate() + ' ' +
 			this.monthAbbreviation(date.getMonth()).toLowerCase();
 	},
 	currency: function(value) {
-		return this.number(value) + ' ' + this._get('currency');
+		return this.number(value) + this._get('currency');
 	}
 }, 'pl_PL');
 
