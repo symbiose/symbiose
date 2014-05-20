@@ -1206,7 +1206,7 @@ Webos.require([
 					var openTab = tabs.tabs('tab', t.get('Open with...')),
 						versionsTab;
 
-					if (Webos.isInstanceOf(file, Webos.VersionnedFile)) {
+					if (file.is('versionned')) {
 						versionsTab = tabs.tabs('tab', t.get('Versions'));
 					}
 
@@ -1297,19 +1297,43 @@ Webos.require([
 							openTabGenerated = true;
 						} else if (versionsTab && data.index == 2 && !versionsTabGenerated) {
 							//TODO
-							var $list = $.w.list().appendTo(versionsTab);
+							var $list = $.w.list().appendTo(versionsTab),
+								$btns = $.w.buttonContainer().appendTo(versionsTab);
 							
 							file.getLog().then(function (versions) {
+								if (!versions.length) {
+									$.w.label(t.get('This file has no versions.')).appendTo(versionsTab);
+									return;
+								}
+
 								var handleVersion = function (ver) {
-									//TODO
+									var versionLbl = t.get('On ${authorDate} by ${authorName} (${shortHash})', {
+										authorDate: ver.get('authorDate').date,
+										authorName: ver.get('authorName'),
+										shortHash: ver.get('shortHash')
+									});
+
+									var $item = $.w.listItem(versionLbl)
+										.attr('title', ver.get('shortMessage'))
+										.data('version', ver);
+
+									return $item;
 								};
 								
 								for (var i = 0; i < versions.length; i++) {
-									handleVersion(versions[i]);
+									var $item = handleVersion(versions[i]);
+
+									if (i === 0) {
+										$item.listItem('option', 'selected', true);
+									}
+
+									$item.appendTo($list.list('content'));
 								}
 							}, function (resp) {
 								resp.triggerError();
-							}));
+							});
+
+							$.w.button(t.get('Open this version')).appendTo($btns);
 
 							versionsTabGenerated = true;
 						}

@@ -19,8 +19,12 @@ Webos.VersionnedFile.prototype = {
 		}
 
 		data.labels.versionned = true;
-console.log(this.uber);
-		return Webos.File.prototype.hydrate.call(this, data);
+
+		if (!data.version) {
+			data.version = '';
+		}
+
+		return this._super('hydrate', data);
 	},
 	getLog: function (opts) {
 		return this._unsupportedMethod();
@@ -53,9 +57,9 @@ Webos.GitFile.prototype = {
 		return Webos.GitFile._createRequest(method, args, this.get('mountPoint'));
 	},
 	getLog: function (opts) {
-		Webos.GitFile.getLog($.extend(opts, {
+		return Webos.GitFile.getLog($.extend(opts, {
 			paths: this.get('webospath')
-		}));
+		}), this.get('mountPoint'));
 	},
 	getDiff: function () {},
 	getBlame: function () {}
@@ -103,22 +107,12 @@ Webos.GitFile.copy = Webos.WebosFile.copy;
 Webos.GitFile.move = Webos.WebosFile.move;
 Webos.GitFile.search = Webos.WebosFile.search;
 
-Webos.GitFile.Commit = function () {};
-Webos.GitFile.Commit.prototype = {
-	getDiff: function () {},
-	getHash: function () {},
-	getShortHash: function () {},
-	getParentHashes: function () {},
-	getParents: function () {},
-	getTree: function () {},
-	getAuthorName: function () {},
-	getAuthorEmail: function () {},
-	getAuthorDate: function () {},
-	getMessage: function () {},
-	getSubjectMessage: function () {},
-	getBodyMessage: function () {}
-	//getCommit: function () {}
+Webos.GitFile.Commit = function (data) {
+	Webos.Model.call(this, data);
 };
+Webos.GitFile.Commit.prototype = {};
+
+Webos.inherit(Webos.GitFile.Commit, Webos.Model);
 
 Webos.GitFile.DiffFile = function () {};
 Webos.GitFile.DiffFile.prototype = {
@@ -137,7 +131,9 @@ Webos.GitFile.DiffFile.prototype = {
 	getChanges: function () {}
 };
 
-Webos.GitFile.getLog = function (opts) {
+Webos.GitFile.getLog = function (opts, point) {
+	var op = Webos.Operation.create();
+
 	if (typeof opts === 'string' || opts instanceof Array) {
 		opts = { paths: opts };
 	}
@@ -148,7 +144,31 @@ Webos.GitFile.getLog = function (opts) {
 		limit: null
 	}, opts);
 
+	this._createRequest('getLog', {
+		dir: point.get('remote'),
+		opts: opts
+	}, point).load([function (resp) {
+		var data = resp.getData(), commits = [];
 
+		for (var i in data) {
+			var commitData = data[i];
+
+			// Convert parent hashes to list
+			var parentHashes = [];
+			for (var j in commitData.parentHashes) {
+				parentHashes.push(commitData.parentHashes[j]);
+			}
+			commitData.parentHashes = parentHashes;
+
+			commits.push(new Webos.GitFile.Commit(commitData));
+		}
+
+		op.setCompleted(commits);
+	}, function (resp) {
+		op.setCompleted(resp);
+	}]);
+
+	return op;
 };
 Webos.GitFile.getDiff = function (opts) {
 	if (typeof opts === 'string') {

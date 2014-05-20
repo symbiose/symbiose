@@ -1891,18 +1891,21 @@ var rootPoint = new Webos.File.MountPoint({
 	data: {}
 }, '/');
 Webos.File.mount(rootPoint);
-/*var homePoint = new Webos.File.MountPoint({
+var homePoint = new Webos.File.MountPoint({
 	remote: '~',
 	driver: 'WebosFile',
 	data: {}
 }, '~');
-Webos.File.mount(homePoint);*/
+Webos.File.mount(homePoint);
 
+// Load git libraries and remount ~ using gitfs
 Webos.require({
 	path: '/usr/lib/gitfs/webos.js',
 	optionnal: true
 }, function () {
-	var homePoint = new Webos.File.MountPoint({
+	Webos.File.umount(homePoint.get('local'));
+
+	homePoint = new Webos.File.MountPoint({
 		remote: '~',
 		driver: 'GitFile',
 		data: {}

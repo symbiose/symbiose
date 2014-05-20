@@ -24,6 +24,8 @@ class GitController extends FileController {
 			'authorDate' => $commit->getAuthorDate(),
 			'message' => $commit->getMessage()
 		);
+
+		return $commitData;
 	}
 
 	protected function getRepo($dir, $create = false) {
@@ -66,7 +68,7 @@ class GitController extends FileController {
 		return null;
 	}
 
-	protected function addFilesToRepo($repo, $paths) {
+	protected function repoRelativePaths($repo, $paths) {
 		$manager = $this->managers()->getManagerOf('file');
 
 		if (!is_array($paths)) {
@@ -74,15 +76,22 @@ class GitController extends FileController {
 		}
 
 		$workingDir = $manager->toExternalPath($repo->getWorkingDir()).'/';
-		$addedPaths = array();
+
+		$relativePaths = array();
 		foreach ($paths as $path) {
 			if (strpos($path, $workingDir) === 0) {
 				$relativePath = substr($path, strlen($workingDir));
-				$addedPaths[] = $relativePath;
+				$relativePaths[] = $relativePath;
 			} else {
-				$addedPaths[] = $path;
+				$relativePaths[] = $path;
 			}
 		}
+
+		return $relativePaths;
+	}
+
+	protected function addFilesToRepo($repo, $paths) {
+		$addedPaths = $this->repoRelativePaths($repo, $paths);
 
 		$repo->run('add', $addedPaths);
 	}
@@ -112,15 +121,15 @@ class GitController extends FileController {
 	public function executeGetLog($dir, array $opts = array()) {
 		$manager = $this->managers()->getManagerOf('file');
 
-		$opts = array(
+		$opts = array_merge(array(
 			'paths' => null,
 			'offset' => null,
 			'limit' => null
-		) + $opts;
+		), $opts);
 
 		$repo = $this->getRepo($dir);
 
-		$log = $repo->getLog('master', $opts['paths'], $opts['offset'], $opts['limit']);
+		$log = $repo->getLog('master', $this->repoRelativePaths($repo, $opts['paths']), $opts['offset'], $opts['limit']);
 
 		$list = array();
 		foreach ($log->getCommits() as $commit) {
