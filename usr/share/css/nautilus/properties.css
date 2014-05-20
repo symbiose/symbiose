@@ -5,7 +5,11 @@
 	float: left;
 	max-width: 48px;
 }
-ul {
+ul.file-data {
 	list-style-type: none;
 	padding-left: 5px;
+	margin-left: 48px;
+}
+.webos-list {
+	max-height: 250px;
 }

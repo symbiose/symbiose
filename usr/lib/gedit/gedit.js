@@ -4,8 +4,13 @@
  * @author $imon
  */
 
-new W.ScriptFile('/usr/lib/codemirror/codemirror.js');
-new W.Stylesheet('/usr/share/css/codemirror/main.css');
+Webos.require([
+	{
+		path: '/usr/lib/codemirror/codemirror.js',
+		exportApis: ['CodeMirror']
+	},
+	'/usr/share/css/codemirror/main.css'
+], function () {
 
 $.webos.widget('gedit', 'container', {
 	_name: 'gedit',
@@ -234,7 +239,7 @@ var GEditWindow = function (file) {
 			that._window.window('loading', true, {
 				lock: false
 			});
-			file.readAsText(new W.Callback(function(contents) {
+			file.readAsText([function(contents) {
 				that._window.window('loading', false);
 
 				that._file = file;
@@ -251,7 +256,7 @@ var GEditWindow = function (file) {
 			}, function(response) {
 				that._window.window('loading', false);
 				callback.error(response);
-			}));
+			}]);
 		};
 		
 		this.createEmptyFile = function() {
@@ -646,3 +651,5 @@ Webos.inherit(GEditWindow, Webos.Observable);
 Webos.inherit(GEditWindow, Webos.TranslatedLibrary);
 
 window.GEditWindow = GEditWindow;
+
+});

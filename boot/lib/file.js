@@ -697,7 +697,7 @@ Webos.File.get = function(file, data, disableCache) {
 
 	path = Webos.File._toAbsolutePath(file);
 
-	if (Webos.File.isCached(path)) { //Si le fichier est dans le cache, on le retourne
+	if (Webos.File.isCached(path) && !disableCache) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
 	} else {
 		var devices = Webos.File.mountedDevices();
@@ -724,6 +724,10 @@ Webos.File.get = function(file, data, disableCache) {
 Webos.File.load = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
+	if (!path) {
+		return;
+	}
+
 	//Ajouter un fichier au cache
 	var addFileToCacheFn = function(file) {
 		if (typeof Webos.File._cache[file.get('path')] != 'undefined') {
@@ -735,36 +739,10 @@ Webos.File.load = function(path, callback) {
 		}
 	};
 
-	if (typeof path == 'undefined') {
+	var file = Webos.File.get(path, {}, false);
+	if (!file) {
 		return;
 	}
-
-	//Le fichier est-il dans un volume monte ?
-	/*var devices = Webos.File.mountedDevices();
-	for (var local in devices) {
-		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			(function(point) {
-				if (Webos[point.get('driver')].load) {
-					Webos[point.get('driver')].load(path, point, [function(file) {
-						addFileToCacheFn(file);
-						callback.success(file);
-					}, callback.error]);
-				} else {
-					var file = Webos[point.get('driver')].get(path, devices[local]);
-
-					file.load([function() {
-						//On le stocke dans le cache
-						addFileToCacheFn(file);
-						
-						callback.success(file);
-					}, callback.error]);
-				}
-			})(devices[local]);
-			return;
-		}
-	}*/
-
-	var file = Webos.File.get(path, {}, false);
 
 	file.load([function() {
 		//On le stocke dans le cache

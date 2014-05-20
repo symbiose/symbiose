@@ -10,6 +10,19 @@ use \ZipArchive;
 class FileController extends \lib\ApiBackController {
 	const UPLOADS_CONFIG = '/etc/uploads.json';
 
+	protected function getPathData($path) {
+		$manager = $this->managers()->getManagerOf('file');
+
+		$data = array(
+			'basename' => $manager->basename($path),
+			'path' => $path,
+			'realpath' => $manager->toInternalPath($path),
+			'dirname' => $manager->dirname($path)
+		);
+
+		return $data;
+	}
+
 	/**
 	 * Get a file's content.
 	 * @param  string $path The file path.
@@ -99,18 +112,16 @@ class FileController extends \lib\ApiBackController {
 			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
 		}
 
-		$data = array(
-			'basename' => $manager->basename($path),
-			'path' => $path,
-			'realpath' => $manager->toInternalPath($path),
+		$baseData = $this->getPathData($path);
+
+		$data = array_merge($baseData, array(
 			'download_url' => $manager->toInternalPath($path) . '?dl=1',
-			'dirname' => $manager->dirname($path),
 			'atime' => $manager->atime($path),
 			'mtime' => $manager->mtime($path),
 			'size' => $manager->size($path),
 			'is_dir' => $manager->isDir($path),
 			'mime_type' => $manager->mimetype($path)
-		);
+		));
 
 		if ($data['is_dir']) {
 			$data['available_space'] = $manager->availableSpace($path);

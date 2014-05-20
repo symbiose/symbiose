@@ -6,6 +6,7 @@ use RuntimeException;
 
 use Gitonomy\Git\Repository;
 use Gitonomy\Git\Commit;
+use Gitonomy\Git\Tree;
 
 /**
  * Manage Git repositories.
@@ -104,16 +105,73 @@ class GitController extends FileController {
 		$repo->run('commit', array('--author="'.$userData['username'].' <'.$userData['email'].'>"', '-m', $msg));
 	}
 
+	protected function getEntity($path, $revision) {
+		$repo = $this->getRepoFromFile($path);
+		$commit = $repo->getCommit($revision);
+		$tree = $commit->getTree();
+
+		$relativePaths = $this->repoRelativePaths($repo, array($path));
+
+		try {
+			return $tree->resolvePath($relativePaths[0]);
+		} catch (InvalidArgumentException $e) {
+			throw new RuntimeException('"'.$path.'": no such file or directory in revision "'+$revision+'"', 404);
+		}
+	}
+
+	protected function getEntityData($entity) {
+		$manager = $this->managers()->getManagerOf('file');
+
+		$data = array();
+
+		if ($entity instanceof Tree) {
+			$data['is_dir'] = true;
+			$data['size'] = count($entity->getEntries());
+		} else {
+			$data['is_dir'] = false;
+			$data['mime_type'] = $entity->getMimetype();
+			$data['size'] = strlen($entity->getContent());
+		}
+
+		return $data;
+	}
+
 	// GETTERS
 
 	// Regular commands
 
-	public function executeGetData($path) {
+	public function executeGetContents($path, $revision = null) {
+		if (empty($revision)) {
+			return parent::executeGetContents($path);
+		} else {
+			$entity = $this->getEntity($path, $revision);
+
+			if ($entity instanceof Tree) { // Tree
+				$children = $entity->getEntries();
+
+				$list = array();
+				foreach ($children as $name => $child) {
+					$childPath = $path.'/'.$name;
+					$list[$name] = array_merge($this->getPathData($childPath), $this->getEntityData($child));
+				}
+
+				return $list;
+			} else { // Blob
+				$this->responseContent->setChannel(1, $entity->getContent());
+			}
+		}
+	}
+
+	public function executeGetData($path, $revision = null) {
 		$manager = $this->managers()->getManagerOf('file');
 
-		$data = parent::executeGetData($path);
+		if (empty($revision)) {
+			return parent::executeGetData($path);
+		} else {
+			$entity = $this->getEntity($path, $revision);
 
-		return $data;
+			return array_merge($this->getPathData($path), $this->getEntityData($entity));
+		}
 	}
 
 	// Git commands

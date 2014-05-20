@@ -54,6 +54,10 @@ Webos.GitFile = function (data, point) {
  */
 Webos.GitFile.prototype = {
 	_createRequest: function (method, args) {
+		if (method == 'getContents' || method == 'getData') {
+			args.revision = this._get('version');
+		}
+
 		return Webos.GitFile._createRequest(method, args, this.get('mountPoint'));
 	},
 	getLog: function (opts) {
@@ -110,7 +114,11 @@ Webos.GitFile.search = Webos.WebosFile.search;
 Webos.GitFile.Commit = function (data) {
 	Webos.Model.call(this, data);
 };
-Webos.GitFile.Commit.prototype = {};
+Webos.GitFile.Commit.prototype = {
+	getFile: function (path) {
+		return Webos.File.get(path, { version: this._get('hash') }, true);
+	}
+};
 
 Webos.inherit(Webos.GitFile.Commit, Webos.Model);
 

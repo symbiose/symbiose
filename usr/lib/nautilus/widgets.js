@@ -1184,7 +1184,7 @@ Webos.require([
 				title: t.get('Properties of ${name}', { name: file.get('basename') }),
 				icon: this._getFileIcon(file),
 				resizable: false,
-				width: 400,
+				width: 500,
 				stylesheet: '/usr/share/css/nautilus/properties.css'
 			});
 
@@ -1296,7 +1296,6 @@ Webos.require([
 
 							openTabGenerated = true;
 						} else if (versionsTab && data.index == 2 && !versionsTabGenerated) {
-							//TODO
 							var $list = $.w.list().appendTo(versionsTab),
 								$btns = $.w.buttonContainer().appendTo(versionsTab);
 							
@@ -1333,7 +1332,29 @@ Webos.require([
 								resp.triggerError();
 							});
 
-							$.w.button(t.get('Open this version')).appendTo($btns);
+							var getFileAtVersion = function () {
+								var $selection = $list.list('selection').first();
+
+								if (!$selection.length) {
+									return;
+								}
+
+								var version = $selection.data('version');
+
+								return oldFile = version.getFile(file.get('path'));
+							};
+
+							$.w.button(t.get('Open this version')).click(function () {
+								var oldFile = getFileAtVersion();
+
+								that._openFile(oldFile);
+							}).appendTo($btns);
+
+							/*$.w.button(t.get('Restore')).click(function () {
+								var oldFile = getFileAtVersion();
+
+								//TODO
+							}).appendTo($btns);*/
 
 							versionsTabGenerated = true;
 						}
@@ -1366,7 +1387,7 @@ Webos.require([
 					data.push(t.get('Available space : ${availableSpace}', { availableSpace: W.File.bytesToSize(file.get('available_space')) }));
 				}
 
-				dataTab.append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
+				dataTab.append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul class="file-data"><li>'+data.join('</li><li>')+'</li></ul>');
 				var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
 				$.w.button(t.get('Close')).appendTo(buttons).click(function() {
 					propertiesWindow.window('close');
@@ -1619,9 +1640,12 @@ Webos.require([
 		_openFile: function(file) {
 			if (file.get('is_dir')) {
 				if (this.options.multipleWindows) {
-					W.Cmd.execute('nautilus "'+file.get('path')+'"');
+					W.Cmd.execute({
+						executable: 'nautilus',
+						args: [file]
+					});
 				} else {
-					this.readDir(file.get('path'));
+					this.readDir(file);
 				}
 			} else {
 				var that = this, t = this.translations();
@@ -1694,7 +1718,12 @@ Webos.require([
 					}
 					
 					fileOpenerWindow.window('close');
-					W.Cmd.execute(chosenCmd+' "'+file.get('path')+'"');
+
+					// Execute the choosen command
+					W.Cmd.execute({
+						executable: chosenCmd,
+						args: [file]
+					});
 				}).appendTo(fileOpenerWindow.window('content'));
 				
 				content.append('<strong>'+t.get('Select an application to open ${name}', { name: file.get('basename') })+' : </strong>');
