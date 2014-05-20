@@ -28,10 +28,7 @@ Webos.VersionnedFile.prototype = {
 	getLog: function (opts) {
 		return this._unsupportedMethod();
 	},
-	getDiff: function (opts) {
-		return this._unsupportedMethod();
-	},
-	getBlame: function (opts) {
+	restore: function (version) {
 		return this._unsupportedMethod();
 	}
 };
@@ -63,9 +60,7 @@ Webos.GitFile.prototype = {
 		return Webos.GitFile.getLog($.extend(opts, {
 			paths: this.get('webospath')
 		}), this.get('mountPoint'));
-	},
-	getDiff: function () {},
-	getBlame: function () {}
+	}
 };
 
 Webos.inherit(Webos.GitFile, Webos.VersionnedFile);
@@ -120,23 +115,6 @@ Webos.GitFile.Commit.prototype = {
 };
 
 Webos.inherit(Webos.GitFile.Commit, Webos.Model);
-
-Webos.GitFile.DiffFile = function () {};
-Webos.GitFile.DiffFile.prototype = {
-	isCreation: function () {},
-	isModification: function () {},
-	isRename: function () {},
-	isDeletion: function () {},
-	getAdditions: function () {},
-	getDeletions: function () {},
-	getOldName: function () {},
-	getNewName: function () {},
-	getName: function () {},
-	getOldIndex: function () {},
-	getNewIndex: function () {},
-	isBinary: function () {},
-	getChanges: function () {}
-};
 
 Webos.GitFile.getLog = function (opts, point) {
 	var op = Webos.Operation.create();
