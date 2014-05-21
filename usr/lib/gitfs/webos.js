@@ -28,7 +28,7 @@ Webos.VersionnedFile.prototype = {
 	getLog: function (opts) {
 		return this._unsupportedMethod();
 	},
-	restore: function (version) {
+	restore: function () {
 		return this._unsupportedMethod();
 	}
 };

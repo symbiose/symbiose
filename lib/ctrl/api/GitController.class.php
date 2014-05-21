@@ -14,6 +14,14 @@ use Gitonomy\Git\Tree;
  * @since 1.0beta5
  */
 class GitController extends FileController {
+	const CONFIG_FILE = '/etc/gitfs.json';
+
+	protected function getConfig() {
+		$configManager = $this->managers()->getManagerOf('config');
+
+		return $configManager->open(self::CONFIG_FILE);
+	}
+
 	protected function commitToArray(Commit $commit) {
 		$commitData = array(
 			'hash' => $commit->getHash(),
@@ -32,19 +40,35 @@ class GitController extends FileController {
 	protected function getRepo($dir, $create = false) {
 		$manager = $this->managers()->getManagerOf('file');
 		$internalPath = $manager->toInternalPath($dir);
+		$config = $this->getConfig()->read();
+
+		if (!isset($config['enabled']) || $config['enabled'] != true) {
+			throw new RuntimeException('Cannot open git repository "'.$dir.'" (git filesystems are disabled in "'.self::CONFIG_FILE.'")');
+		}
+
+		$opts = array();
+		if (!empty($config['gitCommand'])) {
+			$opts['command'] = $config['gitCommand'];
+		}
+		if (is_array($config['environmentVariables'])) {
+			$opts['environment_variables'] = $config['environmentVariables'];
+		}
+		if (is_int($config['processTimeout'])) {
+			$opts['process_timeout'] = (int) $config['processTimeout'];
+		}
 
 		if ($manager->isDir($dir.'/.git')) {
-			$repo = new Repository($internalPath);
+			$repo = new Repository($internalPath, $opts);
 		} else {
 			if ($create) {
-				$repo = \Gitonomy\Git\Admin::init($internalPath, false);
+				$repo = \Gitonomy\Git\Admin::init($internalPath, false, $opts);
 
 				$manager->write($dir.'/.gitignore', '/.*'); // Ignore hidden files
 
 				$this->addFilesToRepo($repo, '*');
 				$this->commitRepo($repo, 'Initial commit');
 			} else {
-				throw new RuntimeException('"'.$dir.'": not a git repository', 404);
+				throw new InvalidArgumentException('"'.$dir.'": not a git repository', 404);
 			}
 		}
 

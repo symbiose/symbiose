@@ -1192,7 +1192,7 @@ Webos.require([
 			var dataTab = tabs.tabs('tab', t.get('General'));
 
 			var showRequestedTab = function () {
-				var tabsNames = ['info','openWith','share'];
+				var tabsNames = ['info', 'openWith', 'versions', 'share'];
 				if (typeof openedTab == 'string') {
 					var tabNo = $.inArray(openedTab, tabsNames);
 					if (tabNo >= 0) {
@@ -1298,7 +1298,8 @@ Webos.require([
 						} else if (versionsTab && data.index == 2 && !versionsTabGenerated) {
 							var $list = $.w.list().appendTo(versionsTab),
 								$btns = $.w.buttonContainer().appendTo(versionsTab);
-							
+
+							propertiesWindow.window('loading', true);
 							file.getLog().then(function (versions) {
 								if (!versions.length) {
 									$.w.label(t.get('This file has no versions.')).appendTo(versionsTab);
@@ -1330,6 +1331,8 @@ Webos.require([
 								}
 							}, function (resp) {
 								resp.triggerError();
+							}).always(function () {
+								propertiesWindow.window('loading', false);
 							});
 
 							var getFileAtVersion = function () {
@@ -1350,11 +1353,14 @@ Webos.require([
 								that._openFile(oldFile);
 							}).appendTo($btns);
 
-							/*$.w.button(t.get('Restore')).click(function () {
+							$.w.button(t.get('Restore')).click(function () {
 								var oldFile = getFileAtVersion();
 
-								//TODO
-							}).appendTo($btns);*/
+								propertiesWindow.window('loading', true);
+								oldFile.restore().always(function () {
+									propertiesWindow.window('loading', false);
+								});
+							}).appendTo($btns);
 
 							versionsTabGenerated = true;
 						}

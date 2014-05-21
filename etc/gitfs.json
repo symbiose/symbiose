@@ -1,0 +1,6 @@
+{
+	"enabled": true,
+	"gitCommand": null,
+	"environmentVariables": {},
+	"processTimeout": 3600
+}
