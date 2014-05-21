@@ -111,8 +111,8 @@ class PeerServer implements MessageComponentInterface {
 	protected function _sendMsgToClient(ConnectionInterface $from, $dst, $msg) {
 		$msgSent = false;
 
-		$src = $this->getPeerByConnId($from->resourceId);
-		$src['id'];
+		$srcData = $this->getPeerByConnId($from->resourceId);
+		$src = $srcData['id'];
 
 		try {
 			foreach($this->clients as $conn) {
@@ -150,8 +150,8 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	protected function _sendMsgToServer(ConnectionInterface $from, $dst, $msgData) {
-		$srcId = $this->getPeerByConnId($from->resourceId);
-		$srcId['id'];
+		$srcData = $this->getPeerByConnId($from->resourceId);
+		$srcId = $srcData['id'];
 		$src = $srcId.'@'.$this->hostname().':'.$this->port().'/peerjs';
 
 		$dstData = parse_url($dst);
@@ -200,9 +200,8 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	protected function _handleTransmission(ConnectionInterface $from, $msgData) {
-
-		$msgData = $this->getPeerByConnId($from->resourceId);
-		$msgData['src']['id'];
+		$srcData = $this->getPeerByConnId($from->resourceId);
+		$msgData['src'] = $srcData['id'];
 		$type = $msgData['type'];
 		$src = $msgData['src'];
 		$dst = (isset($msgData['dst'])) ? $msgData['dst'] : null;
@@ -211,6 +210,7 @@ class PeerServer implements MessageComponentInterface {
 
 		if (!in_array($type, array('LEAVE', 'CANDIDATE', 'OFFER', 'ANSWER'))) {
 			echo 'Error: Unknown message type "'.$type.'"';
+			var_dump($msgData);
 			return;
 		}
 
