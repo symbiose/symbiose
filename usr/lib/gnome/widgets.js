@@ -24,7 +24,7 @@ $.webos.widget('contextMenu', 'container', {
 		
 		this.element.hide();
 		
-		target.bind('contextmenu', function(e) {
+		target.on('contextmenu', function(e) {
 			if (that.options.disabled) {
 				return false;
 			}
@@ -73,7 +73,7 @@ $.webos.widget('contextMenu', 'container', {
 			}
 			
 			// Afficher le menu
-			$(document).unbind('click', clickFn);
+			$(document).off('mousedown', clickFn);
 			that.element.hide().css({ top: y, left: x }).fadeIn('fast');
 			
 			// Hover events
@@ -89,12 +89,12 @@ $.webos.widget('contextMenu', 'container', {
 				clickFn();
 				event.preventDefault();
 			};
-			that.element.find('a').unbind('click', itemSelect);
+			that.element.find('a').off('click', itemSelect);
 			that.element.find('li:not(.disabled) a').click(itemSelect);
 			
 			// Hide bindings
 			setTimeout(function() { // Delay for Mozilla
-				$(document).one('click', clickFn);
+				$(document).one('mousedown', clickFn);
 			}, 0);
 			
 			that._trigger('open');
@@ -111,7 +111,7 @@ $.webos.widget('contextMenu', 'container', {
 			});
 		});
 		
-		target.add('ul.webos-contextmenu').bind('contextmenu', function(event) {
+		target.add('ul.webos-contextmenu').on('contextmenu', function(event) {
 			event.preventDefault();
 		});
 		
@@ -119,7 +119,7 @@ $.webos.widget('contextMenu', 'container', {
 	},
 	destroy: function() {
 		if (typeof this.options.target != 'undefined') {
-			this.options.target.unbind('contextmenu');
+			this.options.target.off('contextmenu');
 		}
 	}
 });
