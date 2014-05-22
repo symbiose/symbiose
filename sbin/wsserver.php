@@ -24,35 +24,44 @@ if (!$enabled) { //WebSocket server not enabled
 	exit('Cannot start WebSocket server: server is not enabled in '.$serverConfigFilePath);
 }
 
-$hostname = (isset($serverConfig['hostname'])) ? $serverConfig['hostname'] : 'localhost';
+$hostnames = (isset($serverConfig['hostname'])) ? $serverConfig['hostname'] : 'localhost';
+if (!is_array($hostnames)) {
+	$hostnames = array($hostnames);
+}
+
 $port = (isset($serverConfig['port'])) ? $serverConfig['port'] : 9000;
 
-echo 'Starting WebSocket server at '.$hostname.':'.$port.'...'."\n";
+echo 'Starting WebSocket server at '.$hostnames[0].':'.$port.'...'."\n";
 
 //Sessions
 $sessionProvider = new SessionProvider;
 $sessionHandler = $sessionProvider->handler();
 
 //Servers
-$apiServer = new ApiWebSocketServer;
-$peerServer = new PeerServer($hostname, $port);
-$peerHttpServer = new PeerHttpServer($peerServer); //HTTP servers doesn't support SessionProvider
+$apiServer = new RatchetSessionProvider(new ApiWebSocketServer, $sessionHandler);
+$peerServer = new PeerServer($hostnames[0], $port);
+$decoratedPeerServer = new RatchetSessionProvider($peerServer, $sessionHandler);
+$peerHttpServer = new PeerHttpServer($peerServer); //HTTP servers don't support SessionProvider
 
 //Provide the peer server to the associated controller
 PeerController::setPeerServer($peerServer);
 
-$app = new App($hostname, $port, '0.0.0.0'); // 0.0.0.0 to accept remote connections
+// Bind to 0.0.0.0 to accept remote connections
+// See http://socketo.me/docs/troubleshooting
+$app = new App($hostnames[0], $port, '0.0.0.0');
 
-//Webos' API. Accessible from the same origin only
-$app->route('/api', new RatchetSessionProvider($apiServer, $sessionHandler));
+foreach ($hostnames as $host) {
+	//Webos' API. Accessible from the same origin only
+	$app->route('/api', $apiServer, array(), $host);
 
-//PeerJS server. Accessible from all origins
-$app->route('/peerjs', new RatchetSessionProvider($peerServer, $sessionHandler), array('*'));
-$app->route('/peerjs/id', $peerHttpServer, array('*'));
-$app->route('/peerjs/{id}/{token}/id', $peerHttpServer, array('*'));
-$app->route('/peerjs/{id}/{token}/offer', $peerHttpServer, array('*'));
-$app->route('/peerjs/{id}/{token}/candidate', $peerHttpServer, array('*'));
-$app->route('/peerjs/{id}/{token}/answer', $peerHttpServer, array('*'));
-$app->route('/peerjs/{id}/{token}/leave', $peerHttpServer, array('*'));
+	//PeerJS server. Accessible from all origins
+	$app->route('/peerjs', $decoratedPeerServer, array('*'), $host);
+	$app->route('/peerjs/id', $peerHttpServer, array('*'), $host);
+	$app->route('/peerjs/{id}/{token}/id', $peerHttpServer, array('*'), $host);
+	$app->route('/peerjs/{id}/{token}/offer', $peerHttpServer, array('*'), $host);
+	$app->route('/peerjs/{id}/{token}/candidate', $peerHttpServer, array('*'), $host);
+	$app->route('/peerjs/{id}/{token}/answer', $peerHttpServer, array('*'), $host);
+	$app->route('/peerjs/{id}/{token}/leave', $peerHttpServer, array('*'), $host);
+}
 
 $app->run(); //Start the server
