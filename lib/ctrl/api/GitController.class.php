@@ -1,6 +1,7 @@
 <?php
 namespace lib\ctrl\api;
 
+use Exception;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -246,7 +247,11 @@ class GitController extends FileController {
 	public function executeRename($path, $newName) {
 		$fileData = parent::executeRename($path, $newName);
 
-		$repo = $this->getRepoFromFile($path);
+		try {
+			$repo = $this->getRepoFromFile($path);
+		} catch (Exception $e) {
+			return $fileData;
+		}
 
 		$this->addFilesToRepo($repo, array($path, $fileData['path']));
 		$this->commitRepo($repo, 'Moved '.$path.' to '.$newName);
@@ -257,7 +262,11 @@ class GitController extends FileController {
 	public function executeCopy($source, $dest) {
 		$destData = parent::executeCopy($source, $dest);
 
-		$repo = $this->getRepoFromFile($path);
+		try {
+			$repo = $this->getRepoFromFile($destData['path']);
+		} catch (Exception $e) {
+			return $destData;
+		}
 		
 		$this->addFilesToRepo($repo, $destData['path']);
 		$this->commitRepo($repo, 'Copied '.$source.' to '.$dest);
@@ -268,9 +277,13 @@ class GitController extends FileController {
 	public function executeMove($source, $dest) {
 		$destData = parent::executeMove($source, $dest);
 
-		$repo = $this->getRepoFromFile($path);
-		
-		$this->addFilesToRepo($repo, $destData['path']);
+		try {
+			$repo = $this->getRepoFromFile($destData['path']);
+		} catch (Exception $e) {
+			return $destData;
+		}
+
+		$this->addFilesToRepo($repo, array($source, $destData['path']));
 		$this->commitRepo($repo, 'Moved '.$source.' to '.$dest);
 
 		return $destData;
@@ -279,7 +292,11 @@ class GitController extends FileController {
 	public function executeDelete($path) {
 		parent::executeDelete($path);
 
-		$repo = $this->getRepoFromFile($path);
+		try {
+			$repo = $this->getRepoFromFile($path);
+		} catch (Exception $e) {
+			return;
+		}
 
 		$this->addFilesToRepo($repo, $path);
 		$this->commitRepo($repo, 'Deleted '.$path);
@@ -288,7 +305,11 @@ class GitController extends FileController {
 	public function executeCreateFile($path) {
 		$newFileData = parent::executeCreateFile($path);
 
-		$repo = $this->getRepoFromFile($path);
+		try {
+			$repo = $this->getRepoFromFile($path);
+		} catch (Exception $e) {
+			return $newFileData;
+		}
 
 		$this->addFilesToRepo($repo, $path);
 		$this->commitRepo($repo, 'Created '.$path);
@@ -299,7 +320,11 @@ class GitController extends FileController {
 	public function executeSetContents($path, $contents) {
 		$fileData = parent::executeSetContents($path, $contents);
 
-		$repo = $this->getRepoFromFile($path);
+		try {
+			$repo = $this->getRepoFromFile($path);
+		} catch (Exception $e) {
+			return $fileData;
+		}
 
 		$this->addFilesToRepo($repo, $path);
 		$this->commitRepo($repo, 'Updated '.$path);
@@ -311,7 +336,11 @@ class GitController extends FileController {
 		$uploadData = parent::executeUpload($dest);
 		$newFileData = $uploadData['file'];
 
-		$repo = $this->getRepoFromFile($path);
+		try {
+			$repo = $this->getRepoFromFile($path);
+		} catch (Exception $e) {
+			return $newFileData;
+		}
 
 		$this->addFilesToRepo($repo, $newFileData['path']);
 		$this->commitRepo($repo, 'Uploaded '.$newFileData['path']);
