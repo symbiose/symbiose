@@ -51,7 +51,7 @@ Webos.GitFile = function (data, point) {
 Webos.GitFile.prototype = {
 	_createRequest: function (method, args) {
 		if (method == 'getContents' || method == 'getData') {
-			args.revision = this._get('version');
+			args.revision = this.get('version');
 		}
 
 		return Webos.GitFile._createRequest(method, args, this.get('mountPoint'));
@@ -60,6 +60,12 @@ Webos.GitFile.prototype = {
 		return Webos.GitFile.getLog($.extend(opts, {
 			paths: this.get('webospath')
 		}), this.get('mountPoint'));
+	},
+	restore: function () {
+		return this._createRequest('restore', {
+			path: this.get('webospath'),
+			revision: this.get('version')
+		});
 	}
 };
 
@@ -84,12 +90,17 @@ Webos.GitFile.mount = function (point, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
 	Webos.WebosFile.mount(point, [function (point) {
+		var pointData = point.get('data') || {},
+			pointOpts = pointData.options || {};
+
 		that._createRequest('initRepo', {
 			dir: point.get('remote')
 		}, point).load([function () {
 			callback.success(point);
-		}, function (resp) {
+		}, function (resp) { // Git init failed
 			if (resp.getStatusCode() == 401) { // Access denied, ignore (user not logged in)
+				callback.success(point);
+			} else if (pointOpts.force) { // Ignore errors option
 				callback.success(point);
 			} else {
 				callback.error(resp);

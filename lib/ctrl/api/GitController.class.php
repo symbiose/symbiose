@@ -44,7 +44,7 @@ class GitController extends FileController {
 		$config = $this->getConfig()->read();
 
 		if (!isset($config['enabled']) || $config['enabled'] != true) {
-			throw new RuntimeException('Cannot open git repository "'.$dir.'" (git filesystems are disabled in "'.self::CONFIG_FILE.'")');
+			throw new RuntimeException('Cannot open git repository "'.$dir.'" (git filesystems are disabled in "'.self::CONFIG_FILE.'")', 403);
 		}
 
 		$opts = array();
@@ -351,8 +351,6 @@ class GitController extends FileController {
 	// Git commands
 
 	public function executeInitRepo($dir) {
-		$manager = $this->managers()->getManagerOf('file');
-
 		$repo = $this->getRepo($dir, true);
 	}
 
@@ -363,5 +361,11 @@ class GitController extends FileController {
 
 		$gitDir = $repo->getGitDir();
 		$manager->delete($manager->toExternalPath($gitDir), true);
+	}
+
+	public function executeRestore($path, $revision) {
+		$oldContents = $this->executeGetContents($path, $revision);
+
+		return $this->executeSetContents($path, $oldContents);
 	}
 }

@@ -111,5 +111,13 @@
 	"executeInitRepo":[{
 		"argument":0,
 		"permission":"file.write"
+	}],
+	"executeRemoveRepo":[{
+		"argument":0,
+		"permission":"file.write"
+	}],
+	"executeRestore":[{
+		"argument":0,
+		"permission":"file.write"
 	}]
 }

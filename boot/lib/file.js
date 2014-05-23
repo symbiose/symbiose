@@ -1886,7 +1886,11 @@ Webos.require({
 	homePoint = new Webos.File.MountPoint({
 		remote: '~',
 		driver: 'GitFile',
-		data: {}
+		data: {
+			options: {
+				force: true
+			}
+		}
 	}, '~');
 	Webos.File.mount(homePoint);
 });
