@@ -297,6 +297,9 @@ Webos.File.prototype = {
 			this._remove();
 
 			var file = Webos.File.get(newPath);
+			if (file.get('path') == oldPath) {
+				return;
+			}
 
 			if (Webos.isInstanceOf(file, this.constructor)) {
 				console.log(oldPath, newPath);
@@ -1200,9 +1203,9 @@ Webos.File.beautifyPath = function(path) {
 	
 	return path
 		.replace(/\/+/g, '/')
-		.replace('/./', '/')
-		.replace(/\/\.$/, '/')
-		.replace(/(.+)\/$/, '$1');
+		.replace(/\/.\//g, '/')
+		.replace(/\/\.$/g, '/')
+		.replace(/(.+)\/$/g, '$1');
 };
 
 /**
