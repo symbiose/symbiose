@@ -34,18 +34,9 @@ Webos.isInstanceOf = function(instance, obj) {
 		return false;
 	}
 
-	var current;
-	do {
-		if (current) {
-			current = current._parent;
-		} else {
-			current = instance.constructor;
-		}
-		
-		if (current === obj) {
-			return true;
-		}
-	} while (current._parent);
+	if (Webos.isSubclassOf(instance.constructor, obj)) {
+		return true;
+	}
 
 	try {
 		if (instance instanceof obj) {
@@ -53,5 +44,32 @@ Webos.isInstanceOf = function(instance, obj) {
 		}
 	} catch(e) {}
 	
+	return false;
+};
+
+/**
+ * Check if a class has another class as one of its parents.
+ * @param {Object} obj The class.
+ * @param {Object} parent The parent.
+ * @returns {Boolean} True if the class is a child of the other one, false otherwise.
+ */
+Webos.isSubclassOf = function (obj, parent) {
+	if (!obj || !parent) {
+		return false;
+	}
+
+	var current;
+	do {
+		if (current) {
+			current = current._parent;
+		} else {
+			current = obj;
+		}
+		
+		if (current === parent) {
+			return true;
+		}
+	} while (current._parent);
+
 	return false;
 };

@@ -101,6 +101,9 @@ Webos.GitFile.mount = function (point, callback) {
 			if (resp.getStatusCode() == 401) { // Access denied, ignore (user not logged in)
 				callback.success(point);
 			} else if (pointOpts.force) { // Ignore errors option
+				//TODO: use this value for "versionned"
+				//TODO: check Git support when mounting device
+				pointData.gitEnabled = false;
 				callback.success(point);
 			} else {
 				callback.error(resp);

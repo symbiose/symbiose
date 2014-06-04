@@ -11,7 +11,8 @@ use \ZipArchive;
 class FileController extends \lib\RawBackController {
 	public function executeIndex(\lib\HTTPRequest $request) {
 		$fileManager = $this->managers()->getManagerOf('file');
-		$shareManager = $this->managers()->getManagerOf('sharedFile');
+		$metadataManager = $this->managers()->getManagerOf('fileMetadata');
+		$shareManager = $this->managers()->getManagerOf('fileShare');
 		$authManager = $this->managers()->getManagerOf('authorization');
 		$user = $this->app()->user();
 
@@ -52,10 +53,22 @@ class FileController extends \lib\RawBackController {
 
 		$sharedAccess = false;
 		if (!empty($options['shareKey'])) {
-			$sharedFile = $shareManager->getByKey($options['shareKey'], $fileManager->toInternalPath($filePath));
+			$internalPath = $fileManager->toInternalPath($filePath);
+			$fileMetadatas = $metadataManager->listParents($internalPath, true);
 
-			if (!empty($sharedFile)) {
-				$sharedAccess = true;
+			foreach ($fileMetadatas as $metadata) {
+				$shares = $shareManager->listByFileId($metadata['id']);
+
+				foreach ($shares as $share) {
+					if ($share['type'] == 'link' && $share['key'] === $options['shareKey']) {
+						$sharedAccess = true;
+						break;
+					}
+				}
+
+				if ($sharedAccess) {
+					break;
+				}
 			}
 		}
 

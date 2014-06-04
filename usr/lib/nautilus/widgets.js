@@ -1179,7 +1179,7 @@ Webos.require([
 		},
 		_openProperties: function(file, openedTab) {
 			var t = this.translations(), that = this;
-			
+
 			var propertiesWindow = $.w.window({
 				title: t.get('Properties of ${name}', { name: file.get('basename') }),
 				icon: this._getFileIcon(file),
@@ -1296,8 +1296,7 @@ Webos.require([
 
 							openTabGenerated = true;
 						} else if (versionsTab && data.index == 2 && !versionsTabGenerated) {
-							var $list = $.w.list().appendTo(versionsTab),
-								$btns = $.w.buttonContainer().appendTo(versionsTab);
+							var $list = $.w.list().appendTo(versionsTab);
 
 							propertiesWindow.window('loading', true);
 							file.getLog().then(function (versions) {
@@ -1347,20 +1346,22 @@ Webos.require([
 								return version.getFile(file.get('path'));
 							};
 
-							$.w.button(t.get('Open this version')).click(function () {
+							var $openBtn = $.w.button(t.get('Open this version')).click(function () {
 								var oldFile = getFileAtVersion();
 
 								that._openFile(oldFile);
-							}).appendTo($btns);
-
-							$.w.button(t.get('Restore')).click(function () {
+							});
+							$list.list('addButton', $openBtn);
+							
+							var $restoreBtn = $.w.button(t.get('Restore')).click(function () {
 								var oldFile = getFileAtVersion();
 
 								propertiesWindow.window('loading', true);
 								oldFile.restore().always(function () {
 									propertiesWindow.window('loading', false);
 								});
-							}).appendTo($btns);
+							});
+							$list.list('addButton', $restoreBtn);
 
 							versionsTabGenerated = true;
 						}
@@ -1393,7 +1394,27 @@ Webos.require([
 					data.push(t.get('Available space : ${availableSpace}', { availableSpace: W.File.bytesToSize(file.get('available_space')) }));
 				}
 
-				dataTab.append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul class="file-data"><li>'+data.join('</li><li>')+'</li></ul>');
+				dataTab.append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/>');
+
+				var $dataCtn = $('<div></div>', { 'class': 'data-ctn' }).appendTo(dataTab);
+				$dataCtn.append('<ul class="file-data"><li>'+data.join('</li><li>')+'</li></ul>');
+				
+				var currentTags = file.get('tags') || '';
+				$dataCtn.append($.w.textEntry(t.get('Tags : '), currentTags).change(function () {
+					var newTags = $(this).textEntry('value');
+
+					if (newTags == currentTags) {
+						return;
+					}
+
+					file.set('tags', newTags);
+
+					file.sync([function () {}, function (resp) {
+						resp.triggerError();
+					}]);
+				}));
+
+
 				var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
 				$.w.button(t.get('Close')).appendTo(buttons).click(function() {
 					propertiesWindow.window('close');
@@ -1404,6 +1425,15 @@ Webos.require([
 
 				$.w.label(t.get('You can share this file to make it publicly accessible for users who have the link :')).appendTo(shareTab);
 
+				var shared = function (shareData) {
+					var shareLink = document.createElement("a");
+					shareLink.href = shareData.url;
+					var shareUrl = shareLink.href;
+
+					var shareResult = $.w.label(t.get('Public URL:') + ' <a href="'+shareUrl+'" target="_blank">'+shareUrl+'</a>');
+					shareBtn.replaceWith(shareResult);
+				};
+
 				var shareBtn = $.w.button(t.get('Share this file'))
 					.click(function() {
 						propertiesWindow.window('loading', true);
@@ -1412,18 +1442,20 @@ Webos.require([
 						file.share([function(shareData) {
 							propertiesWindow.window('loading', false);
 
-							var shareLink = document.createElement("a");
-							shareLink.href = shareData.url;
-							var shareUrl = shareLink.href;
-
-							var shareResult = $.w.label(t.get('Public URL:') + ' <a href="'+shareUrl+'" target="_blank">'+shareUrl+'</a>');
-							shareBtn.replaceWith(shareResult);
+							shared(shareData);
 						}, function(res) {
 							propertiesWindow.window('loading', false);
 							that._handleResponseError(res);
 						}]);
 					})
 					.appendTo(shareTab);
+
+				if (file.is('shared')) {
+					var shares = file.get('shares');
+					if (shares) {
+						shared(shares[0]); //TODO: print a shares list instead
+					}
+				}
 			};
 
 			if (file.exists('is_dir') && file.exists('size')) {

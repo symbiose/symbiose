@@ -297,11 +297,10 @@ Webos.File.prototype = {
 			this._remove();
 
 			var file = Webos.File.get(newPath);
-			if (file.get('path') == oldPath) {
-				return;
-			}
 
-			if (Webos.isInstanceOf(file, this.constructor)) {
+			// The second condition is to avoid infinite loops 
+			// See issue https://github.com/symbiose/symbiose/issues/417
+			if (Webos.isInstanceOf(file, this.constructor) && file.get('path') != oldPath) {
 				console.log(oldPath, newPath);
 				file._updateData(thisData);
 			} else {
@@ -570,6 +569,14 @@ Webos.File.prototype = {
 		return this._unsupportedMethod(callback);
 	},
 	/**
+	 * Sync changed attributes with the server.
+	 * @param  {Webos.Callback} callback The callback.
+	 * @return {Webos.Operation}         The operation.
+	 */
+	sync: function(callback) {
+		return this._unsupportedMethod(callback);
+	},
+	/**
 	 * Check if the user can execute a given action on this file.
 	 * @param {String} auth The name of the authorization. Can be "read" or "write".
 	 * @return {Boolean} True if the user can execute the specified action, false otherwise.
@@ -762,14 +769,22 @@ Webos.File.load = function(path, callback) {
  * @static
  */
 Webos.File.listDir = function(path, callback) {
-	callback = Webos.Callback.toCallback(callback);
+	var op = Webos.Operation.create().addCallbacks(callback);
 
-	var file = Webos.File.get(path, { is_dir: true }); //On construit notre objet
+	var file = Webos.File.get(path, { is_dir: true });
 
-	//Puis on récupére son contenu
-	return file.contents([function(list) {
-		callback.success(list);
-	}, callback.error]);
+	if (!file) {
+		op.setCompleted(false);
+		return op;
+	}
+
+	file.contents([function(list) {
+		op.setCompleted(list);
+	}, function (resp) {
+		op.setCompleted(resp);
+	}]);
+
+	return op;
 };
 
 /**
@@ -1460,6 +1475,16 @@ Webos.WebosFile.prototype = {
 			data.writable = true;
 		}
 
+		if (data.shares) {
+			var sharesList = [];
+
+			for (var i in data.shares) {
+				sharesList.push(data.shares[i]);
+			}
+
+			data.shares = sharesList;
+		}
+
 		return Webos.File.prototype.hydrate.call(this, data);
 	},
 	load: function(callback) {
@@ -1718,7 +1743,34 @@ Webos.WebosFile.prototype = {
 
 			callback.success(shareData);
 		}, callback.error]);
-	}
+	},
+	sync: function(callback) {
+		var that = this,
+			op = Webos.Operation.create().addCallbacks(callback);
+
+		var writeable = ['tags'],
+			changed = this.changedData(writeable),
+			staged = this._stageChanges(writeable);
+
+		if (!staged.length) {
+			op.setCompleted();
+			return op;
+		}
+
+		return this._createRequest('updateMetadata', {
+			file: this.get('webospath'),
+			metadata: changed
+		}).load([function(resp) {
+			that._propagateChanges(staged);
+			that._updateData(resp.getData());
+
+			op.setCompleted();
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	},
 };
 Webos.inherit(Webos.WebosFile, Webos.File); //Héritage de Webos.File
 
@@ -2319,7 +2371,9 @@ Webos.User.bind('logout', function() {
 	//On demonte tous les volumes
 	var mounted = Webos.File.mountedDevices();
 	for (var local in mounted) {
-		if (mounted[local].get('driver') == 'WebosFile') { //Do not unmount webos volumes
+		//Do not unmount webos volumes
+		var driverName = mounted[local].get('driver');
+		if (Webos.isSubclassOf(Webos[driverName], Webos.WebosFile)) {
 			continue;
 		}
 
