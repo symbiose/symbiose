@@ -38,6 +38,12 @@ class GitController extends FileController {
 		return $commitData;
 	}
 
+	protected function isGitEnabled() {
+		$config = $this->getConfig()->read();
+
+		return (isset($config['enabled']) && $config['enabled'] === true);
+	}
+
 	protected function getRepo($dir, $create = false) {
 		$manager = $this->managers()->getManagerOf('file');
 		$internalPath = $manager->toInternalPath($dir);
@@ -203,18 +209,22 @@ class GitController extends FileController {
 		}
 	}
 
-	public function executeGetData($path, $revision = null) {
+	public function executeGetMetadata($path, $revision = null) {
 		$manager = $this->managers()->getManagerOf('file');
 
 		if (empty($revision)) {
-			return parent::executeGetData($path);
+			$data = parent::executeGetMetadata($path);
+
+			$data['labels']['versionned'] = $this->isGitEnabled();
 		} else {
 			$entity = $this->getEntity($path, $revision);
 
-			return array_merge($this->getPathData($path), $this->getEntityData($entity), array(
+			$data = array_merge($this->getPathData($path), $this->getEntityData($entity), array(
 				'version' => $revision
 			));
 		}
+
+		return $data;
 	}
 
 	// Git commands
@@ -339,7 +349,7 @@ class GitController extends FileController {
 		try {
 			$repo = $this->getRepoFromFile($path);
 		} catch (Exception $e) {
-			return $newFileData;
+			return $uploadData;
 		}
 
 		$this->addFilesToRepo($repo, $newFileData['path']);

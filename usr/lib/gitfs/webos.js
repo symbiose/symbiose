@@ -15,10 +15,10 @@ Webos.VersionnedFile = function (data, point) {
 Webos.VersionnedFile.prototype = {
 	hydrate: function (data) {
 		if (!data.labels) {
-			data.labels = {};
+			data.labels = {
+				versionned: true
+			};
 		}
-
-		data.labels.versionned = true;
 
 		return this._super('hydrate', data);
 	},
