@@ -1757,7 +1757,7 @@ Webos.WebosFile.prototype = {
 			return op;
 		}
 
-		return this._createRequest('updateMetadata', {
+		this._createRequest('updateMetadata', {
 			file: this.get('webospath'),
 			metadata: changed
 		}).load([function(resp) {
