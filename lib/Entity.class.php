@@ -18,10 +18,6 @@ abstract class Entity implements \ArrayAccess {
 	 * @param array $data The data to store in this entity.
 	 */
 	public function __construct($data = array()) {
-		if (!$data instanceof \Traversable && !is_array($data)) {
-			throw new \InvalidArgumentException('Invalid data : variable must be an array or traversable');
-		}
-
 		if (!empty($data)) {
 			$this->hydrate($data);
 		}
@@ -57,7 +53,7 @@ abstract class Entity implements \ArrayAccess {
 	 */
 	public function hydrate($data) {
 		if (!$data instanceof \Traversable && !is_array($data)) {
-			throw new \InvalidArgumentException('Invalid data : variable must be an array or traversable');
+			throw new \InvalidArgumentException('Invalid data: variable must be an array or traversable');
 		}
 
 		foreach ($data as $key => $value) {

@@ -1834,6 +1834,7 @@ $.webos.listItem.prototype = {
 	_update: function(key, value) {
 		switch(key) {
 			case 'active':
+			case 'selected':
 				this.active(value);
 				break;
 		}

@@ -285,6 +285,9 @@ Webos.File.prototype = {
 		}
 
 		var newPath = this.get('path');
+		if (!newPath) {
+			return;
+		}
 
 		if (oldPath != newPath) {
 			var thisData = $.extend({}, this.data());
@@ -295,7 +298,10 @@ Webos.File.prototype = {
 
 			var file = Webos.File.get(newPath);
 
-			if (Webos.isInstanceOf(file, this.constructor)) {
+			// The second condition is to avoid infinite loops 
+			// See issue https://github.com/symbiose/symbiose/issues/417
+			if (Webos.isInstanceOf(file, this.constructor) && file.get('path') != oldPath) {
+				console.log(oldPath, newPath);
 				file._updateData(thisData);
 			} else {
 				file._updateData({
@@ -563,6 +569,14 @@ Webos.File.prototype = {
 		return this._unsupportedMethod(callback);
 	},
 	/**
+	 * Sync changed attributes with the server.
+	 * @param  {Webos.Callback} callback The callback.
+	 * @return {Webos.Operation}         The operation.
+	 */
+	sync: function(callback) {
+		return this._unsupportedMethod(callback);
+	},
+	/**
 	 * Check if the user can execute a given action on this file.
 	 * @param {String} auth The name of the authorization. Can be "read" or "write".
 	 * @return {Boolean} True if the user can execute the specified action, false otherwise.
@@ -693,7 +707,7 @@ Webos.File.get = function(file, data, disableCache) {
 
 	path = Webos.File._toAbsolutePath(file);
 
-	if (Webos.File.isCached(path)) { //Si le fichier est dans le cache, on le retourne
+	if (Webos.File.isCached(path) && !disableCache) { //Si le fichier est dans le cache, on le retourne
 		return Webos.File._cache[path];
 	} else {
 		var devices = Webos.File.mountedDevices();
@@ -720,6 +734,10 @@ Webos.File.get = function(file, data, disableCache) {
 Webos.File.load = function(path, callback) {
 	callback = Webos.Callback.toCallback(callback);
 
+	if (!path) {
+		return;
+	}
+
 	//Ajouter un fichier au cache
 	var addFileToCacheFn = function(file) {
 		if (typeof Webos.File._cache[file.get('path')] != 'undefined') {
@@ -731,36 +749,10 @@ Webos.File.load = function(path, callback) {
 		}
 	};
 
-	if (typeof path == 'undefined') {
+	var file = Webos.File.get(path, {}, false);
+	if (!file) {
 		return;
 	}
-
-	//Le fichier est-il dans un volume monte ?
-	/*var devices = Webos.File.mountedDevices();
-	for (var local in devices) {
-		if (Webos.File.cleanPath(path).indexOf(local) == 0) {
-			(function(point) {
-				if (Webos[point.get('driver')].load) {
-					Webos[point.get('driver')].load(path, point, [function(file) {
-						addFileToCacheFn(file);
-						callback.success(file);
-					}, callback.error]);
-				} else {
-					var file = Webos[point.get('driver')].get(path, devices[local]);
-
-					file.load([function() {
-						//On le stocke dans le cache
-						addFileToCacheFn(file);
-						
-						callback.success(file);
-					}, callback.error]);
-				}
-			})(devices[local]);
-			return;
-		}
-	}*/
-
-	var file = Webos.File.get(path, {}, false);
 
 	file.load([function() {
 		//On le stocke dans le cache
@@ -777,14 +769,22 @@ Webos.File.load = function(path, callback) {
  * @static
  */
 Webos.File.listDir = function(path, callback) {
-	callback = Webos.Callback.toCallback(callback);
+	var op = Webos.Operation.create().addCallbacks(callback);
 
-	var file = Webos.File.get(path, { is_dir: true }); //On construit notre objet
+	var file = Webos.File.get(path, { is_dir: true });
 
-	//Puis on récupére son contenu
-	return file.contents([function(list) {
-		callback.success(list);
-	}, callback.error]);
+	if (!file) {
+		op.setCompleted(false);
+		return op;
+	}
+
+	file.contents([function(list) {
+		op.setCompleted(list);
+	}, function (resp) {
+		op.setCompleted(resp);
+	}]);
+
+	return op;
 };
 
 /**
@@ -1218,9 +1218,9 @@ Webos.File.beautifyPath = function(path) {
 	
 	return path
 		.replace(/\/+/g, '/')
-		.replace('/./', '/')
-		.replace(/\/\.$/, '/')
-		.replace(/(.+)\/$/, '$1');
+		.replace(/\/.\//g, '/')
+		.replace(/\/\.$/g, '/')
+		.replace(/(.+)\/$/g, '$1');
 };
 
 /**
@@ -1475,6 +1475,16 @@ Webos.WebosFile.prototype = {
 			data.writable = true;
 		}
 
+		if (data.shares) {
+			var sharesList = [];
+
+			for (var i in data.shares) {
+				sharesList.push(data.shares[i]);
+			}
+
+			data.shares = sharesList;
+		}
+
 		return Webos.File.prototype.hydrate.call(this, data);
 	},
 	load: function(callback) {
@@ -1591,9 +1601,15 @@ Webos.WebosFile.prototype = {
 				var data = response.getData();
 				var list = [];
 				for (var key in data) {
-					var webosFile = new Webos.WebosFile(data[key], that.get('mountPoint'));
+					var webosFile = new (that.constructor)(data[key], that.get('mountPoint'));
 					var file = Webos.File.get(webosFile.get('path'));
-					if (Webos.isInstanceOf(file, Webos.WebosFile)) {
+
+					if (!file) {
+						console.warn('File not found in "'+that.get('path')+'": "'+webosFile.get('path')+'"');
+						continue;
+					}
+
+					if (Webos.isInstanceOf(file, that.constructor)) {
 						file._updateData(webosFile.data());
 					} else {
 						file._updateData({
@@ -1727,7 +1743,34 @@ Webos.WebosFile.prototype = {
 
 			callback.success(shareData);
 		}, callback.error]);
-	}
+	},
+	sync: function(callback) {
+		var that = this,
+			op = Webos.Operation.create().addCallbacks(callback);
+
+		var writeable = ['tags'],
+			changed = this.changedData(writeable),
+			staged = this._stageChanges(writeable);
+
+		if (!staged.length) {
+			op.setCompleted();
+			return op;
+		}
+
+		this._createRequest('updateMetadata', {
+			file: this.get('webospath'),
+			metadata: changed
+		}).load([function(resp) {
+			that._propagateChanges(staged);
+			that._updateData(resp.getData());
+
+			op.setCompleted();
+		}, function (resp) {
+			op.setCompleted(resp);
+		}]);
+
+		return op;
+	},
 };
 Webos.inherit(Webos.WebosFile, Webos.File); //Héritage de Webos.File
 
@@ -1887,6 +1930,25 @@ var homePoint = new Webos.File.MountPoint({
 	data: {}
 }, '~');
 Webos.File.mount(homePoint);
+
+// Load git libraries and remount ~ using gitfs
+Webos.require({
+	path: '/usr/lib/gitfs/webos.js',
+	optionnal: true
+}, function () {
+	Webos.File.umount(homePoint.get('local'));
+
+	homePoint = new Webos.File.MountPoint({
+		remote: '~',
+		driver: 'GitFile',
+		data: {
+			options: {
+				force: true
+			}
+		}
+	}, '~');
+	Webos.File.mount(homePoint);
+});
 
 /**
  * A virtual file.
@@ -2309,7 +2371,9 @@ Webos.User.bind('logout', function() {
 	//On demonte tous les volumes
 	var mounted = Webos.File.mountedDevices();
 	for (var local in mounted) {
-		if (mounted[local].get('driver') == 'WebosFile') { //Do not unmount webos volumes
+		//Do not unmount webos volumes
+		var driverName = mounted[local].get('driver');
+		if (Webos.isSubclassOf(Webos[driverName], Webos.WebosFile)) {
 			continue;
 		}
 

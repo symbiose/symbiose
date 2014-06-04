@@ -1,14 +1,78 @@
 <?php
 namespace lib\ctrl\api;
 
-use \ZipArchive;
+use ZipArchive;
+use lib\ApiBackController;
+use lib\entities\FileMetadata;
+use lib\entities\FileShare;
 
 /**
  * Manage files.
  * @author emersion
  */
-class FileController extends \lib\ApiBackController {
+class FileController extends ApiBackController {
 	const UPLOADS_CONFIG = '/etc/uploads.json';
+
+	protected function getPathData($path) {
+		$manager = $this->managers()->getManagerOf('file');
+
+		$data = array(
+			'basename' => $manager->basename($path),
+			'path' => $path,
+			'realpath' => $manager->toInternalPath($path),
+			'dirname' => $manager->dirname($path)
+		);
+
+		return $data;
+	}
+
+	protected function createFileMetadata($path) {
+		$manager = $this->managers()->getManagerOf('file');
+		$metadataManager = $this->managers()->getManagerOf('fileMetadata');
+
+		$internalPath = $manager->toInternalPath($path);
+		$fileMetadata = $metadataManager->getByPath($internalPath);
+		if (empty($fileMetadata)) {
+			$closestParent = $metadataManager->getFirstParent($internalPath);
+
+			$closestParentId = null;
+			if (!empty($closestParent)) {
+				$closestParentId = $closestParent['id'];
+			}
+
+			$data = array(
+				'path' => $internalPath,
+				'parent' => $closestParentId
+			);
+
+			$fileMetadata = new FileMetadata($data);
+
+			$metadataManager->insert($fileMetadata);
+		}
+
+		return $fileMetadata;
+	}
+
+	protected function getShareUrl($path, $key) {
+		$manager = $this->managers()->getManagerOf('file');
+
+		$shareUrl = $manager->toInternalPath($path) . '?key=' . $key;
+
+		if ($manager->isDir($path)) {
+			$shareUrl .= '&dl=1';
+		}
+
+		return $shareUrl;
+	}
+
+	protected function getFileShareData($path, FileShare $share) {
+		return array(
+			'type' => 'link',
+			'url' => $this->getShareUrl($path, $share['key']),
+			'date' => $share['date'],
+			'ttl' => $share['ttl']
+		);
+	}
 
 	/**
 	 * Get a file's content.
@@ -27,16 +91,18 @@ class FileController extends \lib\ApiBackController {
 
 			$list = array();
 			foreach($files as $filepath) {
-				$list[$filepath] = $this->executeGetData($filepath);
+				$list[$filepath] = $this->executeGetMetadata($filepath);
 			}
 
 			return $list;
 		} else {
-			$this->responseContent->setChannel(1, $manager->read($path));
+			$contents = $manager->read($path);
 
 			if (strpos($path, '/home/') !== 0 && strpos($path, '/etc/') !== 0) { //File is not in /home or in /etc
 				$this->responseContent->setCacheable(true);
 			}
+
+			return $contents;
 		}
 	}
 
@@ -48,26 +114,28 @@ class FileController extends \lib\ApiBackController {
 	public function executeGetAsBinary($path) {
 		$manager = $this->managers()->getManagerOf('file');
 
-		if (!$manager->exists($path)) {
-			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
+		if ($manager->isDir($path)) {
+			throw new \RuntimeException('"'.$path.'": is a directory (tried to open it as a binary file)', 405);
 		}
 
-		$this->responseContent->setChannel(1, base64_encode($manager->read($path)));
+		$contents = $this->executeGetContents($path);
+		return base64_encode($contents);
 	}
 
 	/**
 	 * Get a file's content, minified.
 	 * @param  string $path The file path.
 	 * @return string       The file's content, minified.
+	 * @deprecated
 	 */
 	public function executeGetMinified($path) {
 		$manager = $this->managers()->getManagerOf('file');
 
-		if (!$manager->exists($path)) {
-			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
+		if ($manager->isDir($path)) {
+			throw new \RuntimeException('"'.$path.'": is a directory (tried to open it as a minified file)', 405);
 		}
 
-		$out = $manager->read($path);
+		$out = $this->executeGetContents($path);
 
 		if ($manager->extension($manager->filename($path)) != 'min' && false) {
 			$ext = $manager->extension($path);
@@ -92,25 +160,26 @@ class FileController extends \lib\ApiBackController {
 	 * @param  string $path The file's path.
 	 * @return array        The file's metadata.
 	 */
-	public function executeGetData($path) {
+	public function executeGetMetadata($path) {
 		$manager = $this->managers()->getManagerOf('file');
+		$metadataManager = $this->managers()->getManagerOf('fileMetadata');
+		$shareManager = $this->managers()->getManagerOf('fileShare');
+		$user = $this->app()->user();
 
 		if (!$manager->exists($path)) {
 			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
 		}
 
-		$data = array(
-			'basename' => $manager->basename($path),
-			'path' => $path,
-			'realpath' => $manager->toInternalPath($path),
+		$baseData = $this->getPathData($path);
+
+		$data = array_merge($baseData, array(
 			'download_url' => $manager->toInternalPath($path) . '?dl=1',
-			'dirname' => $manager->dirname($path),
 			'atime' => $manager->atime($path),
 			'mtime' => $manager->mtime($path),
 			'size' => $manager->size($path),
 			'is_dir' => $manager->isDir($path),
 			'mime_type' => $manager->mimetype($path)
-		);
+		));
 
 		if ($data['is_dir']) {
 			$data['available_space'] = $manager->availableSpace($path);
@@ -120,7 +189,47 @@ class FileController extends \lib\ApiBackController {
 			$data['size'] = $manager->size($path);
 		}
 
+		$internalPath = $manager->toInternalPath($path);
+		if ($metadataManager->pathExists($internalPath)) {
+			$fileMetadata = $metadataManager->getByPath($internalPath);
+
+			$owner = $fileMetadata['owner'];
+			if ($owner === null) {
+				if ($path == '~' || substr($path, 0, 2) == '~/') {
+					$owner = $user->id();
+				}
+			}
+
+			$data = array_merge($data, array(
+				'id' => $fileMetadata['id'],
+				'tags' => $fileMetadata['tags'],
+				'parent' => $fileMetadata['parent'],
+				'owner' => $owner
+			));
+
+			if ($shareManager->fileIdExists($fileMetadata['id'])) {
+				$shares = $shareManager->listByFileId($fileMetadata['id']);
+
+				$data['labels']['shared'] = true;
+				$data['shares'] = array();
+
+				foreach ($shares as $share) {
+					$data['shares'][] = $this->getFileShareData($path, $share);
+				}
+			}
+		}
+
 		return $data;
+	}
+
+	/**
+	 * Get a file's metadata.
+	 * @param  string $path The file's path.
+	 * @return array        The file's metadata.
+	 * @deprecated Use `executeGetMetadata()` instead.
+	 */
+	public function executeGetData($path) {
+		return $this->executeGetMetadata($path);
 	}
 
 	/**
@@ -130,7 +239,8 @@ class FileController extends \lib\ApiBackController {
 	 */
 	public function executeRename($path, $newName) {
 		$manager = $this->managers()->getManagerOf('file');
-		$shareManager = $this->managers()->getManagerOf('sharedFile');
+		$metadataManager = $this->managers()->getManagerOf('fileMetadata');
+		$shareManager = $this->managers()->getManagerOf('fileShare');
 		$user = $this->app()->user();
 
 		if (strstr($newName, '/') !== false) { //Invalid file name
@@ -147,6 +257,15 @@ class FileController extends \lib\ApiBackController {
 		//Let's move the file
 		$manager->move($path, $newFilePath);
 
+		$internalPath = $manager->toInternalPath($path);
+		if ($metadataManager->pathExists($internalPath)) {
+			$fileMetadata = $metadataManager->getByPath($internalPath);
+
+			$fileMetadata['path'] = $manager->toInternalPath($newFilePath);
+
+			$metadataManager->update($fileMetadata);
+		}
+
 		if ($user->isLogged()) {
 			$internalPath = $manager->toInternalPath($path);
 			$share = $shareManager->getByPath($user->id(), $internalPath);
@@ -158,7 +277,7 @@ class FileController extends \lib\ApiBackController {
 		}
 
 		//Return new data
-		return $this->executeGetData($newFilePath);
+		return $this->executeGetMetadata($newFilePath);
 	}
 
 	/**
@@ -171,7 +290,7 @@ class FileController extends \lib\ApiBackController {
 
 		$copiedPath = $manager->copy($source, $dest, true);
 
-		return $this->executeGetData($copiedPath);
+		return $this->executeGetMetadata($copiedPath);
 	}
 
 	/**
@@ -181,10 +300,20 @@ class FileController extends \lib\ApiBackController {
 	 */
 	public function executeMove($source, $dest) {
 		$manager = $this->managers()->getManagerOf('file');
-		$shareManager = $this->managers()->getManagerOf('sharedFile');
+		$metadataManager = $this->managers()->getManagerOf('fileMetadata');
+		$shareManager = $this->managers()->getManagerOf('fileShare');
 		$user = $this->app()->user();
 
 		$movedPath = $manager->move($source, $dest);
+
+		$sourceInternalPath = $manager->toInternalPath($source);
+		if ($metadataManager->pathExists($sourceInternalPath)) {
+			$fileMetadata = $metadataManager->getByPath($sourceInternalPath);
+
+			$fileMetadata['path'] = $manager->toInternalPath($movedPath);
+
+			$metadataManager->update($fileMetadata);
+		}
 
 		if ($user->isLogged()) {
 			$sourceInternalPath = $manager->toInternalPath($source);
@@ -196,7 +325,7 @@ class FileController extends \lib\ApiBackController {
 			}
 		}
 
-		return $this->executeGetData($movedPath);
+		return $this->executeGetMetadata($movedPath);
 	}
 
 	/**
@@ -205,8 +334,18 @@ class FileController extends \lib\ApiBackController {
 	 */
 	public function executeDelete($path) {
 		$manager = $this->managers()->getManagerOf('file');
-		$shareManager = $this->managers()->getManagerOf('sharedFile');
+		$metadataManager = $this->managers()->getManagerOf('fileMetadata');
+		$shareManager = $this->managers()->getManagerOf('fileShare');
 		$user = $this->app()->user();
+
+		$manager->delete($path, true);
+
+		$internalPath = $manager->toInternalPath($path);
+		if ($metadataManager->pathExists($internalPath)) {
+			$fileMetadata = $metadataManager->getByPath($internalPath);
+
+			$metadataManager->delete($fileMetadata['id']);
+		}
 
 		if ($user->isLogged()) {
 			$internalPath = $manager->toInternalPath($path);
@@ -216,8 +355,6 @@ class FileController extends \lib\ApiBackController {
 				$shareManager->delete($share['id']);
 			}
 		}
-
-		$manager->delete($path, true);
 	}
 
 	/**
@@ -233,7 +370,7 @@ class FileController extends \lib\ApiBackController {
 			throw new \RuntimeException('Cannot create file "'.$path.'" (it is a directory)');
 		}
 
-		return $this->executeGetData($path);
+		return $this->executeGetMetadata($path);
 	}
 
 	/**
@@ -249,7 +386,7 @@ class FileController extends \lib\ApiBackController {
 			throw new \RuntimeException('Cannot create directory "'.$path.'" (it is a file)');
 		}
 
-		return $this->executeGetData($path);
+		return $this->executeGetMetadata($path);
 	}
 
 	/**
@@ -266,7 +403,7 @@ class FileController extends \lib\ApiBackController {
 
 		$manager->write($path, $contents);
 
-		return $this->executeGetData($path);
+		return $this->executeGetMetadata($path);
 	}
 
 	/**
@@ -385,12 +522,17 @@ class FileController extends \lib\ApiBackController {
 		chmod($internalPath, 0777);
 
 		//Return uploaded file's metadata
-		return array('success' => true, 'file' => $this->executeGetData($path));
+		return array('success' => true, 'file' => $this->executeGetMetadata($path));
 	}
 
-	public function executeShare($path) {
+	/**
+	 * Share a file.
+	 * @param  string $path The file path.
+	 */
+	public function executeShare($path, $opts = array()) {
 		$manager = $this->managers()->getManagerOf('file');
-		$shareManager = $this->managers()->getManagerOf('sharedFile');
+		$metadataManager = $this->managers()->getManagerOf('fileMetadata');
+		$shareManager = $this->managers()->getManagerOf('fileShare');
 		$user = $this->app()->user();
 
 		if (!$user->isLogged()) {
@@ -403,30 +545,57 @@ class FileController extends \lib\ApiBackController {
 			throw new \RuntimeException('Cannot share files outside home directory (attempted to share file "'.$path.'")', 403);
 		}
 
-		$share = $shareManager->getByPath($user->id(), $manager->toInternalPath($path));
-		if (empty($share)) {
+		$fileMetadata = $this->createFileMetadata($path);
+
+		$shares = $shareManager->listByFileIdAndType($fileMetadata['id'], 'link');
+		if (empty($shares)) {
 			$shareKey = substr(sha1(microtime() + mt_rand() * (mt_rand() + 42)), 4, 20); //Let's generate a funny key !
 
-			$share = new \lib\entities\SharedFile(array(
-				'userId' => $user->id(),
-				'path' => $manager->toInternalPath($path),
+			$share = new FileShare(array(
+				'fileId' => $fileMetadata['id'],
+				'type' => 'link',
+				'date' => time(),
+				'ttl' => null,
 				'key' => $shareKey
 			));
 
 			$shareManager->insert($share);
+		} else {
+			$share = $shares[0]; //TODO: take the most appropriate existing share, or create another
 		}
 
-		$shareUrl = $manager->toInternalPath($path) . '?key=' . $share['key'];
+		$shareUrl = $this->getShareUrl($path, $share['key']);
 
-		if ($manager->isDir($path)) {
-			$shareUrl .= '&dl=1';
+		return $this->getFileShareData($path, $share);
+	}
+
+	/**
+	 * Update a file's metadata.
+	 * @param  string $path     The file path.
+	 * @param  array $metadata The new file metadata.
+	 */
+	public function executeUpdateMetadata($path, $metadata) {
+		$manager = $this->managers()->getManagerOf('file');
+		$metadataManager = $this->managers()->getManagerOf('fileMetadata');
+
+		if (!$manager->exists($path)) {
+			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
 		}
 
-		return array('url' => $shareUrl);
+		$fileMetadata = $this->createFileMetadata($path);
+
+		if (isset($metadata['tags'])) {
+			$fileMetadata['tags'] = $metadata['tags'];
+		}
+
+		$metadataManager->update($fileMetadata);
+		
+		return $this->executeGetMetadata($path);
 	}
 
 	public function executeSearch($query, $inDir) { //WARNING: doesn't support deep permissions check
 		$manager = $this->managers()->getManagerOf('file');
+		$metadataManager = $this->managers()->getManagerOf('fileMetadata');
 
 		if ($inDir != '~' && substr($inDir, 0, 2) != '~/') {
 			throw new \RuntimeException('Cannot search files outside home directory (attempted to search in directory "'.$inDir.'")', 403);
@@ -445,10 +614,24 @@ class FileController extends \lib\ApiBackController {
 		$matchingItems = array();
 
 		foreach($filesInDir as $filepath) {
-			$matchesNbr = preg_match_all('#('.$escapedQuery.')#i', $manager->basename($filepath));
+			$fields = array(
+				'basename' => $manager->basename($filepath)
+			);
+
+			$internalPath = $manager->toInternalPath($filepath);
+			if ($metadataManager->pathExists($internalPath)) {
+				$fileMetadata = $metadataManager->getByPath($internalPath);
+
+				$fields['tags'] = $fileMetadata['tags'];
+			}
+
+			$matchesNbr = 0;
+			foreach ($fields as $fieldName => $fieldValue) {
+				$matchesNbr += preg_match_all('#('.$escapedQuery.')#i', $fieldValue);
+			}
 
 			if ($matchesNbr > 0) {
-				$matchingItem = $this->executeGetData($filepath);
+				$matchingItem = $this->executeGetMetadata($filepath);
 				$matchingItem['matchesNbr'] = $matchesNbr;
 				$matchingItems[] = $matchingItem;
 			}

@@ -198,12 +198,17 @@ Webos.Model.prototype = {
 	},
 	/**
 	 * Get changed data's keys.
+	 * @param {String[]} [filter] Keys that can be changed. By default, all keys can.
 	 * @return {String[]} Keys corresponding to changed values.
 	 */
-	changedKeys: function() {
+	changedKeys: function(filter) {
 		var keys = [];
 		var nbrChanges = 0;
 		for (var key in this._unsynced) {
+			if (!~filter.indexOf(key)) {
+				continue;
+			}
+
 			if (this._unsynced[key].state === 1) {
 				keys.push(key);
 			}
@@ -213,10 +218,11 @@ Webos.Model.prototype = {
 	},
 	/**
 	 * Get changed data.
+	 * @param {String[]} [filter] Keys that can be changed. By default, all keys can.
 	 * @return {Object} Changed data.
 	 */
-	changedData: function() {
-		var changedKeys = this.changedKeys();
+	changedData: function(filter) {
+		var changedKeys = this.changedKeys(filter);
 		var changedData = {};
 
 		for (var i = 0; i < changedKeys.length; i++) {
@@ -260,10 +266,11 @@ Webos.Model.prototype = {
 	},
 	/**
 	 * Mark changed data as going to be saved.
-	 * @return {String[]} Keys corresponding to changed values.
+	 * @param {String[]} [filter] Keys that can be changed. By default, all keys are changed.
+	 * @return {String[]} Keys corresponding to staged changes.
 	 */
-	_stageChanges: function() {
-		var changedKeys = this.changedKeys();
+	_stageChanges: function(filter) {
+		var changedKeys = this.changedKeys(filter);
 
 		for (var i = 0; i < changedKeys.length; i++) {
 			var key = changedKeys[i];
@@ -305,6 +312,7 @@ Webos.Model.prototype = {
 	/**
 	 * Save modifications on this model.
 	 * @param {Webos.Callback} callback The callback.
+	 * @deprecated Use `sync()` instead.
 	 */
 	save: function() {
 		return this.sync.apply(this, arguments);

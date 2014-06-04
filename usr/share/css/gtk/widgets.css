@@ -9,6 +9,9 @@
 	padding: 0;
 	margin: 0;
 	position: relative;
+	white-space: nowrap;
+	max-width: 100%;
+	overflow: auto;
 }
 .webos-tabs > ul.tabs li {
 	display: inline-block;

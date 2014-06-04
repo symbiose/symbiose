@@ -69,6 +69,8 @@ abstract class ApiBackController extends BackController {
 
 		if (is_array($result)) {
 			$this->responseContent()->setData($result);
+		} else if (is_string($result) && !empty($result)) {
+			$this->responseContent()->setChannel(1, $result);
 		}
 
 		return $result;

@@ -5,7 +5,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable {
 	protected $data;
 
 	public function __construct($data = array()) {
-		if (!$data instanceof \Traversable && !is_array($data)) {
+		if (!($data instanceof \Traversable) && !is_array($data)) {
 			throw new \InvalidArgumentException('Invalid data : variable must be an array or traversable');
 		}
 
@@ -27,14 +27,60 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable {
 		if (count($filters) > 0) {
 			foreach($this->data as $id => $item) {
 				foreach($filters as $key => $value) {
-					if (isset($item[$key]) && $item[$key] == $value) {
-						$filteredItems[] = $item;
+					if (isset($item[$key])) {
+						$matchesFilter = false;
+
+						if (is_array($value) && !is_array($item[$key])) {
+							$matchesFilter = in_array($item[$key], $value);
+						} else {
+							$matchesFilter = ($item[$key] == $value);
+						}
+
+						if ($matchesFilter) {
+							$filteredItems[] = $item;
+						}
 					}
 				}
 			}
 		}
 		
 		return new $this($filteredItems);
+	}
+
+	public function orderBy($key, $descending = false) {
+		usort($this->data, function ($a, $b) use($key, $descending) {
+			$aIsGreater = 1;
+			$bIsGreater = -1;
+			if ($descending) {
+				$aIsGreater = -1;
+				$bIsGreater = 1;
+			}
+
+			if (!isset($a[$key])) {
+				if (!isset($b[$key])) {
+					return 0;
+				} else {
+					return $bIsGreater;
+				}
+			}
+			if (!isset($b[$key])) {
+				return $aIsGreater;
+			}
+
+			if ($a[$key] == $b[$key]) {
+				return 0;
+			}
+
+			return ($a[$key] < $b[$key]) ? $bIsGreater : $aIsGreater;
+		});
+
+		return $this;
+	}
+
+	public function limit($offset = 0, $length = null) {
+		$limitedData = array_slice($this->data, $offset, $length);
+
+		return new $this($limitedData);
 	}
 
 	public function getRange($from, $limit = -1) {

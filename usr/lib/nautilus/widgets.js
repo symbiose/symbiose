@@ -1179,12 +1179,12 @@ Webos.require([
 		},
 		_openProperties: function(file, openedTab) {
 			var t = this.translations(), that = this;
-			
+
 			var propertiesWindow = $.w.window({
 				title: t.get('Properties of ${name}', { name: file.get('basename') }),
 				icon: this._getFileIcon(file),
 				resizable: false,
-				width: 400,
+				width: 500,
 				stylesheet: '/usr/share/css/nautilus/properties.css'
 			});
 
@@ -1192,7 +1192,7 @@ Webos.require([
 			var dataTab = tabs.tabs('tab', t.get('General'));
 
 			var showRequestedTab = function () {
-				var tabsNames = ['info','openWith','share'];
+				var tabsNames = ['info', 'openWith', 'versions', 'share'];
 				if (typeof openedTab == 'string') {
 					var tabNo = $.inArray(openedTab, tabsNames);
 					if (tabNo >= 0) {
@@ -1203,9 +1203,14 @@ Webos.require([
 
 			var displayProperties = function (file) {
 				if (!file.get('is_dir')) {
-					var openTab = tabs.tabs('tab', t.get('Open with...'));
+					var openTab = tabs.tabs('tab', t.get('Open with...')),
+						versionsTab;
 
-					var openTabGenerated = false;
+					if (file.is('versionned')) {
+						versionsTab = tabs.tabs('tab', t.get('Versions'));
+					}
+
+					var openTabGenerated = false, versionsTabGenerated = false;
 					tabs.on('tabsselect', function(e, data) {
 						if (data.index == 1 && !openTabGenerated) { //Open with...
 							$.w.label(t.get('Select an application to open this file and other files of the same type :')).appendTo(openTab);
@@ -1290,6 +1295,75 @@ Webos.require([
 							showAppsFn();
 
 							openTabGenerated = true;
+						} else if (versionsTab && data.index == 2 && !versionsTabGenerated) {
+							var $list = $.w.list().appendTo(versionsTab);
+
+							propertiesWindow.window('loading', true);
+							file.getLog().then(function (versions) {
+								if (!versions.length) {
+									$.w.label(t.get('This file has no versions.')).appendTo(versionsTab);
+									return;
+								}
+
+								var handleVersion = function (ver) {
+									var versionLbl = t.get('On ${authorDate} by ${authorName} (${shortHash})', {
+										authorDate: ver.get('authorDate').date,
+										authorName: ver.get('authorName'),
+										shortHash: ver.get('shortHash')
+									});
+
+									var $item = $.w.listItem(versionLbl)
+										.attr('title', ver.get('shortMessage'))
+										.data('version', ver);
+
+									return $item;
+								};
+								
+								for (var i = 0; i < versions.length; i++) {
+									var $item = handleVersion(versions[i]);
+
+									if (i === 0) {
+										$item.listItem('option', 'selected', true);
+									}
+
+									$item.appendTo($list.list('content'));
+								}
+							}, function (resp) {
+								resp.triggerError();
+							}).always(function () {
+								propertiesWindow.window('loading', false);
+							});
+
+							var getFileAtVersion = function () {
+								var $selection = $list.list('selection').first();
+
+								if (!$selection.length) {
+									return;
+								}
+
+								var version = $selection.data('version');
+
+								return version.getFile(file.get('path'));
+							};
+
+							var $openBtn = $.w.button(t.get('Open this version')).click(function () {
+								var oldFile = getFileAtVersion();
+
+								that._openFile(oldFile);
+							});
+							$list.list('addButton', $openBtn);
+							
+							var $restoreBtn = $.w.button(t.get('Restore')).click(function () {
+								var oldFile = getFileAtVersion();
+
+								propertiesWindow.window('loading', true);
+								oldFile.restore().always(function () {
+									propertiesWindow.window('loading', false);
+								});
+							});
+							$list.list('addButton', $restoreBtn);
+
+							versionsTabGenerated = true;
 						}
 					});
 				}
@@ -1320,7 +1394,27 @@ Webos.require([
 					data.push(t.get('Available space : ${availableSpace}', { availableSpace: W.File.bytesToSize(file.get('available_space')) }));
 				}
 
-				dataTab.append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/><ul><li>'+data.join('</li><li>')+'</li></ul>');
+				dataTab.append('<img src="'+that._getFileIcon(file)+'" alt="" class="image"/>');
+
+				var $dataCtn = $('<div></div>', { 'class': 'data-ctn' }).appendTo(dataTab);
+				$dataCtn.append('<ul class="file-data"><li>'+data.join('</li><li>')+'</li></ul>');
+				
+				var currentTags = file.get('tags') || '';
+				$dataCtn.append($.w.textEntry(t.get('Tags : '), currentTags).change(function () {
+					var newTags = $(this).textEntry('value');
+
+					if (newTags == currentTags) {
+						return;
+					}
+
+					file.set('tags', newTags);
+
+					file.sync([function () {}, function (resp) {
+						resp.triggerError();
+					}]);
+				}));
+
+
 				var buttons = $.w.buttonContainer().appendTo(propertiesWindow.window('content'));
 				$.w.button(t.get('Close')).appendTo(buttons).click(function() {
 					propertiesWindow.window('close');
@@ -1331,6 +1425,15 @@ Webos.require([
 
 				$.w.label(t.get('You can share this file to make it publicly accessible for users who have the link :')).appendTo(shareTab);
 
+				var shared = function (shareData) {
+					var shareLink = document.createElement("a");
+					shareLink.href = shareData.url;
+					var shareUrl = shareLink.href;
+
+					var shareResult = $.w.label(t.get('Public URL:') + ' <a href="'+shareUrl+'" target="_blank">'+shareUrl+'</a>');
+					shareBtn.replaceWith(shareResult);
+				};
+
 				var shareBtn = $.w.button(t.get('Share this file'))
 					.click(function() {
 						propertiesWindow.window('loading', true);
@@ -1339,18 +1442,20 @@ Webos.require([
 						file.share([function(shareData) {
 							propertiesWindow.window('loading', false);
 
-							var shareLink = document.createElement("a");
-							shareLink.href = shareData.url;
-							var shareUrl = shareLink.href;
-
-							var shareResult = $.w.label(t.get('Public URL:') + ' <a href="'+shareUrl+'" target="_blank">'+shareUrl+'</a>');
-							shareBtn.replaceWith(shareResult);
+							shared(shareData);
 						}, function(res) {
 							propertiesWindow.window('loading', false);
 							that._handleResponseError(res);
 						}]);
 					})
 					.appendTo(shareTab);
+
+				if (file.is('shared')) {
+					var shares = file.get('shares');
+					if (shares) {
+						shared(shares[0]); //TODO: print a shares list instead
+					}
+				}
 			};
 
 			if (file.exists('is_dir') && file.exists('size')) {
@@ -1573,9 +1678,12 @@ Webos.require([
 		_openFile: function(file) {
 			if (file.get('is_dir')) {
 				if (this.options.multipleWindows) {
-					W.Cmd.execute('nautilus "'+file.get('path')+'"');
+					W.Cmd.execute({
+						executable: 'nautilus',
+						args: [file]
+					});
 				} else {
-					this.readDir(file.get('path'));
+					this.readDir(file);
 				}
 			} else {
 				var that = this, t = this.translations();
@@ -1648,7 +1756,12 @@ Webos.require([
 					}
 					
 					fileOpenerWindow.window('close');
-					W.Cmd.execute(chosenCmd+' "'+file.get('path')+'"');
+
+					// Execute the choosen command
+					W.Cmd.execute({
+						executable: chosenCmd,
+						args: [file]
+					});
 				}).appendTo(fileOpenerWindow.window('content'));
 				
 				content.append('<strong>'+t.get('Select an application to open ${name}', { name: file.get('basename') })+' : </strong>');
