@@ -208,7 +208,9 @@ input[type="submit"][disabled]:active,
 	border: 1px solid #c4c1bd;
 	border-top: none;
 	padding: 3px;
-	background: url('usr/share/images/themes/adwaita/inputs/list-btn-bg.png') repeat-x white;
+	background: -moz-linear-gradient(#b1b1a7, #d8d8d5);
+	background: -webkit-linear-gradient(#b1b1a7, #d8d8d5);
+	background: linear-gradient(#b1b1a7, #d8d8d5);
 }
 
 .webos-container {
