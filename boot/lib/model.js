@@ -202,6 +202,8 @@ Webos.Model.prototype = {
 	 * @return {String[]} Keys corresponding to changed values.
 	 */
 	changedKeys: function(filter) {
+		filter = filter || [];
+
 		var keys = [];
 		var nbrChanges = 0;
 		for (var key in this._unsynced) {
