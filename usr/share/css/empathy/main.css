@@ -303,11 +303,12 @@
 	padding: 12px;
 	background-color: white;
 }
-.conversation-compose .compose-attach {
+.conversation-compose .compose-actions {
 	float: left;
+	width: 75px;
 }
 .conversation-compose .compose-msg-ctn {
-	margin-left: 50px;
+	margin-left: 75px;
 	margin-right: 34px;
 }
 .conversation-compose .compose-msg {

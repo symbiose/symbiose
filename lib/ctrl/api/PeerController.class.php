@@ -27,7 +27,8 @@ class PeerController extends ApiBackController {
 	protected function _getOnlinePeerData(OnlinePeer $peer, $isAttached = false) {
 		$peerData = array(
 			'registered' => ($peer['userId'] !== null),
-			'online' => true
+			'online' => true,
+			'app' => $peer['app']
 		);
 
 		if ($isAttached || $this->bisounours) {
@@ -254,21 +255,20 @@ class PeerController extends ApiBackController {
 
 				$isAttached = $peerLink['confirmed'];
 
-				$onlinePeer = null;
+				$onlinePeers = array(null);
 				if (!empty($server)) {
 					$onlinePeers = $server->listPeersByUser($offlinePeer['userId']);
-
-					if (count($onlinePeers) == 1) {
-						$onlinePeer = $onlinePeers[0];
-					}
-					if (count($onlinePeers) > 1) { //TODO: online peers app name
-						$onlinePeer = $onlinePeers[0];
-					}
 				}
 
-				$peerData = $this->_getPeerData($onlinePeer, $offlinePeer, $isAttached);
-				if (!in_array($peerData, $list)) { //Avoid duplicates
-					$list[] = $peerData;
+				foreach ($onlinePeers as $onlinePeer) {
+					if (!empty($onlinePeer) && !empty($appName) && $onlinePeer['app'] != $appName) {
+						continue;
+					}
+
+					$peerData = $this->_getPeerData($onlinePeer, $offlinePeer, $isAttached);
+					if (!in_array($peerData, $list)) { //Avoid duplicates
+						$list[] = $peerData;
+					}
 				}
 			}
 		}
@@ -286,14 +286,15 @@ class PeerController extends ApiBackController {
 	}
 
 	public function onPeerUpdated(OnlinePeer $peer) {
-		var_dump('onPeerUpdated');
 		try {
 			$apiServer = $this->apiServer();
 		} catch (\Exception $e) {
 			return;
 		}
 
-		$apiServer->publish('peer.list', $this->executeListPeers());
+		$apiServer->publish('peer.list.'.$peer['app'], array(
+			'list' => $this->executeListPeers($peer['app'])
+		));
 	}
 
 	// SETTERS

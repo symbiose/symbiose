@@ -323,20 +323,11 @@ Webos.require([
 				});
 			});
 
-			$win.find('.view-login .login-service').change(function () {
-				var serviceName = $win.find('.view-login .login-service').val();
+			var $loginService = $win.find('.view-login .login-service').change(function () {
+				var serviceName = $win.find('.view-login .login-service').val(),
+					needsCred = that._serviceNeedsCredentials(serviceName);
 
-				var service = Empathy.service(serviceName);
-				if (!service) {
-					return;
-				}
-
-				var serviceApi = Empathy.serviceApi(service.type);
-				if (!serviceApi) {
-					return;
-				}
-
-				$win.find('.view-login .login-credentials').toggle(serviceApi.prototype.needsCredentials());
+				$win.find('.view-login .login-credentials').toggle(needsCred);
 			}).change();
 
 			this.on('connecting', function (data) {
@@ -546,7 +537,7 @@ Webos.require([
 						.keydown(function (e) {
 							if (e.keyCode == 13) {
 								var msg = {
-									from: src.conn,
+									connId: dst.conn,
 									to: src.username,
 									message: $replyEntry.val()
 								};
@@ -1181,13 +1172,26 @@ Webos.require([
 				}
 			});
 		},
+		_serviceNeedsCredentials: function (serviceName) {
+			var service = Empathy.service(serviceName);
+			if (!service) {
+				return true;
+			}
+
+			var serviceApi = Empathy.serviceApi(service.type);
+			if (!serviceApi) {
+				return true;
+			}
+
+			return serviceApi.prototype.needsCredentials();
+		},
 		_autoConnect: function () {
 			var that = this;
 
 			if (this._config.accounts.length == 1) {
 				var account = this._config.accounts[0];
 
-				if (account.password) {
+				if (account.password || !this._serviceNeedsCredentials(account.service)) {
 					this.connect(account);
 				} else {
 					this._$win.find('.view-login .login-service').val(account.service);
@@ -1199,7 +1203,7 @@ Webos.require([
 				var accounts = this._config.accounts;
 				for (var i = 0; i < accounts.length; i++) {
 					(function (account) {
-						if (account.password) {
+						if (account.password || !this._serviceNeedsCredentials(account.service)) {
 							this.connect(account);
 						} else {
 							var service = Empathy.service(account.service);
@@ -2870,22 +2874,20 @@ Webos.require([
 
 			var peer = Webos.Peer.connect();
 
-			var contactsInterval = null;
+			//var contactsInterval = null;
+			var unsubscribe;
 			peer.on('open', function (id) {
 				that._options.username = id;
 				console.log('My id: '+id);
 
 				Webos.Peer.attach(id, that._peerAppName).on('complete', function () {
-					contactsInterval = setInterval(function () {
-						//that.listContacts();
-					}, 15*1000);
-
-					var onPeerListUpdate = function (list) {
-						//TODO: use list
+					// Disabled - now using WebSockets
+					/*contactsInterval = setInterval(function () {
 						that.listContacts();
-					};
-					Webos.websocket.subscribe('peer.list', onPeerListUpdate);
-					that._onPeerListUpdate = onPeerListUpdate;
+					}, 15*1000);*/
+					unsubscribe = Webos.Peer.subscribeListByApp(that._peerAppName, function (list) {
+						that._gotPeersList(list);
+					});
 
 					that.trigger('status', {
 						type: 'connected'
@@ -2899,8 +2901,11 @@ Webos.require([
 					type: 'disconnected'
 				});
 
-				if (contactsInterval) {
+				/*if (contactsInterval) {
 					clearInterval(contactsInterval);
+				}*/
+				if (unsubscribe) {
+					unsubscribe();
 				}
 
 				Webos.websocket.unsubscribe('peer.list', that._onPeerListUpdate);
@@ -3000,10 +3005,15 @@ Webos.require([
 
 							that.getContactPicture(peer.id).then(function (data) {
 								//TODO
+								console.log(data);
 								sendPicture(data);
 							}, function () {
 								sendPicture();
 							});
+
+							if (conn.peer < peer.id) { //Ask the other peer's picture
+								that._getContactPicture(conn.peer);
+							}
 						} else if (data.contents.type == 'response') {
 							var contact = {
 								username: conn.peer,
@@ -3117,53 +3127,62 @@ Webos.require([
 				}
 			}
 		},
+		_gotPeersList: function (list) {
+			var that = this,
+				peer = this._peer,
+				contacts = [],
+				offlinePeers = that._contactsPeerIds;
+
+			that._contactsPeerIds = [];
+
+			for (var i = 0; i < list.length; i++) {
+				var thisPeer = list[i];
+
+				if (!thisPeer.get('peerId')) {
+					continue;
+				}
+
+				var contact = {
+					username: thisPeer.get('peerId'),
+					account: peer.id,
+					name: '',
+					presence: 'offline'
+				};
+
+				if (thisPeer.get('online')) {
+					contact.presence = 'online';
+				}
+				if (thisPeer.get('user')) {
+					contact.name = thisPeer.get('user')['realname'];
+				}
+
+				that.trigger('contact', contact);
+				contacts.push(contact);
+
+				var j = offlinePeers.indexOf(contact.username);
+				if (~j) {
+					offlinePeers.splice(j, 1);
+				}
+				that._contactsPeerIds.push(contact.username);
+			}
+
+			for (i = 0; i < offlinePeers.length; i++) {
+				that.trigger('contact', {
+					username: offlinePeers[i],
+					account: peer.id,
+					presence: 'offline'
+				});
+			}
+
+			return contacts;
+		},
 		listContacts: function () {
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
 
 			Webos.Peer.listByApp(this._peerAppName).on({
 				success: function (data) {
-					var list = data.result, contacts = [], offlinePeers = that._contactsPeerIds;
-					that._contactsPeerIds = [];
-
-					for (var i = 0; i < list.length; i++) {
-						var thisPeer = list[i];
-
-						if (!thisPeer.get('peerId')) {
-							continue;
-						}
-
-						var contact = {
-							username: thisPeer.get('peerId'),
-							account: peer.id,
-							name: '',
-							presence: 'offline'
-						};
-
-						if (thisPeer.get('online')) {
-							contact.presence = 'online';
-						}
-						if (thisPeer.get('user')) {
-							contact.name = thisPeer.get('user')['realname'];
-						}
-
-						that.trigger('contact', contact);
-						contacts.push(contact);
-
-						var j = offlinePeers.indexOf(contact.username);
-						if (~j) {
-							offlinePeers.splice(j, 1);
-						}
-						that._contactsPeerIds.push(contact.username);
-					}
-
-					for (i = 0; i < offlinePeers.length; i++) {
-						that.trigger('contact', {
-							username: offlinePeers[i],
-							account: peer.id,
-							presence: 'offline'
-						});
-					}
+					var contacts = that._gotPeersList(data.result);
 
 					op.setCompleted(contacts);
 				},
@@ -3174,7 +3193,7 @@ Webos.require([
 
 			return op;
 		},
-		getContactPicture: function (peerId) {
+		_getContactPicture: function (peerId) {
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
 
@@ -3212,6 +3231,17 @@ Webos.require([
 			});
 
 			return op;
+		},
+		getContactPicture: function (peerId) {
+			var that = this, peer = this._peer;
+
+			if (peerId > peer.id) { //Let the other peer ask our picture
+				var op = Webos.Operation.create();
+				op.setCompleted(false);
+				return op;
+			}
+
+			return this._getContactPicture(peerId);
 		},
 		_sendMessage: function (msg) {
 			var that = this, peer = this._peer;

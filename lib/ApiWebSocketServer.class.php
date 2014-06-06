@@ -45,7 +45,6 @@ class ApiWebSocketServer implements WampServerInterface {
 	}
 
 	public function publish($topicId, $event) {
-		var_dump($topicId, $event);
 		if (!array_key_exists($topicId, $this->subscribedTopics)) {
 			return; // No suscribers
 		}
@@ -109,8 +108,6 @@ class ApiWebSocketServer implements WampServerInterface {
 	}
 
 	public function onSubscribe(Conn $conn, $topic) {
-		var_dump($topic->getId());
-
 		// When a visitor subscribes to a topic link the Topic object in a  lookup array
 		if (!array_key_exists($topic->getId(), $this->subscribedTopics)) {
 			$this->subscribedTopics[$topic->getId()] = $topic;
