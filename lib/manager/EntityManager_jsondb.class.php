@@ -59,7 +59,9 @@ class EntityManager_jsondb extends EntityManager {
 	}
 
 	public function exists($fieldName, $fieldValue) {
-		return (!empty($this->getBy($fieldName, $fieldValue)));
+		$entity = $this->getBy($fieldName, $fieldValue);
+
+		return (!empty($entity));
 	}
 
 	public function idExists($entityId) {
