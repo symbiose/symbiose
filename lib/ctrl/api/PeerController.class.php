@@ -3,6 +3,7 @@ namespace lib\ctrl\api;
 
 use \lib\ApiBackController;
 use \lib\PeerServer;
+use \lib\ApiWebSocketServer;
 use \lib\entities\OnlinePeer;
 use \lib\entities\OfflinePeer;
 use \lib\entities\PeerLink;
@@ -14,6 +15,7 @@ use \RuntimeException;
  */
 class PeerController extends ApiBackController {
 	protected static $peerServer;
+	protected static $apiServer;
 
 	/**
 	 * Bisounours mode. Everybody can communicate with everybody without any restriction.
@@ -93,6 +95,13 @@ class PeerController extends ApiBackController {
 		);
 
 		return $peerLinkData;		
+	}
+
+
+	public function __construct(Api $app, $module, $action) {
+		parent::__construct($app, $module, $action);
+
+		$this->listenEvents();
 	}
 
 	// GETTERS
@@ -267,6 +276,26 @@ class PeerController extends ApiBackController {
 		return $list;
 	}
 
+	// Events
+	
+	protected function listenEvents() {
+		$peerServer = $this->peerServer();
+
+		$peerServer->on('peer.updated', array($this, 'onPeerUpdated'));
+		$peerServer->on('peer.deleted', array($this, 'onPeerUpdated'));
+	}
+
+	public function onPeerUpdated(OnlinePeer $peer) {
+		var_dump('onPeerUpdated');
+		try {
+			$apiServer = $this->apiServer();
+		} catch (\Exception $e) {
+			return;
+		}
+
+		$apiServer->publish('peer.list', $this->executeListPeers());
+	}
+
 	// SETTERS
 
 	// Peers
@@ -392,11 +421,23 @@ class PeerController extends ApiBackController {
 		self::$peerServer = $peerServer;
 	}
 
+	public static function setApiServer(ApiWebSocketServer &$apiServer) {
+		self::$apiServer = $apiServer;
+	}
+
 	protected function peerServer() {
 		if (empty(self::$peerServer)) {
-			throw new RuntimeException('Cannot contact PeerServer, please try again');
+			throw new RuntimeException('Cannot contact PeerServer from PeerController, please try again');
 		}
 
 		return self::$peerServer;
+	}
+
+	protected function apiServer() {
+		if (empty(self::$apiServer)) {
+			throw new RuntimeException('Cannot contact ApiWebSocketServer from PeerController, please try again');
+		}
+
+		return self::$apiServer;
 	}
 }

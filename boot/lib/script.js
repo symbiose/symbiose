@@ -402,7 +402,7 @@ Webos.require = function (files, callback, options) {
 		if (requiredFile.contents) {
 			processFile(requiredFile.contents);
 		} else if (requiredFile.path) {
-			var call = file.readAsText([function(contents) {
+			file.readAsText([function(contents) {
 				processFile(contents);
 			}, callback.error]);
 		}

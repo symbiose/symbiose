@@ -2877,8 +2877,15 @@ Webos.require([
 
 				Webos.Peer.attach(id, that._peerAppName).on('complete', function () {
 					contactsInterval = setInterval(function () {
-						that.listContacts();
+						//that.listContacts();
 					}, 15*1000);
+
+					var onPeerListUpdate = function (list) {
+						//TODO: use list
+						that.listContacts();
+					};
+					Webos.websocket.subscribe('peer.list', onPeerListUpdate);
+					that._onPeerListUpdate = onPeerListUpdate;
 
 					that.trigger('status', {
 						type: 'connected'
@@ -2895,6 +2902,8 @@ Webos.require([
 				if (contactsInterval) {
 					clearInterval(contactsInterval);
 				}
+
+				Webos.websocket.unsubscribe('peer.list', that._onPeerListUpdate);
 			});
 			peer.on('error', function (err) {
 				that.trigger('status', {
@@ -2990,7 +2999,8 @@ Webos.require([
 							};
 
 							that.getContactPicture(peer.id).then(function (data) {
-								sendPicture(data.result);
+								//TODO
+								sendPicture(data);
 							}, function () {
 								sendPicture();
 							});

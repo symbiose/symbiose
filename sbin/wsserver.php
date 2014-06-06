@@ -4,6 +4,7 @@ require_once(dirname(__FILE__).'/../boot/ini.php');
 use \Memcache;
 use Ratchet\App;
 use Ratchet\Session\SessionProvider as RatchetSessionProvider;
+use Ratchet\Wamp\WampServer;
 use lib\ApiWebSocketServer;
 use lib\PeerServer;
 use lib\PeerHttpServer;
@@ -38,13 +39,15 @@ $sessionProvider = new SessionProvider;
 $sessionHandler = $sessionProvider->handler();
 
 //Servers
-$apiServer = new RatchetSessionProvider(new ApiWebSocketServer, $sessionHandler);
+$apiServer = new ApiWebSocketServer;
+$decoratedApiServer = new RatchetSessionProvider(new WampServer($apiServer), $sessionHandler);
 $peerServer = new PeerServer($hostnames[0], $port);
 $decoratedPeerServer = new RatchetSessionProvider($peerServer, $sessionHandler);
 $peerHttpServer = new PeerHttpServer($peerServer); //HTTP servers don't support SessionProvider
 
 //Provide the peer server to the associated controller
 PeerController::setPeerServer($peerServer);
+PeerController::setApiServer($apiServer);
 
 // Bind to 0.0.0.0 to accept remote connections
 // See http://socketo.me/docs/troubleshooting
@@ -52,7 +55,7 @@ $app = new App($hostnames[0], $port, '0.0.0.0');
 
 foreach ($hostnames as $host) {
 	//Webos' API. Accessible from the same origin only
-	$app->route('/api', $apiServer, array(), $host);
+	$app->route('/api', $decoratedApiServer, array(), $host);
 
 	//PeerJS server. Accessible from all origins
 	$app->route('/peerjs', $decoratedPeerServer, array('*'), $host);

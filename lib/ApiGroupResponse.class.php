@@ -32,6 +32,16 @@ class ApiGroupResponse implements ResponseContent {
 	 * @return string The response content.
 	 */
 	public function generate() {
+		$resp = $this->generateArray();
+
+		return json_encode($resp, JSON_FORCE_OBJECT);
+	}
+
+	/**
+	 * Generate the response content as an array.
+	 * @return array The response content data.
+	 */
+	public function generateArray() {
 		$groupResp = array();
 
 		foreach($this->responses as $i => $resp) {
@@ -45,11 +55,11 @@ class ApiGroupResponse implements ResponseContent {
 			);
 		}
 
-		return json_encode(array(
+		return array(
 			'id' => $this->id(),
 			'groupped' => true,
 			'data' => $groupResp
-		), JSON_FORCE_OBJECT);
+		);
 	}
 
 	/**
