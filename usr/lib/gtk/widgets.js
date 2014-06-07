@@ -3322,7 +3322,8 @@ $.webos.popover.prototype = {
 	 *  - `trigger`: the event which will toggle the popover
 	 */
 	options: {
-		trigger: 'click'
+		trigger: 'click',
+		placement: 'bottom'
 	},
 	_create: function () {
 		this._super('_create');
@@ -3340,6 +3341,7 @@ $.webos.popover.prototype = {
 		this.options._components.content = popoverContent;
 
 		this._update('trigger', this.options.trigger);
+		this._update('placement', this.options.placement);
 	},
 	/**
 	 * Show the popover.
@@ -3370,6 +3372,9 @@ $.webos.popover.prototype = {
 					that.toggle();
 				});
 				this.options.trigger = value;
+				break;
+			case 'placement':
+				this.element.toggleClass('popover-top', (value == 'top'));
 				break;
 		}
 	}

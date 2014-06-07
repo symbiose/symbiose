@@ -305,10 +305,10 @@
 }
 .conversation-compose .compose-actions {
 	float: left;
-	width: 75px;
+	width: 80px;
 }
 .conversation-compose .compose-msg-ctn {
-	margin-left: 75px;
+	margin-left: 80px;
 	margin-right: 34px;
 }
 .conversation-compose .compose-msg {

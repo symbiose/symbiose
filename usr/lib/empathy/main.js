@@ -227,6 +227,7 @@ Webos.require([
 		_conns: [],
 		_loggedInUsers: {},
 		_contacts: {},
+		_conversations: [],
 		_defaultContactIcon: new W.Icon('stock/person').realpath(32),
 		_currentDst: null,
 		_config: {
@@ -261,6 +262,9 @@ Webos.require([
 		},
 		contact: function (username) {
 			return this._contacts[username];
+		},
+		conversations: function () {
+			return this._conversations;
 		},
 		loggedInUser: function (username) {
 			return this._loggedInUsers[username];
@@ -882,6 +886,21 @@ Webos.require([
 							});
 						});
 					}
+				});
+			});
+
+			$win.find('.conversation-compose .compose-add-contact').click(function () {
+				var dst = that.currentDst(), conn = that.connection(dst.conn);
+
+				if (!dst) {
+					return;
+				}
+
+				//TODO: add to current conversation
+				that._selectContacts(function (contacts) {
+					contacts.push(dst);
+
+					that._createConversation(contacts);
 				});
 			});
 
@@ -1523,6 +1542,51 @@ Webos.require([
 				this.trigger('contactupdated', contact);
 			}
 		},
+		_createConversation: function (contacts) {
+			if (!contacts || !contacts.length) {
+				return null;
+			}
+
+			var conversation = {
+				username: [],
+				conn: [],
+				name: '',
+				presence: '',
+				priority: null,
+				hasPicture: false,
+				length: contacts.length
+			};
+			var contactsNames = [];
+			for (var i = 0; i < contacts.length; i++) {
+				var contact = contacts[i];
+
+				conversation.username.push(contact.username);
+				conversation.conn.push(contact.conn);
+				contactsNames.push(contact.name);
+
+				var contactPriority = Empathy.priorityFromPresence(contact.presence);
+				if (conversation.priority === null || conversation.priority < contactPriority) {
+					conversation.priority = contactPriority;
+					conversation.presence = contact.presence;
+				}
+			}
+
+			conversation.name = contactsNames.join(', ');
+			conversation.each = function (callback) {
+				for (var i = 0; i < contacts.length; i++) {
+					var returned = callback(contacts[i]);
+
+					if (returned === false) {
+						break;
+					}
+				}
+			};
+
+			this._conversations.push(conversation);
+			this.trigger('conversationupdated', conversation);
+
+			return conversation;
+		},
 		_getContactPicture: function (connId, username) {
 			var that = this, conn = this._conn(connId), contact = this.contact(username);
 
@@ -1627,6 +1691,9 @@ Webos.require([
 					}
 				});
 			}
+		},
+		_selectContacts: function (callback) {
+			//TODO
 		},
 		openSettings: function () {
 			var that = this;

@@ -1347,21 +1347,21 @@ console.log('todo', reqData);
 			return operation;
 		},
 		subscribe: function (topicUri, callback) {
-			var socket = Webos.ServerCall.websocket.socket();
-
-			var subscribe = function () {
+			var subscribe = function (socket) {
 				socket.subscribe(topicUri, function (data) {
 					console.log('socket event ('+topicUri+')');
 					callback(data);
 				});
 			};
 
+			var socket = Webos.ServerCall.websocket.socket();
+
 			if (!socket || Webos.ServerCall.websocket._connecting) {
 				Webos.ServerCall.websocket.connect([function(socket) {
-					subscribe();
+					subscribe(socket);
 				}, function(resp) {}]);
 			} else {
-				subscribe();
+				subscribe(socket);
 			}
 		},
 		unsubscribe: function (topicUri, callback) {
