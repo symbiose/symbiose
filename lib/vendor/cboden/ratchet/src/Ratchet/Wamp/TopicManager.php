@@ -54,13 +54,12 @@ class TopicManager implements WsServerInterface, WampServerInterface {
     public function onUnsubscribe(ConnectionInterface $conn, $topic) {
         $topicObj = $this->getTopic($topic);
 
-        if ($conn->WAMP->subscriptions->contains($topicObj)) {
-            $conn->WAMP->subscriptions->detach($topicObj);
-        } else {
+        if (!$conn->WAMP->subscriptions->contains($topicObj)) {
             return;
         }
 
-        $this->topicLookup[$topic]->remove($conn);
+        $this->cleanTopic($topicObj, $conn);
+
         $this->app->onUnsubscribe($conn, $topicObj);
     }
 
@@ -78,7 +77,7 @@ class TopicManager implements WsServerInterface, WampServerInterface {
         $this->app->onClose($conn);
 
         foreach ($this->topicLookup as $topic) {
-            $topic->remove($conn);
+            $this->cleanTopic($topic, $conn);
         }
     }
 
@@ -110,5 +109,17 @@ class TopicManager implements WsServerInterface, WampServerInterface {
         }
 
         return $this->topicLookup[$topic];
+    }
+
+    protected function cleanTopic(Topic $topic, ConnectionInterface $conn) {
+        if ($conn->WAMP->subscriptions->contains($topic)) {
+            $conn->WAMP->subscriptions->detach($topic);
+        }
+
+        $this->topicLookup[$topic->getId()]->remove($conn);
+
+        if ($topic->autoDelete && 0 === $topic->count()) {
+            unset($this->topicLookup[$topic->getId()]);
+        }
     }
 }

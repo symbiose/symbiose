@@ -1,6 +1,7 @@
 #Ratchet
 
 [![Build Status](https://secure.travis-ci.org/cboden/Ratchet.png?branch=master)](http://travis-ci.org/cboden/Ratchet)
+[![Latest Stable Version](https://poser.pugx.org/cboden/Ratchet/v/stable.png)](https://packagist.org/packages/cboden/Ratchet)
 
 A PHP 5.3 library for asynchronously serving WebSockets.
 Build up your application through simple interfaces and re-use your application without changing any of its code just by combining different components.
@@ -8,7 +9,7 @@ Build up your application through simple interfaces and re-use your application 
 ##WebSocket Compliance
 
 * Supports the RFC6455, HyBi-10+, and Hixie76 protocol versions (at the same time)
-* Tested on Chrome 13 - 30, Firefox 6 - 24, Safari 5.0.1 - 6, iOS 4.2 - 7
+* Tested on Chrome 13+, Firefox 6+, Safari 5+, iOS 4.2+, IE 8+
 * Ratchet [passes](http://socketo.me/reports/ab/) the [Autobahn Testsuite](http://autobahn.ws/testsuite) (non-binary messages)
 
 ##Requirements
@@ -18,7 +19,7 @@ To avoid proxy/firewall blockage it's recommended WebSockets are requested on po
 In order to do this, along with your sync web stack, you can either use a reverse proxy or two separate machines.
 You can find more details in the [server conf docs](http://socketo.me/docs/deploy#serverconfiguration).
 
-PHP 5.3.9 (or higher) is required. If you have access, PHP 5.4 is *highly* recommended for its performance improvements.
+PHP 5.3.9 (or higher) is required. If you have access, PHP 5.4 (or higher) is *highly* recommended for its performance improvements.
 
 ### Documentation
 
@@ -75,7 +76,7 @@ class MyChat implements MessageComponentInterface {
     // Run the server application through the WebSocket protocol on port 8080
     $app = new Ratchet\App('localhost', 8080);
     $app->route('/chat', new MyChat);
-    $app->route('/echo', new Ratchet\Server\EchoServer, array(*));
+    $app->route('/echo', new Ratchet\Server\EchoServer, array('*'));
     $app->run();
 ```
 

@@ -1,7 +1,5 @@
 <?php
 namespace Ratchet\Wamp;
-use Ratchet\Wamp\ServerProtocol;
-use Ratchet\Wamp\WampConnection;
 use Ratchet\Mock\Connection;
 use Ratchet\Mock\WampComponent as TestComponent;
 
@@ -260,7 +258,7 @@ class ServerProtocolTest extends \PHPUnit_Framework_TestCase {
      * @dataProvider badFormatProvider
      */
     public function testValidJsonButInvalidProtocol($message) {
-        $this->setExpectedException('\UnexpectedValueException');
+        $this->setExpectedException('\Ratchet\Wamp\Exception');
 
         $conn = $this->newConn();
         $this->_comp->onOpen($conn);

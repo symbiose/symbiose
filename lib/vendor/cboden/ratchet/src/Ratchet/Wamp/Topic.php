@@ -6,6 +6,13 @@ use Ratchet\ConnectionInterface;
  * A topic/channel containing connections that have subscribed to it
  */
 class Topic implements \IteratorAggregate, \Countable {
+    /**
+     * If true the TopicManager will destroy this object if it's ever empty of connections
+     * @deprecated in v0.4
+     * @type bool
+     */
+    public $autoDelete = false;
+
     private $id;
 
     private $subscribers;
@@ -30,12 +37,23 @@ class Topic implements \IteratorAggregate, \Countable {
     }
 
     /**
-      * Send a message to all the connections in this topic
-      * @param string $msg
-      * @return Topic
-      */
-    public function broadcast($msg) {
+     * Send a message to all the connections in this topic
+     * @param string $msg Payload to publish
+     * @param array $exclude A list of session IDs the message should be excluded from (blacklist)
+     * @param array $eligible A list of session Ids the message should be send to (whitelist)
+     * @return Topic The same Topic object to chain
+     */
+    public function broadcast($msg, array $exclude = array(), array $eligible = array()) {
+        $useEligible = (bool)count($eligible);
         foreach ($this->subscribers as $client) {
+            if (in_array($client->WAMP->sessionId, $exclude)) {
+                continue;
+            }
+
+            if ($useEligible && !in_array($client->WAMP->sessionId, $eligible)) {
+                continue;
+            }
+
             $client->event($this->id, $msg);
         }
 

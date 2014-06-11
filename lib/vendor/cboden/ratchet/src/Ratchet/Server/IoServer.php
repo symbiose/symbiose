@@ -28,17 +28,27 @@ class IoServer {
     protected $handlers;
 
     /**
+     * The socket server the Ratchet Application is run off of
+     * @var \React\Socket\ServerInterface
+     */
+    public $socket;
+
+    /**
      * @param \Ratchet\MessageComponentInterface  $app      The Ratchet application stack to host
      * @param \React\Socket\ServerInterface       $socket   The React socket server to run the Ratchet application off of
      * @param \React\EventLoop\LoopInterface|null $loop     The React looper to run the Ratchet application off of
      */
     public function __construct(MessageComponentInterface $app, ServerInterface $socket, LoopInterface $loop = null) {
-        gc_enable();
+        if (false === strpos(PHP_VERSION, "hiphop")) {
+            gc_enable();
+        }
+
         set_time_limit(0);
         ob_implicit_flush();
 
         $this->loop = $loop;
         $this->app  = $app;
+        $this->socket = $socket;
 
         $socket->on('connection', array($this, 'handleConnect'));
 

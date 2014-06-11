@@ -56,7 +56,11 @@ class App {
      */
     public function __construct($httpHost = 'localhost', $port = 8080, $address = '127.0.0.1', LoopInterface $loop = null) {
         if (extension_loaded('xdebug')) {
-            echo "XDebug extension detected. Remember to disable this if performance testing or going live!\n";
+            trigger_error("XDebug extension detected. Remember to disable this if performance testing or going live!", E_USER_WARNING);
+        }
+
+        if (3 !== strlen('✓')) {
+            throw new \DomainException('Bad encoding, length of unicode character ✓ should be 3. Ensure charset UTF-8 and check ini val mbstring.func_autoload');
         }
 
         if (null === $loop) {
@@ -88,7 +92,7 @@ class App {
      * Add an endpiont/application to the server
      * @param string             $path The URI the client will connect to
      * @param ComponentInterface $controller Your application to server for the route. If not specified, assumed to be for a WebSocket
-     * @param array              $allowedOrigins An array of hosts allowed to connect (same host by default), [*] for any
+     * @param array              $allowedOrigins An array of hosts allowed to connect (same host by default), ['*'] for any
      * @param string             $httpHost Override the $httpHost variable provided in the __construct
      * @return ComponentInterface|WsServer
      */
@@ -103,7 +107,9 @@ class App {
             $decorated = $controller;
         }
 
-        $httpHost = $httpHost ?: $this->httpHost;
+        if ($httpHost === null) {
+            $httpHost = $this->httpHost;
+        }
 
         $allowedOrigins = array_values($allowedOrigins);
         if (0 === count($allowedOrigins)) {
