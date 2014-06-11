@@ -1,7 +1,12 @@
 <?php
 namespace lib;
 
-use \RuntimeException;
+use RuntimeException;
+use FSi\Component\ACL\ACL;
+use FSi\Component\ACL\PermissionSimple;
+use FSi\Component\ACL\ResourceSimple;
+use FSi\Component\ACL\RoleSimple;
+use lib\acl\FileACE;
 
 /**
  * Keeps access to an application.
@@ -9,6 +14,16 @@ use \RuntimeException;
  * @since 1.0beta3
  */
 class Guardian extends ApplicationComponent {
+	protected $acl;
+
+	protected $permissions = array();
+	protected $resources = array();
+	protected $roles = array();
+
+	/**
+	 * Permissions recorded in logs.
+	 * @var array
+	 */
 	protected $loggedPermissions = array(
 		'file.home.read',
 		'file.home.write',
@@ -20,6 +35,87 @@ class Guardian extends ApplicationComponent {
 		'package.read',
 		'package.manage'
 	);
+
+	public function __construct(Application $app) {
+		parent::__construct($app);
+
+		$this->initAcl();
+	}
+
+	protected function initAcl() {
+		$this->acl = new ACL();
+
+		// Permissions
+		
+		$permissionsNames = array(
+			'read',
+			'write',
+			'edit',
+			'manage'
+		);
+		$permissions = array();
+		foreach ($permissionsNames as $name) {
+			$permission = PermissionSimple::factory($name);
+
+			$this->acl->addPermission($permission);
+			$permissions[$name] = $permission;
+		}
+
+		// Resources
+		
+		$resourcesNames = array(
+			'file',
+			'user',
+			'package'
+		);
+
+		$resources = array();
+		foreach ($resourcesNames as $name) {
+			$resource = ResourceSimple::factory($name);
+
+			$this->acl->addResource($resource);
+			$resources[$name] = $resource;
+		}
+
+		// User
+		$currentUser = $this->app()->user();
+		if ($currentUser->isLogged()) {
+			$resources['user.self'] = ResourceSimple::factory('user.self');
+			$this->acl->addResource($resources['user.self']);
+		}
+
+		// Roles
+		
+		/*$rolesNames = array(
+			'guest',
+			'user',
+			'root'
+		);
+
+		$roles = array();
+		foreach ($rolesNames as $name) {
+			$role = RoleSimple::factory($name);
+
+			$this->acl->addRole($role);
+			$roles[$name] = $role;
+		}*/
+
+		// Roles not supported for now
+		$role = RoleSimple::factory('current');
+		$this->acl->addRole($role);
+		$roles = array('current' => $role);
+
+		// Access Control Entries
+
+		$this->acl->addACE(new FileACE($roles['current'], $resources['file'], array(
+			$permissions['read'],
+			$permissions['write']
+		)));
+
+		$this->permissions = $permissions;
+		$this->resources = $resources;
+		$this->roles = $roles;
+	}
 
 	protected function _authForArgument($arg, $requiredAuth) {
 		$finalAuth = $requiredAuth;
@@ -135,13 +231,25 @@ class Guardian extends ApplicationComponent {
 	 * @param  array  $providedAuths Provided authorizations.
 	 */
 	public function controlAuth($requiredAuth, $providedAuths = null) {
+		$acl = clone $this->acl;
+		$permissions = $this->permissions;
+		$resources = $this->resources;
+		$roles = $this->roles;
+
+		$acl->addACE(new FileACE($roles['current'], $resources['file'], array(
+			$permissions['read'],
+			$permissions['write']
+		)));
+
+
+
+
 		$providedAuthsNames = array();
 		foreach($providedAuths as $auth) {
 			$providedAuthsNames[] = $auth['name'];
 		}
 
 		$authorized = ($requiredAuth === true || in_array($requiredAuth, $providedAuthsNames));
-
 		
 		if ($requiredAuth !== true && in_array($requiredAuth, $this->loggedPermissions)) {
 			$logLine = '';
