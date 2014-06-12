@@ -263,8 +263,157 @@ Webos.require([
 		contact: function (username) {
 			return this._contacts[username];
 		},
-		conversations: function () {
-			return this._conversations;
+		_updateContact: function (contact) {
+			var isLoggedInUser = (!!this._loggedInUsers[contact.username]),
+				currentContact = (isLoggedInUser) ? this._loggedInUsers[contact.username] : this._contacts[contact.username];
+
+			contact = $.extend({
+				hasPicture: true
+			}, currentContact, {
+				username: contact.username,
+				conn: contact.conn,
+				name: contact.name,
+				presence: contact.presence,
+				priority: contact.priority,
+				picture: contact.picture,
+				hasPicture: contact.hasPicture,
+				url: contact.url
+			});
+
+			contact.name = contact.name || contact.username;
+
+			contact.presence = contact.presence || 'offline';
+			contact.priority = Empathy.priorityFromPresence(contact.presence);
+
+			if (contact.picture === false) {
+				contact.hasPicture = false;
+			}
+			contact.picture = contact.picture || this._defaultContactIcon;
+
+			contact.items = [contact];
+			contact.length = 1;
+
+			if (isLoggedInUser) {
+				this._loggedInUsers[contact.username] = contact;
+
+				this.trigger('userupdated', contact);
+			} else {
+				this._contacts[contact.username] = contact;
+
+				this.trigger('contactupdated', contact);
+			}
+		},
+		_createContactSet: function (contacts) {
+			if (!contacts.length) {
+				return null;
+			}
+
+			var getPropList = function (contacts, propName) {
+				var props = [];
+				for (var i = 0; i < contacts.length; i++) {
+					props.push(contacts[i][propName]);
+				}
+				return props;
+			};
+
+			var getHigherPriority = function (contacts, asPresence) {
+				var higherPresence = '', higherPriority = - Infinity;
+				for (var i = 0; i < contacts.length; i++) {
+					var contact = contacts[i];
+
+					if (contact.priority > higherPriority) {
+						higherPriority = contact.priority;
+						higherPresence = contact.presence;
+					}
+				}
+
+				return (asPresence) ? higherPresence : higherPriority;
+			};
+
+			var set = Object.create(Object.prototype, {
+				length: {
+					get: function () {
+						return this.items.length;
+					}
+				},
+				username: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].username;
+						}
+
+						return getPropList(this.items, 'username').join('+');
+					}
+				},
+				name: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].name;
+						}
+
+						return getPropList(this.items, 'name').join(', ');
+					}
+				},
+				presence: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].presence;
+						}
+
+						return getHigherPriority(this.items, true);
+					}
+				},
+				priority: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].priority;
+						}
+
+						return getHigherPriority(this.items);
+					}
+				},
+				conn: {
+					get: function () {
+						// conn is supposed to be the same one
+						return this.items[0].conn;
+					}
+				},
+				picture: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].picture;
+						}
+
+						return null;
+					}
+				},
+				hasPicture: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].hasPicture;
+						}
+
+						return false;
+					}
+				},
+				url: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].url;
+						}
+
+						return '';
+					}
+				},
+			});
+
+			set.items = contacts;
+console.log(set);
+			this._contacts[set.username] = set;
+
+			this.trigger('contactupdated', set);
+
+			return set;
 		},
 		loggedInUser: function (username) {
 			return this._loggedInUsers[username];
@@ -380,39 +529,47 @@ Webos.require([
 
 			var $contactsCtn = $win.find('.view-conversations .friends-list ul'),
 				$conversationCtn = $win.find('.conversation ul');
-			this.on('contactupdated', function (contact) {
-				var conn;
-
-				var $contact = $contactsCtn.children('li').filter(function () {
-					return ($(this).data('username') == contact.username);
+			
+			var getContact = function (username) {
+				return $contactsCtn.children('li').filter(function () {
+					return ($(this).data('username') === username);
 				});
+			};
+			var getConversation = function (id) {
+				return $contactsCtn.children('li').filter(function () {
+					return ($(this).data('conversation') === id);
+				});
+			};
+			var createContact = function (connId) {
+				var $contact = $('<li></li>');
 
-				var $contactActions = $();
-				if (!$contact.length) {
-					$contact = $('<li></li>').data('username', contact.username).appendTo($contactsCtn);
-					$contact.append('<span class="contact-status"></span>');
-					$contact.append('<ul class="contact-actions"></ul>');
-					$contact.append('<img alt="" class="contact-picture"/>');
-					$contact.append('<span class="contact-name"></span>');
-					$contact.append('<span class="contact-server"></span>');
+				$contact.append([
+					'<span class="contact-status"></span>',
+					'<ul class="contact-actions"></ul>',
+					'<img alt="" class="contact-picture"/>',
+					'<span class="contact-name"></span>',
+					'<span class="contact-server"></span>'
+				]);
 
-					$contactActions = $contact.find('.contact-actions');
-					
-					conn = that.connection(contact.conn);
-					var connFeatures = conn.features();
+				$contactActions = $contact.find('.contact-actions');
+				
+				conn = that.connection(connId);
+				var connFeatures = conn.features();
 
-					for (var i = 0; i < connFeatures.length; i++) {
-						$('<li></li>', {
-							'class': 'action-'+connFeatures[i]+' cursor-pointer'
-						}).appendTo($contactActions);
-					}
-
+				for (var i = 0; i < connFeatures.length; i++) {
 					$('<li></li>', {
-						'class': 'action-url cursor-pointer'
+						'class': 'action-'+connFeatures[i]+' cursor-pointer'
 					}).appendTo($contactActions);
-				} else {
-					$contactActions = $contact.find('.contact-actions');
 				}
+
+				$('<li></li>', {
+					'class': 'action-url cursor-pointer'
+				}).appendTo($contactActions);
+
+				return $contact;
+			};
+			var updateContact = function ($contact, contact) {
+				$contactActions = $contact.find('.contact-actions');
 
 				var readablePresence = '';
 				switch (contact.presence) { // See http://www.xmpp.org/rfcs/rfc3921.html#rfc.section.2.2.2.1
@@ -430,6 +587,7 @@ Webos.require([
 						break;
 				}
 
+				//TODO: not optimized at all
 				var inserted = false;
 				$contact.detach();
 				$contactsCtn.children('li').each(function () {
@@ -450,7 +608,7 @@ Webos.require([
 
 				$contact.removeClass('contact-online contact-offline contact-away').addClass('contact-'+contact.presence);
 
-				$contact.find('.contact-name').text(contact.name);
+				$contact.find('.contact-name').text(contact.name).attr('title', contact.name);
 				$contact.find('.contact-status').html('<span class="status-inner">'+readablePresence+'</span>');
 				
 				var $picture = $contact.find('.contact-picture');
@@ -469,6 +627,29 @@ Webos.require([
 						$contact.find('.contact-server').text(service.title);
 					}
 				}
+			};
+
+			this.on('conversationupdated', function (convo) {
+				var conn, $convo = getConversation(convo);
+
+				if (!$convo.length) {
+					$convo = createContact(convo.conn);
+					$convo.data('conversation', convo.id).appendTo($contactsCtn);
+				}
+
+				updateContact($convo, {
+
+				});
+			});
+			this.on('contactupdated', function (contact) {
+				var conn, $contact = getContact(contact.username);
+
+				if (!$contact.length) {
+					$contact = createContact(contact.conn);
+					$contact.data('username', contact.username).appendTo($contactsCtn);
+				}
+
+				updateContact($contact, contact);
 
 				$contactsCtn.toggleClass('hide-contact-server', (that.countConnections() <= 1));
 			});
@@ -792,9 +973,12 @@ Webos.require([
 				if (!contact || typeof contact.conn == 'undefined') {
 					return;
 				}
+				if (that._selectingContacts) {
+					return;
+				}
 
 				if ($(this).is('.action-message')) {
-					return; // It's like just clicking the contact
+					return; // It's just like clicking the contact
 				} else {
 					e.stopPropagation();
 					that._getContactPicture(contact.conn, contact.username);
@@ -821,6 +1005,11 @@ Webos.require([
 					contact = that.contact(contactUsername);
 
 				if (!contact || typeof contact.conn == 'undefined') {
+					return;
+				}
+
+				if (that._selectingContacts) {
+					that._doSelectContact(contact, $contact);
 					return;
 				}
 
@@ -890,17 +1079,32 @@ Webos.require([
 			});
 
 			$win.find('.conversation-compose .compose-add-contact').click(function () {
-				var dst = that.currentDst(), conn = that.connection(dst.conn);
+				var dst = that.currentDst(), conn = that.connection(dst.conn),
+					$btn = $(this);
 
 				if (!dst) {
 					return;
 				}
+				if (!conn.hasFeature('multiple')) {
+					return;
+				}
 
-				//TODO: add to current conversation
+				$btn.button('option', 'activated', true);
+
 				that._selectContacts(function (contacts) {
-					contacts.push(dst);
+					$btn.button('option', 'activated', false);
 
-					that._createConversation(contacts);
+					if (dst.length == 1) {
+						that._createContactSet(contacts);
+					} else {
+						for (var i = 0; i < contacts.length; i++) {
+							dst.items.push(contacts[i]);
+						}
+					}
+
+					//TODO: focus the new conversation
+				}, {
+					keepCurrentSelection: true
 				});
 			});
 
@@ -930,7 +1134,7 @@ Webos.require([
 			
 			this.on('conversationswitch', function () {
 				$win.find('.btn-encryption').button('option', 'disabled', true);
-				$win.find('.conversation-compose .compose-attach').button('option', 'disabled', true);
+				$win.find('.conversation-compose .compose-attach, .conversation-compose .compose-').button('option', 'disabled', true);
 
 				if (that.currentDst()) {
 					var dst = that.currentDst(), conn = that.connection(dst.conn);
@@ -946,6 +1150,9 @@ Webos.require([
 
 					if (conn.hasFeature('fileSending')) {
 						$win.find('.conversation-compose .compose-attach').button('option', 'disabled', false);
+					}
+					if (conn.hasFeature('multiple')) {
+						$win.find('.conversation-compose .compose-add-contact').button('option', 'disabled', false);
 					}
 				}
 			});
@@ -985,7 +1192,73 @@ Webos.require([
 					conn.endOtr(dst.username);
 				}
 			});
+		},
+		_selectContacts: function (callback, opts) {
+			var that = this, $win = this._$win;
 
+			callback = callback || (function () {});
+			opts = $.extend({
+				keepCurrentSelection: false
+			}, opts);
+
+			this._selectingContacts = true;
+
+			var currentDst = that.currentDst();
+
+			$win.find('.friends-select').fadeIn('fast');
+
+			var finishSel = function () {
+				that._selectingContacts = false;
+
+				$win.find('.friends-select').fadeOut('fast');
+				$win.find('.friends-select .select-cancel, .friends-select .select-done').off('click.select.empathy');
+
+				that._switchConversation(currentDst.username, currentDst.conn);
+			};
+
+			$win.find('.friends-select .select-cancel').on('click.select.empathy', function () {
+				finishSel();
+
+				callback([]);
+			});
+			$win.find('.friends-select .select-done').on('click.select.empathy', function () {
+				var sel = [];
+				$win.find('.friends-list > ul > li.item-active').each(function () {
+					sel.push(that.contact($(this).data('username')));
+				});
+
+				finishSel();
+
+				callback(sel);
+			});
+
+			if (!opts.keepCurrentSelection) {
+				$win.find('.friends-list > ul > li.item-active').removeClass('item-active');
+			}
+
+			this._updateSelectContactMsg();
+		},
+		_doSelectContact: function (contact, $contact) {
+			var that = this, $win = this._$win;
+
+			$contact.toggleClass('item-active');
+
+			this._updateSelectContactMsg();
+		},
+		_updateSelectContactMsg: function () {
+			var $win = this._$win;
+
+			var selectedNbr = $win.find('.friends-list > ul > li.item-active').length;
+
+			var statusMsg = '';
+			if (selectedNbr == 0) {
+				statusMsg = 'Please select contacts';
+			} else if (selectedNbr == 1) {
+				statusMsg = 'One contact selected';
+			} else {
+				statusMsg = selectedNbr+' contacts selected';
+			}
+			$win.find('.friends-select .selection-status').html(statusMsg);
 		},
 		switchView: function (newView) {
 			var $views = this._$win.find('.views > div'),
@@ -1493,7 +1766,7 @@ Webos.require([
 			that._getContactPicture(connId, connUsername);
 
 			conn.on('contact', function (contact) {
-				that._setContact($.extend({}, contact, {
+				that._updateContact($.extend({}, contact, {
 					conn: connId
 				}));
 
@@ -1504,88 +1777,6 @@ Webos.require([
 			});
 
 			conn.listContacts();
-		},
-		_setContact: function (contact) {
-			var isLoggedInUser = (!!this._loggedInUsers[contact.username]),
-				currentContact = (isLoggedInUser) ? this._loggedInUsers[contact.username] : this._contacts[contact.username];
-
-			contact = $.extend({
-				hasPicture: true
-			}, currentContact, {
-				username: contact.username,
-				conn: contact.conn,
-				name: contact.name,
-				presence: contact.presence,
-				priority: contact.priority,
-				picture: contact.picture,
-				hasPicture: contact.hasPicture,
-				url: contact.url
-			});
-
-			contact.name = contact.name || contact.username;
-
-			contact.presence = contact.presence || 'offline';
-			contact.priority = Empathy.priorityFromPresence(contact.presence);
-
-			if (contact.picture === false) {
-				contact.hasPicture = false;
-			}
-			contact.picture = contact.picture || this._defaultContactIcon;
-
-			if (isLoggedInUser) {
-				this._loggedInUsers[contact.username] = contact;
-
-				this.trigger('userupdated', contact);
-			} else {
-				this._contacts[contact.username] = contact;
-
-				this.trigger('contactupdated', contact);
-			}
-		},
-		_createConversation: function (contacts) {
-			if (!contacts || !contacts.length) {
-				return null;
-			}
-
-			var conversation = {
-				username: [],
-				conn: [],
-				name: '',
-				presence: '',
-				priority: null,
-				hasPicture: false,
-				length: contacts.length
-			};
-			var contactsNames = [];
-			for (var i = 0; i < contacts.length; i++) {
-				var contact = contacts[i];
-
-				conversation.username.push(contact.username);
-				conversation.conn.push(contact.conn);
-				contactsNames.push(contact.name);
-
-				var contactPriority = Empathy.priorityFromPresence(contact.presence);
-				if (conversation.priority === null || conversation.priority < contactPriority) {
-					conversation.priority = contactPriority;
-					conversation.presence = contact.presence;
-				}
-			}
-
-			conversation.name = contactsNames.join(', ');
-			conversation.each = function (callback) {
-				for (var i = 0; i < contacts.length; i++) {
-					var returned = callback(contacts[i]);
-
-					if (returned === false) {
-						break;
-					}
-				}
-			};
-
-			this._conversations.push(conversation);
-			this.trigger('conversationupdated', conversation);
-
-			return conversation;
 		},
 		_getContactPicture: function (connId, username) {
 			var that = this, conn = this._conn(connId), contact = this.contact(username);
@@ -1691,9 +1882,6 @@ Webos.require([
 					}
 				});
 			}
-		},
-		_selectContacts: function (callback) {
-			//TODO
 		},
 		openSettings: function () {
 			var that = this;
@@ -2029,6 +2217,25 @@ Webos.require([
 		sendMessage: function (msg) {}
 	};
 	Webos.inherit(Empathy.MessageInterface, Empathy.Interface);
+
+	/**
+	 * An interface which supports conversations with multiple users.
+	 * It has the features `multiple` and `FEATURE-multiple` for each feature which supports multiple users.
+	 * @param {Object} [options] The connection's options.
+	 * @constructor
+	 * @augments {Empathy.Interface}
+	 * @author emersion
+	 */
+	Empathy.MultipleUsersInterface = function (options) {
+		this._features.push('multiple');
+
+		Empathy.Interface.call(this, options);
+	};
+	/**
+	 * Empathy.MultipleUsersInterface's prototype.
+	 */
+	Empathy.MultipleUsersInterface.prototype = {};
+	Webos.inherit(Empathy.MultipleUsersInterface, Empathy.Interface);
 
 	/**
 	 * A message interface which supports OTR (Off-The-Record encryption).
@@ -2923,6 +3130,9 @@ Webos.require([
 		Empathy.MessageInterface.call(this, options);
 		Empathy.CallInterface.call(this, options);
 		Empathy.FileSendingInterface.call(this, options);
+		Empathy.MultipleUsersInterface.call(this, options);
+
+		this._features.push('message-multiple');
 
 		this.initialize(this._options);
 	};
@@ -3312,25 +3522,36 @@ Webos.require([
 		},
 		_sendMessage: function (msg) {
 			var that = this, peer = this._peer;
-			var op = Webos.Operation.create();
 
-			that._openConnection(msg.to).on({
-				success: function (data) {
-					var conn = data.result;
+			if (!(msg.to instanceof Array)) {
+				if (typeof msg.to == 'string') {
+					msg.to = msg.to.split('+');
+				} else {
+					msg.to = [msg.to];
+				}
+			}
 
+			var op = Webos.Operation.multiple(msg.to.length);
+
+			var sendMsg = function (to) {
+				that._openConnection(to).then(function (conn) {
 					conn.send({
 						type: 'message',
 						contents: {
+							to: msg.to,
 							body: msg.body
 						}
 					});
 
 					op.setCompleted();
-				},
-				error: function () {
+				}, function () {
 					op.setCompleted(false);
-				}
-			});
+				});
+			};
+
+			for (var i = 0; i < msg.to.length; i++) {
+				sendMsg(msg.to[i]);
+			}
 
 			return op;
 		},
@@ -3503,6 +3724,7 @@ Webos.require([
 	Webos.inherit(Empathy.Peerjs, Empathy.MessageInterface);
 	Webos.inherit(Empathy.Peerjs, Empathy.CallInterface);
 	Webos.inherit(Empathy.Peerjs, Empathy.FileSendingInterface);
+	Webos.inherit(Empathy.Peerjs, Empathy.MultipleUsersInterface);
 
 	/**
 	 * Create a new PeerJS connection.

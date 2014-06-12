@@ -1,5 +1,6 @@
 .empathy-header {
 	padding: 3px;
+	color: #6F6F6F;
 }
 
 .pull-right {
@@ -11,6 +12,17 @@
 .clearfix {
 	display: block;
 	clear: both;
+}
+
+.friends-list-header {
+	width: 320px;
+}
+.friends-select .selection-status {
+	display: inline-block;
+	margin: 5px;
+}
+.friends-select {
+	display: none;
 }
 
 .views, .views > div {
@@ -43,6 +55,7 @@
 
 .view-conversations .friends-list {
 	float: left;
+	position: relative;
 	height: 100%;
 	width: 320px;
 	border-right: 1px solid black;

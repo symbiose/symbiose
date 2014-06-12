@@ -302,6 +302,31 @@
 	};
 
 	/**
+	 * Create a multiple operation. The method `setCompleted()` must be called several times.
+	 * @param  {Number} length The number of sub-operations.
+	 * @return {Webos.Operation} The new operation.
+	 * @since 1.0beta5
+	 */
+	Operation.multiple = function (length) {
+		var op = new Operation();
+
+		var completedNbr = 0;
+
+		var setCompleted = op.setCompleted;
+		op.setCompleted = function (result, data) {
+			completedNbr++;
+
+			op.setProgress(completedNbr / length * 100);
+
+			if (completedNbr === length) {
+				return setCompleted.call(this, result, data);
+			}
+		};
+
+		return op;
+	};
+
+	/**
 	 * Create a new completed operation.
 	 * @return {Webos.Operation} The new operation.
 	 * @since 1.0beta5
