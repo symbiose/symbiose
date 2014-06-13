@@ -233,6 +233,14 @@
 .conversation .msg.msg-sent {
 	text-align: right;
 }
+.conversation .msg .msg-from {
+	display: none;
+}
+.conversation.conversation-multiple .msg .msg-from {
+	display: block;
+	color: #AAA;
+	font-size: 12px;
+}
 .conversation .msg .msg-contact-picture-ctn {
 	position: relative;
 }

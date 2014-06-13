@@ -261,6 +261,10 @@ Webos.require([
 			return this._contacts;
 		},
 		contact: function (username) {
+			if (username instanceof Array) {
+				username = username.join('+');
+			}
+
 			return this._contacts[username];
 		},
 		_updateContact: function (contact) {
@@ -314,6 +318,24 @@ Webos.require([
 
 			if (!contacts.length) {
 				return null;
+			}
+
+			//TODO: check if all have the same conn
+			var list = [];
+			for (var i = 0; i < contacts.length; i++) {
+				var c = contacts[i];
+
+				if (!c) {
+					continue;
+				}
+				if (typeof c == 'string') {
+					c = this.contact(c);
+				}
+				if (~list.indexOf(c)) { // Remove duplicates
+					continue;
+				}
+
+				list.push(c);
 			}
 
 			var getPropList = function (contacts, propName) {
@@ -392,7 +414,7 @@ Webos.require([
 							return this.items[0].picture;
 						}
 
-						return null;
+						return that._defaultContactIcon;
 					}
 				},
 				hasPicture: {
@@ -415,12 +437,21 @@ Webos.require([
 				}
 			});
 
-			set.items = contacts;
+			set.items = list;
 
 			set.toString = function () {
 				return this.username;
 			};
 			set.updated = function () {
+				// Sort contacts to avoid creating two times the same set
+				this.items.sort(function (a, b) {
+					if (a.username == b.username) {
+						return 0;
+					}
+
+					return (a.username < b.username) ? -1 : 1;
+				});
+
 				that._contacts[this.username] = this;
 
 				that.trigger('contactupdated', this);
@@ -430,8 +461,20 @@ Webos.require([
 
 			return set;
 		},
-		loggedInUser: function (username) {
-			return this._loggedInUsers[username];
+		loggedInUser: function (usernames) {
+			if (!(usernames instanceof Array)) {
+				usernames = [usernames];
+			}
+
+			for (var i = 0; i < usernames.length; i++) {
+				var username = usernames[i];
+
+				if (this._loggedInUsers[username]) {
+					return this._loggedInUsers[username];
+				}
+			}
+
+			return null;
 		},
 		currentDst: function () {
 			return this._currentDst;
@@ -644,22 +687,11 @@ Webos.require([
 				}
 			};
 
-			this.on('conversationupdated', function (convo) {
-				var conn, $convo = getConversation(convo);
-
-				if (!$convo.length) {
-					$convo = createContact(convo.conn);
-					$convo.data('conversation', convo.id).appendTo($contactsCtn);
-				}
-
-				updateContact($convo, {
-
-				});
-			});
 			this.on('contactupdated', function (contact) {
 				var conn, $contact = getContact(contact.username);
 
 				if (!$contact.length) {
+					console.log(contact, contact.conn);
 					$contact = createContact(contact.conn);
 					$contact.data('username', contact.username).appendTo($contactsCtn);
 				}
@@ -689,38 +721,58 @@ Webos.require([
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 				$msg.toggleClass('msg-encrypted', msg.encrypted);
 
-				if (that.currentDst() && that.currentDst().username == msg.to) {
+				if (that.currentDst() && that.currentDst().username == dst.username) {
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(msg.to)) {
-						$msgs = that._$conversations[msg.to];
+					if (that._isConversationDetached(dst.username)) {
+						$msgs = that._$conversations[dst.username];
 					}
-					that._$conversations[msg.to] = $msgs.add($msg);
+					that._$conversations[dst.username] = $msgs.add($msg);
 				}
 			});
 			this.on('messagereceived', function (msg) {
-				var src = that.contact(msg.from), dst = that.loggedInUser(msg.to);
+				var src = that.contact(msg.from),
+					srcUser = src,
+					dst = that.loggedInUser(msg.to);
+
+				if (msg.to instanceof Array) {
+					//Remove dst, add src
+					var from = [src.username];
+					for (var i = 0; i < msg.to.length; i++) {
+						var username = msg.to[i];
+
+						if (username != dst.username) {
+							from.push(username);
+						}
+					}
+
+					src = that.contact(from);
+					if (!src) {
+						src = that._createContactSet(from);
+					}
+				}
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received' });
+				$msg.append($('<span></span>', { 'class': 'msg-from' }).html(srcUser.name));
 				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 				$msg.toggleClass('msg-encrypted', msg.encrypted);
 
-				if (that.currentDst() && that.currentDst().username == msg.from) {
+				if (that.currentDst() && that.currentDst().username == src.username) {
 					$conversationCtn.find('.msg-typing').remove();
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(msg.from)) {
-						$msgs = that._$conversations[msg.from];
+					if (that._isConversationDetached(src.username)) {
+						$msgs = that._$conversations[src.username];
 					}
-					that._$conversations[msg.from] = $msgs.not('.msg-typing').add($msg);
+					that._$conversations[src.username] = $msgs.not('.msg-typing').add($msg);
 
 					var $contact = $contactsCtn.children('li').filter(function () {
-						return ($(this).data('username') == msg.from);
+						return ($(this).data('username') == src.username);
 					});
 
 					//Update main window badge
@@ -1110,15 +1162,18 @@ Webos.require([
 					$btn.button('option', 'activated', false);
 
 					if (dst.length == 1) {
-						var set = that._createContactSet(contacts);
+						dst = that._createContactSet(contacts);
 					} else {
 						for (var i = 0; i < contacts.length; i++) {
-							dst.items.push(contacts[i]);
+							for (var j = 0; j < contacts[i].items.length; j++) {
+								dst.items.push(contacts[i].items[j]);
+							}
 						}
 						dst.updated();
 					}
 
-					//TODO: focus the new conversation
+					// Focus the new conversation
+					getContact(dst.username).click();
 				}, {
 					keepCurrentSelection: true
 				});
@@ -1170,6 +1225,8 @@ Webos.require([
 					if (conn.hasFeature('multiple')) {
 						$win.find('.conversation-compose .compose-add-contact').button('option', 'disabled', false);
 					}
+
+					$win.find('.conversation').toggleClass('conversation-multiple', (dst.length > 1));
 				}
 			});
 			this.on('otrake', function (status) {
@@ -3248,9 +3305,15 @@ Webos.require([
 							break;
 						}
 
+						var to = conn.peer;
+						// Recipients specified
+						if (data.contents.to && data.contents.to instanceof Array) {
+							to = data.contents.to;
+						}
+
 						that._receiveMessage({
 							from: conn.peer,
-							to: peer.id,
+							to: to,
 							body: data.contents.body
 						});
 						break;
