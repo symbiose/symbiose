@@ -293,6 +293,10 @@ Webos.require([
 			contact.items = [contact];
 			contact.length = 1;
 
+			contact.toString = function () {
+				return this.username;
+			};
+
 			if (isLoggedInUser) {
 				this._loggedInUsers[contact.username] = contact;
 
@@ -302,8 +306,12 @@ Webos.require([
 
 				this.trigger('contactupdated', contact);
 			}
+
+			return contact;
 		},
 		_createContactSet: function (contacts) {
+			var that = this;
+
 			if (!contacts.length) {
 				return null;
 			}
@@ -404,14 +412,21 @@ Webos.require([
 
 						return '';
 					}
-				},
+				}
 			});
 
 			set.items = contacts;
-console.log(set);
-			this._contacts[set.username] = set;
 
-			this.trigger('contactupdated', set);
+			set.toString = function () {
+				return this.username;
+			};
+			set.updated = function () {
+				that._contacts[this.username] = this;
+
+				that.trigger('contactupdated', this);
+			};
+
+			set.updated();
 
 			return set;
 		},
@@ -1095,11 +1110,12 @@ console.log(set);
 					$btn.button('option', 'activated', false);
 
 					if (dst.length == 1) {
-						that._createContactSet(contacts);
+						var set = that._createContactSet(contacts);
 					} else {
 						for (var i = 0; i < contacts.length; i++) {
 							dst.items.push(contacts[i]);
 						}
+						dst.updated();
 					}
 
 					//TODO: focus the new conversation
@@ -3524,11 +3540,7 @@ console.log(set);
 			var that = this, peer = this._peer;
 
 			if (!(msg.to instanceof Array)) {
-				if (typeof msg.to == 'string') {
-					msg.to = msg.to.split('+');
-				} else {
-					msg.to = [msg.to];
-				}
+				msg.to = String(msg.to).split('+');
 			}
 
 			var op = Webos.Operation.multiple(msg.to.length);
