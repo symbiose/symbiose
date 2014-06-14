@@ -222,12 +222,11 @@ Webos.require([
 		_$win: $(),
 		_$settingsWin: $(),
 		_$callWin: $(),
-		_calls: {},
 		_$conversations: {},
 		_conns: [],
 		_loggedInUsers: {},
 		_contacts: {},
-		_conversations: [],
+		_calls: {},
 		_defaultContactIcon: new W.Icon('stock/person').realpath(32),
 		_currentDst: null,
 		_config: {
@@ -482,6 +481,11 @@ Webos.require([
 		initialize: function () {
 			var that = this;
 
+			this._conns = [];
+			this._loggedInUsers = {};
+			this._contacts = {};
+			this._calls = {};
+
 			W.xtag.loadUI('/usr/share/templates/empathy/main.html', function(windows) {
 				that._$win = $(windows).filter(':eq(0)');
 				that._$settingsWin = $(windows).filter(':eq(1)');
@@ -515,6 +519,31 @@ Webos.require([
 
 				$services.append('<option value="'+serviceName+'">'+service.title+'</option>');
 			}
+		},
+		_dstToSrc: function (to, dst, srcUser) {
+			src = srcUser;
+
+			if (typeof to == 'string' && ~to.indexOf('+')) {
+				to = to.split('+');
+			}
+			if (to instanceof Array) {
+				//Remove dst, add srcUser
+				var from = [srcUser.username];
+				for (var i = 0; i < to.length; i++) {
+					var username = to[i];
+
+					if (username != dst.username) {
+						from.push(username);
+					}
+				}
+
+				src = this.contact(from);
+				if (!src) {
+					src = this._createContactSet(from);
+				}
+			}
+
+			return src;
 		},
 		_initEvents: function () {
 			var that = this;
@@ -732,24 +761,7 @@ Webos.require([
 				$conversationCtn.scrollTop(conversationHeight);
 			};
 			var dstToSrc = function (to, dst, srcUser) {
-				if (to instanceof Array) {
-					//Remove dst, add srcUser
-					var from = [srcUser.username];
-					for (var i = 0; i < to.length; i++) {
-						var username = to[i];
-
-						if (username != dst.username) {
-							from.push(username);
-						}
-					}
-
-					src = that.contact(from);
-					if (!src) {
-						src = that._createContactSet(from);
-					}
-				}
-
-				return src;
+				return that._dstToSrc(to, dst, srcUser);
 			};
 			this.on('messagesent', function (msg) {
 				var dst = that.contact(msg.to), src = that.loggedInUser(msg.from);
@@ -1739,9 +1751,13 @@ Webos.require([
 				that._callUpdate(data, connId);
 			});
 			conn.on('callincoming', function (data) {
-				var src = that.contact(data.remote);
+				var src = that.contact(data.remoteUser),
+					srcUser = src,
+					dst = that.loggedInUser(data.local);
 
-				if (!src) { //Do not allow anonymous calls
+				src = that._dstToSrc(data.remote, dst, srcUser);
+console.log(src);
+				if (!src) { //Do not allow calls from unknown
 					conn.endCall(data.callId);
 					return;
 				}
@@ -1810,7 +1826,12 @@ Webos.require([
 			for (var callId in this._calls) {
 				var thisCallData = this._calls[callId];
 
-				var src = that.contact(thisCallData.remote);
+				var src = that.contact(callData.remote),
+					srcUser = src,
+					dst = that.loggedInUser(callData.local);
+
+				src = that._dstToSrc(callData.local, dst, srcUser);
+
 				if (!src) {
 					continue;
 				}
@@ -1819,9 +1840,11 @@ Webos.require([
 			}
 			$callWin.window('option', 'title', 'Call with '+remoteNames.join(', '));
 
+			var remoteVideoId = callData.callId+'-'+callData.remoteUser;
+
 			var $localVideo = $callWin.find('.video-local'),
 				$remoteVideosCtn = $callWin.find('.video-remote'),
-				$remoteVideo = $remoteVideosCtn.find('.video-remote-'+callData.callId);
+				$remoteVideo = $remoteVideosCtn.find('.video-remote-'+remoteVideoId);
 
 			var closeWin = ($remoteVideo.attr('src') && !callData.remoteStream && remoteNames.length <= 1);
 
@@ -1836,7 +1859,7 @@ Webos.require([
 			}
 
 			if (!$remoteVideo.length) {
-				$remoteVideo = $('<video></video>', { 'class': 'video-remote-'+callData.callId });
+				$remoteVideo = $('<video></video>', { 'class': 'video-remote-'+remoteVideoId });
 				$remoteVideosCtn.append($('<li></li>').append($remoteVideo));
 
 				var nbrRemotes = $remoteVideosCtn.children().length;
@@ -3250,6 +3273,7 @@ Webos.require([
 		Empathy.MultipleUsersInterface.call(this, options);
 
 		this._features.push('message-multiple');
+		this._features.push('call-multiple');
 		this._features.push('fileSending-multiple');
 
 		this.initialize(this._options);
@@ -3259,6 +3283,7 @@ Webos.require([
 		_peer: null,
 		_peerAppName: 'empathy',
 		_contactsPeerIds: [],
+		_calls: {},
 		initialize: function (options) {},
 		connect: function (options) {
 			var that = this, conn = this._conn;
@@ -3309,12 +3334,6 @@ Webos.require([
 
 			peer.on('call', function(call) {
 				that._handleCall(call);
-
-				that.trigger('callincoming', {
-					remote: call.peer,
-					local: peer.id,
-					callId: call.id
-				});
 			});
 
 			this._peer = peer;
@@ -3481,47 +3500,6 @@ Webos.require([
 		},
 		_getConnection: function (peerId, connType) {
 			return this._listConnections(peerId, connType)[0];
-		},
-		_handleCall: function (call) {
-			var that = this, peer = this._peer;
-
-			call.on('stream', function (stream) {
-				that.trigger('call callstart', {
-					remote: call.peer,
-					local: peer.id,
-					remoteStream: stream,
-					localStream: call.localStream,
-					callId: call.id
-				});
-			});
-			call.on('close', function () {
-				that.trigger('callend', {
-					remote: call.peer,
-					local: peer.id,
-					callId: call.id
-				});
-			});
-			call.on('error', function (err) {
-				that.trigger('status', {
-					type: 'error',
-					error: 'connerror',
-					msg: 'Error: '+err.type
-				});
-			});
-		},
-		_getCall: function (callId) {
-			var peer = this._peer;
-
-			for (var peerId in peer.connections) {
-				var connections = peer.connections[peerId];
-				for (var i = 0; i < connections.length; i++) {
-					var conn = connections[i];
-
-					if (conn.type == 'media' && conn.id == callId) {
-						return conn;
-					}
-				}
-			}
 		},
 		_gotPeersList: function (list) {
 			var that = this,
@@ -3745,37 +3723,227 @@ Webos.require([
 
 			return op;
 		},
+		_createCallId: function () {
+			var callId;
+			do {
+				callId = Math.random().toString(36).substr(2);
+			} while (this._calls[callId]);
+
+			return callId;
+		},
+		_handleCall: function (call, fromMe) {
+			var that = this, peer = this._peer;
+
+			var metadata = call.metadata || {};
+
+			var remote = [];
+			for (var i = 0; i < metadata.users.length; i++) {
+				var username = metadata.users[i];
+
+				if (username != peer.id) {
+					remote.push(username);
+				}
+			}
+
+			call.on('stream', function (stream) {
+				that.trigger('call callstart', {
+					remote: remote,
+					remoteUser: call.peer,
+					local: peer.id,
+					remoteStream: stream,
+					localStream: call.localStream,
+					callId: metadata.id
+				});
+			});
+			call.on('close', function () {
+				that.trigger('callend', {
+					remote: remote,
+					remoteUser: call.peer,
+					local: peer.id,
+					callId: metadata.id
+				});
+			});
+			call.on('error', function (err) {
+				that.trigger('status', {
+					type: 'error',
+					error: 'connerror',
+					msg: 'Error: '+err.type
+				});
+			});
+
+			var callData;
+			if (this._calls[metadata.id]) {
+				callData = this._calls[metadata.id];
+			} else {
+				callData = {
+					initiator: (fromMe) ? peer.id : call.peer,
+					accepted: false,
+					users: metadata.users,
+					remote: remote,
+					subcalls: {}
+				};
+			}
+
+			callData.subcalls[call.peer] = call;
+
+			if (fromMe) { // We are calling
+				return;
+			}
+console.log('  Handle call from ', call.peer, !!this._calls[metadata.id]);
+			// Call already accepted
+			if (callData.accepted) {
+				if (!call.open) {
+					this._answerSubCall(call.id);
+				}
+			} else {
+				if (!this._calls[metadata.id]) {
+					this._calls[metadata.id] = callData;
+console.log('callincoming', remote);
+					that.trigger('callincoming', {
+						remote: remote,
+						remoteUser: call.peer,
+						local: peer.id,
+						callId: metadata.id
+					});
+				}
+			}
+		},
+		_getSubCall: function (callId) {
+			var peer = this._peer;
+
+			for (var peerId in peer.connections) {
+				var connections = peer.connections[peerId];
+				for (var i = 0; i < connections.length; i++) {
+					var conn = connections[i];
+
+					if (conn.type == 'media' && callId == conn.id) {
+						return conn;
+					}
+				}
+			}
+		},
 		call: function (callMetadata) {
 			var that = this, peer = this._peer;
-			var op = Webos.Operation.create();
 
-			//TODO: multi-party call
-			this._getUserMedia().then(function (stream) {
-				var call = peer.call(callMetadata.to, stream);
+			var callId = this._createCallId();
+
+			callMetadata.to = this._getDstList(callMetadata.to);
+			var op = Webos.Operation.multiple(callMetadata.to.length);
+
+			var users = callMetadata.to.slice(0); //Clone this array
+			users.push(peer.id);
+console.log('Calling ', callMetadata.to);
+			var doCall = function (to, stream) {
+				var call = peer.call(to, stream, {
+					metadata: {
+						id: callId,
+						users: users
+					}
+				});
+console.log('  Called ', to);
 
 				that.trigger('callinitiate calling', {
 					remote: callMetadata.to,
+					remoteUser: to,
 					local: peer.id,
 					localStream: stream,
-					callId: call.id
+					callId: callId
 				});
 
-				that._handleCall(call);
-
 				op.setCompleted();
+
+				return call;
+			};
+
+			this._getUserMedia().then(function (stream) {
+				var subcalls = {};
+				for (var i = 0; i < callMetadata.to.length; i++) {
+					var dst = callMetadata.to[i];
+
+					subcalls[dst] = doCall(dst, stream);
+				}
+
+				that._calls[callId] = {
+					initiator: peer.id,
+					localStream: stream,
+					accepted: true,
+					users: users,
+					subcalls: subcalls
+				};
+
+				for (var remote in subcalls) {
+					that._handleCall(subcalls[remote], true);
+				}
 			}, function () {
 				op.setCompleted(false);
 			});
+
+			return op;
+		},
+		_answerSubCall: function (callId, stream) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+			var call = this._getSubCall(callId);
+
+			var doAnswer = function (call, stream) {
+				call.answer(stream);
+
+				op.setCompleted();
+			};
+
+			if (stream) {
+				doAnswer(call, stream);
+			} else {
+				this._getUserMedia().then(function (stream) {
+					doAnswer(call, stream);
+				}, function () {
+					op.setCompleted(false);
+				});
+			}
 
 			return op;
 		},
 		answerCall: function (callId) {
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
-			var call = this._getCall(callId);
+			var callData = this._calls[callId];
 
+			callData.accepted = true;
+console.log('Answer call ', callData.users);
 			this._getUserMedia().then(function (stream) {
-				call.answer(stream);
+				for (var i = 0; i < callData.users.length; i++) {
+					var username = callData.users[i];
+
+					if (callData.subcalls[username]) {
+						var call = callData.subcalls[username];
+						if (!call.open) {
+							that._answerSubCall(call.id, stream);
+						}
+
+						continue;
+					}
+
+					if (username !== peer.id && username < peer.id) {
+console.log('Calling to answer', username);
+						var call = peer.call(username, stream, {
+							metadata: {
+								id: callId,
+								users: callData.users
+							}
+						});
+
+						callData.subcalls[username] = call;
+
+						that._handleCall(call, true);
+
+						that.trigger('callinitiate calling', {
+							remote: username,
+							local: peer.id,
+							localStream: stream,
+							callId: callData.id
+						});
+					}
+				}
 
 				op.setCompleted();
 			}, function () {
@@ -3784,12 +3952,27 @@ Webos.require([
 
 			return op;
 		},
+		_endSubCall: function (callId) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+			var call = this._getSubCall(callId);
+
+			call.close();
+			op.setCompleted();
+
+			return op;
+		},
 		endCall: function (callId) {
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
-			var call = this._getCall(callId);
+			var callData = this._calls[callId];
 
-			call.close();
+			for (var username in callData.subcalls) {
+				var subcall = callData.subcalls[username];
+
+				subcall.close();
+			}
+
 			op.setCompleted();
 
 			return op;
