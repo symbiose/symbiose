@@ -909,6 +909,7 @@ Webos.require([
 					src = that.loggedInUser(fileSending.from);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-sent' });
+				$msg.append($('<span></span>', { 'class': 'msg-from' }).html(src.name));
 				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append(createFileMsgContent(fileSending, true));
 				$msg.toggleClass('msg-encrypted', fileSending.encrypted);
@@ -933,6 +934,7 @@ Webos.require([
 				src = dstToSrc(fileSending.to, dst, srcUser);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received' });
+				$msg.append($('<span></span>', { 'class': 'msg-from' }).html(srcUser.name));
 				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append(createFileMsgContent(fileSending));
 				$msg.toggleClass('msg-encrypted', fileSending.encrypted);
@@ -975,38 +977,48 @@ Webos.require([
 			});
 
 			this.on('contactcomposing', function (data) {
-				//TODO: multiple conversations support
-				var src = that.contact(data.username);
+				//TODO: add multiple messages when multiple users are typing at the same time
+				//For multi user chats
+				var src = that.contact(data.from),
+					srcUser = src,
+					dst = that.loggedInUser(data.to);
+
+				src = dstToSrc(data.to, dst, srcUser);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received msg-typing' });
+				$msg.append($('<span></span>', { 'class': 'msg-from' }).html(srcUser.name));
 				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html('...'));
 
-				if (that.currentDst() && that.currentDst().username == data.username) {
+				if (that.currentDst() && that.currentDst().username == src.username) {
 					if (!$conversationCtn.find('.msg-typing').length) {
 						$msg.appendTo($conversationCtn);
 						scrollToConversationBottom();
 					}
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(data.username)) {
-						$msgs = that._$conversations[data.username];
+					if (that._isConversationDetached(src.username)) {
+						$msgs = that._$conversations[src.username];
 					}
 
 					if (!$msgs.filter('.msg-typing').length) {
-						that._$conversations[data.username] = $msgs.add($msg);
+						that._$conversations[src.username] = $msgs.add($msg);
 					}
 				}
 			});
 
 			this.on('contactpaused', function (data) {
-				var src = that.contact(data.username);
+				var src = that.contact(data.from),
+					srcUser = src,
+					dst = that.loggedInUser(data.to);
 
-				if (that.currentDst() && that.currentDst().username == data.username) {
+				src = dstToSrc(data.to, dst, srcUser);
+
+				if (that.currentDst() && that.currentDst().username == src.username) {
 					$conversationCtn.find('.msg-typing').remove();
 				} else {
-					if (that._isConversationDetached(data.username)) {
-						that._$conversations[data.username] = that._$conversations[data.username].not('.msg-typing');
+					if (that._isConversationDetached(src.username)) {
+						that._$conversations[src.username] = that._$conversations[src.username].not('.msg-typing');
 					}
 				}
 			});
@@ -1765,18 +1777,24 @@ Webos.require([
 				switch (state.type) {
 					case 'active':
 						that.trigger('contactactive', {
-							username: state.from
+							username: state.from,
+							from: state.from,
+							to: state.to
 						});
 						break;
 					case 'composing':
 						console.log('state', state);
 						that.trigger('contactcomposing', {
-							username: state.from
+							username: state.from,
+							from: state.from,
+							to: state.to
 						});
 						break;
 					case 'paused':
 						that.trigger('contactpaused', {
-							username: state.from
+							username: state.from,
+							from: state.from,
+							to: state.to
 						});
 						break;
 				}
