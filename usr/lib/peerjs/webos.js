@@ -48,6 +48,27 @@
 		return op;
 	};
 
+	Webos.Peer.subscribeListByApp = function (appName, callback) {
+		var onPeersList = function (event) {
+			var data = event.list;
+
+			var peersList = [];
+			for (var i in data) {
+				peersList.push(Webos.Peer._buildPeer(data[i]));
+			}
+
+			callback(peersList);
+		};
+
+		var eventName = 'peer.list.'+appName;
+
+		Webos.websocket.subscribe(eventName, onPeersList);
+
+		return function () {
+			Webos.websocket.unsubscribe(eventName, onPeersList);
+		};
+	};
+
 	Webos.Peer.getPeer = function(peerId) {
 		var op = new Webos.Operation();
 

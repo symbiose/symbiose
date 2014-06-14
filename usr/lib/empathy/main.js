@@ -222,11 +222,11 @@ Webos.require([
 		_$win: $(),
 		_$settingsWin: $(),
 		_$callWin: $(),
-		_calls: {},
 		_$conversations: {},
 		_conns: [],
 		_loggedInUsers: {},
 		_contacts: {},
+		_calls: {},
 		_defaultContactIcon: new W.Icon('stock/person').realpath(32),
 		_currentDst: null,
 		_config: {
@@ -260,16 +260,231 @@ Webos.require([
 			return this._contacts;
 		},
 		contact: function (username) {
+			if (username instanceof Array) {
+				username = username.join('+');
+			}
+
 			return this._contacts[username];
 		},
-		loggedInUser: function (username) {
-			return this._loggedInUsers[username];
+		_updateContact: function (contact) {
+			var isLoggedInUser = (!!this._loggedInUsers[contact.username]),
+				currentContact = (isLoggedInUser) ? this._loggedInUsers[contact.username] : this._contacts[contact.username];
+
+			contact = $.extend({
+				hasPicture: true
+			}, currentContact, {
+				username: contact.username,
+				conn: contact.conn,
+				name: contact.name,
+				presence: contact.presence,
+				priority: contact.priority,
+				picture: contact.picture,
+				hasPicture: contact.hasPicture,
+				url: contact.url
+			});
+
+			contact.name = contact.name || contact.username;
+
+			contact.presence = contact.presence || 'offline';
+			contact.priority = Empathy.priorityFromPresence(contact.presence);
+
+			if (contact.picture === false) {
+				contact.hasPicture = false;
+			}
+			contact.picture = contact.picture || this._defaultContactIcon;
+
+			contact.items = [contact];
+			contact.length = 1;
+
+			contact.toString = function () {
+				return this.username;
+			};
+
+			if (isLoggedInUser) {
+				this._loggedInUsers[contact.username] = contact;
+
+				this.trigger('userupdated', contact);
+			} else {
+				this._contacts[contact.username] = contact;
+
+				this.trigger('contactupdated', contact);
+			}
+
+			return contact;
+		},
+		_createContactSet: function (contacts) {
+			var that = this;
+
+			if (!contacts.length) {
+				return null;
+			}
+
+			//TODO: check if all have the same conn
+			var list = [];
+			for (var i = 0; i < contacts.length; i++) {
+				var c = contacts[i];
+
+				if (!c) {
+					continue;
+				}
+				if (typeof c == 'string') {
+					c = this.contact(c);
+				}
+				if (~list.indexOf(c)) { // Remove duplicates
+					continue;
+				}
+
+				list.push(c);
+			}
+
+			var getPropList = function (contacts, propName) {
+				var props = [];
+				for (var i = 0; i < contacts.length; i++) {
+					props.push(contacts[i][propName]);
+				}
+				return props;
+			};
+
+			var getHigherPriority = function (contacts, asPresence) {
+				var higherPresence = '', higherPriority = - Infinity;
+				for (var i = 0; i < contacts.length; i++) {
+					var contact = contacts[i];
+
+					if (contact.priority > higherPriority) {
+						higherPriority = contact.priority;
+						higherPresence = contact.presence;
+					}
+				}
+
+				return (asPresence) ? higherPresence : higherPriority;
+			};
+
+			var set = Object.create(Object.prototype, {
+				length: {
+					get: function () {
+						return this.items.length;
+					}
+				},
+				username: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].username;
+						}
+
+						return getPropList(this.items, 'username').join('+');
+					}
+				},
+				name: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].name;
+						}
+
+						return getPropList(this.items, 'name').join(', ');
+					}
+				},
+				presence: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].presence;
+						}
+
+						return getHigherPriority(this.items, true);
+					}
+				},
+				priority: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].priority;
+						}
+
+						return getHigherPriority(this.items);
+					}
+				},
+				conn: {
+					get: function () {
+						// conn is supposed to be the same one
+						return this.items[0].conn;
+					}
+				},
+				picture: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].picture;
+						}
+
+						return that._defaultContactIcon;
+					}
+				},
+				hasPicture: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].hasPicture;
+						}
+
+						return false;
+					}
+				},
+				url: {
+					get: function () {
+						if (this.length == 1) {
+							return this.items[0].url;
+						}
+
+						return '';
+					}
+				}
+			});
+
+			set.items = list;
+
+			set.toString = function () {
+				return this.username;
+			};
+			set.updated = function () {
+				// Sort contacts to avoid creating two times the same set
+				this.items.sort(function (a, b) {
+					if (a.username == b.username) {
+						return 0;
+					}
+
+					return (a.username < b.username) ? -1 : 1;
+				});
+
+				that._contacts[this.username] = this;
+
+				that.trigger('contactupdated', this);
+			};
+
+			set.updated();
+
+			return set;
+		},
+		loggedInUser: function (usernames) {
+			if (!(usernames instanceof Array)) {
+				usernames = [usernames];
+			}
+
+			for (var i = 0; i < usernames.length; i++) {
+				var username = usernames[i];
+
+				if (this._loggedInUsers[username]) {
+					return this._loggedInUsers[username];
+				}
+			}
+
+			return null;
 		},
 		currentDst: function () {
 			return this._currentDst;
 		},
 		initialize: function () {
 			var that = this;
+
+			this._conns = [];
+			this._loggedInUsers = {};
+			this._contacts = {};
+			this._calls = {};
 
 			W.xtag.loadUI('/usr/share/templates/empathy/main.html', function(windows) {
 				that._$win = $(windows).filter(':eq(0)');
@@ -305,6 +520,31 @@ Webos.require([
 				$services.append('<option value="'+serviceName+'">'+service.title+'</option>');
 			}
 		},
+		_dstToSrc: function (to, dst, srcUser) {
+			src = srcUser;
+
+			if (typeof to == 'string' && ~to.indexOf('+')) {
+				to = to.split('+');
+			}
+			if (to instanceof Array) {
+				//Remove dst, add srcUser
+				var from = [srcUser.username];
+				for (var i = 0; i < to.length; i++) {
+					var username = to[i];
+
+					if (username != dst.username) {
+						from.push(username);
+					}
+				}
+
+				src = this.contact(from);
+				if (!src) {
+					src = this._createContactSet(from);
+				}
+			}
+
+			return src;
+		},
 		_initEvents: function () {
 			var that = this;
 			var $win = this._$win;
@@ -323,20 +563,11 @@ Webos.require([
 				});
 			});
 
-			$win.find('.view-login .login-service').change(function () {
-				var serviceName = $win.find('.view-login .login-service').val();
+			var $loginService = $win.find('.view-login .login-service').change(function () {
+				var serviceName = $win.find('.view-login .login-service').val(),
+					needsCred = that._serviceNeedsCredentials(serviceName);
 
-				var service = Empathy.service(serviceName);
-				if (!service) {
-					return;
-				}
-
-				var serviceApi = Empathy.serviceApi(service.type);
-				if (!serviceApi) {
-					return;
-				}
-
-				$win.find('.view-login .login-credentials').toggle(serviceApi.prototype.needsCredentials());
+				$win.find('.view-login .login-credentials').toggle(needsCred);
 			}).change();
 
 			this.on('connecting', function (data) {
@@ -385,39 +616,65 @@ Webos.require([
 
 			var $contactsCtn = $win.find('.view-conversations .friends-list ul'),
 				$conversationCtn = $win.find('.conversation ul');
-			this.on('contactupdated', function (contact) {
-				var conn;
-
-				var $contact = $contactsCtn.children('li').filter(function () {
-					return ($(this).data('username') == contact.username);
+			
+			var getContact = function (username) {
+				return $contactsCtn.children('li').filter(function () {
+					return ($(this).data('username') === username);
 				});
+			};
+			var getConversation = function (id) {
+				return $contactsCtn.children('li').filter(function () {
+					return ($(this).data('conversation') === id);
+				});
+			};
+			var createContact = function (connId, multiple) {
+				var $contact = $('<li></li>');
 
-				var $contactActions = $();
-				if (!$contact.length) {
-					$contact = $('<li></li>').data('username', contact.username).appendTo($contactsCtn);
-					$contact.append('<span class="contact-status"></span>');
-					$contact.append('<ul class="contact-actions"></ul>');
-					$contact.append('<img alt="" class="contact-picture"/>');
-					$contact.append('<span class="contact-name"></span>');
-					$contact.append('<span class="contact-server"></span>');
+				$contact.append([
+					'<span class="contact-status"></span>',
+					'<ul class="contact-actions"></ul>',
+					'<img alt="" class="contact-picture"/>',
+					'<span class="contact-name"></span>',
+					'<span class="contact-server"></span>'
+				]);
 
-					$contactActions = $contact.find('.contact-actions');
-					
-					conn = that.connection(contact.conn);
-					var connFeatures = conn.features();
+				$contactActions = $contact.find('.contact-actions');
+				
+				conn = that.connection(connId);
+				var connFeatures = conn.features();
 
-					for (var i = 0; i < connFeatures.length; i++) {
-						$('<li></li>', {
-							'class': 'action-'+connFeatures[i]+' cursor-pointer'
-						}).appendTo($contactActions);
+				for (var i = 0; i < connFeatures.length; i++) {
+					var feat = connFeatures[i];
+
+					if (feat == 'multiple') {
+						continue;
+					}
+					var multipleIndex = feat.indexOf('-multiple');
+					if (~multipleIndex) {
+						if (multiple) {
+							feat = feat.slice(0, multipleIndex);
+						} else {
+							continue;
+						}
+					} else {
+						if (multiple) {
+							continue;
+						}
 					}
 
 					$('<li></li>', {
-						'class': 'action-url cursor-pointer'
+						'class': 'action-'+feat+' cursor-pointer'
 					}).appendTo($contactActions);
-				} else {
-					$contactActions = $contact.find('.contact-actions');
 				}
+
+				$('<li></li>', {
+					'class': 'action-url cursor-pointer'
+				}).appendTo($contactActions);
+
+				return $contact;
+			};
+			var updateContact = function ($contact, contact) {
+				$contactActions = $contact.find('.contact-actions');
 
 				var readablePresence = '';
 				switch (contact.presence) { // See http://www.xmpp.org/rfcs/rfc3921.html#rfc.section.2.2.2.1
@@ -435,6 +692,7 @@ Webos.require([
 						break;
 				}
 
+				//TODO: not optimized at all
 				var inserted = false;
 				$contact.detach();
 				$contactsCtn.children('li').each(function () {
@@ -455,7 +713,7 @@ Webos.require([
 
 				$contact.removeClass('contact-online contact-offline contact-away').addClass('contact-'+contact.presence);
 
-				$contact.find('.contact-name').text(contact.name);
+				$contact.find('.contact-name').text(contact.name).attr('title', contact.name);
 				$contact.find('.contact-status').html('<span class="status-inner">'+readablePresence+'</span>');
 				
 				var $picture = $contact.find('.contact-picture');
@@ -468,12 +726,24 @@ Webos.require([
 				if (typeof contact.conn != 'undefined') {
 					conn = that._conn(contact.conn);
 
-					if (conn.option('service')) {
+					if (conn && conn.option('service')) {
 						var service = Empathy.service(conn.option('service'));
 
 						$contact.find('.contact-server').text(service.title);
 					}
 				}
+			};
+
+			this.on('contactupdated', function (contact) {
+				var conn, $contact = getContact(contact.username);
+
+				if (!$contact.length) {
+					console.log(contact, contact.conn);
+					$contact = createContact(contact.conn, (contact.length > 1));
+					$contact.data('username', contact.username).appendTo($contactsCtn);
+				}
+
+				updateContact($contact, contact);
 
 				$contactsCtn.toggleClass('hide-contact-server', (that.countConnections() <= 1));
 			});
@@ -490,6 +760,9 @@ Webos.require([
 
 				$conversationCtn.scrollTop(conversationHeight);
 			};
+			var dstToSrc = function (to, dst, srcUser) {
+				return that._dstToSrc(to, dst, srcUser);
+			};
 			this.on('messagesent', function (msg) {
 				var dst = that.contact(msg.to), src = that.loggedInUser(msg.from);
 
@@ -498,38 +771,43 @@ Webos.require([
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 				$msg.toggleClass('msg-encrypted', msg.encrypted);
 
-				if (that.currentDst() && that.currentDst().username == msg.to) {
+				if (that.currentDst() && that.currentDst().username == dst.username) {
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(msg.to)) {
-						$msgs = that._$conversations[msg.to];
+					if (that._isConversationDetached(dst.username)) {
+						$msgs = that._$conversations[dst.username];
 					}
-					that._$conversations[msg.to] = $msgs.add($msg);
+					that._$conversations[dst.username] = $msgs.add($msg);
 				}
 			});
 			this.on('messagereceived', function (msg) {
-				var src = that.contact(msg.from), dst = that.loggedInUser(msg.to);
+				var src = that.contact(msg.from),
+					srcUser = src,
+					dst = that.loggedInUser(msg.to);
+
+				src = dstToSrc(msg.to, dst, srcUser);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received' });
+				$msg.append($('<span></span>', { 'class': 'msg-from' }).html(srcUser.name));
 				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html(msg.message));
 				$msg.toggleClass('msg-encrypted', msg.encrypted);
 
-				if (that.currentDst() && that.currentDst().username == msg.from) {
+				if (that.currentDst() && that.currentDst().username == src.username) {
 					$conversationCtn.find('.msg-typing').remove();
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(msg.from)) {
-						$msgs = that._$conversations[msg.from];
+					if (that._isConversationDetached(src.username)) {
+						$msgs = that._$conversations[src.username];
 					}
-					that._$conversations[msg.from] = $msgs.not('.msg-typing').add($msg);
+					that._$conversations[src.username] = $msgs.not('.msg-typing').add($msg);
 
 					var $contact = $contactsCtn.children('li').filter(function () {
-						return ($(this).data('username') == msg.from);
+						return ($(this).data('username') == src.username);
 					});
 
 					//Update main window badge
@@ -546,7 +824,7 @@ Webos.require([
 						.keydown(function (e) {
 							if (e.keyCode == 13) {
 								var msg = {
-									from: src.conn,
+									connId: dst.conn,
 									to: src.username,
 									message: $replyEntry.val()
 								};
@@ -639,46 +917,53 @@ Webos.require([
 				return $msgContent;
 			};
 			this.on('filesent', function (fileSending) {
-				var dst = that.contact(fileSending.to), src = that.loggedInUser(fileSending.from);
+				var dst = that.contact(fileSending.to),
+					src = that.loggedInUser(fileSending.from);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-sent' });
+				$msg.append($('<span></span>', { 'class': 'msg-from' }).html(src.name));
 				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append(createFileMsgContent(fileSending, true));
 				$msg.toggleClass('msg-encrypted', fileSending.encrypted);
 
-				if (that.currentDst() && that.currentDst().username == fileSending.to) {
+				if (that.currentDst() && that.currentDst().username == dst.username) {
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(fileSending.to)) {
-						$msgs = that._$conversations[fileSending.to];
+					if (that._isConversationDetached(dst.username)) {
+						$msgs = that._$conversations[dst.username];
 					}
-					that._$conversations[fileSending.to] = $msgs.add($msg);
+					that._$conversations[dst.username] = $msgs.add($msg);
 				}
 			});
 
 			this.on('filereceived', function (fileSending) {
-				var src = that.contact(fileSending.from), dst = that.loggedInUser(fileSending.to);
+				var src = that.contact(fileSending.from),
+					srcUser = src,
+					dst = that.loggedInUser(fileSending.to);
+
+				src = dstToSrc(fileSending.to, dst, srcUser);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received' });
+				$msg.append($('<span></span>', { 'class': 'msg-from' }).html(srcUser.name));
 				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append(createFileMsgContent(fileSending));
 				$msg.toggleClass('msg-encrypted', fileSending.encrypted);
 
-				if (that.currentDst() && that.currentDst().username == fileSending.from) {
+				if (that.currentDst() && that.currentDst().username == src.username) {
 					$conversationCtn.find('.msg-typing').remove();
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(fileSending.from)) {
-						$msgs = that._$conversations[fileSending.from];
+					if (that._isConversationDetached(src.username)) {
+						$msgs = that._$conversations[src.username];
 					}
-					that._$conversations[fileSending.from] = $msgs.add($msg);
+					that._$conversations[src.username] = $msgs.add($msg);
 
 					var $contact = $contactsCtn.children('li').filter(function () {
-						return ($(this).data('username') == fileSending.from);
+						return ($(this).data('username') == src.username);
 					});
 
 					//Update main window badge
@@ -704,40 +989,48 @@ Webos.require([
 			});
 
 			this.on('contactcomposing', function (data) {
-				var src = that.contact(data.username);
-				if (!src) {
-					return;
-				}
+				//TODO: add multiple messages when multiple users are typing at the same time
+				//For multi user chats
+				var src = that.contact(data.from),
+					srcUser = src,
+					dst = that.loggedInUser(data.to);
+
+				src = dstToSrc(data.to, dst, srcUser);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received msg-typing' });
+				$msg.append($('<span></span>', { 'class': 'msg-from' }).html(srcUser.name));
 				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
 				$msg.append($('<span></span>', { 'class': 'msg-content' }).html('...'));
 
-				if (that.currentDst() && that.currentDst().username == data.username) {
+				if (that.currentDst() && that.currentDst().username == src.username) {
 					if (!$conversationCtn.find('.msg-typing').length) {
 						$msg.appendTo($conversationCtn);
 						scrollToConversationBottom();
 					}
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(data.username)) {
-						$msgs = that._$conversations[data.username];
+					if (that._isConversationDetached(src.username)) {
+						$msgs = that._$conversations[src.username];
 					}
 
 					if (!$msgs.filter('.msg-typing').length) {
-						that._$conversations[data.username] = $msgs.add($msg);
+						that._$conversations[src.username] = $msgs.add($msg);
 					}
 				}
 			});
 
 			this.on('contactpaused', function (data) {
-				var src = that.contact(data.username);
+				var src = that.contact(data.from),
+					srcUser = src,
+					dst = that.loggedInUser(data.to);
 
-				if (that.currentDst() && that.currentDst().username == data.username) {
+				src = dstToSrc(data.to, dst, srcUser);
+
+				if (that.currentDst() && that.currentDst().username == src.username) {
 					$conversationCtn.find('.msg-typing').remove();
 				} else {
-					if (that._isConversationDetached(data.username)) {
-						that._$conversations[data.username] = that._$conversations[data.username].not('.msg-typing');
+					if (that._isConversationDetached(src.username)) {
+						that._$conversations[src.username] = that._$conversations[src.username].not('.msg-typing');
 					}
 				}
 			});
@@ -797,9 +1090,12 @@ Webos.require([
 				if (!contact || typeof contact.conn == 'undefined') {
 					return;
 				}
+				if (that._selectingContacts) {
+					return;
+				}
 
 				if ($(this).is('.action-message')) {
-					return; // It's like just clicking the contact
+					return; // It's just like clicking the contact
 				} else {
 					e.stopPropagation();
 					that._getContactPicture(contact.conn, contact.username);
@@ -826,6 +1122,11 @@ Webos.require([
 					contact = that.contact(contactUsername);
 
 				if (!contact || typeof contact.conn == 'undefined') {
+					return;
+				}
+
+				if (that._selectingContacts) {
+					that._doSelectContact(contact, $contact);
 					return;
 				}
 
@@ -894,6 +1195,40 @@ Webos.require([
 				});
 			});
 
+			$win.find('.conversation-compose .compose-add-contact').click(function () {
+				var dst = that.currentDst(), conn = that.connection(dst.conn),
+					$btn = $(this);
+
+				if (!dst) {
+					return;
+				}
+				if (!conn.hasFeature('multiple')) {
+					return;
+				}
+
+				$btn.button('option', 'activated', true);
+
+				that._selectContacts(function (contacts) {
+					$btn.button('option', 'activated', false);
+
+					if (dst.length == 1) {
+						dst = that._createContactSet(contacts);
+					} else {
+						for (var i = 0; i < contacts.length; i++) {
+							for (var j = 0; j < contacts[i].items.length; j++) {
+								dst.items.push(contacts[i].items[j]);
+							}
+						}
+						dst.updated();
+					}
+
+					// Focus the new conversation
+					getContact(dst.username).click();
+				}, {
+					keepCurrentSelection: true
+				});
+			});
+
 			$win.find('.btn-accounts').click(function () {
 				that.openSettings();
 			});
@@ -920,7 +1255,7 @@ Webos.require([
 			
 			this.on('conversationswitch', function () {
 				$win.find('.btn-encryption').button('option', 'disabled', true);
-				$win.find('.conversation-compose .compose-attach').button('option', 'disabled', true);
+				$win.find('.conversation-compose .compose-attach, .conversation-compose .compose-').button('option', 'disabled', true);
 
 				if (that.currentDst()) {
 					var dst = that.currentDst(), conn = that.connection(dst.conn);
@@ -937,6 +1272,11 @@ Webos.require([
 					if (conn.hasFeature('fileSending')) {
 						$win.find('.conversation-compose .compose-attach').button('option', 'disabled', false);
 					}
+					if (conn.hasFeature('multiple')) {
+						$win.find('.conversation-compose .compose-add-contact').button('option', 'disabled', false);
+					}
+
+					$win.find('.conversation').toggleClass('conversation-multiple', (dst.length > 1));
 				}
 			});
 			this.on('otrake', function (status) {
@@ -975,7 +1315,73 @@ Webos.require([
 					conn.endOtr(dst.username);
 				}
 			});
+		},
+		_selectContacts: function (callback, opts) {
+			var that = this, $win = this._$win;
 
+			callback = callback || (function () {});
+			opts = $.extend({
+				keepCurrentSelection: false
+			}, opts);
+
+			this._selectingContacts = true;
+
+			var currentDst = that.currentDst();
+
+			$win.find('.friends-select').fadeIn('fast');
+
+			var finishSel = function () {
+				that._selectingContacts = false;
+
+				$win.find('.friends-select').fadeOut('fast');
+				$win.find('.friends-select .select-cancel, .friends-select .select-done').off('click.select.empathy');
+
+				that._switchConversation(currentDst.username, currentDst.conn);
+			};
+
+			$win.find('.friends-select .select-cancel').on('click.select.empathy', function () {
+				finishSel();
+
+				callback([]);
+			});
+			$win.find('.friends-select .select-done').on('click.select.empathy', function () {
+				var sel = [];
+				$win.find('.friends-list > ul > li.item-active').each(function () {
+					sel.push(that.contact($(this).data('username')));
+				});
+
+				finishSel();
+
+				callback(sel);
+			});
+
+			if (!opts.keepCurrentSelection) {
+				$win.find('.friends-list > ul > li.item-active').removeClass('item-active');
+			}
+
+			this._updateSelectContactMsg();
+		},
+		_doSelectContact: function (contact, $contact) {
+			var that = this, $win = this._$win;
+
+			$contact.toggleClass('item-active');
+
+			this._updateSelectContactMsg();
+		},
+		_updateSelectContactMsg: function () {
+			var $win = this._$win;
+
+			var selectedNbr = $win.find('.friends-list > ul > li.item-active').length;
+
+			var statusMsg = '';
+			if (selectedNbr == 0) {
+				statusMsg = 'Please select contacts';
+			} else if (selectedNbr == 1) {
+				statusMsg = 'One contact selected';
+			} else {
+				statusMsg = selectedNbr+' contacts selected';
+			}
+			$win.find('.friends-select .selection-status').html(statusMsg);
 		},
 		switchView: function (newView) {
 			var $views = this._$win.find('.views > div'),
@@ -1181,13 +1587,26 @@ Webos.require([
 				}
 			});
 		},
+		_serviceNeedsCredentials: function (serviceName) {
+			var service = Empathy.service(serviceName);
+			if (!service) {
+				return true;
+			}
+
+			var serviceApi = Empathy.serviceApi(service.type);
+			if (!serviceApi) {
+				return true;
+			}
+
+			return serviceApi.prototype.needsCredentials();
+		},
 		_autoConnect: function () {
 			var that = this;
 
 			if (this._config.accounts.length == 1) {
 				var account = this._config.accounts[0];
 
-				if (account.password) {
+				if (account.password || !this._serviceNeedsCredentials(account.service)) {
 					this.connect(account);
 				} else {
 					this._$win.find('.view-login .login-service').val(account.service);
@@ -1199,7 +1618,7 @@ Webos.require([
 				var accounts = this._config.accounts;
 				for (var i = 0; i < accounts.length; i++) {
 					(function (account) {
-						if (account.password) {
+						if (account.password || !this._serviceNeedsCredentials(account.service)) {
 							this.connect(account);
 						} else {
 							var service = Empathy.service(account.service);
@@ -1332,9 +1751,13 @@ Webos.require([
 				that._callUpdate(data, connId);
 			});
 			conn.on('callincoming', function (data) {
-				var src = that.contact(data.remote);
+				var src = that.contact(data.remoteUser),
+					srcUser = src,
+					dst = that.loggedInUser(data.local);
 
-				if (!src) { //Do not allow anonymous calls
+				src = that._dstToSrc(data.remote, dst, srcUser);
+console.log(src);
+				if (!src) { //Do not allow calls from unknown
 					conn.endCall(data.callId);
 					return;
 				}
@@ -1370,18 +1793,24 @@ Webos.require([
 				switch (state.type) {
 					case 'active':
 						that.trigger('contactactive', {
-							username: state.from
+							username: state.from,
+							from: state.from,
+							to: state.to
 						});
 						break;
 					case 'composing':
 						console.log('state', state);
 						that.trigger('contactcomposing', {
-							username: state.from
+							username: state.from,
+							from: state.from,
+							to: state.to
 						});
 						break;
 					case 'paused':
 						that.trigger('contactpaused', {
-							username: state.from
+							username: state.from,
+							from: state.from,
+							to: state.to
 						});
 						break;
 				}
@@ -1397,7 +1826,12 @@ Webos.require([
 			for (var callId in this._calls) {
 				var thisCallData = this._calls[callId];
 
-				var src = that.contact(thisCallData.remote);
+				var src = that.contact(callData.remote),
+					srcUser = src,
+					dst = that.loggedInUser(callData.local);
+
+				src = that._dstToSrc(callData.local, dst, srcUser);
+
 				if (!src) {
 					continue;
 				}
@@ -1406,9 +1840,11 @@ Webos.require([
 			}
 			$callWin.window('option', 'title', 'Call with '+remoteNames.join(', '));
 
+			var remoteVideoId = callData.callId+'-'+callData.remoteUser;
+
 			var $localVideo = $callWin.find('.video-local'),
 				$remoteVideosCtn = $callWin.find('.video-remote'),
-				$remoteVideo = $remoteVideosCtn.find('.video-remote-'+callData.callId);
+				$remoteVideo = $remoteVideosCtn.find('.video-remote-'+remoteVideoId);
 
 			var closeWin = ($remoteVideo.attr('src') && !callData.remoteStream && remoteNames.length <= 1);
 
@@ -1423,7 +1859,7 @@ Webos.require([
 			}
 
 			if (!$remoteVideo.length) {
-				$remoteVideo = $('<video></video>', { 'class': 'video-remote-'+callData.callId });
+				$remoteVideo = $('<video></video>', { 'class': 'video-remote-'+remoteVideoId });
 				$remoteVideosCtn.append($('<li></li>').append($remoteVideo));
 
 				var nbrRemotes = $remoteVideosCtn.children().length;
@@ -1470,7 +1906,7 @@ Webos.require([
 			that._getContactPicture(connId, connUsername);
 
 			conn.on('contact', function (contact) {
-				that._setContact($.extend({}, contact, {
+				that._updateContact($.extend({}, contact, {
 					conn: connId
 				}));
 
@@ -1481,43 +1917,6 @@ Webos.require([
 			});
 
 			conn.listContacts();
-		},
-		_setContact: function (contact) {
-			var isLoggedInUser = (!!this._loggedInUsers[contact.username]),
-				currentContact = (isLoggedInUser) ? this._loggedInUsers[contact.username] : this._contacts[contact.username];
-
-			contact = $.extend({
-				hasPicture: true
-			}, currentContact, {
-				username: contact.username,
-				conn: contact.conn,
-				name: contact.name,
-				presence: contact.presence,
-				priority: contact.priority,
-				picture: contact.picture,
-				hasPicture: contact.hasPicture,
-				url: contact.url
-			});
-
-			contact.name = contact.name || contact.username;
-
-			contact.presence = contact.presence || 'offline';
-			contact.priority = Empathy.priorityFromPresence(contact.presence);
-
-			if (contact.picture === false) {
-				contact.hasPicture = false;
-			}
-			contact.picture = contact.picture || this._defaultContactIcon;
-
-			if (isLoggedInUser) {
-				this._loggedInUsers[contact.username] = contact;
-
-				this.trigger('userupdated', contact);
-			} else {
-				this._contacts[contact.username] = contact;
-
-				this.trigger('contactupdated', contact);
-			}
 		},
 		_getContactPicture: function (connId, username) {
 			var that = this, conn = this._conn(connId), contact = this.contact(username);
@@ -1958,6 +2357,25 @@ Webos.require([
 		sendMessage: function (msg) {}
 	};
 	Webos.inherit(Empathy.MessageInterface, Empathy.Interface);
+
+	/**
+	 * An interface which supports conversations with multiple users.
+	 * It has the features `multiple` and `FEATURE-multiple` for each feature which supports multiple users.
+	 * @param {Object} [options] The connection's options.
+	 * @constructor
+	 * @augments {Empathy.Interface}
+	 * @author emersion
+	 */
+	Empathy.MultipleUsersInterface = function (options) {
+		this._features.push('multiple');
+
+		Empathy.Interface.call(this, options);
+	};
+	/**
+	 * Empathy.MultipleUsersInterface's prototype.
+	 */
+	Empathy.MultipleUsersInterface.prototype = {};
+	Webos.inherit(Empathy.MultipleUsersInterface, Empathy.Interface);
 
 	/**
 	 * A message interface which supports OTR (Off-The-Record encryption).
@@ -2852,6 +3270,11 @@ Webos.require([
 		Empathy.MessageInterface.call(this, options);
 		Empathy.CallInterface.call(this, options);
 		Empathy.FileSendingInterface.call(this, options);
+		Empathy.MultipleUsersInterface.call(this, options);
+
+		this._features.push('message-multiple');
+		this._features.push('call-multiple');
+		this._features.push('fileSending-multiple');
 
 		this.initialize(this._options);
 	};
@@ -2860,6 +3283,7 @@ Webos.require([
 		_peer: null,
 		_peerAppName: 'empathy',
 		_contactsPeerIds: [],
+		_calls: {},
 		initialize: function (options) {},
 		connect: function (options) {
 			var that = this, conn = this._conn;
@@ -2870,15 +3294,15 @@ Webos.require([
 
 			var peer = Webos.Peer.connect();
 
-			var contactsInterval = null;
+			var unsubscribe;
 			peer.on('open', function (id) {
 				that._options.username = id;
 				console.log('My id: '+id);
 
 				Webos.Peer.attach(id, that._peerAppName).on('complete', function () {
-					contactsInterval = setInterval(function () {
-						that.listContacts();
-					}, 15*1000);
+					unsubscribe = Webos.Peer.subscribeListByApp(that._peerAppName, function (list) {
+						that._gotPeersList(list);
+					});
 
 					that.trigger('status', {
 						type: 'connected'
@@ -2888,13 +3312,13 @@ Webos.require([
 				});
 			});
 			peer.on('close', function () {
+				if (unsubscribe) {
+					unsubscribe();
+				}
+
 				that.trigger('status', {
 					type: 'disconnected'
 				});
-
-				if (contactsInterval) {
-					clearInterval(contactsInterval);
-				}
 			});
 			peer.on('error', function (err) {
 				that.trigger('status', {
@@ -2910,12 +3334,6 @@ Webos.require([
 
 			peer.on('call', function(call) {
 				that._handleCall(call);
-
-				that.trigger('callincoming', {
-					remote: call.peer,
-					local: peer.id,
-					callId: call.id
-				});
 			});
 
 			this._peer = peer;
@@ -2932,6 +3350,17 @@ Webos.require([
 		_handleConnection: function (conn) {
 			var that = this, peer = this._peer;
 
+			var getDst = function (data) {
+				var to = peer.id;
+
+				// Recipients specified
+				if (data && data.to && data.to instanceof Array && ~data.to.indexOf(to)) {
+					to = data.to;
+				}
+
+				return to;
+			};
+
 			conn.on('data', function(data) {
 				console.log(data);
 
@@ -2943,7 +3372,7 @@ Webos.require([
 
 						that._receiveMessage({
 							from: conn.peer,
-							to: peer.id,
+							to: getDst(data.contents),
 							body: data.contents.body
 						});
 						break;
@@ -2955,7 +3384,7 @@ Webos.require([
 						that.trigger('chatstate', {
 							type: data.contents.type,
 							from: conn.peer,
-							to: peer.id
+							to: getDst(data.contents)
 						});
 						break;
 					case 'file': //Receive a file
@@ -2970,7 +3399,7 @@ Webos.require([
 							type: data.contents.type,
 							basename: data.contents.basename,
 							from: conn.peer,
-							to: peer.id
+							to: getDst(data.contents)
 						});
 						break;
 					case 'contact': //Contact update
@@ -2990,10 +3419,16 @@ Webos.require([
 							};
 
 							that.getContactPicture(peer.id).then(function (data) {
-								sendPicture(data.result);
+								//TODO
+								console.log(data);
+								sendPicture(data);
 							}, function () {
 								sendPicture();
 							});
+
+							if (conn.peer < peer.id) { //Ask the other peer's picture
+								that._getContactPicture(conn.peer);
+							}
 						} else if (data.contents.type == 'response') {
 							var contact = {
 								username: conn.peer,
@@ -3066,46 +3501,54 @@ Webos.require([
 		_getConnection: function (peerId, connType) {
 			return this._listConnections(peerId, connType)[0];
 		},
-		_handleCall: function (call) {
-			var that = this, peer = this._peer;
+		_gotPeersList: function (list) {
+			var that = this,
+				peer = this._peer,
+				contacts = [],
+				offlinePeers = that._contactsPeerIds;
 
-			call.on('stream', function (stream) {
-				that.trigger('call callstart', {
-					remote: call.peer,
-					local: peer.id,
-					remoteStream: stream,
-					localStream: call.localStream,
-					callId: call.id
-				});
-			});
-			call.on('close', function () {
-				that.trigger('callend', {
-					remote: call.peer,
-					local: peer.id,
-					callId: call.id
-				});
-			});
-			call.on('error', function (err) {
-				that.trigger('status', {
-					type: 'error',
-					error: 'connerror',
-					msg: 'Error: '+err.type
-				});
-			});
-		},
-		_getCall: function (callId) {
-			var peer = this._peer;
+			that._contactsPeerIds = [];
 
-			for (var peerId in peer.connections) {
-				var connections = peer.connections[peerId];
-				for (var i = 0; i < connections.length; i++) {
-					var conn = connections[i];
+			for (var i = 0; i < list.length; i++) {
+				var thisPeer = list[i];
 
-					if (conn.type == 'media' && conn.id == callId) {
-						return conn;
-					}
+				if (!thisPeer.get('peerId')) {
+					continue;
 				}
+
+				var contact = {
+					username: thisPeer.get('peerId'),
+					account: peer.id,
+					name: '',
+					presence: 'offline'
+				};
+
+				if (thisPeer.get('online')) {
+					contact.presence = 'online';
+				}
+				if (thisPeer.get('user')) {
+					contact.name = thisPeer.get('user')['realname'];
+				}
+
+				that.trigger('contact', contact);
+				contacts.push(contact);
+
+				var j = offlinePeers.indexOf(contact.username);
+				if (~j) {
+					offlinePeers.splice(j, 1);
+				}
+				that._contactsPeerIds.push(contact.username);
 			}
+
+			for (i = 0; i < offlinePeers.length; i++) {
+				that.trigger('contact', {
+					username: offlinePeers[i],
+					account: peer.id,
+					presence: 'offline'
+				});
+			}
+
+			return contacts;
 		},
 		listContacts: function () {
 			var that = this, peer = this._peer;
@@ -3113,47 +3556,7 @@ Webos.require([
 
 			Webos.Peer.listByApp(this._peerAppName).on({
 				success: function (data) {
-					var list = data.result, contacts = [], offlinePeers = that._contactsPeerIds;
-					that._contactsPeerIds = [];
-
-					for (var i = 0; i < list.length; i++) {
-						var thisPeer = list[i];
-
-						if (!thisPeer.get('peerId')) {
-							continue;
-						}
-
-						var contact = {
-							username: thisPeer.get('peerId'),
-							account: peer.id,
-							name: '',
-							presence: 'offline'
-						};
-
-						if (thisPeer.get('online')) {
-							contact.presence = 'online';
-						}
-						if (thisPeer.get('user')) {
-							contact.name = thisPeer.get('user')['realname'];
-						}
-
-						that.trigger('contact', contact);
-						contacts.push(contact);
-
-						var j = offlinePeers.indexOf(contact.username);
-						if (~j) {
-							offlinePeers.splice(j, 1);
-						}
-						that._contactsPeerIds.push(contact.username);
-					}
-
-					for (i = 0; i < offlinePeers.length; i++) {
-						that.trigger('contact', {
-							username: offlinePeers[i],
-							account: peer.id,
-							presence: 'offline'
-						});
-					}
+					var contacts = that._gotPeersList(data.result);
 
 					op.setCompleted(contacts);
 				},
@@ -3164,7 +3567,7 @@ Webos.require([
 
 			return op;
 		},
-		getContactPicture: function (peerId) {
+		_getContactPicture: function (peerId) {
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
 
@@ -3203,27 +3606,50 @@ Webos.require([
 
 			return op;
 		},
+		getContactPicture: function (peerId) {
+			var that = this, peer = this._peer;
+
+			if (peerId > peer.id) { //Let the other peer ask our picture
+				var op = Webos.Operation.create();
+				op.setCompleted(false);
+				return op;
+			}
+
+			return this._getContactPicture(peerId);
+		},
+		_getDstList: function (usernames) {
+			if (!(usernames instanceof Array)) {
+				usernames = String(usernames).split('+');
+			}
+
+			return usernames;
+		},
 		_sendMessage: function (msg) {
 			var that = this, peer = this._peer;
-			var op = Webos.Operation.create();
 
-			that._openConnection(msg.to).on({
-				success: function (data) {
-					var conn = data.result;
+			msg.to = this._getDstList(msg.to);
 
+			var op = Webos.Operation.multiple(msg.to.length);
+
+			var sendMsg = function (to) {
+				that._openConnection(to).then(function (conn) {
 					conn.send({
 						type: 'message',
 						contents: {
+							to: msg.to,
 							body: msg.body
 						}
 					});
 
 					op.setCompleted();
-				},
-				error: function () {
+				}, function () {
 					op.setCompleted(false);
-				}
-			});
+				});
+			};
+
+			for (var i = 0; i < msg.to.length; i++) {
+				sendMsg(msg.to[i]);
+			}
 
 			return op;
 		},
@@ -3256,25 +3682,29 @@ Webos.require([
 		},
 		sendChatstate: function (state) {
 			var that = this, peer = this._peer;
-			var op = Webos.Operation.create();
 
-			that._openConnection(state.to).on({
-				success: function (data) {
-					var conn = data.result;
+			state.to = this._getDstList(state.to);
+			var op = Webos.Operation.multiple(state.to.length);
 
+			var sendState = function (to) {
+				that._openConnection(to).then(function (conn) {
 					conn.send({
 						type: 'chatstate',
 						contents: {
+							to: state.to,
 							type: String(state.type)
 						}
 					});
 
 					op.setCompleted();
-				},
-				error: function () {
+				}, function () {
 					op.setCompleted(false);
-				}
-			});
+				});
+			};
+
+			for (var i = 0; i < state.to.length; i++) {
+				sendState(state.to[i]);
+			}
 
 			return op;
 		},
@@ -3287,64 +3717,261 @@ Webos.require([
 			// Get audio/video stream
 			navigator.getUserMedia({ audio: true, video: true }, function (stream) {
 				op.setCompleted(stream);
-			}, function(err) {
+			}, function (err) {
 				op.setCompleted(false);
 			});
 
 			return op;
 		},
+		_createCallId: function () {
+			var callId;
+			do {
+				callId = Math.random().toString(36).substr(2);
+			} while (this._calls[callId]);
+
+			return callId;
+		},
+		_handleCall: function (call, fromMe) {
+			var that = this, peer = this._peer;
+
+			var metadata = call.metadata || {};
+
+			var remote = [];
+			for (var i = 0; i < metadata.users.length; i++) {
+				var username = metadata.users[i];
+
+				if (username != peer.id) {
+					remote.push(username);
+				}
+			}
+
+			call.on('stream', function (stream) {
+				that.trigger('call callstart', {
+					remote: remote,
+					remoteUser: call.peer,
+					local: peer.id,
+					remoteStream: stream,
+					localStream: call.localStream,
+					callId: metadata.id
+				});
+			});
+			call.on('close', function () {
+				that.trigger('callend', {
+					remote: remote,
+					remoteUser: call.peer,
+					local: peer.id,
+					callId: metadata.id
+				});
+			});
+			call.on('error', function (err) {
+				that.trigger('status', {
+					type: 'error',
+					error: 'connerror',
+					msg: 'Error: '+err.type
+				});
+			});
+
+			var callData;
+			if (this._calls[metadata.id]) {
+				callData = this._calls[metadata.id];
+			} else {
+				callData = {
+					initiator: (fromMe) ? peer.id : call.peer,
+					accepted: false,
+					users: metadata.users,
+					remote: remote,
+					subcalls: {}
+				};
+			}
+
+			callData.subcalls[call.peer] = call;
+
+			if (fromMe) { // We are calling
+				return;
+			}
+
+			// Call already accepted
+			if (callData.accepted) {
+				if (!call.open) {
+					this._answerSubCall(call.id);
+				}
+			} else {
+				if (!this._calls[metadata.id]) {
+					this._calls[metadata.id] = callData;
+
+					that.trigger('callincoming', {
+						remote: remote,
+						remoteUser: call.peer,
+						local: peer.id,
+						callId: metadata.id
+					});
+				}
+			}
+		},
+		_getSubCall: function (callId) {
+			var peer = this._peer;
+
+			for (var peerId in peer.connections) {
+				var connections = peer.connections[peerId];
+				for (var i = 0; i < connections.length; i++) {
+					var conn = connections[i];
+
+					if (conn.type == 'media' && callId == conn.id) {
+						return conn;
+					}
+				}
+			}
+		},
 		call: function (callMetadata) {
 			var that = this, peer = this._peer;
-			var op = Webos.Operation.create();
 
-			this._getUserMedia().on({
-				success: function (data) {
-					var stream = data.result,
-						call = peer.call(callMetadata.to, stream);
+			var callId = this._createCallId();
 
-					that.trigger('callinitiate calling', {
-						remote: callMetadata.to,
-						local: peer.id,
-						localStream: stream,
-						callId: call.id
-					});
+			callMetadata.to = this._getDstList(callMetadata.to);
+			var op = Webos.Operation.multiple(callMetadata.to.length);
 
-					that._handleCall(call);
+			var users = callMetadata.to.slice(0); //Clone this array
+			users.push(peer.id);
 
-					op.setCompleted();
-				},
-				error: function () {
-					op.setCompleted(false);
+			var doCall = function (to, stream) {
+				var call = peer.call(to, stream, {
+					metadata: {
+						id: callId,
+						users: users
+					}
+				});
+
+				that.trigger('callinitiate calling', {
+					remote: callMetadata.to,
+					remoteUser: to,
+					local: peer.id,
+					localStream: stream,
+					callId: callId
+				});
+
+				op.setCompleted();
+
+				return call;
+			};
+
+			this._getUserMedia().then(function (stream) {
+				var subcalls = {};
+				for (var i = 0; i < callMetadata.to.length; i++) {
+					var dst = callMetadata.to[i];
+
+					subcalls[dst] = doCall(dst, stream);
 				}
+
+				that._calls[callId] = {
+					initiator: peer.id,
+					localStream: stream,
+					accepted: true,
+					users: users,
+					subcalls: subcalls
+				};
+
+				for (var remote in subcalls) {
+					that._handleCall(subcalls[remote], true);
+				}
+			}, function () {
+				op.setCompleted(false);
 			});
+
+			return op;
+		},
+		_answerSubCall: function (callId, stream) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+			var call = this._getSubCall(callId);
+
+			var doAnswer = function (call, stream) {
+				call.answer(stream);
+
+				op.setCompleted();
+			};
+
+			if (stream) {
+				doAnswer(call, stream);
+			} else {
+				this._getUserMedia().then(function (stream) {
+					doAnswer(call, stream);
+				}, function () {
+					op.setCompleted(false);
+				});
+			}
 
 			return op;
 		},
 		answerCall: function (callId) {
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
-			var call = this._getCall(callId);
+			var callData = this._calls[callId];
 
-			this._getUserMedia().on({
-				success: function (data) {
-					var stream = data.result;
-					call.answer(stream);
+			callData.accepted = true;
 
-					op.setCompleted();
-				},
-				error: function () {
-					op.setCompleted(false);
+			this._getUserMedia().then(function (stream) {
+				for (var i = 0; i < callData.users.length; i++) {
+					var username = callData.users[i];
+
+					if (callData.subcalls[username]) {
+						var call = callData.subcalls[username];
+						if (!call.open) {
+							that._answerSubCall(call.id, stream);
+						}
+
+						continue;
+					}
+
+					if (username !== peer.id && username < peer.id) {
+
+						var call = peer.call(username, stream, {
+							metadata: {
+								id: callId,
+								users: callData.users
+							}
+						});
+
+						callData.subcalls[username] = call;
+
+						that._handleCall(call, true);
+
+						that.trigger('callinitiate calling', {
+							remote: username,
+							local: peer.id,
+							localStream: stream,
+							callId: callData.id
+						});
+					}
 				}
+
+				op.setCompleted();
+			}, function () {
+				op.setCompleted(false);
 			});
+
+			return op;
+		},
+		_endSubCall: function (callId) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+			var call = this._getSubCall(callId);
+
+			call.close();
+			op.setCompleted();
 
 			return op;
 		},
 		endCall: function (callId) {
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
-			var call = this._getCall(callId);
+			var callData = this._calls[callId];
 
-			call.close();
+			for (var username in callData.subcalls) {
+				var subcall = callData.subcalls[username];
+
+				subcall.close();
+			}
+
 			op.setCompleted();
 
 			return op;
@@ -3363,30 +3990,35 @@ Webos.require([
 				return op;
 			}
 
-			that._openConnection(fileSending.to).on({
-				success: function (data) {
-					var conn = data.result;
+			fileSending.to = this._getDstList(fileSending.to);
+			op = Webos.Operation.multiple(fileSending.to.length);
 
+			var sendFile = function (to) {
+				that._openConnection(to).then(function (conn) {
 					conn.send({
 						type: 'file',
 						contents: {
+							to: fileSending.to,
 							bytes: fileSending.file,
 							type: fileSending.file.type,
 							basename: fileSending.basename
 						}
 					});
 
-					that.trigger('filesent', {
-						blob: fileSending.file,
-						from: peer.id,
-						to: conn.peer
-					});
-
 					op.setCompleted();
-				},
-				error: function () {
+				}, function () {
 					op.setCompleted(false);
-				}
+				});
+			};
+
+			for (var i = 0; i < fileSending.to.length; i++) {
+				sendFile(fileSending.to[i]);
+			}
+
+			that.trigger('filesent', {
+				blob: fileSending.file,
+				from: peer.id,
+				to: fileSending.to
 			});
 
 			return op;
@@ -3396,6 +4028,7 @@ Webos.require([
 	Webos.inherit(Empathy.Peerjs, Empathy.MessageInterface);
 	Webos.inherit(Empathy.Peerjs, Empathy.CallInterface);
 	Webos.inherit(Empathy.Peerjs, Empathy.FileSendingInterface);
+	Webos.inherit(Empathy.Peerjs, Empathy.MultipleUsersInterface);
 
 	/**
 	 * Create a new PeerJS connection.

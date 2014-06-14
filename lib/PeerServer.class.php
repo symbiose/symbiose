@@ -5,9 +5,10 @@ use lib\entities\OnlinePeer;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use React\EventLoop\Factory as EventLoopFactory;
-use \WebSocketClient;
+use Evenement\EventEmitter;
+use WebSocketClient;
 
-class PeerServer implements MessageComponentInterface {
+class PeerServer extends EventEmitter implements MessageComponentInterface {
 	/*protected $config = array(
 		'defaultApplicationName' => 'default',
 		'externalIceServers' => array(
@@ -54,7 +55,7 @@ class PeerServer implements MessageComponentInterface {
 		$this->clients->attach($conn);
 
 		echo "New connection! ({$conn->resourceId})\n";
-		
+
 		$params = $conn->WebSocket->request->getQuery()->getAll();
 		$peerId = (isset($params['id'])) ? urldecode($params['id']) : null;
 		$key = (isset($params['key'])) ? urldecode($params['key']) : null;
@@ -319,16 +320,21 @@ class PeerServer implements MessageComponentInterface {
 	}
 
 	public function insertPeer($peer) {
+		$this->emit('peer.inserted', array($peer));
+
 		return $this->updatePeer($peer);
 	}
 
 	public function updatePeer($peer) {
+		$this->emit('peer.updated', array($peer));
+
 		$this->peers[$peer['connectionId']] = $peer;
 	}
 
 	public function deletePeer($id) {
 		foreach ($this->peers as $i => $peer) {
 			if ($peer['id'] == $id) {
+				$this->emit('peer.deleted', array($this->peers[$i]));
 				unset($this->peers[$i]);
 				return;
 			}

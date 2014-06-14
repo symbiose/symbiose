@@ -50,7 +50,17 @@ class ApiResponse implements ResponseContent {
 	 * @return string The response content.
 	 */
 	public function generate() {
-		$resp = array(
+		$resp = $this->generateArray();
+
+		return json_encode($resp, JSON_FORCE_OBJECT);
+	}
+
+	/**
+	 * Generate the response content as an array.
+	 * @return array The response content data.
+	 */
+	public function generateArray() {
+		return array(
 			'id' => $this->id(),
 			'success' => $this->success(),
 			'statusCode' => $this->statusCode(),
@@ -58,8 +68,6 @@ class ApiResponse implements ResponseContent {
 			'out' => $this->value(),
 			'data' => $this->data()
 		);
-
-		return json_encode($resp, JSON_FORCE_OBJECT);
 	}
 
 	/**

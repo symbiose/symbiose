@@ -14,6 +14,17 @@
 				</div>
 			</div>
 
+			<div class="pull-left">
+				<div class="friends-list-header friends-select">
+					<span class="pull-left selection-status"></span>
+
+					<x-buttonGroup class="friends-select-actions pull-right">
+						<x-button class="select-cancel" title="Cancel">Cancel</x-button>
+						<x-button class="select-done" title="Done">Done</x-button>
+					</x-buttonGroup>
+				</div>
+			</div>
+
 			<span class="clearfix"></span>
 		</div>
 	</header>
@@ -40,7 +51,10 @@
 			<div class="conversation">
 				<ul></ul>
 				<div class="conversation-compose">
-					<x-button class="compose-attach">+</x-button>
+					<x-buttonGroup class="compose-actions">
+						<x-button class="compose-add-contact" title="Add a contact to this conversation"><x-icon src="actions/avatar-add-symbolic" size="16" variant="dark"></x-icon></x-button>
+						<x-button class="compose-attach" title="Send a file"><x-icon src="status/mail-attachment-symbolic" size="16" variant="dark"></x-icon></x-button>
+					</x-buttonGroup>
 					<img src="" alt="" class="compose-contact-picture">
 					<div class="compose-msg-ctn"><input type="text" class="compose-msg"></div>
 				</div>

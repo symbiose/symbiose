@@ -1,17 +1,18 @@
 <?php
 namespace lib;
 
-use Ratchet\MessageComponentInterface;
-use Ratchet\ConnectionInterface;
+use Ratchet\Wamp\WampServerInterface;
+use Ratchet\ConnectionInterface as Conn;
 
-class ApiWebSocketServer implements MessageComponentInterface {
+class ApiWebSocketServer implements WampServerInterface {
+	protected $subscribedTopics = array();
 	protected $clients;
 
 	public function __construct() {
 		$this->clients = new \SplObjectStorage;
 	}
 
-	protected function _handleRequest(ConnectionInterface $from, $reqData) {
+	protected function _handleRequest(Conn $from, $reqData) {
 		$request = new HTTPRequest($from->Session);
 
 		$apiCall = new Api;
@@ -23,7 +24,7 @@ class ApiWebSocketServer implements MessageComponentInterface {
 		return $resp;
 	}
 
-	protected function _handleRequestGroup(ConnectionInterface $from, $reqsData) {
+	protected function _handleRequestGroup(Conn $from, $reqsData) {
 		$responses = array();
 
 		foreach($reqsData as $reqData) {
@@ -36,67 +37,86 @@ class ApiWebSocketServer implements MessageComponentInterface {
 		return $resp;
 	}
 
-	public function onOpen(ConnectionInterface $conn) {
+	public function onOpen(Conn $conn) {
 		// Store the new connection to send messages to later
 		$this->clients->attach($conn);
 
 		echo "New connection! ({$conn->resourceId})\n";
 	}
 
-	public function onMessage(ConnectionInterface $from, $msg) {
-		echo 'Received data from '.$from->resourceId.' ('.strlen($msg).')'."\n";
+	public function publish($topicId, $event) {
+		if (!array_key_exists($topicId, $this->subscribedTopics)) {
+			return; // No suscribers
+		}
 
-		try {
-			$req = json_decode($msg, true);
+		$topic = $this->subscribedTopics[$topicId];
+		$topic->broadcast($event);
+	}
 
-			if (json_last_error() !== JSON_ERROR_NONE || empty($req)) {
-				throw new \RuntimeException('Bad request: invalid JSON (#'.json_last_error().'): '.$input);
+	public function onPublish(Conn $conn, $topic, $event, array $exclude, array $eligible) {
+		$topic->broadcast($event);
+	}
+
+	public function onCall(Conn $from, $callId, $topic, array $params) {
+		echo 'Received data from '.$from->resourceId."\n";
+
+		if ($topic->getId() == 'api.call') {
+			if (!isset($params['id']) || !is_int($params['id'])) {
+				var_dump($params);
+				$from->callError($callId, $topic, 'Bad request: invalid call id');
+				return;
 			}
 
-			if (!isset($req['id']) || !is_int($req['id'])) {
-				throw new \RuntimeException('Bad request: invalid request id');
-			}
-			if (!isset($req['data']) || !is_array($req['data'])) {
-				throw new \RuntimeException('Bad request: invalid request data');
-			}
-			if (isset($req['http_headers']) && is_array($req['http_headers'])) {
-				if (isset($req['http_headers']['Accept-Language'])) {
-					$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $req['http_headers']['Accept-Language'];
+			// Handle HTTP headers
+			if (isset($params['http_headers']) && is_array($params['http_headers'])) {
+				if (isset($params['http_headers']['Accept-Language'])) {
+					$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $params['http_headers']['Accept-Language'];
 				}
 			}
 
-			$reqId = $req['id'];
+			try {
+				if (isset($params['groupped']) && $params['groupped'] == true) {
+					$resp = $this->_handleRequestGroup($from, $params['data']);
+				} else {
+					$resp = $this->_handleRequest($from, $params['data']);
+				}
+			} catch (Exception $e) {
+				$errMsg = $e->getMessage();
 
-			if (isset($req['groupped']) && $req['groupped'] == true) {
-				$resp = $this->_handleRequestGroup($from, $req['data']);
-			} else {
-				$resp = $this->_handleRequest($from, $req['data']);
+				$resp = new ApiResponse();
+				$resp->setSuccess(false);
+				$resp->setValue($errMsg);
+				$resp->setChannel(2, $errMsg);
 			}
 
-			$resp->setId($reqId);
-		} catch (Exception $e) {
-			$errMsg = $e->getMessage();
+			$resp->setId($params['id']);
 
-			$resp = new ApiResponse();
-			$resp->setSuccess(false);
-			$resp->setValue($errMsg);
-			$resp->setChannel(2, $errMsg);
+			$respData = $resp->generateArray();
+
+			echo 'Sending data to '.$from->resourceId."\n";
+			$from->callResult($callId, $respData);
+		} else {
+			$from->callError($callId, $topic, 'Bad request: unsupported topic "'.$topic->getId().'"');
 		}
-
-		$output = $resp->generate();
-		
-		echo 'Sending data to '.$from->resourceId.' ('.strlen($output).')'."\n";
-		$from->send($output);
 	}
 
-	public function onClose(ConnectionInterface $conn) {
+	public function onClose(Conn $conn) {
 		// The connection is closed, remove it, as we can no longer send it messages
 		$this->clients->detach($conn);
 
 		echo "Connection {$conn->resourceId} has disconnected\n";
 	}
 
-	public function onError(ConnectionInterface $conn, \Exception $e) {
+	public function onSubscribe(Conn $conn, $topic) {
+		// When a visitor subscribes to a topic link the Topic object in a  lookup array
+		if (!array_key_exists($topic->getId(), $this->subscribedTopics)) {
+			$this->subscribedTopics[$topic->getId()] = $topic;
+		}
+	}
+
+	public function onUnSubscribe(Conn $conn, $topic) {}
+
+	public function onError(Conn $conn, \Exception $e) {
 		echo "An error has occurred: {$e->getMessage()}\n";
 
 		$conn->close();
