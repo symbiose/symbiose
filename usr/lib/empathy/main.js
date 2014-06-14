@@ -3789,7 +3789,7 @@ console.log(src);
 			if (fromMe) { // We are calling
 				return;
 			}
-console.log('  Handle call from ', call.peer, !!this._calls[metadata.id]);
+
 			// Call already accepted
 			if (callData.accepted) {
 				if (!call.open) {
@@ -3798,7 +3798,7 @@ console.log('  Handle call from ', call.peer, !!this._calls[metadata.id]);
 			} else {
 				if (!this._calls[metadata.id]) {
 					this._calls[metadata.id] = callData;
-console.log('callincoming', remote);
+
 					that.trigger('callincoming', {
 						remote: remote,
 						remoteUser: call.peer,
@@ -3832,7 +3832,7 @@ console.log('callincoming', remote);
 
 			var users = callMetadata.to.slice(0); //Clone this array
 			users.push(peer.id);
-console.log('Calling ', callMetadata.to);
+
 			var doCall = function (to, stream) {
 				var call = peer.call(to, stream, {
 					metadata: {
@@ -3840,7 +3840,6 @@ console.log('Calling ', callMetadata.to);
 						users: users
 					}
 				});
-console.log('  Called ', to);
 
 				that.trigger('callinitiate calling', {
 					remote: callMetadata.to,
@@ -3909,7 +3908,7 @@ console.log('  Called ', to);
 			var callData = this._calls[callId];
 
 			callData.accepted = true;
-console.log('Answer call ', callData.users);
+
 			this._getUserMedia().then(function (stream) {
 				for (var i = 0; i < callData.users.length; i++) {
 					var username = callData.users[i];
@@ -3924,7 +3923,7 @@ console.log('Answer call ', callData.users);
 					}
 
 					if (username !== peer.id && username < peer.id) {
-console.log('Calling to answer', username);
+
 						var call = peer.call(username, stream, {
 							metadata: {
 								id: callId,
