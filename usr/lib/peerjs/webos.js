@@ -60,10 +60,12 @@
 			callback(peersList);
 		};
 
-		Webos.websocket.subscribe('peer.list.'+appName, onPeersList);
+		var eventName = 'peer.list.'+appName;
+
+		Webos.websocket.subscribe(eventName, onPeersList);
 
 		return function () {
-			Webos.websocket.unsubscribe('peer.list.'+appName, onPeersList);
+			Webos.websocket.unsubscribe(eventName, onPeersList);
 		};
 	};
 

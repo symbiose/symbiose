@@ -598,7 +598,7 @@ Webos.require([
 					return ($(this).data('conversation') === id);
 				});
 			};
-			var createContact = function (connId) {
+			var createContact = function (connId, multiple) {
 				var $contact = $('<li></li>');
 
 				$contact.append([
@@ -615,8 +615,26 @@ Webos.require([
 				var connFeatures = conn.features();
 
 				for (var i = 0; i < connFeatures.length; i++) {
+					var feat = connFeatures[i];
+
+					if (feat == 'multiple') {
+						continue;
+					}
+					var multipleIndex = feat.indexOf('-multiple');
+					if (~multipleIndex) {
+						if (multiple) {
+							feat = feat.slice(0, multipleIndex);
+						} else {
+							continue;
+						}
+					} else {
+						if (multiple) {
+							continue;
+						}
+					}
+
 					$('<li></li>', {
-						'class': 'action-'+connFeatures[i]+' cursor-pointer'
+						'class': 'action-'+feat+' cursor-pointer'
 					}).appendTo($contactActions);
 				}
 
@@ -679,7 +697,7 @@ Webos.require([
 				if (typeof contact.conn != 'undefined') {
 					conn = that._conn(contact.conn);
 
-					if (conn.option('service')) {
+					if (conn && conn.option('service')) {
 						var service = Empathy.service(conn.option('service'));
 
 						$contact.find('.contact-server').text(service.title);
@@ -692,7 +710,7 @@ Webos.require([
 
 				if (!$contact.length) {
 					console.log(contact, contact.conn);
-					$contact = createContact(contact.conn);
+					$contact = createContact(contact.conn, (contact.length > 1));
 					$contact.data('username', contact.username).appendTo($contactsCtn);
 				}
 
@@ -712,6 +730,26 @@ Webos.require([
 				});
 
 				$conversationCtn.scrollTop(conversationHeight);
+			};
+			var dstToSrc = function (to, dst, srcUser) {
+				if (to instanceof Array) {
+					//Remove dst, add srcUser
+					var from = [srcUser.username];
+					for (var i = 0; i < to.length; i++) {
+						var username = to[i];
+
+						if (username != dst.username) {
+							from.push(username);
+						}
+					}
+
+					src = that.contact(from);
+					if (!src) {
+						src = that._createContactSet(from);
+					}
+				}
+
+				return src;
 			};
 			this.on('messagesent', function (msg) {
 				var dst = that.contact(msg.to), src = that.loggedInUser(msg.from);
@@ -737,22 +775,7 @@ Webos.require([
 					srcUser = src,
 					dst = that.loggedInUser(msg.to);
 
-				if (msg.to instanceof Array) {
-					//Remove dst, add src
-					var from = [src.username];
-					for (var i = 0; i < msg.to.length; i++) {
-						var username = msg.to[i];
-
-						if (username != dst.username) {
-							from.push(username);
-						}
-					}
-
-					src = that.contact(from);
-					if (!src) {
-						src = that._createContactSet(from);
-					}
-				}
+				src = dstToSrc(msg.to, dst, srcUser);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received' });
 				$msg.append($('<span></span>', { 'class': 'msg-from' }).html(srcUser.name));
@@ -882,46 +905,51 @@ Webos.require([
 				return $msgContent;
 			};
 			this.on('filesent', function (fileSending) {
-				var dst = that.contact(fileSending.to), src = that.loggedInUser(fileSending.from);
+				var dst = that.contact(fileSending.to),
+					src = that.loggedInUser(fileSending.from);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-sent' });
 				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append(createFileMsgContent(fileSending, true));
 				$msg.toggleClass('msg-encrypted', fileSending.encrypted);
 
-				if (that.currentDst() && that.currentDst().username == fileSending.to) {
+				if (that.currentDst() && that.currentDst().username == dst.username) {
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(fileSending.to)) {
-						$msgs = that._$conversations[fileSending.to];
+					if (that._isConversationDetached(dst.username)) {
+						$msgs = that._$conversations[dst.username];
 					}
-					that._$conversations[fileSending.to] = $msgs.add($msg);
+					that._$conversations[dst.username] = $msgs.add($msg);
 				}
 			});
 
 			this.on('filereceived', function (fileSending) {
-				var src = that.contact(fileSending.from), dst = that.loggedInUser(fileSending.to);
+				var src = that.contact(fileSending.from),
+					srcUser = src,
+					dst = that.loggedInUser(fileSending.to);
+
+				src = dstToSrc(fileSending.to, dst, srcUser);
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received' });
 				$msg.append('<div class="msg-contact-picture-ctn"><img src="'+src.picture+'" alt="" class="msg-contact-picture"></div>');
 				$msg.append(createFileMsgContent(fileSending));
 				$msg.toggleClass('msg-encrypted', fileSending.encrypted);
 
-				if (that.currentDst() && that.currentDst().username == fileSending.from) {
+				if (that.currentDst() && that.currentDst().username == src.username) {
 					$conversationCtn.find('.msg-typing').remove();
 					$msg.appendTo($conversationCtn);
 					scrollToConversationBottom();
 				} else {
 					var $msgs = $();
-					if (that._isConversationDetached(fileSending.from)) {
-						$msgs = that._$conversations[fileSending.from];
+					if (that._isConversationDetached(src.username)) {
+						$msgs = that._$conversations[src.username];
 					}
-					that._$conversations[fileSending.from] = $msgs.add($msg);
+					that._$conversations[src.username] = $msgs.add($msg);
 
 					var $contact = $contactsCtn.children('li').filter(function () {
-						return ($(this).data('username') == fileSending.from);
+						return ($(this).data('username') == src.username);
 					});
 
 					//Update main window badge
@@ -947,10 +975,8 @@ Webos.require([
 			});
 
 			this.on('contactcomposing', function (data) {
+				//TODO: multiple conversations support
 				var src = that.contact(data.username);
-				if (!src) {
-					return;
-				}
 
 				var $msg = $('<li></li>', { 'class': 'msg msg-received msg-typing' });
 				$msg.append('<img src="'+src.picture+'" alt="" class="msg-contact-picture">');
@@ -3206,6 +3232,7 @@ Webos.require([
 		Empathy.MultipleUsersInterface.call(this, options);
 
 		this._features.push('message-multiple');
+		this._features.push('fileSending-multiple');
 
 		this.initialize(this._options);
 	};
@@ -3224,17 +3251,12 @@ Webos.require([
 
 			var peer = Webos.Peer.connect();
 
-			//var contactsInterval = null;
 			var unsubscribe;
 			peer.on('open', function (id) {
 				that._options.username = id;
 				console.log('My id: '+id);
 
 				Webos.Peer.attach(id, that._peerAppName).on('complete', function () {
-					// Disabled - now using WebSockets
-					/*contactsInterval = setInterval(function () {
-						that.listContacts();
-					}, 15*1000);*/
 					unsubscribe = Webos.Peer.subscribeListByApp(that._peerAppName, function (list) {
 						that._gotPeersList(list);
 					});
@@ -3247,18 +3269,13 @@ Webos.require([
 				});
 			});
 			peer.on('close', function () {
-				that.trigger('status', {
-					type: 'disconnected'
-				});
-
-				/*if (contactsInterval) {
-					clearInterval(contactsInterval);
-				}*/
 				if (unsubscribe) {
 					unsubscribe();
 				}
 
-				Webos.websocket.unsubscribe('peer.list', that._onPeerListUpdate);
+				that.trigger('status', {
+					type: 'disconnected'
+				});
 			});
 			peer.on('error', function (err) {
 				that.trigger('status', {
@@ -3296,6 +3313,17 @@ Webos.require([
 		_handleConnection: function (conn) {
 			var that = this, peer = this._peer;
 
+			var getDst = function (data) {
+				var to = peer.id;
+
+				// Recipients specified
+				if (data && data.to && data.to instanceof Array && ~data.to.indexOf(to)) {
+					to = data.to;
+				}
+
+				return to;
+			};
+
 			conn.on('data', function(data) {
 				console.log(data);
 
@@ -3305,15 +3333,9 @@ Webos.require([
 							break;
 						}
 
-						var to = conn.peer;
-						// Recipients specified
-						if (data.contents.to && data.contents.to instanceof Array) {
-							to = data.contents.to;
-						}
-
 						that._receiveMessage({
 							from: conn.peer,
-							to: to,
+							to: getDst(data.contents),
 							body: data.contents.body
 						});
 						break;
@@ -3325,7 +3347,7 @@ Webos.require([
 						that.trigger('chatstate', {
 							type: data.contents.type,
 							from: conn.peer,
-							to: peer.id
+							to: getDst(data.contents)
 						});
 						break;
 					case 'file': //Receive a file
@@ -3340,7 +3362,7 @@ Webos.require([
 							type: data.contents.type,
 							basename: data.contents.basename,
 							from: conn.peer,
-							to: peer.id
+							to: getDst(data.contents)
 						});
 						break;
 					case 'contact': //Contact update
@@ -3599,12 +3621,17 @@ Webos.require([
 
 			return this._getContactPicture(peerId);
 		},
+		_getDstList: function (usernames) {
+			if (!(usernames instanceof Array)) {
+				usernames = String(usernames).split('+');
+			}
+
+			return usernames;
+		},
 		_sendMessage: function (msg) {
 			var that = this, peer = this._peer;
 
-			if (!(msg.to instanceof Array)) {
-				msg.to = String(msg.to).split('+');
-			}
+			msg.to = this._getDstList(msg.to);
 
 			var op = Webos.Operation.multiple(msg.to.length);
 
@@ -3659,25 +3686,29 @@ Webos.require([
 		},
 		sendChatstate: function (state) {
 			var that = this, peer = this._peer;
-			var op = Webos.Operation.create();
 
-			that._openConnection(state.to).on({
-				success: function (data) {
-					var conn = data.result;
+			state.to = this._getDstList(state.to);
+			var op = Webos.Operation.multiple(state.to.length);
 
+			var sendState = function (to) {
+				that._openConnection(to).then(function (conn) {
 					conn.send({
 						type: 'chatstate',
 						contents: {
+							to: state.to,
 							type: String(state.type)
 						}
 					});
 
 					op.setCompleted();
-				},
-				error: function () {
+				}, function () {
 					op.setCompleted(false);
-				}
-			});
+				});
+			};
+
+			for (var i = 0; i < state.to.length; i++) {
+				sendState(state.to[i]);
+			}
 
 			return op;
 		},
@@ -3690,7 +3721,7 @@ Webos.require([
 			// Get audio/video stream
 			navigator.getUserMedia({ audio: true, video: true }, function (stream) {
 				op.setCompleted(stream);
-			}, function(err) {
+			}, function (err) {
 				op.setCompleted(false);
 			});
 
@@ -3700,25 +3731,22 @@ Webos.require([
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
 
-			this._getUserMedia().on({
-				success: function (data) {
-					var stream = data.result,
-						call = peer.call(callMetadata.to, stream);
+			//TODO: multi-party call
+			this._getUserMedia().then(function (stream) {
+				var call = peer.call(callMetadata.to, stream);
 
-					that.trigger('callinitiate calling', {
-						remote: callMetadata.to,
-						local: peer.id,
-						localStream: stream,
-						callId: call.id
-					});
+				that.trigger('callinitiate calling', {
+					remote: callMetadata.to,
+					local: peer.id,
+					localStream: stream,
+					callId: call.id
+				});
 
-					that._handleCall(call);
+				that._handleCall(call);
 
-					op.setCompleted();
-				},
-				error: function () {
-					op.setCompleted(false);
-				}
+				op.setCompleted();
+			}, function () {
+				op.setCompleted(false);
 			});
 
 			return op;
@@ -3728,16 +3756,12 @@ Webos.require([
 			var op = Webos.Operation.create();
 			var call = this._getCall(callId);
 
-			this._getUserMedia().on({
-				success: function (data) {
-					var stream = data.result;
-					call.answer(stream);
+			this._getUserMedia().then(function (stream) {
+				call.answer(stream);
 
-					op.setCompleted();
-				},
-				error: function () {
-					op.setCompleted(false);
-				}
+				op.setCompleted();
+			}, function () {
+				op.setCompleted(false);
 			});
 
 			return op;
@@ -3766,30 +3790,35 @@ Webos.require([
 				return op;
 			}
 
-			that._openConnection(fileSending.to).on({
-				success: function (data) {
-					var conn = data.result;
+			fileSending.to = this._getDstList(fileSending.to);
+			op = Webos.Operation.multiple(fileSending.to.length);
 
+			var sendFile = function (to) {
+				that._openConnection(to).then(function (conn) {
 					conn.send({
 						type: 'file',
 						contents: {
+							to: fileSending.to,
 							bytes: fileSending.file,
 							type: fileSending.file.type,
 							basename: fileSending.basename
 						}
 					});
 
-					that.trigger('filesent', {
-						blob: fileSending.file,
-						from: peer.id,
-						to: conn.peer
-					});
-
 					op.setCompleted();
-				},
-				error: function () {
+				}, function () {
 					op.setCompleted(false);
-				}
+				});
+			};
+
+			for (var i = 0; i < fileSending.to.length; i++) {
+				sendFile(fileSending.to[i]);
+			}
+
+			that.trigger('filesent', {
+				blob: fileSending.file,
+				from: peer.id,
+				to: fileSending.to
 			});
 
 			return op;

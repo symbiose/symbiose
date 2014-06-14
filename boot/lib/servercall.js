@@ -1348,10 +1348,7 @@ console.log('todo', reqData);
 		},
 		subscribe: function (topicUri, callback) {
 			var subscribe = function (socket) {
-				socket.subscribe(topicUri, function (data) {
-					console.log('socket event ('+topicUri+')');
-					callback(data);
-				});
+				socket.subscribe(topicUri, callback);
 			};
 
 			var socket = Webos.ServerCall.websocket.socket();

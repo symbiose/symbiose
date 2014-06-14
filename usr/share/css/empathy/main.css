@@ -207,9 +207,7 @@
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAYAAACZ3F9/AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gIaDzYnhs5QRwAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAABwUlEQVQoz22SMWtTcRTFf+f/D886W3VwcDEiLi2K36C0lYRAoGBwchPpIijURVQEcVDoIAh+gQpCQsMLBroUJ+lcMghKRXQTHSR9Td57xyUpWj3T5XDvPedyjziCer1+3PYMEIBC0kGapvtH+zQtarVaAixLWrW9OKELSW9tv5S0labpeNofAZrNZqUsyzXg1YTfAN4AO8ACsArsz8/Pvx8MBiUTO4zH40Xbj4FU0tUY44Ner/csxrgO3AK6wJPhcLh0qLiysjKT5/lzSQmwLukrMFutVpdt/5B0QtJH4Iqks3Nzc+3BYJCHLMtmbC/Z3ga2gbIsyx5wDshs79n+DryzvTAajY4BBElhYnnH9qztPnAG2AdOA+cl/QI+AEme5xEghBBKSX1JXyS9BqrTM2KMu5LGZVkKSIC8UqkUAGFzc/MncNv2Q+DiH68K3W53CCBJwDVJ/RjjAUBoNBoJcH2ycci/CJJuAlXbL9rtdvZXABqNxsmiKHaBT8Al4JGkb7bXgAvA/SRJnnY6nRygMh0siuIecAq4DNQB274BfJZ0tyiKrenQoeIkbhuS9tI0vdNqtSqj0SjJsiyGEPL/ZfU32NPCKgC83loAAAAASUVORK5CYII=);
 }
 .friends-list .contact-actions .action-fileSending,
-.friends-list .contact-actions .action-otr,
-.friends-list .contact-actions .action-multiple,
-.friends-list .contact-actions .action-message-multiple {
+.friends-list .contact-actions .action-otr {
 	display: none;
 }
 
