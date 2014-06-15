@@ -147,6 +147,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-convert');
 	grunt.loadNpmTasks('grunt-transifex');
+	grunt.loadNpmTasks('grunt-composer');
 
 	grunt.registerTask('gen-boot', 'Concatenate boot files.', function() {
 		var bootIncludes = grunt.file.readJSON('etc/boot-includes.json'), bootIncludesList = [];

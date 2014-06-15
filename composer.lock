@@ -1,9 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
     ],
-    "hash": "abef1946a358a0254896afa8ed9413a3",
+    "hash": "893c0482892ad0fdd9c3d9368e95564f",
     "packages": [
         {
             "name": "cboden/ratchet",
