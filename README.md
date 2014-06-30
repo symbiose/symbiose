@@ -79,7 +79,7 @@ Authors
 Copyright
 ---------
 
-Symbiose library is licensed under the MIT License (MIT). A copy of the license is available in `LICENSE`.
+Symbiose is licensed under the MIT License (MIT). A copy of the license is available in `LICENSE`.
 
 Contact: symbiose@emersion.fr  
 Copyright (C) 2014 Simon Ser
