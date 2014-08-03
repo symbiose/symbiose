@@ -3284,6 +3284,7 @@ console.log(src);
 		_peerAppName: 'empathy',
 		_contactsPeerIds: [],
 		_calls: {},
+		_torrents: {},
 		initialize: function (options) {},
 		connect: function (options) {
 			var that = this, conn = this._conn;
@@ -3444,8 +3445,91 @@ console.log(src);
 							break;
 						}
 						break;
+					//Torrent-based file sharing
+					//Based on http://jonas.nitro.dk/bittorrent/bittorrent-rfc.html
+					case 'torrent':
+						if (!data.contents) {
+							break;
+						}
+
+						switch (data.contents.type) {
+							case 'offer':
+								var metadata = $.extend({
+									hash: '', // Unique  identifier
+									comment: '',
+									createdBy: '',
+									creationDate: '',
+									info: {},
+									peers: [] // String[] containing available peers
+								}, data.contents.metadata);
+
+								metadata.info = $.extend({
+									length: 0, // File size, in bytes
+									md5sum: '', // Optionnal
+									name: '', // File name
+									pieceLength: 0, // An integer indicating the number of bytes in each piece. 
+									pieces: [] // Sha1 checksums for pieces
+								}, metadata.info);
+
+								that._registerTorrent(metadata);
+								that._downloadTorrent(metadata.hash);
+								break;
+							case 'bitfield': // Which pieces has he?
+								var pieces = data.contents.piecesList, // Boolean[]
+									torrent = this._getTorrent(data.contents.torrent);
+
+								for (var i = 0; i < pieces.length; i++) {
+									if (!pieces[i]) {
+										continue;
+									}
+
+									torrent.trigger('have', {
+										peer: conn.peer,
+										torrent: data.contents.torrent, // String - the torrent hash
+										piece: i
+									});
+								}
+								break;
+							case 'have': // He has downloaded successfully a piece
+							case 'request': // Piece request
+							case 'cancel': // Cancel a piece request
+								torrent.trigger(data.contents.type, {
+									peer: conn.peer,
+									torrent: data.contents.torrent, // String - the torrent hash
+									piece: data.contents.piece // Number
+								});
+								break;
+							case 'piece': // Receiving a piece
+								torrent.trigger('piece', {
+									peer: conn.peer,
+									torrent: data.contents.torrent, // String - the torrent hash
+									piece: data.contents.piece, // Number
+									pieceData: data.contents.data // Blob
+								});
+								break;
+							default:
+								console.warn('empathy: unknown peer wire protocol message type: '+data.contents.type);
+						}
+						break;
+					/*case 'tracker':
+						if (!data.contents) {
+							break;
+						}
+
+						var metadata = $.extend({
+							uploaded: 0,
+							downloaded: 0,
+							left: 0,
+							event: ''
+						}, data.contents);
+
+						var resp = {
+							interval: 0, // Interval between requests - not used for now
+							peers: [] // String[] containing available peers
+						};
+						break;*/
 					default:
-						console.warn('Empathy: Unknown PeerJS message type: '+data.type);
+						console.warn('empathy: unknown peerjs message type: '+data.type);
 				}
 			});
 
@@ -3481,6 +3565,19 @@ console.log(src);
 					op.setCompleted(conn);
 				});
 			}
+
+			return op;
+		},
+		_sendData: function (dst, data) {
+			var op = Webos.Operation.create();
+
+			that._openConnection(dst).then(function (conn) {
+				conn.send(data);
+
+				op.setCompleted(conn);
+			}, function () {
+				op.setCompleted(false);
+			});
 
 			return op;
 		},
@@ -3975,6 +4072,174 @@ console.log(src);
 			op.setCompleted();
 
 			return op;
+		},
+		_registerTorrent: function (metadata, pieces) {
+			this._torrents[metadata.hash] = Webos.Observable.build({
+				metadata: metadata,
+				pieces: pieces || []
+			});
+		},
+		_getTorrent: function (hash) {
+			return this._torrents[hash];
+		},
+		_sendTorrent: function (fileSending) {
+			var that = this, peer = this._peer;
+			var op = Webos.Operation.create();
+
+			var blob = fileSending.file;
+			var pieceLength = 1024, // 1 KiB
+				piecesNbr = Math.ceil(blob.size / pieceLength),
+				pieces = [];
+
+			var getPiece = function (i) {
+				var start = i * pieceLength,
+					end = start + pieceLength - 1,
+					piece = blob.slice(start, end, blob.type);
+
+				return piece;
+			};
+
+			var peers = fileSending.to.slice(0);
+			peers.push(peer.id);
+
+			var metadata = {
+				hash: '', // Unique identifier 
+				comment: '',
+				createdBy: peer.id,
+				creationDate: (new Date()).getTime(),
+				info: {
+					length: blob.size, // File size, in bytes
+					md5sum: '', // Optionnal
+					name: fileSending.basename, // File name
+					type: blob.type,
+					pieceLength: pieceLength, // An integer indicating the number of bytes in each piece. 
+					pieces: [] // Sha1 checksums for pieces
+				},
+				peers: peers // String[] containing available peers
+			};
+
+			var sendTorrent = function () {
+				var sendOp = Webos.Operation.multiple(fileSending.to.length);
+
+				var sendTorrentTo = function (to) {
+					that._openConnection(to).then(function (conn) {
+						conn.send({
+							type: 'torrent',
+							contents: {
+								type: 'offer',
+								metadata: metadata
+							}
+						});
+
+						sendOp.setCompleted();
+					}, function () {
+						sendOp.setCompleted(false);
+					});
+				};
+
+				for (var i = 0; i < fileSending.to.length; i++) {
+					sendTorrentTo(fileSending.to[i]);
+				}
+
+				return sendOp;
+			};
+
+			var piecesChecksums = [];
+
+			var checksumOp = Webos.Operation.multiple(piecesNbr).then(function () {
+				metadata.info.pieces = piecesChecksums;
+				metadata.hash = CryptoJS.SHA1(piecesChecksums.join(''));
+
+				that._registerTorrent(metadata, pieces);
+
+				sendTorrent().then(function () {
+					op.setCompleted();
+				}, function () {
+					op.setCompleted(false);
+				});
+			});
+
+			var handlePiece = function (piece, i) {
+				var reader = new FileReader();
+				reader.addEventListener("loadend", function (e) {
+					var data = e.target.result;
+
+					pieces[i] = data;
+					piecesChecksums[i] = CryptoJS.SHA1(e.target.result);
+				});
+				reader.readAsBinaryString(piece);
+
+				checksumOp.setCompleted();
+			};
+
+			for (var i = 0; i < piecesNbr; i++) {
+				var piece = getPiece(i);
+
+				pieces.push('');
+				piecesChecksums.push('');
+				handlePiece(piece, i);
+			}
+
+			return op;
+		},
+		_downloadTorrent: function (hash) {
+			var that = this, peer = this._peer,
+				torrent = this._getTorrent(hash),
+				metadata = torrent.metadata,
+				info = metadata.info;
+			var op = Webos.Operation.create();
+
+			var piecesStatus = [];
+
+			torrent.on('have', function (e) {
+				if (!~piecesStatus[e.piece].peers.indexOf(e.peer)) {
+					piecesStatus[e.piece].peers.push(e.peer);
+				}
+			});
+			torrent.on('request', function (e) {
+				
+			});
+			torrent.on('cancel', function (e) {
+				
+			});
+			torrent.on('piece', function (e) {
+				
+			});
+
+			var getPeersByPiece = function (piece) {
+				var op = Webos.Operation.multiple(metadata.peers.length);
+
+				var handlePeer = function (peer) {
+					that._sendData(peer, {
+						type: 'torrent',
+						contents: {
+							type: 'request'
+						}
+					}).then(function () {
+						op.setCompleted();
+					}, function () {
+						op.setCompleted(false);
+					});
+				};
+
+				for (var i = 0; i < metadata.peers.length; i++) {
+					handlePeer(metadata.peers[i]);
+				}
+
+				return op;
+			};
+
+			for (var i = 0; i < info.pieces.length; i++) {
+				var downloaded = !!torrent.pieces[i];
+
+				piecesStatus.push({
+					downloaded: downloaded,
+					peers: []
+				});
+			}
+		},
+		_sendFile: function (fileSending) {
+			//TODO
 		},
 		sendFile: function (fileSending) {
 			var that = this, peer = this._peer;
