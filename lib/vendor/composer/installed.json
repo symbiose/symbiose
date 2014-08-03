@@ -42,29 +42,165 @@
         ]
     },
     {
+        "name": "react/stream",
+        "version": "v0.3.4",
+        "version_normalized": "0.3.4.0",
+        "target-dir": "React/Stream",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/stream.git",
+            "reference": "feef56628afe3fa861f0da5f92c909e029efceac"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/stream/zipball/feef56628afe3fa861f0da5f92c909e029efceac",
+            "reference": "feef56628afe3fa861f0da5f92c909e029efceac",
+            "shasum": ""
+        },
+        "require": {
+            "evenement/evenement": "1.0.*",
+            "php": ">=5.3.3"
+        },
+        "suggest": {
+            "react/event-loop": "0.3.*",
+            "react/promise": "~1.0"
+        },
+        "time": "2014-02-16 19:48:52",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "0.3-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "React\\Stream": ""
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Basic readable and writable stream interfaces that support piping.",
+        "keywords": [
+            "pipe",
+            "stream"
+        ]
+    },
+    {
+        "name": "react/event-loop",
+        "version": "v0.3.4",
+        "version_normalized": "0.3.4.0",
+        "target-dir": "React/EventLoop",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/event-loop.git",
+            "reference": "235cddfa999a392e7d63dc9bef2e042492608d9f"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/event-loop/zipball/235cddfa999a392e7d63dc9bef2e042492608d9f",
+            "reference": "235cddfa999a392e7d63dc9bef2e042492608d9f",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.3"
+        },
+        "suggest": {
+            "ext-libev": "*",
+            "ext-libevent": ">=0.0.5"
+        },
+        "time": "2013-07-21 02:23:09",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "0.3-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "React\\EventLoop": ""
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Event loop abstraction layer that libraries can use for evented I/O.",
+        "keywords": [
+            "event-loop"
+        ]
+    },
+    {
+        "name": "react/socket",
+        "version": "v0.3.4",
+        "version_normalized": "0.3.4.0",
+        "target-dir": "React/Socket",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/socket.git",
+            "reference": "19bc0c4309243717396022ffb2e59be1cc784327"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/socket/zipball/19bc0c4309243717396022ffb2e59be1cc784327",
+            "reference": "19bc0c4309243717396022ffb2e59be1cc784327",
+            "shasum": ""
+        },
+        "require": {
+            "evenement/evenement": "1.0.*",
+            "php": ">=5.3.3",
+            "react/event-loop": "0.3.*",
+            "react/stream": "0.3.*"
+        },
+        "time": "2014-02-17 22:32:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "0.3-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "React\\Socket": ""
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Library for building an evented socket server.",
+        "keywords": [
+            "Socket"
+        ]
+    },
+    {
         "name": "symbiose/websocket-client",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/symbiose/php-websocket-client.git",
-            "reference": "0638e1477536134683ca82d5c487d0a0590f05f2"
+            "reference": "6300893ada2280355afe2b8692dce520ae12c4e4"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symbiose/php-websocket-client/zipball/0638e1477536134683ca82d5c487d0a0590f05f2",
-            "reference": "0638e1477536134683ca82d5c487d0a0590f05f2",
+            "url": "https://api.github.com/repos/symbiose/php-websocket-client/zipball/6300893ada2280355afe2b8692dce520ae12c4e4",
+            "reference": "6300893ada2280355afe2b8692dce520ae12c4e4",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.9",
-            "react/socket": "0.3.*"
+            "react/socket": "0.3.*|0.4.*"
         },
         "require-dev": {
             "cboden/ratchet": "0.3.*",
             "phpunit/phpunit": "3.7.28"
         },
-        "time": "2014-01-28 16:44:27",
+        "time": "2014-07-08 06:12:34",
         "type": "library",
         "installation-source": "source",
         "autoload": {
@@ -78,11 +214,11 @@
         ],
         "authors": [
             {
-                "name": "Gabriel Bull",
-                "email": "gavroche.bull@gmail.com"
+                "name": "Simon Ser"
             },
             {
-                "name": "Simon Ser"
+                "name": "Gabriel Bull",
+                "email": "gavroche.bull@gmail.com"
             }
         ],
         "description": "A simple PHP WebSocket Client",
@@ -144,49 +280,6 @@
         ]
     },
     {
-        "name": "fsi/acl",
-        "version": "0.9.3",
-        "version_normalized": "0.9.3.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/fsi-open/acl.git",
-            "reference": "553ec2367e29b9deac94a55d7449c53a9463e4ab"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/fsi-open/acl/zipball/553ec2367e29b9deac94a55d7449c53a9463e4ab",
-            "reference": "553ec2367e29b9deac94a55d7449c53a9463e4ab",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "require-dev": {
-            "monolog/monolog": "1.2.*"
-        },
-        "time": "2012-12-07 15:34:51",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "FSi\\Component\\ACL": "lib/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "authors": [
-            {
-                "name": "Lukasz Cybula",
-                "email": "lukasz@fsi.pl"
-            }
-        ],
-        "description": "FSi ACL Component",
-        "keywords": [
-            "acl",
-            "component",
-            "fsi"
-        ]
-    },
-    {
         "name": "ircmaxell/password-compat",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
@@ -219,7 +312,7 @@
         "authors": [
             {
                 "name": "Anthony Ferrara",
-                "email": "ircmaxell@php.net",
+                "email": "ircmaxell@ircmaxell.com",
                 "homepage": "http://blog.ircmaxell.com"
             }
         ],
@@ -231,19 +324,124 @@
         ]
     },
     {
+        "name": "symfony/process",
+        "version": "v2.5.2",
+        "version_normalized": "2.5.2.0",
+        "target-dir": "Symfony/Component/Process",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/Process.git",
+            "reference": "5e53efbf61a7fbf73c79e3e08feea50f64c20bfa"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/Process/zipball/5e53efbf61a7fbf73c79e3e08feea50f64c20bfa",
+            "reference": "5e53efbf61a7fbf73c79e3e08feea50f64c20bfa",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.3"
+        },
+        "time": "2014-07-09 09:05:48",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.5-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Symfony\\Component\\Process\\": ""
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Potencier",
+                "email": "fabien@symfony.com",
+                "homepage": "http://fabien.potencier.org",
+                "role": "Lead Developer"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "http://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony Process Component",
+        "homepage": "http://symfony.com"
+    },
+    {
+        "name": "gitonomy/gitlib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/gitonomy/gitlib.git",
+            "reference": "7a46107cfb8552b312101e0d5906e95d54d7ddc6"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/gitonomy/gitlib/zipball/7a46107cfb8552b312101e0d5906e95d54d7ddc6",
+            "reference": "7a46107cfb8552b312101e0d5906e95d54d7ddc6",
+            "shasum": ""
+        },
+        "require": {
+            "symfony/process": "~2.4"
+        },
+        "require-dev": {
+            "psr/log": "~1"
+        },
+        "suggest": {
+            "psr/log": "Add some log"
+        },
+        "time": "2014-07-13 19:02:31",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-0": {
+                "Gitonomy\\Git": [
+                    "src/",
+                    "tests/"
+                ]
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Alexandre Salomé",
+                "email": "alexandre.salome@gmail.com",
+                "homepage": "http://alexandre-salome.fr"
+            },
+            {
+                "name": "Julien DIDIER",
+                "email": "genzo.wm@gmail.com",
+                "homepage": "http://www.jdidier.net"
+            }
+        ],
+        "description": "Library for accessing git",
+        "homepage": "http://gitonomy.com"
+    },
+    {
         "name": "symfony/routing",
-        "version": "v2.5.0",
-        "version_normalized": "2.5.0.0",
+        "version": "v2.5.2",
+        "version_normalized": "2.5.2.0",
         "target-dir": "Symfony/Component/Routing",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/Routing.git",
-            "reference": "99b4e8e2978e6a08c086fd771cc0aa66c9e80a56"
+            "reference": "24d5f003a794894513d67c888181ba8c3b8e0693"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/Routing/zipball/99b4e8e2978e6a08c086fd771cc0aa66c9e80a56",
-            "reference": "99b4e8e2978e6a08c086fd771cc0aa66c9e80a56",
+            "url": "https://api.github.com/repos/symfony/Routing/zipball/24d5f003a794894513d67c888181ba8c3b8e0693",
+            "reference": "24d5f003a794894513d67c888181ba8c3b8e0693",
             "shasum": ""
         },
         "require": {
@@ -262,7 +460,7 @@
             "symfony/expression-language": "For using expression matching",
             "symfony/yaml": "For using the YAML loader"
         },
-        "time": "2014-04-23 14:08:54",
+        "time": "2014-07-09 09:05:48",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -302,18 +500,18 @@
     },
     {
         "name": "symfony/http-foundation",
-        "version": "v2.5.0",
-        "version_normalized": "2.5.0.0",
+        "version": "v2.5.2",
+        "version_normalized": "2.5.2.0",
         "target-dir": "Symfony/Component/HttpFoundation",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/HttpFoundation.git",
-            "reference": "044085422005aa3258fb3f710a7bf0202011f259"
+            "reference": "32ca1659e64bff5df61668e137bb3c3f64b7ce55"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/HttpFoundation/zipball/044085422005aa3258fb3f710a7bf0202011f259",
-            "reference": "044085422005aa3258fb3f710a7bf0202011f259",
+            "url": "https://api.github.com/repos/symfony/HttpFoundation/zipball/32ca1659e64bff5df61668e137bb3c3f64b7ce55",
+            "reference": "32ca1659e64bff5df61668e137bb3c3f64b7ce55",
             "shasum": ""
         },
         "require": {
@@ -322,7 +520,7 @@
         "require-dev": {
             "symfony/expression-language": "~2.4"
         },
-        "time": "2014-05-26 19:02:40",
+        "time": "2014-07-15 14:15:12",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -359,18 +557,18 @@
     },
     {
         "name": "symfony/event-dispatcher",
-        "version": "v2.5.0",
-        "version_normalized": "2.5.0.0",
+        "version": "v2.5.2",
+        "version_normalized": "2.5.2.0",
         "target-dir": "Symfony/Component/EventDispatcher",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/EventDispatcher.git",
-            "reference": "cb62ec8dd05893fc8e4f0e6e21e326e1fc731fe8"
+            "reference": "2215d2ef6fd7ab24d55576a3d924df575c741762"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/cb62ec8dd05893fc8e4f0e6e21e326e1fc731fe8",
-            "reference": "cb62ec8dd05893fc8e4f0e6e21e326e1fc731fe8",
+            "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/2215d2ef6fd7ab24d55576a3d924df575c741762",
+            "reference": "2215d2ef6fd7ab24d55576a3d924df575c741762",
             "shasum": ""
         },
         "require": {
@@ -386,7 +584,7 @@
             "symfony/dependency-injection": "",
             "symfony/http-kernel": ""
         },
-        "time": "2014-04-29 10:13:57",
+        "time": "2014-07-09 09:05:48",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -625,153 +823,17 @@
         ]
     },
     {
-        "name": "react/stream",
-        "version": "v0.3.4",
-        "version_normalized": "0.3.4.0",
-        "target-dir": "React/Stream",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/stream.git",
-            "reference": "feef56628afe3fa861f0da5f92c909e029efceac"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/stream/zipball/feef56628afe3fa861f0da5f92c909e029efceac",
-            "reference": "feef56628afe3fa861f0da5f92c909e029efceac",
-            "shasum": ""
-        },
-        "require": {
-            "evenement/evenement": "1.0.*",
-            "php": ">=5.3.3"
-        },
-        "suggest": {
-            "react/event-loop": "0.3.*",
-            "react/promise": "~1.0"
-        },
-        "time": "2014-02-16 19:48:52",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "0.3-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "React\\Stream": ""
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Basic readable and writable stream interfaces that support piping.",
-        "keywords": [
-            "pipe",
-            "stream"
-        ]
-    },
-    {
-        "name": "react/event-loop",
-        "version": "v0.3.4",
-        "version_normalized": "0.3.4.0",
-        "target-dir": "React/EventLoop",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/event-loop.git",
-            "reference": "235cddfa999a392e7d63dc9bef2e042492608d9f"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/event-loop/zipball/235cddfa999a392e7d63dc9bef2e042492608d9f",
-            "reference": "235cddfa999a392e7d63dc9bef2e042492608d9f",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.3"
-        },
-        "suggest": {
-            "ext-libev": "*",
-            "ext-libevent": ">=0.0.5"
-        },
-        "time": "2013-07-21 02:23:09",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "0.3-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "React\\EventLoop": ""
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Event loop abstraction layer that libraries can use for evented I/O.",
-        "keywords": [
-            "event-loop"
-        ]
-    },
-    {
-        "name": "react/socket",
-        "version": "v0.3.4",
-        "version_normalized": "0.3.4.0",
-        "target-dir": "React/Socket",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/socket.git",
-            "reference": "19bc0c4309243717396022ffb2e59be1cc784327"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/socket/zipball/19bc0c4309243717396022ffb2e59be1cc784327",
-            "reference": "19bc0c4309243717396022ffb2e59be1cc784327",
-            "shasum": ""
-        },
-        "require": {
-            "evenement/evenement": "1.0.*",
-            "php": ">=5.3.3",
-            "react/event-loop": "0.3.*",
-            "react/stream": "0.3.*"
-        },
-        "time": "2014-02-17 22:32:00",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "0.3-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "React\\Socket": ""
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Library for building an evented socket server.",
-        "keywords": [
-            "Socket"
-        ]
-    },
-    {
         "name": "cboden/ratchet",
         "version": "v0.3.2",
         "version_normalized": "0.3.2.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/cboden/Ratchet.git",
+            "url": "https://github.com/ratchetphp/Ratchet.git",
             "reference": "d36a8699df04354147a4f47845035b1ea8239189"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/cboden/Ratchet/zipball/d36a8699df04354147a4f47845035b1ea8239189",
+            "url": "https://api.github.com/repos/ratchetphp/Ratchet/zipball/d36a8699df04354147a4f47845035b1ea8239189",
             "reference": "d36a8699df04354147a4f47845035b1ea8239189",
             "shasum": ""
         },
@@ -812,108 +874,46 @@
         ]
     },
     {
-        "name": "symfony/process",
-        "version": "v2.5.0",
-        "version_normalized": "2.5.0.0",
-        "target-dir": "Symfony/Component/Process",
+        "name": "fsi/acl",
+        "version": "0.9.3",
+        "version_normalized": "0.9.3.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/symfony/Process.git",
-            "reference": "5d7d78e23894544740219e006320678cfa4cd45b"
+            "url": "https://github.com/fsi-open/acl.git",
+            "reference": "553ec2367e29b9deac94a55d7449c53a9463e4ab"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/Process/zipball/5d7d78e23894544740219e006320678cfa4cd45b",
-            "reference": "5d7d78e23894544740219e006320678cfa4cd45b",
+            "url": "https://api.github.com/repos/fsi-open/acl/zipball/553ec2367e29b9deac94a55d7449c53a9463e4ab",
+            "reference": "553ec2367e29b9deac94a55d7449c53a9463e4ab",
             "shasum": ""
         },
         "require": {
-            "php": ">=5.3.3"
+            "php": ">=5.3.0"
         },
-        "time": "2014-05-23 09:02:52",
+        "require-dev": {
+            "monolog/monolog": "1.2.*"
+        },
+        "time": "2012-12-07 15:34:51",
         "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "2.5-dev"
-            }
-        },
         "installation-source": "dist",
         "autoload": {
             "psr-0": {
-                "Symfony\\Component\\Process\\": ""
+                "FSi\\Component\\ACL": "lib/"
             }
         },
         "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
         "authors": [
             {
-                "name": "Fabien Potencier",
-                "email": "fabien@symfony.com",
-                "homepage": "http://fabien.potencier.org",
-                "role": "Lead Developer"
-            },
-            {
-                "name": "Symfony Community",
-                "homepage": "http://symfony.com/contributors"
+                "name": "Lukasz Cybula",
+                "email": "lukasz@fsi.pl"
             }
         ],
-        "description": "Symfony Process Component",
-        "homepage": "http://symfony.com"
-    },
-    {
-        "name": "gitonomy/gitlib",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/gitonomy/gitlib.git",
-            "reference": "e270521291c3999160d09dff97c81df839b7e6dd"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/gitonomy/gitlib/zipball/e270521291c3999160d09dff97c81df839b7e6dd",
-            "reference": "e270521291c3999160d09dff97c81df839b7e6dd",
-            "shasum": ""
-        },
-        "require": {
-            "symfony/process": "~2.4"
-        },
-        "require-dev": {
-            "psr/log": "~1"
-        },
-        "suggest": {
-            "psr/log": "Add some log"
-        },
-        "time": "2014-05-18 16:34:37",
-        "type": "library",
-        "installation-source": "source",
-        "autoload": {
-            "psr-0": {
-                "Gitonomy\\Git": [
-                    "src/",
-                    "tests/"
-                ]
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Alexandre Salomé",
-                "email": "alexandre.salome@gmail.com",
-                "homepage": "http://alexandre-salome.fr"
-            },
-            {
-                "name": "Julien DIDIER",
-                "email": "genzo.wm@gmail.com",
-                "homepage": "http://www.jdidier.net"
-            }
-        ],
-        "description": "Library for accessing git",
-        "homepage": "http://gitonomy.com"
+        "description": "FSi ACL Component",
+        "keywords": [
+            "acl",
+            "component",
+            "fsi"
+        ]
     }
 ]

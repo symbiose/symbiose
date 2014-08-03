@@ -1,0 +1,15 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = git://github.com/gitonomy/gitlib.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+	pushurl = git@github.com:gitonomy/gitlib.git
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[remote "composer"]
+	url = git://github.com/gitonomy/gitlib.git
+	fetch = +refs/heads/*:refs/remotes/composer/*

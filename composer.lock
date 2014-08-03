@@ -11,12 +11,12 @@
             "version": "v0.3.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/cboden/Ratchet.git",
+                "url": "https://github.com/ratchetphp/Ratchet.git",
                 "reference": "d36a8699df04354147a4f47845035b1ea8239189"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cboden/Ratchet/zipball/d36a8699df04354147a4f47845035b1ea8239189",
+                "url": "https://api.github.com/repos/ratchetphp/Ratchet/zipball/d36a8699df04354147a4f47845035b1ea8239189",
                 "reference": "d36a8699df04354147a4f47845035b1ea8239189",
                 "shasum": ""
             },
@@ -142,12 +142,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/gitonomy/gitlib.git",
-                "reference": "e270521291c3999160d09dff97c81df839b7e6dd"
+                "reference": "7a46107cfb8552b312101e0d5906e95d54d7ddc6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gitonomy/gitlib/zipball/e270521291c3999160d09dff97c81df839b7e6dd",
-                "reference": "e270521291c3999160d09dff97c81df839b7e6dd",
+                "url": "https://api.github.com/repos/gitonomy/gitlib/zipball/7a46107cfb8552b312101e0d5906e95d54d7ddc6",
+                "reference": "7a46107cfb8552b312101e0d5906e95d54d7ddc6",
                 "shasum": ""
             },
             "require": {
@@ -186,7 +186,7 @@
             ],
             "description": "Library for accessing git",
             "homepage": "http://gitonomy.com",
-            "time": "2014-05-18 16:34:37"
+            "time": "2014-07-13 19:02:31"
         },
         {
             "name": "guzzle/common",
@@ -416,7 +416,7 @@
             "authors": [
                 {
                     "name": "Anthony Ferrara",
-                    "email": "ircmaxell@php.net",
+                    "email": "ircmaxell@ircmaxell.com",
                     "homepage": "http://blog.ircmaxell.com"
                 }
             ],
@@ -613,17 +613,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symbiose/php-websocket-client.git",
-                "reference": "0638e1477536134683ca82d5c487d0a0590f05f2"
+                "reference": "6300893ada2280355afe2b8692dce520ae12c4e4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symbiose/php-websocket-client/zipball/0638e1477536134683ca82d5c487d0a0590f05f2",
-                "reference": "0638e1477536134683ca82d5c487d0a0590f05f2",
+                "url": "https://api.github.com/repos/symbiose/php-websocket-client/zipball/6300893ada2280355afe2b8692dce520ae12c4e4",
+                "reference": "6300893ada2280355afe2b8692dce520ae12c4e4",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.9",
-                "react/socket": "0.3.*"
+                "react/socket": "0.3.*|0.4.*"
             },
             "require-dev": {
                 "cboden/ratchet": "0.3.*",
@@ -641,11 +641,11 @@
             ],
             "authors": [
                 {
-                    "name": "Gabriel Bull",
-                    "email": "gavroche.bull@gmail.com"
+                    "name": "Simon Ser"
                 },
                 {
-                    "name": "Simon Ser"
+                    "name": "Gabriel Bull",
+                    "email": "gavroche.bull@gmail.com"
                 }
             ],
             "description": "A simple PHP WebSocket Client",
@@ -654,21 +654,21 @@
                 "client",
                 "websocket"
             ],
-            "time": "2014-01-28 16:44:27"
+            "time": "2014-07-08 06:12:34"
         },
         {
             "name": "symfony/event-dispatcher",
-            "version": "v2.5.0",
+            "version": "v2.5.2",
             "target-dir": "Symfony/Component/EventDispatcher",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/EventDispatcher.git",
-                "reference": "cb62ec8dd05893fc8e4f0e6e21e326e1fc731fe8"
+                "reference": "2215d2ef6fd7ab24d55576a3d924df575c741762"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/cb62ec8dd05893fc8e4f0e6e21e326e1fc731fe8",
-                "reference": "cb62ec8dd05893fc8e4f0e6e21e326e1fc731fe8",
+                "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/2215d2ef6fd7ab24d55576a3d924df575c741762",
+                "reference": "2215d2ef6fd7ab24d55576a3d924df575c741762",
                 "shasum": ""
             },
             "require": {
@@ -713,21 +713,21 @@
             ],
             "description": "Symfony EventDispatcher Component",
             "homepage": "http://symfony.com",
-            "time": "2014-04-29 10:13:57"
+            "time": "2014-07-09 09:05:48"
         },
         {
             "name": "symfony/http-foundation",
-            "version": "v2.5.0",
+            "version": "v2.5.2",
             "target-dir": "Symfony/Component/HttpFoundation",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/HttpFoundation.git",
-                "reference": "044085422005aa3258fb3f710a7bf0202011f259"
+                "reference": "32ca1659e64bff5df61668e137bb3c3f64b7ce55"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/HttpFoundation/zipball/044085422005aa3258fb3f710a7bf0202011f259",
-                "reference": "044085422005aa3258fb3f710a7bf0202011f259",
+                "url": "https://api.github.com/repos/symfony/HttpFoundation/zipball/32ca1659e64bff5df61668e137bb3c3f64b7ce55",
+                "reference": "32ca1659e64bff5df61668e137bb3c3f64b7ce55",
                 "shasum": ""
             },
             "require": {
@@ -768,21 +768,21 @@
             ],
             "description": "Symfony HttpFoundation Component",
             "homepage": "http://symfony.com",
-            "time": "2014-05-26 19:02:40"
+            "time": "2014-07-15 14:15:12"
         },
         {
             "name": "symfony/process",
-            "version": "v2.5.0",
+            "version": "v2.5.2",
             "target-dir": "Symfony/Component/Process",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Process.git",
-                "reference": "5d7d78e23894544740219e006320678cfa4cd45b"
+                "reference": "5e53efbf61a7fbf73c79e3e08feea50f64c20bfa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Process/zipball/5d7d78e23894544740219e006320678cfa4cd45b",
-                "reference": "5d7d78e23894544740219e006320678cfa4cd45b",
+                "url": "https://api.github.com/repos/symfony/Process/zipball/5e53efbf61a7fbf73c79e3e08feea50f64c20bfa",
+                "reference": "5e53efbf61a7fbf73c79e3e08feea50f64c20bfa",
                 "shasum": ""
             },
             "require": {
@@ -817,21 +817,21 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "http://symfony.com",
-            "time": "2014-05-23 09:02:52"
+            "time": "2014-07-09 09:05:48"
         },
         {
             "name": "symfony/routing",
-            "version": "v2.5.0",
+            "version": "v2.5.2",
             "target-dir": "Symfony/Component/Routing",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Routing.git",
-                "reference": "99b4e8e2978e6a08c086fd771cc0aa66c9e80a56"
+                "reference": "24d5f003a794894513d67c888181ba8c3b8e0693"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Routing/zipball/99b4e8e2978e6a08c086fd771cc0aa66c9e80a56",
-                "reference": "99b4e8e2978e6a08c086fd771cc0aa66c9e80a56",
+                "url": "https://api.github.com/repos/symfony/Routing/zipball/24d5f003a794894513d67c888181ba8c3b8e0693",
+                "reference": "24d5f003a794894513d67c888181ba8c3b8e0693",
                 "shasum": ""
             },
             "require": {
@@ -885,7 +885,7 @@
                 "uri",
                 "url"
             ],
-            "time": "2014-04-23 14:08:54"
+            "time": "2014-07-09 09:05:48"
         }
     ],
     "packages-dev": [],
@@ -897,6 +897,7 @@
         "ircmaxell/password-compat": 20,
         "gitonomy/gitlib": 20
     },
+    "prefer-stable": false,
     "platform": {
         "php": ">=5.3.0"
     },

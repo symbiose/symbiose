@@ -13,6 +13,7 @@ use \Exception;
  */
 class PeerHttpServer implements HttpServerInterface {
 	const PEERID_LENGTH = 10;
+	const ALLOW_DISCOVERY = 1;
 
 	protected $peerServer;
 
@@ -51,6 +52,20 @@ class PeerHttpServer implements HttpServerInterface {
 
 				$respBody = $peerId;
 				break;
+			case 'peers':
+				if (self::ALLOW_DISCOVERY) {
+					$peers = $this->peerServer->listPeers();
+					$list = array();
+
+					foreach ($peers as $peer) {
+						$list[] = $peer['id'];
+					}
+
+					$respBody = $list;
+				} else {
+					$respStatus = 401; // Access denied
+				}
+				break;
 			case 'offer':
 			case 'candidate':
 			case 'answer':
@@ -58,6 +73,11 @@ class PeerHttpServer implements HttpServerInterface {
 				//TODO: start streaming?
 			default:
 				$respStatus = 400; //Bad request
+		}
+
+		if (is_array($respBody)) { // Encode to JSON
+			$respHeaders['Content-Type'] = 'application/json';
+			$respBody = json_encode($respBody);
 		}
 
 		//Send response

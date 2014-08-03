@@ -1,0 +1,8 @@
+# pack-refs with: peeled fully-peeled 
+c91b1168bc53c26f56fc65f16958b5be45ca5dc9 refs/remotes/origin/master
+743710e7d6e463bc4f0a3f1151334e93e8f72050 refs/remotes/origin/nicholas-grekas-xor-fix
+1fc1521b5e9794ea77e4eca30717be9635f1d4f4 refs/remotes/origin/v1.0
+58151cf24e73119576c2a016393120f9c146448b refs/tags/v1.0.0
+9995cba36810f8251ec12b712c752d6c782f5438 refs/tags/v1.0.1
+0d336a72f1012a375aa3215e7f3e75e58eaad31b refs/tags/v1.0.2
+1fc1521b5e9794ea77e4eca30717be9635f1d4f4 refs/tags/v1.0.3

@@ -60,6 +60,7 @@ foreach ($hostnames as $host) {
 	//PeerJS server. Accessible from all origins
 	$app->route('/peerjs', $decoratedPeerServer, array('*'), $host);
 	$app->route('/peerjs/id', $peerHttpServer, array('*'), $host);
+	$app->route('/peerjs/peers', $peerHttpServer, array('*'), $host);
 	$app->route('/peerjs/{id}/{token}/id', $peerHttpServer, array('*'), $host);
 	$app->route('/peerjs/{id}/{token}/offer', $peerHttpServer, array('*'), $host);
 	$app->route('/peerjs/{id}/{token}/candidate', $peerHttpServer, array('*'), $host);
