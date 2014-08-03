@@ -59,6 +59,14 @@ $.webos.widget = function(widgetName) {
 
 	var fullWidgetName = $.webos.widget.namespace() + '.' + widgetName;
 	if (parentWidget) {
+		if (parentWidget.prototype.widgetClasses) {
+			if (properties.widgetClasses) {
+				properties.widgetClasses += ' '+parentWidget.prototype.widgetClasses;
+			} else {
+				properties.widgetClasses = parentWidget.prototype.widgetClasses;
+			}
+		}
+
 		$.widget(fullWidgetName, parentWidget, properties);
 	} else {
 		$.widget(fullWidgetName, properties);
@@ -272,6 +280,10 @@ $.webos.widget.prototype = {
 		}
 		this.element.addClass('webos-'+this._name);
 		this.element.attr('id', 'webos-widget-'+this.options.id);
+
+		if (this.widgetClasses) {
+			this.element.addClass(this.widgetClasses);
+		}
 	},
 	/**
 	 * Get this widget's id.
@@ -1306,25 +1318,31 @@ $.webos.progressbar = function(value) {
  */
 $.webos.progressbar.prototype = {
 	_name: 'progressbar',
+	widgetClasses: 'progress',
 	/**
 	 * Options:
 	 *  - _Number_ `value`: the progress bar value
 	 * @type {Object}
 	 */
 	options: {
-		value: 0
+		value: 0,
+		label: ''
 	},
 	_create: function() {
 		this._super('_create');
 		
-		this.options._content = $('<div></div>').appendTo(this.element);
-		this.element.append(this.content());
-		this.value(this.options.value);
+		this.options._content = $('<div></div>').addClass('progress-bar').appendTo(this.element);
+
+		this.option('value', this.options.value);
+		this.option('label', this.options.label);
 	},
 	_update: function(key, value) {
 		switch(key) {
 			case 'value':
 				this.value(value);
+				break;
+			case 'label':
+				this.content().html(value);
 				break;
 		}
 	},
@@ -1367,7 +1385,8 @@ $.webos.buttonContainer = function() {
  * A button container.
  */
 $.webos.buttonContainer.prototype = {
-	_name: 'button-container'
+	_name: 'button-container',
+	//widgetClasses: 'btn-toolbar'
 };
 $.webos.widget('buttonContainer', 'container');
 
@@ -1383,7 +1402,8 @@ $.webos.buttonGroup = function() {
  * A button container.
  */
 $.webos.buttonGroup.prototype = {
-	_name: 'button-group'
+	_name: 'button-group',
+	widgetClasses: 'btn-group'
 };
 $.webos.widget('buttonGroup', 'container');
 
@@ -1395,7 +1415,7 @@ $.webos.widget('buttonGroup', 'container');
  * @augments $.webos.container
  */
 $.webos.button = function(label, submit) {
-	return $('<span></span>').button({
+	return $('<button></button>').button({
 		label: label,
 		submit: submit
 	});
@@ -1421,6 +1441,7 @@ $.webos.button.prototype = {
 		showLabel: true
 	},
 	_name: 'button',
+	widgetClasses: 'btn btn-default',
 	_create: function() {
 		this._super('_create');
 
@@ -1480,10 +1501,10 @@ $.webos.button.prototype = {
 		} else {
 			this.options.disabled = (value) ? true : false;
 			if (!this.element.is('.disabled') && this.options.disabled) {
-				this.element.addClass('disabled cursor-default');
+				this.element.addClass('disabled cursor-default').attr('disabled', 'disabled');
 			}
 			if (this.element.is('.disabled') && !this.options.disabled) {
-				this.element.removeClass('disabled cursor-default');
+				this.element.removeClass('disabled cursor-default').removeAttr('disabled');
 			}
 		}
 	}
@@ -2111,6 +2132,7 @@ $.webos.entryContainer = function() {
  */
 $.webos.entryContainer.prototype = {
 	_name: 'entry-container',
+	widgetClasses: 'form-horizontal',
 	_create: function() {
 		this._super('_create');
 		
@@ -2144,6 +2166,7 @@ $.webos.entry.prototype = {
 		disabled: false
 	},
 	_name: 'entry',
+	widgetClasses: 'form-group',
 	_create: function() {
 		this._super('_create');
 		
@@ -2319,7 +2342,7 @@ $.webos.textEntry.prototype = {
 	_create: function() {
 		this._super('_create');
 
-		this.options._content = $('<input />', { type: 'text' });
+		this.options._content = $('<input />', { type: 'text' }).addClass('form-control');
 		this.element.append(this.options._content);
 
 		this.value(this.options.value);
@@ -2434,7 +2457,7 @@ $.webos.searchEntry.prototype = {
 	_create: function() {
 		this._super('_create');
 		
-		this.options._content = $('<input />', { type: 'text' });
+		this.options._content = $('<input />', { type: 'text' }).addClass('form-control');
 		this.element.append(this.options._content);
 
 		this.value(this.options.value);
@@ -2462,7 +2485,7 @@ $.webos.passwordEntry.prototype = {
 	_create: function() {
 		this._super('_create');
 		
-		this.options._content = $('<input />', { type: 'password' });
+		this.options._content = $('<input />', { type: 'password' }).addClass('form-control');
 		this.element.append(this.options._content);
 
 		this.option('disabled', this.options.disabled);
@@ -2506,7 +2529,7 @@ $.webos.numberEntry.prototype = {
 	_create: function() {
 		this._super('_create');
 		
-		this.options._content = $('<input />', { type: 'number' });
+		this.options._content = $('<input />', { type: 'number' }).addClass('form-control');
 		this.element.append(this.options._content);
 		
 		this.option('min', this.options.min);
@@ -2565,7 +2588,7 @@ $.webos.emailEntry.prototype = {
 	_create: function() {
 		this._super('_create');
 		
-		this.options._content = $('<input />', { type: 'email' });
+		this.options._content = $('<input />', { type: 'email' }).addClass('form-control');
 		this.element.append(this.options._content);
 
 		this.value(this.options.value);
@@ -2709,13 +2732,14 @@ $.webos.radioButton.prototype = {
 		value: false
 	},
 	_create: function() {
+		var that = this;
+
 		this._super('_create');
 		
 		this.options._content = $('<input />', { type: 'radio' }).change(function() {
-			$(this).parents('.webos-radiobutton-container').first().find(':checked').not(this).prop('checked', false);
-		});
-		
-		this.element.prepend(this.options._content);
+			that.option('value', $(this).prop('checked'));
+		}).prependTo(this.element);
+
 		this.value(this.options.value);
 		this.option('disabled', this.options.disabled);
 
@@ -2724,7 +2748,7 @@ $.webos.radioButton.prototype = {
 				return;
 			}
 
-			that.option('value', !that.options.value);
+			that.option('value', true);
 		});
 	},
 	value: function(value) {
@@ -2732,6 +2756,8 @@ $.webos.radioButton.prototype = {
 			return this.content().prop('checked');
 		} else {
 			this.options.value = (value) ? true : false;
+
+			this.content().parents('.webos-radiobutton-container').first().find(':checked').prop('checked', false);
 			this.content().prop('checked', this.options.value);
 		}
 	}
@@ -2766,7 +2792,7 @@ $.webos.selectButton.prototype = {
 	_create: function() {
 		this._super('_create');
 		
-		this.options._content = $('<select></select>').appendTo(this.element);
+		this.options._content = $('<select></select>').addClass('form-control').appendTo(this.element);
 		this._setChoices(this.options.choices);
 
 		this.value(this.options.value);
@@ -3104,7 +3130,8 @@ $.webos.tabs.prototype = {
 		}
 
 		this.options._components.tabs.on('click', 'li.tab-btn', function(e) {
-			that.option('selectedTab', $(this).index('li.tab-btn'));
+			var foreignNbr = that.options._components.tabs.children().filter(':not(li.tab-btn)').length;
+			that.option('selectedTab', $(this).index() - foreignNbr);
 		});
 	},
 	/**

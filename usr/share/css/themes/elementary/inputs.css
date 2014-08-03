@@ -18,7 +18,8 @@ input[type="number"]:focus, input[type="email"]:focus {
 	outline: none;
 }
 
-.webos-text-entry.error input, .webos-password-entry.error input, .webos-textarea-entry.error textarea {
+.webos-text-entry.error input, .webos-password-entry.error input, .webos-textarea-entry.error textarea,
+.has-error .form-control {
 	border-color: #b30000;
 }
 
@@ -26,7 +27,7 @@ input[type="number"]:focus, input[type="email"]:focus {
 	background: url('usr/share/images/themes/adwaita/search.png') no-repeat center right white;
 }
 
-input[type="button"], input[type="submit"], .webos-button { 
+input[type="button"], input[type="submit"], .webos-button, .btn { 
 	min-height: 25px;
 	font-size: 1.1em;
 	font-weight: normal;
@@ -51,7 +52,7 @@ input[type="button"], input[type="submit"], .webos-button {
 	user-select: none;
 }
 
-input[type="button"], .webos-button {
+input[type="button"], .webos-butto, .btn-default {
 	color: #505156;
 	border-color: #979797;
 	background-color: #ececec;
@@ -60,13 +61,13 @@ input[type="button"], .webos-button {
 	background: linear-gradient(#fbfbfb, #dedede);
 	box-shadow: inset 0 0 1px 1px #e7e7e7;
 }
-input[type="button"]:hover, .webos-button:hover {
+input[type="button"]:hover, .webos-button:hover, .btn-default:hover {
 	background: -moz-linear-gradient(white, #e8e8e8);
 	background: -webkit-linear-gradient(white, #e8e8e8);
 	background: linear-gradient(white, #e8e8e8);
 }
-input[type="button"]:active, .webos-button:active,
-input[type="button"].active, .webos-button.active {
+input[type="button"]:active, .webos-button:active, .btn-default:active,
+input[type="button"].active, .webos-button.active, .btn-default.active {
 	background: -moz-linear-gradient(#c4c4c4, #cbcbcb);
 	background: -webkit-linear-gradient(#c4c4c4, #cbcbcb);
 	background: linear-gradient(#c4c4c4, #cbcbcb);
@@ -76,7 +77,7 @@ input[type="button"].active, .webos-button.active {
 	box-shadow: inset 0 0 1px 1px #acacac;
 }
 
-input[type="submit"], .webos-button.submit { 
+input[type="submit"], .webos-button.submit, .btn-primary { 
 	color: white;
 	border: 1px solid #2a8ece;
 	background-color: #46a5e9;
@@ -85,14 +86,14 @@ input[type="submit"], .webos-button.submit {
 	background: linear-gradient(#52bbec, #368ae6);
 	box-shadow: inset 0 0 1px 1px #5bb5ec;
 }
-input[type="submit"]:hover, .webos-button.submit:hover {
+input[type="submit"]:hover, .webos-button.submit:hover, .btn-primary:hover {
 	background-color: #4aacea;
 	background: -moz-linear-gradient(#64c8ec, #3a91e7);
 	background: -webkit-linear-gradient(#64c8ec, #3a91e7);
 	background: linear-gradient(#64c8ec, #3a91e7);
 }
-input[type="submit"]:active, input[type="submit"].active,
-.webos-button.submit:active, .webos-button.submit.active {
+input[type="submit"]:active, .webos-button.submit:active, .btn-primary:active,
+input[type="submit"].active, .webos-button.submit.active, .btn-primary.active {
 	background-color: #3d96e7;
 	background: -moz-linear-gradient(#378ce6, #44a1e9);
 	background: -webkit-linear-gradient(#378ce6, #44a1e9);
@@ -108,7 +109,8 @@ input[type="submit"][disabled]:hover,
 input[type="submit"][disabled]:active,
 .webos-button.disabled,
 .webos-button.disabled:hover,
-.webos-button.disabled:active {
+.webos-button.disabled:active,
+.btn[disabled] {
 	border: 1px solid #b6b9b6;
 	color: #a8aca8;
 	background: #f4f4f2;
