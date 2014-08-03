@@ -87,6 +87,14 @@ class HTTPRequest {
 	}
 
 	/**
+	 * Get the remote address (i.e. the client IP address).
+	 * @return string The IP address.
+	 */
+	public function remoteAddress() {
+		return $_SERVER['REMOTE_ADDR'];
+	}
+
+	/**
 	 * Get this request's session.
 	 * @return Session 
 	 */

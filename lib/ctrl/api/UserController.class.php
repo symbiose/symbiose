@@ -11,6 +11,9 @@ use \lib\entities\Email;
  * @author $imon
  */
 class UserController extends \lib\ApiBackController {
+	const REGISTER_CONFIG = '/etc/register.json';
+	const EMAIL_CONFIG = '/etc/email.json';
+
 	// GETTERS
 
 	/**
@@ -95,6 +98,24 @@ class UserController extends \lib\ApiBackController {
 	}
 
 	/**
+	 * Get the configuration for registration.
+	 * @return Config The config file.
+	 */
+	protected function _getRegisterConfig() {
+		$configManager = $this->managers()->getManagerOf('config');
+		return $configManager->open(self::REGISTER_CONFIG);
+	}
+
+	/**
+	 * Get the configuration for emails.
+	 * @return Config The config file.
+	 */
+	protected function _getEmailConfig() {
+		$configManager = $this->managers()->getManagerOf('config');
+		return $configManager->open(self::EMAIL_CONFIG);
+	}
+
+	/**
 	 * Check if registration is enabled.
 	 * @return array An array containing the registration status.
 	 */
@@ -105,8 +126,7 @@ class UserController extends \lib\ApiBackController {
 		$canRegister = true;
 		$autoEnable = false;
 
-		$config = $configManager->open('/etc/register.json');
-		$configData = $config->read();
+		$configData = $this->_getRegisterConfig()->read();
 
 		$registrationEnabled = $configData['register'];
 		if (!$registrationEnabled) {
@@ -130,17 +150,14 @@ class UserController extends \lib\ApiBackController {
 	 */
 	public function executeCanResetPassword() {
 		$manager = $this->managers()->getManagerOf('user');
-		$configManager = $this->managers()->getManagerOf('config');
+		$config = $this->_getEmailConfig()->read();
 
-		$config = $configManager->open('/etc/email.json');
-		$configData = $config->read();
-
-		$mailEnabled = (isset($configData['enabled']) && $configData['enabled'] == true);
+		$mailEnabled = (isset($config['enabled']) && $config['enabled'] == true);
 		$resetPasswordEnabled = $mailEnabled;
 
-		$mailDelay = (isset($configData['delay']) && is_int($configData['delay'])) ? (int) $configData['delay'] : 120;
+		$mailDelay = (isset($config['delay']) && is_int($config['delay'])) ? (int) $config['delay'] : 120;
 
-		$mailFrom = $configData['from'];
+		$mailFrom = $config['from'];
 
 		return array(
 			'enabled' => $resetPasswordEnabled,
@@ -293,6 +310,7 @@ class UserController extends \lib\ApiBackController {
 		$manager = $this->managers()->getManagerOf('user');
 		$cryptoManager = $this->managers()->getManagerOf('crypto');
 		$user = $this->app()->user();
+		$config = $this->_getRegisterConfig()->read();
 
 		if ($user->isLogged()) {
 			$user->loggedOut();
@@ -305,11 +323,6 @@ class UserController extends \lib\ApiBackController {
 			throw new \RuntimeException('Bad username or password', 401);
 		}
 
-		//Check that the user is not disabled
-		if ($userData['disabled']) {
-			throw new \RuntimeException('User "'.$username.'" is disabled', 403);
-		}
-
 		//Password check
 		if (!$cryptoManager->verifyPassword($password, $userData['password'])) {
 			sleep(3); //Pause script for 3s to prevent bruteforce attacks
@@ -317,6 +330,17 @@ class UserController extends \lib\ApiBackController {
 			return;
 		}
 
+		//Check that the user is not disabled
+		if ($userData['disabled']) {
+			throw new \RuntimeException('User "'.$username.'" is disabled', 403);
+		}
+
+		//Check that the email is verified
+		if (isset($config['requireVerifiedEmail']) && $config['requireVerifiedEmail'] && !$userData['emailVerified']) {
+			throw new \RuntimeException('Your e-mail address has not been verified. Please check your e-mail inbox', 403);
+		}
+
+		//Does the password needs a rehash?
 		if ($cryptoManager->needsRehash($userData['password'])) {
 			$userData['password'] = $cryptoManager->hashPassword($password);
 			$manager->update($userData);
@@ -325,7 +349,7 @@ class UserController extends \lib\ApiBackController {
 		//Set the user as logged in
 		$user->loggedIn($userData['id'], $userData['username']);
 
-		//No home directory ?
+		//No home directory ? Create it.
 		$this->_checkHomeDir('/home/'.$username);
 
 		return $this->_userPublicAttributes($userData);
@@ -554,7 +578,9 @@ class UserController extends \lib\ApiBackController {
 	public function executeRegister($data, $captchaData) {
 		$manager = $this->managers()->getManagerOf('user');
 		$captchaManager = $this->managers()->getManagerOf('captcha');
-		$configManager = $this->managers()->getManagerOf('config');
+		$tokenManager = $this->managers()->getManagerOf('userToken');
+		$config = $this->_getRegisterConfig()->read();
+		$emailConfig = $this->_getEmailConfig()->read();
 
 		//Check captcha
 		$captcha = $captchaManager->get($captchaData['id']);
@@ -568,19 +594,77 @@ class UserController extends \lib\ApiBackController {
 			throw new \RuntimeException('Registration is currently disabled', 403);
 		}
 
-		//Retrieve default authorizations for new users
-		$config = $configManager->open('/etc/register.json');
-		$configData = $config->read();
-		$authorizations = $configData['authorizations'];
+		//Default authorizations for new users
+		$authorizations = $config['authorizations'];
 
 		//Create the new user
-		return $this->executeCreate(array(
+		$user = $this->executeCreate(array(
 			'username' => $data['username'],
 			'realname' => $data['realname'],
 			'password' => $data['password'],
 			'email' => $data['email'],
-			'disabled' => (isset($configData['autoEnable']) && $configData['autoEnable']) ? false : true
+			'disabled' => (isset($config['autoEnable']) && $config['autoEnable']) ? false : true
 		), $authorizations);
+
+		//Send an email after creation if possible
+		if ($emailConfig['enabled']) {
+			if (isset($config['requireVerifiedEmail']) && $config['requireVerifiedEmail']) {
+				//Create a new user token
+				$tokenData = array(
+					'userId' => $user['id'],
+					'key' => $tokenManager->generateToken(), //Generate token key
+					'timestamp' => time(),
+					'ip' => $this->app()->httpRequest()->remoteAddress()
+				);
+				$userToken = new UserToken($tokenData);
+				$tokenManager->insert($userToken);
+
+				//Send an e-mail with token key
+				$dict = $translationManager->load('webos');
+
+				//TODO: activation link
+				$subject = $dict->get('Confirm your account on ${webos}!', array('webos' => 'Symbiose'));
+				$message = '<html><head><title>'.$subject.'</title></head><body>'.
+					'<p>'.$dict->get('Hi ${realname},', array('realname' => $user['realname'])).'</p>'.
+					'<p>'.$dict->get('You just registered to ${webos}!', array('webos' => 'Symbiose')).'<br />'.
+					$dict->get('You must follow this link to activate your account: ${link}', array('link' => '')).'</p>'.
+					'<p>'.$dict->get('Thanks,').'<br />'.
+					$dict->get('The ${webos} team', array('webos' => 'Symbiose')).'</p></body></html>';
+			} else {
+				$subject = $dict->get('Welcome to ${webos}!', array('webos' => 'Symbiose'));
+				$message = '<html><head><title>'.$subject.'</title></head><body>'.
+					'<p>'.$dict->get('Hi ${realname},', array('realname' => $user['realname'])).'</p>'.
+					'<p>'.$dict->get('You just registered to ${webos}!', array('webos' => 'Symbiose')).'<br />'.
+					$dict->get('You could now be able to login on the web desktop from anywhere.').'</p>'.
+					'<p>'.$dict->get('Thanks,').'<br />'.
+					$dict->get('The ${webos} team', array('webos' => 'Symbiose')).'</p></body></html>';
+			}
+
+			$to = $user['email'];
+
+			$headers = 'MIME-Version: 1.0' . "\r\n";
+			$headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+			$headers .= 'To: '.$to . "\r\n";
+			$headers .= 'From: '.$emailConfig['from'] . "\r\n";
+
+			$email = new Email(array(
+				'to' => $user['email'],
+				'subject' => $subject,
+				'message' => $message,
+				'headers' => $headers
+			));
+
+			try {
+				$emailManager->send($email);
+			} catch (\Exception $e) { //Mail not sent
+				if (isset($userToken)) {
+					$tokenManager->delete($userToken['id']);
+				}
+				throw $e;
+			}
+		}
+
+		return $user;
 	}
 
 	public function executeSendResetPasswordRequest($email, $webosUrl) {
@@ -604,9 +688,9 @@ class UserController extends \lib\ApiBackController {
 
 		$newTokenData = array(
 			'userId' => $user['id'],
-			'key' => sha1(mt_rand() . '42' . microtime()), //Generate token key
+			'key' => $tokenManager->generateToken(), //Generate token key
 			'timestamp' => time(),
-			'ip' => $_SERVER['REMOTE_ADDR']
+			'ip' => $this->app()->httpRequest()->remoteAddress()
 		);
 
 		if (!empty($userToken)) { //The user has already a token

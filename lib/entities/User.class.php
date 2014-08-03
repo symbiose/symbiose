@@ -4,7 +4,7 @@ namespace lib\entities;
 use \InvalidArgumentException;
 
 class User extends \lib\Entity {
-	protected $username, $password, $realname, $email, $disabled;
+	protected $username, $password, $realname, $email, $emailVerified, $disabled;
 
 	// SETTERS
 
@@ -50,6 +50,14 @@ class User extends \lib\Entity {
 		$this->email = $email;
 	}
 
+	public function setEmailVerified($value) {
+		if (!is_bool($value)) {
+			throw new InvalidArgumentException('Invalid user email verified value "'.$value.'"');
+		}
+
+		$this->emailVerified = $value;
+	}
+
 	public function setDisabled($isDisabled) {
 		if (!is_bool($isDisabled)) {
 			throw new InvalidArgumentException('Invalid user disabled value "'.$isDisabled.'"');
@@ -74,6 +82,10 @@ class User extends \lib\Entity {
 
 	public function email() {
 		return $this->email;
+	}
+
+	public function emailVerified() {
+		return ($this->emailVerified == true) ? true : false;
 	}
 
 	public function disabled() {

@@ -30,6 +30,14 @@ abstract class UserTokenManager extends \lib\Manager {
 	 */
 	abstract public function userHasToken($userId);
 
+	/**
+	 * Generate a new token.
+	 * @return string The new token.
+	 */
+	public function generateToken() {
+		return sha1(mt_rand() . '42' . microtime());
+	}
+
 	// SETTERS
 
 	/**
