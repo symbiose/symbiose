@@ -19,6 +19,7 @@
 		"php": ">=5.3.0",
 		"cboden/Ratchet": "0.3.*",
 		"symbiose/websocket-client": "dev-master",
+		"guzzle/http": "~3.6",
 		"nitra/php-min": "dev-master",
 		"ircmaxell/password-compat": "dev-master",
 		"evenement/evenement": "1.0.*",

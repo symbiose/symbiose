@@ -448,7 +448,7 @@ class Client extends AbstractHasDispatcher implements ClientInterface
         }
 
         if ($authority === true && substr(__FILE__, 0, 7) == 'phar://') {
-            $authority = sys_get_temp_dir() . '/guzzle-cacert.pem';
+            $authority = self::extractPharCacert(__DIR__ . '/Resources/cacert.pem');
         }
 
         $this->setSslVerification($authority);
@@ -486,5 +486,39 @@ class Client extends AbstractHasDispatcher implements ClientInterface
     public function preparePharCacert($md5Check = true)
     {
         return sys_get_temp_dir() . '/guzzle-cacert.pem';
+    }
+
+    /**
+     * Copies the phar cacert from a phar into the temp directory.
+     *
+     * @param string $pharCacertPath Path to the phar cacert. For example:
+     *                               'phar://aws.phar/Guzzle/Http/Resources/cacert.pem'
+     *
+     * @return string Returns the path to the extracted cacert file.
+     * @throws \RuntimeException Throws if the phar cacert cannot be found or
+     *                           the file cannot be copied to the temp dir.
+     */
+    public static function extractPharCacert($pharCacertPath)
+    {
+        // Copy the cacert.pem file from the phar if it is not in the temp
+        // folder.
+        $certFile = sys_get_temp_dir() . '/guzzle-cacert.pem';
+
+        if (!file_exists($pharCacertPath)) {
+            throw new \RuntimeException("Could not find $pharCacertPath");
+        }
+
+        if (!file_exists($certFile) ||
+            filesize($certFile) != filesize($pharCacertPath)
+        ) {
+            if (!copy($pharCacertPath, $certFile)) {
+                throw new \RuntimeException(
+                    "Could not copy {$pharCacertPath} to {$certFile}: "
+                    . var_export(error_get_last(), true)
+                );
+            }
+        }
+
+        return $certFile;
     }
 }

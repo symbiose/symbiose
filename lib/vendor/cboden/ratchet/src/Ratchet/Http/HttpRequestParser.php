@@ -37,7 +37,6 @@ class HttpRequestParser implements MessageInterface {
         }
 
         if ($this->isEom($context->httpBuffer)) {
-            var_dump($context->httpBuffer);
             $request = RequestFactory::getInstance()->fromMessage($context->httpBuffer);
 
             unset($context->httpBuffer);
