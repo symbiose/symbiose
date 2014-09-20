@@ -32,6 +32,12 @@ abstract class Application {
 	protected $name;
 
 	/**
+	 * True if this app is emulated, false otherwise.
+	 * @var boolean
+	 */
+	protected $emulated = false;
+
+	/**
 	 * Initialize a new application.
 	 */
 	public function __construct() {
@@ -54,6 +60,20 @@ abstract class Application {
 		$controllerClass = 'lib\\ctrl\\'.$this->name.'\\'.ucfirst($module).'Controller';
 
 		return new $controllerClass($this, $module, $action);
+	}
+
+	/**
+	 * Emulate this application.
+	 */
+	public function emulate(array $data, HTTPRequest $httpRequest = null, HTTPResponse $httpResponse = null) {
+		$this->emulated = true;
+
+		if (!empty($httpRequest)) {
+			$this->httpRequest = $httpRequest;
+		}
+		if (!empty($httpResponse)) {
+			$this->httpResponse = $httpResponse;
+		}
 	}
 
 	/**

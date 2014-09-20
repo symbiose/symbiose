@@ -61,6 +61,7 @@ class UserInterfaceBooter extends \lib\Application {
 		$resp = new RawResponse();
 		$resp->setValue($out);
 
+		$this->httpResponse->addHeader('Content-Type: text/html');
 		$this->httpResponse->setContent($resp);
 	}
 }

@@ -2,9 +2,12 @@
 require_once(dirname(__FILE__).'/../boot/ini.php');
 
 use \Memcache;
+use Symfony\Component\Routing\Route;
 use Ratchet\App;
 use Ratchet\Session\SessionProvider as RatchetSessionProvider;
+use Ratchet\Http\HttpServer;
 use Ratchet\Wamp\WampServer;
+use lib\HttpServer as WebosHttpServer;
 use lib\ApiWebSocketServer;
 use lib\PeerServer;
 use lib\PeerHttpServer;
@@ -39,6 +42,7 @@ $sessionProvider = new SessionProvider;
 $sessionHandler = $sessionProvider->handler();
 
 //Servers
+$httpServer = new WebosHttpServer($sessionHandler);
 $apiServer = new ApiWebSocketServer;
 $decoratedApiServer = new RatchetSessionProvider(new WampServer($apiServer), $sessionHandler);
 $peerServer = new PeerServer($hostnames[0], $port);
@@ -54,8 +58,8 @@ PeerController::setApiServer($apiServer);
 $app = new App($hostnames[0], $port, '0.0.0.0');
 
 foreach ($hostnames as $host) {
-	//Webos' API. Accessible from the same origin only
-	$app->route('/api', $decoratedApiServer, array(), $host);
+	//Webos' API
+	$app->route('/api', $decoratedApiServer, array('*'), $host);
 
 	//PeerJS server. Accessible from all origins
 	$app->route('/peerjs', $decoratedPeerServer, array('*'), $host);
@@ -66,6 +70,9 @@ foreach ($hostnames as $host) {
 	$app->route('/peerjs/{id}/{token}/candidate', $peerHttpServer, array('*'), $host);
 	$app->route('/peerjs/{id}/{token}/answer', $peerHttpServer, array('*'), $host);
 	$app->route('/peerjs/{id}/{token}/leave', $peerHttpServer, array('*'), $host);
+
+	// Built-in HTTP server
+	$app->route(new Route('/{any}', array(), array('any' => '.*')), $httpServer, array('*'), $host);
 }
 
 $app->run(); //Start the server

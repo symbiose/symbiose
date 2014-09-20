@@ -2,7 +2,6 @@
 namespace lib;
 
 use Ratchet\Http\HttpServerInterface;
-use Ratchet\Http\HttpServer;
 use Ratchet\ConnectionInterface;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;

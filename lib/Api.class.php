@@ -55,12 +55,15 @@ class Api extends \lib\Application {
 	 * Emulate this API.
 	 * @param  array $data The data.
 	 */
-	public function emulate(array $data, HTTPRequest $httpRequest = null) {
+	public function emulate(array $data, HTTPRequest $req = null, HTTPResponse $res = null) {
 		$this->emulated = true;
 		$this->emulatedData = $data;
 
-		if (!empty($httpRequest)) {
-			$this->httpRequest = $httpRequest;
+		if (!empty($req)) {
+			$this->httpRequest = $req;
+		}
+		if (!empty($res)) {
+			$this->httpResponse = $res;
 		}
 	}
 
@@ -99,9 +102,9 @@ class Api extends \lib\Application {
 
 		$resp = $controller->responseContent();
 
-		if (!$this->emulated()) { //Do not set headers if the API si emulated
-			$this->httpResponse->addHeader('Content-Type: application/json');
+		$this->httpResponse->addHeader('Content-Type: application/json');
 
+		if (!$this->emulated()) { //Do not set headers if the API is emulated
 			if ($resp->cacheable()) {
 				$this->httpResponse->setCacheable();
 			}

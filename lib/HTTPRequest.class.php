@@ -95,6 +95,14 @@ class HTTPRequest {
 	}
 
 	/**
+	 * Get accepted languages.
+	 * @return string The Accept-Language HTTP header.
+	 */
+	public function acceptLanguage() {
+		return $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+	}
+
+	/**
 	 * Get this request's session.
 	 * @return Session 
 	 */

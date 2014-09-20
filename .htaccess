@@ -9,7 +9,6 @@ RewriteEngine on
 RewriteRule ^([a-zA-Z0-9-_.]+)\.html$                index.php?ui=$1 [L,QSA]
 RewriteRule ^webos\.webapp$                          sbin/manifestcall.php?type=firefox [L,QSA]
 RewriteRule ^api/(.*)$                               sbin/apicall.php?path=$1 [L,QSA]
-RewriteRule ^ws/?$                                   sbin/wsserver.php [L,QSA]
 RewriteRule ^(bin|boot|etc|home|tmp|usr|var)/(.*)$   sbin/rawdatacall.php?type=file&path=/$1/$2 [L,QSA]
 
 # Common media mime types

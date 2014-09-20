@@ -19,6 +19,8 @@ class HTTPResponse {
 	 */
 	protected $length = 0;
 
+	protected $outputCallback;
+
 	/**
 	 * Add a HTTP header.
 	 * @param string $header The header to add.

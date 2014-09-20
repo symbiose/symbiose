@@ -32,7 +32,9 @@ class IconController extends \lib\RawBackController {
 		$httpResponse->addHeader('Last-Modified: ' . gmdate('D, d M Y H:i:s T', $fileMtime));
 
 		$out = $fileManager->read($filePath);
-		$this->responseContent->setValue($out);
+		$httpResponse->addHeader('Content-Length: '.strlen($out));
+
+		$this->responseContent->output($out);
 	}
 
 	protected function _getIconPath($index, $scalable = false) {	

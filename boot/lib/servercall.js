@@ -1172,28 +1172,33 @@ console.log('todo', reqData);
 			};
 
 			var connectSocket = function(serverStatus) {
-				var websocketUrl = serverStatus.protocol+'://'+document.location.hostname+':'+serverStatus.port+'/api';
+				// Firstly, load required libraries
+				Webos.require('/usr/lib/webos/wampy.min.js', [function () {
+					var websocketUrl = serverStatus.protocol+'://'+document.location.hostname+':'+serverStatus.port+'/api';
 
-				console.log('Connecting WebSocket '+websocketUrl+'...');
+					console.log('Connecting WebSocket '+websocketUrl+'...');
 
-				var socket = new Wampy(websocketUrl, {
-					maxRetries: 0,
-					realm: document.location.hostname,
-					onConnect: function () {
-						console.log('WebSocket connected !');
-						operation.setCompleted(socket);
-					},
-					onClose: function () {
-						console.log('WebSocket closed.');
-					},
-					onError: function () {
-						operation.setCompleted(Webos.Error.build('Error while connecting to WebSocket server'));
-					},
-					onReconnect: function () {
-						console.log('Reconnecting WebSocket...');
-					}
-				});
-				Webos.ServerCall.websocket._socket = socket;
+					var socket = new Wampy(websocketUrl, {
+						maxRetries: 0,
+						realm: document.location.hostname,
+						onConnect: function () {
+							console.log('WebSocket connected !');
+							operation.setCompleted(socket);
+						},
+						onClose: function () {
+							console.log('WebSocket closed.');
+						},
+						onError: function () {
+							operation.setCompleted(Webos.Error.build('Error while connecting to WebSocket server'));
+						},
+						onReconnect: function () {
+							console.log('Reconnecting WebSocket...');
+						}
+					});
+					Webos.ServerCall.websocket._socket = socket;
+				}, function (resp) {
+					operation.setCompleted(resp);
+				}]);
 			};
 
 			if (Webos.ServerCall.websocket.options.server) {
@@ -1209,15 +1214,10 @@ console.log('todo', reqData);
 				that._connectOperation = null;
 			});
 
-			// Firstly, load required libraries
-			Webos.require('/usr/lib/webos/wampy.min.js', [function () {
-				that.getServerStatus([function(serverStatus) {
-					gotServerStatus(serverStatus);
-				}, function(res) {
-					operation.setCompleted(res);
-				}]);
-			}, function (resp) {
-				operation.setCompleted(resp);
+			that.getServerStatus([function(serverStatus) {
+				gotServerStatus(serverStatus);
+			}, function(res) {
+				operation.setCompleted(res);
 			}]);
 
 			return operation;
