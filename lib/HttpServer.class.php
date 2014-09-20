@@ -14,7 +14,9 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\NullSessionHandler;
 
 /**
- * HTTP server.
+ * A builtin HTTP server.
+ * @since 1.0beta5
+ * @author emersion
  */
 class HttpServer implements HttpServerInterface {
 	protected $sessions = array();
@@ -77,7 +79,7 @@ class HttpServer implements HttpServerInterface {
 			'/sbin/rawdatacall.php' => 'executeRawDataCall',
 			'#^/([a-zA-Z0-9-_.]+)\.html$#' => 'executeUiBooter',
 			'#^/(bin|boot|etc|home|tmp|usr|var)/(.*)$#' => 'executeReadFile',
-			'/webos.webapp' => ''
+			'/webos.webapp' => 'executeReadManifest'
 		);
 
 		foreach ($routes as $path => $method) {
@@ -154,8 +156,6 @@ class HttpServer implements HttpServerInterface {
 				$header .= ';HttpOnly';
 			}
 			$res->addHeader('Set-Cookie: ' . $header);
-
-			var_dump($header);
 		}
 
 		return $res;
@@ -236,6 +236,19 @@ class HttpServer implements HttpServerInterface {
 		$req->getQuery()->set('path', '/'.$matches[1].'/'.urldecode($matches[2]));
 
 		return $this->executeRawDataCall($conn, $req);
+	}
+
+	protected function executeReadManifest($conn, $req) {
+		$req->getQuery()->set('type', 'firefox');
+
+		$request = $this->getRequest($conn, $req);
+		$response = $this->getResponse($conn, $req);
+
+		$manifestCall = new ManifestCall();
+		$manifestCall->emulate(null, $request, $response);
+		$manifestCall->run();
+
+		return $manifestCall->httpResponse();
 	}
 
 	/**
