@@ -1,7 +1,6 @@
 <?php
 require_once(dirname(__FILE__).'/../boot/ini.php');
 
-use \Memcache;
 use Symfony\Component\Routing\Route;
 use Ratchet\App;
 use Ratchet\Session\SessionProvider as RatchetSessionProvider;
@@ -14,8 +13,24 @@ use lib\PeerHttpServer;
 use lib\JsonConfig;
 use lib\SessionProvider;
 use lib\ctrl\api\PeerController;
+use lib\ctrl\api\WebSocketController;
 
 set_time_limit(0); //No time limit
+
+// Fill proc file with current pid
+if (function_exists('posix_getpid')) {
+	$pid = posix_getpid();
+	$pidFile = dirname(__FILE__).'/../'.WebSocketController::SERVER_PID_FILE;
+
+	$dirname = dirname($pidFile);
+	if (!is_dir($dirname)) {
+		mkdir($dirname, 0777, true);
+	}
+
+	file_put_contents($pidFile, $pid);
+} else {
+	echo 'Warning: could not determine the server process id using posix_getpid()';
+}
 
 //Load config
 $serverConfigFilePath = '/etc/websocket-server.json';

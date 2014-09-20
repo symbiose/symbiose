@@ -1052,6 +1052,9 @@ console.log('todo', reqData);
 				//if (this._connecting) {
 				//	return false;
 				//}
+				if (this._loadingDependencies) {
+					return false;
+				}
 
 				return this.options.server.started;
 			} else {
@@ -1173,7 +1176,10 @@ console.log('todo', reqData);
 
 			var connectSocket = function(serverStatus) {
 				// Firstly, load required libraries
+				that._loadingDependencies = true;
 				Webos.require('/usr/lib/webos/wampy.min.js', [function () {
+					that._loadingDependencies = false;
+
 					var websocketUrl = serverStatus.protocol+'://'+document.location.hostname+':'+serverStatus.port+'/api';
 
 					console.log('Connecting WebSocket '+websocketUrl+'...');
