@@ -17,6 +17,8 @@
 	},
 	"require": {
 		"php": ">=5.3.0",
+		"ext-json": "*",
+		"ext-memcache": "*",
 		"cboden/Ratchet": "0.3.*",
 		"symbiose/websocket-client": "dev-master",
 		"guzzle/http": "~3.6",
@@ -25,6 +27,11 @@
 		"evenement/evenement": "1.0.*",
 		"fsi/acl": "0.9.*",
 		"gitonomy/gitlib": "dev-master"
+	},
+	"suggest": {
+		"ext-ftp": "To mount FTP volumes",
+		"ext-ldap": "For LDAP authentication",
+		"ext-zip": "For ZIP support"
 	},
 	"autoload": {
 		"psr-0": {"JSMinPlus": "lib/vendor/nitra/php-min"}
