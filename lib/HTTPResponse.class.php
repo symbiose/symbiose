@@ -152,4 +152,12 @@ class HTTPResponse {
 		$this->addHeader('Expires: '.gmdate('D, d M Y H:i:s T', time()+$cacheOffset));
 		$this->removeHeader('Pragma'); //Non-standard
 	}
+
+	/**
+	 * Get the response length.
+	 * @return int The response length, in bytes.
+	 */
+	public function length() {
+		return $this->length;
+	}
 }

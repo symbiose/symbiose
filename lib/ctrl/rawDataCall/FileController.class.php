@@ -186,6 +186,7 @@ class FileController extends \lib\RawBackController {
 			return;
 		}
 
+		$httpResponse->addHeader('Date: ' . gmdate('D, d M Y H:i:s T'));
 		$httpResponse->addHeader('Last-Modified: ' . gmdate('D, d M Y H:i:s T', $outputMtime));
 		$httpResponse->addHeader('Content-Length: ' . $filesize);
 

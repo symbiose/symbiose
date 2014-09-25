@@ -137,6 +137,8 @@ class HttpServer implements HttpServerInterface {
 	protected function getResponse($conn, $req) {
 		$res = new HTTPServerResponse($conn);
 
+		$res->addHeader('Connection: close');
+
 		// Send cookie for sessions
 		if ($conn->Session->isStarted() && $conn->Session->getId() != $req->getCookie(ini_get('session.name'))) {
 			$cookiesParams = session_get_cookie_params();

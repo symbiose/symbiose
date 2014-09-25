@@ -33,6 +33,15 @@ class HTTPServerResponse extends HTTPResponse {
 		return $this->headers;
 	}
 
+	public function getHeader($name) {
+		foreach ($this->headers as $i => $header) {
+			$begining = substr($header, 0, strlen($name) + 1);
+			if (strtolower($begining) == strtolower($name).':') {
+				return trim(substr($header, strlen($name) + 1));
+			}
+		}
+	}
+
 	public function responseCode() {
 		foreach ($this->headers as $header) {
 			if (preg_match('#^HTTP/[0-9.]+ ([0-9]{3}) ([a-zA-Z ]+)$#', $header, $matches)) {
@@ -60,7 +69,13 @@ class HTTPServerResponse extends HTTPResponse {
 	}
 
 	public function send() {
-		$this->output($this->content->generate());
+		$out = $this->content->generate();
+
+		if (empty($this->getHeader('Content-Length'))) {
+			$this->addHeader('Content-Length: ' . strlen($out));
+		}
+
+		$this->output($out);
 		$this->conn->close();
 	}
 
@@ -72,7 +87,7 @@ class HTTPServerResponse extends HTTPResponse {
 		if (!$this->headersSent) {
 			$this->headersSent = true;
 
-			$this->output((string)$this->getRaw());
+			$this->conn->send((string)$this->getRaw());
 		}
 
 		$this->length += strlen($out);
