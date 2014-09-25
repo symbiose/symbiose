@@ -17,6 +17,29 @@ use lib\ctrl\api\WebSocketController;
 
 set_time_limit(0); //No time limit
 
+//Load config
+$serverConfigFilePath = '/etc/websocket-server.json';
+$serverConfigFile = new JsonConfig('./' . $serverConfigFilePath);
+$serverConfig = $serverConfigFile->read();
+
+// Parse arguments if run in CLI
+$sapiType = php_sapi_name();
+if (substr($sapiType, 0, 3) == 'cli') {
+	$options = getopt('p:f', array('port:', 'force'));
+
+	/*if (isset($options['f']) || isset($options['force'])) {
+		$serverConfig['enabled'] = true;
+	}*/
+	if (isset($options['p']) || isset($options['port'])) {
+		$serverConfig['port'] = (isset($options['p'])) ? $options['p'] : $options['port'];
+	}
+}
+
+$enabled = (isset($serverConfig['enabled'])) ? $serverConfig['enabled'] : false;
+if (!$enabled) { //WebSocket server not enabled
+	exit('Cannot start WebSocket server: server is not enabled in '.$serverConfigFilePath);
+}
+
 // Fill proc file with current pid
 if (function_exists('posix_getpid')) {
 	$pid = posix_getpid();
@@ -32,17 +55,7 @@ if (function_exists('posix_getpid')) {
 	echo 'Warning: could not determine the server process id using posix_getpid()';
 }
 
-//Load config
-$serverConfigFilePath = '/etc/websocket-server.json';
-$serverConfigFile = new JsonConfig('./' . $serverConfigFilePath);
-$serverConfig = $serverConfigFile->read();
-
-$enabled = (isset($serverConfig['enabled'])) ? $serverConfig['enabled'] : false;
-
-if (!$enabled) { //WebSocket server not enabled
-	exit('Cannot start WebSocket server: server is not enabled in '.$serverConfigFilePath);
-}
-
+// Determine server hostnames
 $hostnames = (isset($serverConfig['hostname'])) ? $serverConfig['hostname'] : 'localhost';
 if (!is_array($hostnames)) {
 	$hostnames = array($hostnames);
