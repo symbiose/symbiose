@@ -5,6 +5,7 @@ use \RuntimeException;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\MemcacheSessionHandler;
+use Symfony\Component\HttpFoundation\Session\Storage\Handler\MemcachedSessionHandler;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeSessionHandler;
 
 class SessionProvider {
@@ -45,6 +46,16 @@ class SessionProvider {
 					$memcache->addServer($handlerConfig['host'], (int) $handlerConfig['port']);
 
 					$handler = new MemcacheSessionHandler($memcache);
+					break;
+				case 'memcached':
+					if (!isset($handlerConfig['host']) || !isset($handlerConfig['port'])) {
+						throw new RuntimeException('You must specify memcache host and port in handler config in "'.self::CONFIG_FILE.'"');
+					}
+
+					$memcached = new \Memcached;
+					$memcached->addServer($handlerConfig['host'], (int) $handlerConfig['port']);
+
+					$handler = new MemcachedSessionHandler($memcached);
 					break;
 				case 'native':
 				default:
