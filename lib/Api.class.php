@@ -30,7 +30,7 @@ class Api extends \lib\Application {
 
 	protected function _getData($key) {
 		if ($this->emulated) {
-			return $this->emulatedData[$key];
+			return (isset($this->emulatedData[$key])) ? $this->emulatedData[$key] : null;
 		} elseif ($this->httpRequest->postExists($key)) {
 			return $this->httpRequest->postData($key);
 		} else {

@@ -82,6 +82,7 @@ class HttpServer implements HttpServerInterface {
 			'/webos.webapp' => 'executeReadManifest'
 		);
 
+		$response = null;
 		foreach ($routes as $path => $method) {
 			$matched = false;
 			if (substr($path, 0, 1) == '#') { // Regex
@@ -112,7 +113,6 @@ class HttpServer implements HttpServerInterface {
 					return;
 				}
 
-				$response = null;
 				if (is_string($result)) {
 					$response = new Response(200, array(), (string)$result);
 				} else {
@@ -120,6 +120,10 @@ class HttpServer implements HttpServerInterface {
 				}
 				break;
 			}
+		}
+
+		if (empty($response)) {
+			$response = new Response(404, array(), '');
 		}
 
 		$from->send((string)$response);
