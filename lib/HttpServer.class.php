@@ -2,8 +2,10 @@
 namespace lib;
 
 use \Exception;
-use Ratchet\Http\HttpServerInterface;
+use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
+use Ratchet\Http\HttpServerInterface;
+use Ratchet\Http\HttpRequestParser;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
 use Guzzle\Http\QueryString;
@@ -19,9 +21,13 @@ use Symfony\Component\HttpFoundation\Session\Storage\Handler\NullSessionHandler;
  * @author emersion
  */
 class HttpServer implements HttpServerInterface {
+	protected $_reqParser;
+	protected $_handler;
 	protected $sessions = array();
 
 	public function __construct(\SessionHandlerInterface $handler, HandlerInterface $serializer = null) {
+		$this->_reqParser = new HttpRequestParser;
+
 		$this->_handler = $handler;
 
 		ini_set('session.auto_start', 0);
@@ -41,6 +47,13 @@ class HttpServer implements HttpServerInterface {
 	}
 
 	public function onOpen(ConnectionInterface $from, RequestInterface $request = null) {
+		if (empty($request)) {
+			$resp = new Response(400);
+			$from->send((string)$resp);
+			$from->close();
+			return;
+		}
+
 		// Session management
 		$saveHandler = $this->_handler;
 		if (empty($id = $request->getCookie(ini_get('session.name')))) {
@@ -60,7 +73,25 @@ class HttpServer implements HttpServerInterface {
 			$from->Session->start();
 		}
 
+		$this->onRequest($from, $request);
+	}
 
+	public function onMessage(ConnectionInterface $from, $msg) {
+		try {
+			if (null === ($request = $this->_reqParser->onMessage($from, $msg))) {
+				return;
+			}
+		} catch (\OverflowException $oe) {
+			$resp = new Response(413);
+			$from->send((string)$resp);
+			$from->close();
+			return;
+		}
+
+		$this->onRequest($from, $request);
+	}
+
+	protected function onRequest(ConnectionInterface $from, RequestInterface $request) {
 		$requestPath = $request->getPath();
 
 		$body = (string)$request->getBody();
@@ -79,10 +110,10 @@ class HttpServer implements HttpServerInterface {
 			'/sbin/rawdatacall.php' => 'executeRawDataCall',
 			'#^/([a-zA-Z0-9-_.]+)\.html$#' => 'executeUiBooter',
 			'#^/(bin|boot|etc|home|tmp|usr|var)/(.*)$#' => 'executeReadFile',
-			'/webos.webapp' => 'executeReadManifest'
+			'/webos.webapp' => 'executeReadManifest',
+			'/hello' => 'executeSayHello'
 		);
 
-		$response = null;
 		foreach ($routes as $path => $method) {
 			$matched = false;
 			if (substr($path, 0, 1) == '#') { // Regex
@@ -104,33 +135,33 @@ class HttpServer implements HttpServerInterface {
 				if ($result instanceof ResponseContent) {
 					$result = $result->generate();
 				}
-				if ($result instanceof HttpServerResponse) {
+				if ($result instanceof HTTPServerResponse) {
 					if ($result->headersSent()) { // Implicit mode, content already sent
-						$from->close();
+						//$from->close();
 					} else {
 						$result->send();
 					}
 					return;
 				}
 
+				$response = null;
 				if (is_string($result)) {
 					$response = new Response(200, array(), (string)$result);
 				} else {
 					$response = $result;
 				}
-				break;
+
+				$from->send((string)$response);
+				//$from->close(); // Connection: keep-alive
+				return;
 			}
 		}
 
-		if (empty($response)) {
-			$response = new Response(404, array(), '');
-		}
-
-		$from->send((string)$response);
+		$resp = new Response(404);
+		$from->send((string)$resp);
 		$from->close();
 	}
 
-	public function onMessage(ConnectionInterface $from, $msg) {}
 	public function onError(ConnectionInterface $from, Exception $e) {}
 	public function onClose(ConnectionInterface $from) {}
 
@@ -141,7 +172,11 @@ class HttpServer implements HttpServerInterface {
 	protected function getResponse($conn, $req) {
 		$res = new HTTPServerResponse($conn);
 
-		$res->addHeader('Connection: close');
+		if (strtolower($req->getHeaders()->get('connection')) == 'keep-alive') {
+			$res->addHeader('Connection: keep-alive');
+		} else {
+			$res->addHeader('Connection: close');
+		}
 
 		// Send cookie for sessions
 		if ($conn->Session->isStarted() && $conn->Session->getId() != $req->getCookie(ini_get('session.name'))) {
@@ -255,6 +290,10 @@ class HttpServer implements HttpServerInterface {
 		$manifestCall->run();
 
 		return $manifestCall->httpResponse();
+	}
+
+	protected function executeSayHello($conn, $req) {
+		return 'Hello world!';
 	}
 
 	/**

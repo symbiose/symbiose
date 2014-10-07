@@ -76,7 +76,10 @@ class HTTPServerResponse extends HTTPResponse {
 		}
 
 		$this->output($out);
-		$this->conn->close();
+
+		if ($this->getHeader('Connection') != 'keep-alive') {
+			$this->conn->close();
+		}
 	}
 
 	public function headersSent() {

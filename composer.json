@@ -4,7 +4,7 @@
 	"keywords":["webos","web desktop"],
 	"homepage":"http://symbiose.fr.cr",
 	"version":"1.0-beta4",
-	"license":"GPLv3",
+	"license":"MIT",
 	"type":"application",
 	"authors":[
 		{
