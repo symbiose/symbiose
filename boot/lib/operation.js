@@ -157,8 +157,8 @@
 		},
 		/**
 		 * Mark this operation as completed.
-		 * @param result This operation's result. False values will mark the operation as failed.
-		 * @param [data] This operation's result data, if not provided as first argument.
+		 * @param {} result This operation's result. False values will mark the operation as failed.
+		 * @param {} [data] This operation's result data, if not provided as first argument.
 		 */
 		setCompleted: function (result, data) {
 			this.setProgress(100);
