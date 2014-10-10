@@ -71,7 +71,8 @@ class HTTPServerResponse extends HTTPResponse {
 	public function send() {
 		$out = $this->content->generate();
 
-		if (empty($this->getHeader('Content-Length'))) {
+		$contentLength = $this->getHeader('Content-Length');
+		if (empty($contentLength)) {
 			$this->addHeader('Content-Length: ' . strlen($out));
 		}
 

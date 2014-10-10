@@ -56,7 +56,8 @@ class HttpServer implements HttpServerInterface {
 
 		// Session management
 		$saveHandler = $this->_handler;
-		if (empty($id = $request->getCookie(ini_get('session.name')))) {
+		$id = $request->getCookie(ini_get('session.name'));
+		if (empty($id)) {
 			$id = sha1(uniqid() . mt_rand());
 		}
 
