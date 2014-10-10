@@ -1478,7 +1478,14 @@ $.webos.button.prototype = {
 				this.content().html(value);
 				break;
 			case 'disabled':
-				this.disabled(value);
+				this.options.disabled = (value) ? true : false;
+
+				if (!this.element.is('.disabled') && this.options.disabled) {
+					this.element.addClass('disabled cursor-default').attr('disabled', 'disabled');
+				}
+				if (this.element.is('.disabled') && !this.options.disabled) {
+					this.element.removeClass('disabled cursor-default').removeAttr('disabled');
+				}
 				break;
 			case 'activated':
 				this.element.toggleClass('active', (value) ? true : false);
@@ -1496,17 +1503,7 @@ $.webos.button.prototype = {
 	 * @deprecated Use option `disabled` instead.
 	 */
 	disabled: function(value) {
-		if (typeof value == 'undefined') {
-			return this.options.disabled;
-		} else {
-			this.options.disabled = (value) ? true : false;
-			if (!this.element.is('.disabled') && this.options.disabled) {
-				this.element.addClass('disabled cursor-default').attr('disabled', 'disabled');
-			}
-			if (this.element.is('.disabled') && !this.options.disabled) {
-				this.element.removeClass('disabled cursor-default').removeAttr('disabled');
-			}
-		}
+		return this.option('disabled', value);
 	}
 };
 $.webos.widget('button', 'container');
