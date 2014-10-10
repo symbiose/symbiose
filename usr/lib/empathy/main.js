@@ -1211,6 +1211,10 @@ Webos.require([
 				that._selectContacts(function (contacts) {
 					$btn.button('option', 'activated', false);
 
+					if (!dst) {
+						return;
+					}
+
 					if (dst.length == 1) {
 						dst = that._createContactSet(contacts);
 					} else {
@@ -1255,7 +1259,6 @@ Webos.require([
 			
 			this.on('conversationswitch', function () {
 				$win.find('.btn-encryption').button('option', 'disabled', true);
-				$win.find('.conversation-compose .compose-attach, .conversation-compose .compose-').button('option', 'disabled', true);
 
 				if (that.currentDst()) {
 					var dst = that.currentDst(), conn = that.connection(dst.conn);
@@ -1269,14 +1272,12 @@ Webos.require([
 					}
 					$win.find('.btn-encryption').button('option', 'activated', encrypted);
 
-					if (conn.hasFeature('fileSending')) {
-						$win.find('.conversation-compose .compose-attach').button('option', 'disabled', false);
-					}
-					if (conn.hasFeature('multiple')) {
-						$win.find('.conversation-compose .compose-add-contact').button('option', 'disabled', false);
-					}
+					$win.find('.conversation-compose .compose-attach').button('option', 'disabled', conn.hasFeature('fileSending'));
+					$win.find('.conversation-compose .compose-add-contact').button('option', 'disabled', conn.hasFeature('multiple'));
 
 					$win.find('.conversation').toggleClass('conversation-multiple', (dst.length > 1));
+				} else {
+					$win.find('.conversation-compose .compose-attach, .conversation-compose .compose-add-contact').button('option', 'disabled', true);
 				}
 			});
 			this.on('otrake', function (status) {
@@ -2223,6 +2224,10 @@ console.log(src);
 
 		options = options || {};
 		this._options = options;
+
+		if (!this._features) {
+			this._features = []; // Create a new array of features for each connection
+		}
 	};
 	/**
 	 * The connection interface's prototype.
@@ -2239,7 +2244,7 @@ console.log(src);
 		 * @var {Array}
 		 * @private
 		 */
-		_features: [],
+		_features: null,
 		/**
 		 * True if the connection needs credentials, false otherwise.
 		 * @var {Boolean}
@@ -2282,6 +2287,18 @@ console.log(src);
 		 */
 		hasFeature: function (feat) {
 			return ~$.inArray(feat, this._features);
+		},
+		/**
+		 * Add a feature for this connection.
+		 * @param {String} feat The feature name.
+		 * @private
+		 */
+		_addFeature: function (feat) {
+			if (this.hasFeature(feat)) {
+				return;
+			}
+
+			this._features.push(String(feat));
 		},
 		/**
 		 * Remove a connection's feature.
@@ -2333,9 +2350,9 @@ console.log(src);
 	 * @author emersion
 	 */
 	Empathy.MessageInterface = function (options) {
-		this._features.push('message');
-
 		Empathy.Interface.call(this, options);
+
+		this._addFeature('message');
 	};
 	/**
 	 * Empathy.MessageInterface's prototype.
@@ -2367,9 +2384,9 @@ console.log(src);
 	 * @author emersion
 	 */
 	Empathy.MultipleUsersInterface = function (options) {
-		this._features.push('multiple');
-
 		Empathy.Interface.call(this, options);
+
+		this._addFeature('multiple');
 	};
 	/**
 	 * Empathy.MultipleUsersInterface's prototype.
@@ -2386,9 +2403,9 @@ console.log(src);
 	 * @author emersion
 	 */
 	Empathy.OtrMessageInterface = function (options) {
-		this._features.push('otr');
-
 		Empathy.MessageInterface.call(this, options);
+
+		this._addFeature('otr');
 	};
 	Webos.Observable.build(Empathy.OtrMessageInterface);
 
@@ -2673,9 +2690,9 @@ console.log(src);
 	 * @author emersion
 	 */
 	Empathy.CallInterface = function (options) {
-		this._features.push('call');
-
 		Empathy.Interface.call(this, options);
+
+		this._addFeature('call');
 	};
 	/**
 	 * Empathy.CallInterface's prototype.
@@ -2711,9 +2728,9 @@ console.log(src);
 	 * @author emersion
 	 */
 	Empathy.FileSendingInterface = function (options) {
-		this._features.push('fileSending');
-
 		Empathy.Interface.call(this, options);
+
+		this._addFeature('fileSending');
 	};
 	/**
 	 * Empathy.CallInterface's prototype.
@@ -3272,9 +3289,9 @@ console.log(src);
 		Empathy.FileSendingInterface.call(this, options);
 		Empathy.MultipleUsersInterface.call(this, options);
 
-		this._features.push('message-multiple');
-		this._features.push('call-multiple');
-		this._features.push('fileSending-multiple');
+		this._addFeature('message-multiple');
+		this._addFeature('call-multiple');
+		this._addFeature('fileSending-multiple');
 
 		this.initialize(this._options);
 	};
