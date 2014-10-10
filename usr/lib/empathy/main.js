@@ -2070,7 +2070,8 @@ console.log(src);
 				(function (i, account) {
 					var service = Empathy.service(account.service);
 
-					var $item = $.w.listItem(account.username+' on '+service.title);
+					var accountTitle = (account.username) ? account.username+' on '+service.title : service.title;
+					var $item = $.w.listItem(accountTitle);
 					$item.on('listitemselect', function () {
 						editedAccount = i;
 
