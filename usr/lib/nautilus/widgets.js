@@ -2100,6 +2100,10 @@ Webos.require([
 			} else {
 				this.options._components.fallback.append(t.get('Cannot open this directory.'));
 
+				var inputCtn = $('<div></div>').css({
+					display: 'inline-block',
+					position: 'relative'
+				});
 				var input = $('<input />', {
 					type: 'file',
 					multiple: this.options.selectMultiple,
@@ -2128,9 +2132,11 @@ Webos.require([
 					width: '100%',
 					margin: 0,
 					padding: 0,
-					opacity: 0
-				});
-				this.options._components.fallback.append($.w.button(t.get('Open a file from my computer')).prepend(input));
+					opacity: 0,
+					zIndex: 2
+				}).appendTo(inputCtn);
+				$.w.button(t.get('Open a file from my computer')).appendTo(inputCtn);
+				this.options._components.fallback.append(inputCtn);
 			}
 			
 			this.options._components.nautilus.on('open', function(e) {
