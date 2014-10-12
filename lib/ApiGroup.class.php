@@ -34,6 +34,7 @@ class ApiGroup extends \lib\Application {
 			}
 		}
 
+		$responses = array();
 		foreach($reqsData as $requestData) {
 			$apiCall = new Api();
 			$apiCall->emulate($requestData, $this->httpRequest);
