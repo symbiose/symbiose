@@ -141,7 +141,9 @@ class HttpServer implements HttpServerInterface {
 				}
 				if ($result instanceof HTTPServerResponse) {
 					if ($result->headersSent()) { // Implicit mode, content already sent
-						//$from->close();
+						if ($result->getHeader('Connection') != 'keep-alive') {
+							$from->close();
+						}
 					} else {
 						$result->send();
 					}
@@ -156,7 +158,7 @@ class HttpServer implements HttpServerInterface {
 				}
 
 				$from->send((string)$response);
-				//$from->close(); // Connection: keep-alive
+				$from->close();
 				return;
 			}
 		}
