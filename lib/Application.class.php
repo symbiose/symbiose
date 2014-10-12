@@ -59,6 +59,10 @@ abstract class Application {
 	public function buildController($module, $action) {
 		$controllerClass = 'lib\\ctrl\\'.$this->name.'\\'.ucfirst($module).'Controller';
 
+		if (!class_exists($controllerClass)) {
+			throw new \InvalidArgumentException('Cannot find the controller for the module "'.$module.'"');
+		}
+
 		return new $controllerClass($this, $module, $action);
 	}
 

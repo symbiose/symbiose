@@ -21,20 +21,16 @@ class PeerHttpServer implements HttpServerInterface {
 	}
 
 	public function onOpen(ConnectionInterface $from, RequestInterface $request = null) {
-		echo "New HTTP connection!\n";
-
-		//Variables in URLs are not supported in Ratchet for now
-		//See https://github.com/cboden/Ratchet/pull/143
 		$requestPath = $request->getPath();
 		$pathParts = explode('/', preg_replace('#^/peerjs/#', '', $requestPath)); //Remove /peerjs
 		$action = array_pop($pathParts);
-		$peerToken = array_pop($pathParts);
-		$peerId = array_pop($pathParts);
-		$key = array_pop($pathParts);
+
+		$query = $request->getQuery();
+		$peerId = (isset($query['id'])) ? $query['id'] : null;
+		$peerToken = (isset($query['token'])) ? $query['token'] : null;
 
 		$respStatus = 200;
 		$respHeaders = array(
-			'X-Powered-By' => \Ratchet\VERSION,
 			'Access-Control-Allow-Origin' => '*'
 		);
 		$respBody = null;

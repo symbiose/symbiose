@@ -27,7 +27,7 @@
 		 * @type {String}
 		 * @private
 		 */
-		_url: 'sbin/apicall.php',
+		_url: 'api',
 		/**
 		 * This server call's request data.
 		 * @type {Object}
@@ -928,9 +928,9 @@ console.log('todo', reqData);
 	Webos.ServerCall.ajax = {
 		priority: 1,
 		options: {
-			url: 'sbin/apicall.php',
+			url: 'api',
 			group: {
-				url: 'sbin/apicallgroup.php',
+				url: 'api/group',
 				type: 'post'
 			}
 		},
@@ -1180,7 +1180,7 @@ console.log('todo', reqData);
 				Webos.require('/usr/lib/webos/wampy.min.js', [function () {
 					that._loadingDependencies = false;
 
-					var websocketUrl = serverStatus.protocol+'://'+document.location.hostname+':'+serverStatus.port+'/api';
+					var websocketUrl = serverStatus.protocol+'://'+document.location.hostname+':'+serverStatus.port+'/api/ws';
 
 					console.log('Connecting WebSocket '+websocketUrl+'...');
 
@@ -1570,7 +1570,7 @@ console.log('todo', reqData);
 		 * This server calls group's request URL.
 		 * @type {String}
 		 */
-		_url: 'sbin/apicallgroup.php',
+		_url: 'api/group',
 		/**
 		 * This server calls group's request type.
 		 * @type {String}

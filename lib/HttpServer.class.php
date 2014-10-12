@@ -106,8 +106,10 @@ class HttpServer implements HttpServerInterface {
 
 		$routes = array(
 			'/' => 'executeUiBooter',
-			'/sbin/apicall.php' => 'executeApiCall',
-			'/sbin/apicallgroup.php' => 'executeApiCallGroup',
+			'/api' => 'executeApiCall',
+			'/api/group' => 'executeApiCallGroup',
+			'/sbin/apicall.php' => 'executeApiCall', // @deprecated
+			'/sbin/apicallgroup.php' => 'executeApiCallGroup', // @deprecated
 			'/sbin/rawdatacall.php' => 'executeRawDataCall',
 			'#^/([a-zA-Z0-9-_.]+)\.html$#' => 'executeUiBooter',
 			'#^/(bin|boot|etc|home|tmp|usr|var)/(.*)$#' => 'executeReadFile',
@@ -158,7 +160,7 @@ class HttpServer implements HttpServerInterface {
 			}
 		}
 
-		$resp = new Response(404);
+		$resp = new Response(404, array('Content-Type' => 'text/plain'), '404 Not Found');
 		$from->send((string)$resp);
 		$from->close();
 	}
@@ -173,7 +175,9 @@ class HttpServer implements HttpServerInterface {
 	protected function getResponse($conn, $req) {
 		$res = new HTTPServerResponse($conn);
 
-		if (strtolower($req->getHeaders()->get('connection')) == 'keep-alive') {
+		// Problem with keep-alive: URLs are not routed properly - they are handled by THIS controller
+		// Must be handled by App instead
+		if (strtolower($req->getHeaders()->get('connection')) == 'keep-alive' && false) {
 			$res->addHeader('Connection: keep-alive');
 		} else {
 			$res->addHeader('Connection: close');

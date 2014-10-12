@@ -76,8 +76,12 @@ class App {
         $this->_server = new IoServer(new HttpServer(new Router(new UrlMatcher($this->routes, new RequestContext))), $socket, $loop);
 
         $policy = new FlashPolicy;
-        $policy->addAllowedAccess($httpHost, 80);
-        $policy->addAllowedAccess($httpHost, $port);
+
+        if ('*' !== $httpHost) {
+            $policy->addAllowedAccess($httpHost, 80);
+            $policy->addAllowedAccess($httpHost, $port);
+        }
+
         $flashSock = new Reactor($loop);
         $this->flashServer = new IoServer($policy, $flashSock);
 
@@ -123,15 +127,17 @@ class App {
         if ($path instanceof Route) {
             $route = $path;
             $route->setDefault('_controller', $decorated);
-            $route->addRequirements(array('Origin' => $this->httpHost));
-            $route->setHost($httpHost);
         } else {
             $route = new Route($path, array(
                 '_controller' => $decorated
-            ), array(
-                'Origin' => $this->httpHost
-            ), array(), $httpHost);
+            ));
         }
+
+        if ('*' !== $httpHost) {
+            $route->addRequirements(array('Origin' => $httpHost));
+            $route->setHost($httpHost);
+        }
+
         $this->routes->add('rr-' . ++$this->_routeCounter, $route);
 
         return $decorated;

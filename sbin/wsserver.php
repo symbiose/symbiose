@@ -87,7 +87,7 @@ $app = new App($hostnames[0], $port, '0.0.0.0');
 
 foreach ($hostnames as $host) {
 	//Webos' API
-	$app->route('/api', $decoratedApiServer, array('*'), $host);
+	$app->route('/api/ws', $decoratedApiServer, array('*'), $host);
 
 	//PeerJS server. Accessible from all origins
 	$app->route('/peerjs', $decoratedPeerServer, array('*'), $host);
@@ -100,7 +100,19 @@ foreach ($hostnames as $host) {
 	$app->route('/peerjs/{id}/{token}/leave', $peerHttpServer, array('*'), $host);
 
 	// Built-in HTTP server
-	$app->route(new Route('/{any}', array(), array('any' => '.*')), $httpServer, array('*'), $host);
+	$app->route('/', $httpServer, array('*'), $host);
+	$app->route('/api', $httpServer, array('*'), $host);
+	$app->route('/api/group', $httpServer, array('*'), $host);
+	$app->route('/sbin/apicall.php', $httpServer, array('*'), $host); // @deprecated
+	$app->route('/sbin/apicallgroup.php', $httpServer, array('*'), $host); // @deprecated
+	$app->route('/sbin/rawdatacall.php', $httpServer, array('*'), $host);
+	$app->route(new Route('/{ui}.html', array(), array('ui' => '[a-zA-Z0-9-_.]+')), $httpServer, array('*'), $host);
+	$app->route(new Route('/{dir}/{any}', array(), array(
+		'dir' => '(bin|boot|etc|home|tmp|usr|var)',
+		'any' => '.*'
+	)), $httpServer, array('*'), $host);
+	$app->route('/webos.webapp', $httpServer, array('*'), $host);
+	$app->route('/hello', $httpServer, array('*'), $host);
 }
 
 $app->run(); //Start the server
