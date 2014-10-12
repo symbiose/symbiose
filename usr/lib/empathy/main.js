@@ -1,3 +1,4 @@
+// TODO: dynamic plugin loading
 Webos.require([
 	'/usr/lib/webos/applications.js',
 	'/usr/lib/webos/data.js',
@@ -3983,6 +3984,14 @@ console.log(src);
 			var that = this, peer = this._peer;
 			var op = Webos.Operation.create();
 			var callData = this._calls[callId];
+
+			if (!callData) {
+				console.warn('Call not found', callId);
+				console.trace();
+
+				op.setCompleted(false);
+				return op;
+			}
 
 			for (var username in callData.subcalls) {
 				var subcall = callData.subcalls[username];
