@@ -17,6 +17,12 @@ class HTTPServerResponse extends HTTPResponse {
 	}
 
 	public function addHeader($header) {
+		// Ugly fix on Heroku
+		if (strtolower(substr($header, 0, strlen('content-length'))) == 'content-length' && 
+			getenv('DYNO') !== false && getenv('BUILDPACK_URL') !== false) {
+			return;
+		}
+
 		$this->headers[] = $header;
 	}
 

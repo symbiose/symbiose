@@ -102,6 +102,7 @@ class HttpServer implements HttpServerInterface {
 			$request->addPostFields($fields);
 		}
 
+		// TODO: use only $req->acceptLanguage() in Managers
 		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = (string) $request->getHeaders()->get('accept-language');
 
 		$routes = array(
