@@ -12,7 +12,7 @@ class WebSocketController extends \lib\ApiBackController {
 	const SERVER_CONFIG_FILE = '/etc/websocket-server.json';
 	const SERVER_LOG_FILE = '/var/log/websocket-server.log';
 
-	protected $serverScript = '/sbin/wsserver.php';
+	protected $serverScript = '/sbin/server.php';
 
 	protected function _getServerConfig() {
 		$configManager = $this->managers()->getManagerOf('config');
