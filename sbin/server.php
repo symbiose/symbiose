@@ -36,8 +36,8 @@ if (substr($sapiType, 0, 3) == 'cli') {
 }
 
 $enabled = (isset($serverConfig['enabled'])) ? $serverConfig['enabled'] : false;
-if (!$enabled) { //WebSocket server not enabled
-	exit('Cannot start WebSocket server: server is not enabled in '.$serverConfigFilePath);
+if (!$enabled) { // Server not enabled
+	exit('Cannot start HTTP server: server is not enabled in '.$serverConfigFilePath);
 }
 
 // Fill proc file with current pid
@@ -63,7 +63,7 @@ if (!is_array($hostnames)) {
 
 $port = (isset($serverConfig['port'])) ? $serverConfig['port'] : 9000;
 
-echo 'Starting WebSocket server at '.$hostnames[0].':'.$port.'...'."\n";
+echo 'Starting server at '.$hostnames[0].':'.$port.'...'."\n";
 
 //Sessions
 $sessionProvider = new SessionProvider;
