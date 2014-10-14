@@ -14,15 +14,24 @@ use \RuntimeException;
  * @author $imon
  */
 class PeerController extends ApiBackController {
+	const CONFIG_FILE = '/etc/peers.json';
+
 	protected static $peerServer;
 	protected static $apiServer;
 
-	/**
-	 * Bisounours mode. Everybody can communicate with everybody without any restriction.
-	 * Warning! Use for test purposes only, this can be dangerous.
-	 * @var boolean
-	 */
-	protected $bisounours = true;
+	protected function _getConfig() {
+		$configManager = $this->managers()->getManagerOf('config');
+		$configFile = $configManager->open(self::CONFIG_FILE);
+
+		return $configFile;
+	}
+
+	protected function _discoveryAllowed() {
+		$configFile = $this->_getConfig();
+		$config = $configFile->read();
+
+		return (isset($config['allowDiscovery'])) ? (bool) $config['allowDiscovery'] : false;
+	}
 
 	protected function _getOnlinePeerData(OnlinePeer $peer, $isAttached = false) {
 		$peerData = array(
@@ -31,7 +40,7 @@ class PeerController extends ApiBackController {
 			'app' => $peer['app']
 		);
 
-		if ($isAttached || $this->bisounours) {
+		if ($isAttached || $this->_discoveryAllowed()) {
 			$peerData['userId'] = $peer['userId'];
 			$peerData['peerId'] = $peer['id'];
 		}
@@ -74,7 +83,7 @@ class PeerController extends ApiBackController {
 
 		$peerData = array_merge($offlinePeerData, $onlinePeerData);
 
-		if (isset($peerData['userId']) && $isAttached) {
+		if (isset($peerData['userId']) && ($isAttached || $this->_discoveryAllowed())) {
 			$peerUser = $userManager->getById($peerData['userId']);
 			if (!empty($peerUser)) {
 				$peerData['user'] = array(
