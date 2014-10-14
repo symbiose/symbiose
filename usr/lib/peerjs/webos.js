@@ -11,9 +11,15 @@
 	// Peers
 
 	Webos.Peer.connect = function(peerId) {
+		var serverStatus = Webos.ServerCall.websocket.options.server;
+
+		if (!serverStatus.enabled || !serverStatus.started) {
+			throw new Webos.Error('Websocket server not started');
+		}
+
 		return new Peer(peerId || '', {
-			host: window.location.hostname, //TODO: replace by config from Webos.websocket
-			port: 9000, //TODO: replace by config from Webos.websocket
+			host: serverStatus.hostname,
+			port: serverStatus.port,
 			debug: 3
 		});
 	};

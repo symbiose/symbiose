@@ -1083,6 +1083,8 @@ console.log('todo', reqData);
 				}
 			}).load([function(res) {
 				var serverStatus = res.getData();
+				serverStatus.hostname = document.location.hostname;
+
 				Webos.ServerCall.websocket.options.server = serverStatus;
 
 				op.setCompleted(serverStatus);
@@ -1180,7 +1182,7 @@ console.log('todo', reqData);
 				Webos.require('/usr/lib/webos/wampy.min.js', [function () {
 					that._loadingDependencies = false;
 
-					var websocketUrl = serverStatus.protocol+'://'+document.location.hostname+':'+serverStatus.port+'/api/ws';
+					var websocketUrl = serverStatus.protocol+'://'+serverStatus.hostname+':'+serverStatus.port+'/api/ws';
 
 					console.log('Connecting WebSocket '+websocketUrl+'...');
 
