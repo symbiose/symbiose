@@ -1,54 +1,11 @@
-// TODO: dynamic plugin loading
 Webos.require([
 	'/usr/lib/webos/applications.js',
-	'/usr/lib/webos/data.js',
-	//Strophe
-	'/usr/lib/strophejs/strophe.js',
-	'/usr/lib/strophejs/strophe.vcard.js',
-	'/usr/lib/strophejs/strophe.chatstates.js',
-	//PeerJS
-	{
-		path: '/usr/lib/peerjs/peer.js',
-		context: window
-	},
-	'/usr/lib/peerjs/webos.js',
-	//OTR
-	{
-		path: '/usr/lib/webos/bigint.js',
-		context: window
-	},
-	{
-		path: '/usr/lib/webos/crypto.js',
-		context: window
-	},
-	{
-		path: '/usr/lib/webos/eventemitter.js',
-		context: window
-	},
-	{
-		path: '/usr/lib/webos/salsa20.js',
-		context: window
-	},
-	{
-		path: '/usr/lib/otr/otr.min.js',
-		context: window
-	},
-	//Jingle
-	//Not working really well... At least with Facebook and Google's servers
-	/*'/usr/lib/strophejs/jingle/strophe.jingle.js',
-	{
-		path: '/usr/lib/strophejs/jingle/strophe.jingle.session.js',
-		exportApis: ['JingleSession']
-	},
-	{
-		path: '/usr/lib/strophejs/jingle/strophe.jingle.sdp.js',
-		exportApis: ['SDP']
-	},
-	{
-		path: '/usr/lib/strophejs/jingle/strophe.jingle.adapter.js',
-		exportApis: ['TraceablePeerConnection', 'setupRTC', 'getUserMediaWithConstraints']
-	}*/
+	'/usr/lib/webos/data.js'
 ], function() {
+	/**
+	 * XMPP basic library (mostly configuration & utils).
+	 * @type {Object}
+	 */
 	Webos.xmpp = {
 		config: {
 			//boshHttpUrl: 'http://'+window.location.hostname+':5280/http-bind',
@@ -106,6 +63,7 @@ Webos.require([
 			}
 		}
 	};
+
 
 	/**
 	 * Create a new Empathy instance.
@@ -182,13 +140,29 @@ Webos.require([
 	 * @return {Object} The connection.
 	 */
 	Empathy.createConnection = function (serviceType, options) {
+		var op = Webos.Operation.create();
 		var serviceApi = Empathy.serviceApi(serviceType);
 
 		if (!serviceApi) {
 			return false;
 		}
 
-		return serviceApi.create(options);
+		var createConn = function () {
+			var conn = serviceApi.create(options);
+			op.setCompleted(conn);
+		};
+
+		if (typeof serviceApi.initialize == 'function') {
+			serviceApi.initialize().then(function () {
+				createConn();
+			}, function (err) {
+				op.setCompleted(false, err);
+			});
+		} else {
+			createConn();
+		}
+
+		return op;
 	};
 
 	/**
@@ -571,15 +545,22 @@ Webos.require([
 				$win.find('.view-login .login-credentials').toggle(needsCred);
 			}).change();
 
+			this.on('initializing', function (data) {
+				$win.window('loading', true, {
+					message: 'Loading libraries...',
+					lock: (that.countConnections() <= 1)
+				});
+			});
+
 			this.on('connecting', function (data) {
 				$win.window('loading', true, {
 					message: 'Logging in '+data.connection.option('username'),
-					lock: (that.countConnections() == 1)
+					lock: (that.countConnections() <= 1)
 				});
 
 				var connId = data.id;
 				this.once('connected connecterror autherror', function (data) {
-					if (data.id == connId) {
+					if (!data || data.id == connId) {
 						$win.window('loading', false);
 					}
 				});
@@ -1432,78 +1413,80 @@ Webos.require([
 				}
 			}
 
-			var conn = Empathy.createConnection(service.type, {
+			that.trigger('initializing');
+
+			return Empathy.createConnection(service.type, {
 				boshHttpUrl: this._config.boshHttpUrl,
 				boshWsUrl: this._config.boshWsUrl
+			}).then(function (conn) {
+				var connId = that._conns.length;
+				that._conns.push(conn);
+
+				conn.on('status', function (data) {
+					switch (data.type) {
+						case 'connecting':
+							that.trigger('connecting', {
+								connection: conn,
+								id: connId
+							});
+							break;
+						case 'connfail':
+							that.trigger('connecterror', {
+								connection: conn,
+								id: connId
+							});
+
+							Webos.Error.trigger('Failed to connect to server with username "'+options.username+'"', '', 400);
+							break;
+						case 'connected':
+							that._connected(connId);
+							break;
+						case 'disconnecting':
+							that.trigger('disconnecting', {
+								connection: conn,
+								id: connId
+							});
+							break;
+						case 'disconnected':
+							that.trigger('disconnected', {
+								connection: conn,
+								id: connId
+							});
+
+							that._conns.splice(connId, 1);
+							break;
+						case 'authenticating':
+							that.trigger('authenticating', {
+								connection: conn,
+								id: connId
+							});
+							break;
+						case 'authfail':
+							that.trigger('autherror', {
+								connection: conn,
+								id: connId
+							});
+
+							Webos.Error.trigger('Failed to authenticate with username "'+options.username+'"', '', 401);
+							break;
+						case 'error':
+							that.trigger('connerror', {
+								connection: conn,
+								id: connId
+							});
+
+							Webos.Error.trigger('An error occured with connection "'+options.username+'"', '', 400);
+							break;
+					}
+				});
+
+				conn.connect(connectOptions);
+
+				that._addAccount(options);
+			}, function (err) {
+				that.trigger('connecterror');
+				Webos.Error.trigger('Failed to create a new '+service.type+' connection', err);
 			});
-			if (!conn) {
-				return false;
-			}
-
-			var connId = this._conns.length;
-			this._conns.push(conn);
-
-			conn.on('status', function (data) {
-				switch (data.type) {
-					case 'connecting':
-						that.trigger('connecting', {
-							connection: conn,
-							id: connId
-						});
-						break;
-					case 'connfail':
-						that.trigger('connecterror', {
-							connection: conn,
-							id: connId
-						});
-
-						Webos.Error.trigger('Failed to connect to server with username "'+options.username+'"', '', 400);
-						break;
-					case 'connected':
-						that._connected(connId);
-						break;
-					case 'disconnecting':
-						that.trigger('disconnecting', {
-							connection: conn,
-							id: connId
-						});
-						break;
-					case 'disconnected':
-						that.trigger('disconnected', {
-							connection: conn,
-							id: connId
-						});
-
-						that._conns.splice(connId, 1);
-						break;
-					case 'authenticating':
-						that.trigger('authenticating', {
-							connection: conn,
-							id: connId
-						});
-						break;
-					case 'authfail':
-						that.trigger('autherror', {
-							connection: conn,
-							id: connId
-						});
-
-						Webos.Error.trigger('Failed to authenticate with username "'+options.username+'"', '', 401);
-						break;
-					case 'error':
-						that.trigger('connerror', {
-							connection: conn,
-							id: connId
-						});
-
-						Webos.Error.trigger('An error occured with connection "'+options.username+'"', '', 400);
-						break;
-				}
-			});
-
-			conn.connect(connectOptions);
-
-			this._addAccount(options);
 		},
 		disconnect: function (connId) {
 			if (typeof connId == 'undefined') {
@@ -2220,6 +2203,15 @@ console.log(src);
 		}
 	};
 	Webos.inherit(Empathy, Webos.Observable);
+
+	/**
+	 * Open a new Empathy window.
+	 * @return {Empathy} The new Empathy instance.
+	 */
+	Empathy.open = function () {
+		return new Empathy();
+	};
+
 
 	/**
 	 * An Empathy connection interface.
@@ -3286,6 +3278,55 @@ console.log(src);
 	};
 
 	/**
+	 * Load XMPP dependencies.
+	 * @return {Webos.Operation} The operation.
+	 */
+	Empathy.Xmpp.initialize = function () {
+		return Webos.require([
+			// Strophe
+			'/usr/lib/strophejs/strophe.js',
+			'/usr/lib/strophejs/strophe.vcard.js',
+			'/usr/lib/strophejs/strophe.chatstates.js',
+			// OTR
+			{
+				path: '/usr/lib/webos/bigint.js',
+				context: window
+			},
+			{
+				path: '/usr/lib/webos/crypto.js',
+				context: window
+			},
+			{
+				path: '/usr/lib/webos/eventemitter.js',
+				context: window
+			},
+			{
+				path: '/usr/lib/webos/salsa20.js',
+				context: window
+			},
+			{
+				path: '/usr/lib/otr/otr.min.js',
+				context: window
+			},
+			// Jingle
+			// Not working really well... At least with Facebook and Google's servers
+			/*'/usr/lib/strophejs/jingle/strophe.jingle.js',
+			{
+				path: '/usr/lib/strophejs/jingle/strophe.jingle.session.js',
+				exportApis: ['JingleSession']
+			},
+			{
+				path: '/usr/lib/strophejs/jingle/strophe.jingle.sdp.js',
+				exportApis: ['SDP']
+			},
+			{
+				path: '/usr/lib/strophejs/jingle/strophe.jingle.adapter.js',
+				exportApis: ['TraceablePeerConnection', 'setupRTC', 'getUserMediaWithConstraints']
+			}*/
+		]);
+	};
+
+	/**
 	 * A PeerJS connection.
 	 * @param {Object} [options] The connection's options.
 	 * @constructor
@@ -4108,11 +4149,18 @@ console.log(src);
 	};
 
 	/**
-	 * Open a new Empathy window.
-	 * @return {Empathy} The new Empathy instance.
+	 * Load Peerjs dependencies.
+	 * @return {Webos.Operation} The operation.
 	 */
-	Empathy.open = function () {
-		return new Empathy();
+	Empathy.Peerjs.initialize = function () {
+		return Webos.require([
+			// PeerJS
+			{
+				path: '/usr/lib/peerjs/peer.js',
+				context: window
+			},
+			'/usr/lib/peerjs/webos.js'
+		]);
 	};
 
 	window.Empathy = Empathy;
