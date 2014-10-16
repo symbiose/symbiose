@@ -1317,6 +1317,13 @@ Webos.require([
 					conn.endOtr(dst.username);
 				}
 			});
+
+			if (Webos.fullscreen.support) {
+				this._$callWin.find('.videos').dblclick(function (e) {
+					Webos.fullscreen.toggle(this);
+					e.preventDefault();
+				});
+			}
 		},
 		_selectContacts: function (callback, opts) {
 			var that = this, $win = this._$win;
@@ -1853,7 +1860,7 @@ console.log(src);
 			if (!$callWin.window('is', 'opened') && !closeWin) {
 				$callWin.window('open');
 
-				$callWin.on('windowclose', function () {
+				$callWin.one('windowclose', function () {
 					for (var callId in that._calls) {
 						conn.endCall(callId);
 					}
@@ -3827,6 +3834,23 @@ console.log(src);
 				}
 			}
 		},
+		_listSubCalls: function () {
+			var peer = this._peer;
+
+			var subcalls = [];
+			for (var peerId in peer.connections) {
+				var connections = peer.connections[peerId];
+				for (var i = 0; i < connections.length; i++) {
+					var conn = connections[i];
+
+					if (conn.type == 'media') {
+						subcalls.push(conn);
+					}
+				}
+			}
+
+			return subcalls;
+		},
 		_getSubCall: function (callId) {
 			var peer = this._peer;
 
@@ -3975,7 +3999,9 @@ console.log(src);
 			var op = Webos.Operation.create();
 			var call = this._getSubCall(callId);
 
+			// End call
 			call.close();
+
 			op.setCompleted();
 
 			return op;
@@ -3996,6 +4022,22 @@ console.log(src);
 			for (var username in callData.subcalls) {
 				var subcall = callData.subcalls[username];
 
+				// Close media stream if possible
+				var callsList = this._listSubCalls();
+				var endStream = true;
+				for (var i = 0; i < callsList.length; i++) {
+					var c = callsList[i];
+
+					if (c !== subcall && c.localStream === subcall.localStream) { // Stream still used
+						endStream = false;
+						break;
+					}
+				}
+				if (endStream && typeof subcall.localStream.stop == 'function') {
+					subcall.localStream.stop();
+				}
+
+				// End subcall
 				subcall.close();
 			}
 
