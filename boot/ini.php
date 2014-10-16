@@ -149,5 +149,9 @@ function fatalErrorHandler() {
 
 register_shutdown_function('fatalErrorHandler');
 
+function logException(\Exception $e) {
+	writeLog('errors', '[#'.$e->getCode().' '.get_class($e).'] '.$e->getMessage().' '.$e->getFile().':'.$e->getLine());
+}
+
 //Composer
 $loader = require(dirname(__DIR__) . '/lib/vendor/autoload.php');

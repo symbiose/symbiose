@@ -1,7 +1,8 @@
 <?php
 namespace lib\manager;
 
-use \lib\TranslationDictionary;
+use lib\XmlConfig;
+use lib\TranslationDictionary;
 
 class TranslationManager_localfs extends TranslationManager {
 	public function load($path, $locale = null) {
@@ -44,19 +45,24 @@ class TranslationManager_localfs extends TranslationManager {
 	}
 
 	protected function _loadUserConfig() {
-		$configFile = new \lib\XmlConfig($this->dao->toInternalPath('~/.config/locale.xml'));
+		$configFile = new XmlConfig($this->dao->toInternalPath('~/.config/locale.xml'));
 		$config = $configFile->read();
 
-		//Detect the browser locale
+		// Detect the browser locale
 		$browserLocale = $this->detectLanguage();
 
 		$locale = (isset($config['locale'])) ? $config['locale'] : $browserLocale;
 		$language = (isset($config['language'])) ? $config['language'] : $browserLocale;
 
-		if ($this->dao->exists('~')) { //If the user is logged
+		if ($this->dao->exists('~')) { // If the user is logged
 			$config['locale'] = $locale;
 			$config['language'] = $language;
-			$configFile->write($config);
+
+			try {
+				$configFile->write($config);
+			} catch (\Exception $e) { // Cannot write config, not so important - just log the error
+				logException($e);
+			}
 		}
 
 		$this->locale = $locale;
