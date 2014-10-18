@@ -1,7 +1,7 @@
 Webos.require([
 	'/usr/lib/webos/applications.js',
 	'/usr/lib/webos/data.js'
-], function() {
+], function () {
 	/**
 	 * XMPP basic library (mostly configuration & utils).
 	 * @type {Object}
@@ -2210,6 +2210,61 @@ console.log(src);
 	 */
 	Empathy.open = function () {
 		return new Empathy();
+	};
+
+	/**
+	 * Get user media.
+	 * @param  {Object} [constraints] Media contrainsts.
+	 * @return {Webos.Operation}      The operation.
+	 * @see https://developer.mozilla.org/en-US/docs/NavigatorUserMedia.getUserMedia
+	 */
+	Empathy._getUserMedia = function (constraints) {
+		var op = Webos.Operation.create();
+
+		constraints = constraints || { audio: true, video: true };
+
+		// Compatibility shim
+		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+		// Get audio/video stream
+		navigator.getUserMedia(constraints, function (stream) {
+			op.setCompleted(stream);
+		}, function (err) {
+			op.setCompleted(false, err);
+		});
+
+		return op;
+	};
+
+	/**
+	 * Capture screen.
+	 * @param  {Object} [constraints] Media contrainsts.
+	 * @return {Webos.Operation}      The operation.
+	 * @see https://github.com/emannion/webrtc-screen-share
+	 * @see https://talky.io/help/screensharing
+	 */
+	Empathy._captureScreen = function (constraints) {
+		constraints = constraints || {};
+		if (navigator.webkitGetUserMedia) {
+			constraints.video = {
+				mandatory: {
+					chromeMediaSource: 'screen',
+					maxWidth: screen.width,
+					maxHeight: screen.height,
+					minFrameRate: 1,
+					maxFrameRate: 5
+				},
+				optional: []
+			};
+		} else if (navigator.mozGetUserMedia) {
+			constraints.video = {
+				mediaSource: 'screen'
+			};
+		} else {
+			return Webos.Operation.createCompleted(false, 'Screen capture not supported');
+		}
+
+		return this._getUserMedia(constraints);
 	};
 
 
