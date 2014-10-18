@@ -329,12 +329,13 @@
 	/**
 	 * Create a new completed operation.
 	 * @return {Webos.Operation} The new operation.
+	 * @see Operation#setCompleted()
 	 * @since 1.0beta5
 	 */
-	Operation.createCompleted = function (result) {
+	Operation.createCompleted = function (result, data) {
 		var op = Operation.create();
 
-		op.setCompleted(result);
+		op.setCompleted(result, data);
 
 		return op;
 	};
