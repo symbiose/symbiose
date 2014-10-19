@@ -83,7 +83,7 @@ PeerController::setApiServer($apiServer);
 
 // Bind to 0.0.0.0 to accept remote connections
 // See http://socketo.me/docs/troubleshooting
-$app = new App($hostnames[0], $port, '0.0.0.0');
+$app = new App($hostnames[0], $port, '0.0.0.0', null);
 
 foreach ($hostnames as $host) {
 	//Webos' API

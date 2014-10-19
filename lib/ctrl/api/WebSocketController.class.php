@@ -144,10 +144,10 @@ class WebSocketController extends \lib\ApiBackController {
 		$serverStatus = array(
 			'started' => $this->_isServerStarted(),
 			'supported' => $this->_isSupported(),
-			'port' => $config['port'],
+			'port' => (isset($config['port'])) ? $config['port'] : null,
 			'enabled' => (isset($config['enabled'])) ? $config['enabled'] : false,
 			'autoStart' => (isset($config['autoStart'])) ? $config['autoStart'] : false,
-			'protocol' => (isset($config['protocol'])) ? $config['protocol'] : 'ws',
+			'protocol' => (isset($config['protocol'])) ? $config['protocol'] : null,
 		);
 
 		if (!$this->_isSupported()) {

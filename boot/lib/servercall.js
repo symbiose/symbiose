@@ -1094,6 +1094,40 @@ console.log('todo', reqData);
 
 			return op;
 		},
+		getServerLocation: function () {
+			var serverData = this.options.server;
+
+			if (!serverData) {
+				return null;
+			}
+			if (!serverData.enabled || !serverData.started) {
+				return null;
+			}
+
+			var address = {
+				protocol: serverData.protocol,
+				hostname: serverData.hostname,
+				port: serverData.port
+			};
+
+			if (!address.hostname) {
+				address.hostname = window.location.hostname;
+			}
+			if (!address.port && typeof address.port != 'string') {
+				address.port = window.location.port;
+			}
+			if (!address.protocol) {
+				address.protocol = (window.location.protocol == 'https:' && address.port == window.location.port) ? 'wss:' : 'ws:';
+			}
+
+			address.url = address.protocol+'//'+address.hostname;
+			if (address.port) {
+				address.url += ':'+address.port;
+			}
+			address.url += '/api/ws';
+
+			return address;
+		},
 		startServer: function(callback) {
 			console.log('Starting server...');
 
@@ -1182,7 +1216,8 @@ console.log('todo', reqData);
 				Webos.require('/usr/lib/webos/wampy.min.js', [function () {
 					that._loadingDependencies = false;
 
-					var websocketUrl = serverStatus.protocol+'://'+serverStatus.hostname+':'+serverStatus.port+'/api/ws';
+					var serverLocation = that.getServerLocation(),
+						websocketUrl = serverLocation.url;
 
 					console.log('Connecting WebSocket '+websocketUrl+'...');
 

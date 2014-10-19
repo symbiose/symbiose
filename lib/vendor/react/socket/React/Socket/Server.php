@@ -10,10 +10,12 @@ class Server extends EventEmitter implements ServerInterface
 {
     public $master;
     private $loop;
+    private $context;
 
-    public function __construct(LoopInterface $loop)
+    public function __construct(LoopInterface $loop, array $context = array())
     {
         $this->loop = $loop;
+        $this->context = $context;
     }
 
     public function listen($port, $host = '127.0.0.1')
@@ -45,11 +47,18 @@ class Server extends EventEmitter implements ServerInterface
 
     public function handleConnection($socket)
     {
+        stream_context_set_option($socket, $this->context);
         stream_set_blocking($socket, 0);
 
         $client = $this->createConnection($socket);
-
-        $this->emit('connection', array($client));
+        if ($client instanceof SecureConnection) {
+            $self = $this;
+            $client->on('connection', function($client) use ($self) {
+                $self->emit('connection', array($client));
+            });
+        } else {
+            $this->emit('connection', array($client));
+        }
     }
 
     public function getPort()
@@ -68,6 +77,13 @@ class Server extends EventEmitter implements ServerInterface
 
     public function createConnection($socket)
     {
-        return new Connection($socket, $this->loop);
+        $context = stream_context_get_options($socket);
+        if (array_key_exists('ssl', $context)) {
+            $conn = new SecureConnection($socket, $this->loop);
+        } else {
+            $conn = new Connection($socket, $this->loop);
+        }
+
+        return $conn;
     }
 }
