@@ -58,6 +58,9 @@ if (function_exists('posix_getpid')) {
 // Determine server hostnames
 $hostnames = (isset($serverConfig['hostname'])) ? $serverConfig['hostname'] : 'localhost';
 if (!is_array($hostnames)) {
+	if (empty($hostnames)) {
+		$hostnames = '*';
+	}
 	$hostnames = array($hostnames);
 }
 
