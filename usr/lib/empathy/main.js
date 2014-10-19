@@ -2213,6 +2213,13 @@ console.log(src);
 	};
 
 	/**
+	 * Check if the browser supports `getUserMedia()`.
+	 * @return {Boolean} True if `getUserMedia()` is supported, false otherwise.
+	 */
+	Empathy._supportsGetUserMedia = function () {
+		return (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia);
+	};
+	/**
 	 * Get user media.
 	 * @param  {Object} [constraints] Media contrainsts.
 	 * @return {Webos.Operation}      The operation.
@@ -2224,7 +2231,7 @@ console.log(src);
 		constraints = constraints || { audio: true, video: true };
 
 		// Compatibility shim
-		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+		navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia);
 
 		// Get audio/video stream
 		navigator.getUserMedia(constraints, function (stream) {
@@ -2236,6 +2243,21 @@ console.log(src);
 		return op;
 	};
 
+	/**
+	 * Check if the browser supports screen capture.
+	 * @return {Boolean} True if screen capture is supported, false otherwise.
+	 */
+	Empathy._supportsScreenCapture = function () {
+		if (!Empathy._supportsGetUserMedia()) {
+			return false;
+		}
+
+		if (window.location.protocol != 'https:') {
+			return false;
+		}
+
+		return true;
+	};
 	/**
 	 * Capture screen.
 	 * @param  {Object} [constraints] Media contrainsts.
@@ -2256,7 +2278,7 @@ console.log(src);
 				},
 				optional: []
 			};
-		} else if (navigator.mozGetUserMedia) {
+		} else if (navigator.mozGetUserMedia || navigator.getUserMedia) {
 			constraints.video = {
 				mediaSource: 'screen'
 			};
