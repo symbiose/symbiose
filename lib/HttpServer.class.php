@@ -247,6 +247,10 @@ class HttpServer implements HttpServerInterface {
 		return $apiGroupCall->httpResponse();*/
 
 		$fields = $req->getPostFields()->getAll();
+		if (!isset($fields['data'])) {
+			$fields['data'] = array();
+		}
+
 		$reqsData = json_decode($fields['data'], true);
 		$responses = array();
 
