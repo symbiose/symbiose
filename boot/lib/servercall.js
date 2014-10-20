@@ -1122,7 +1122,11 @@ console.log('todo', reqData);
 			if (address.port) {
 				address.url += ':'+address.port;
 			}
-			address.url += address.pathname+'/api/ws';
+			address.url += address.pathname;
+			if (address.pathname[address.pathname.length - 1] != '/') {
+				address.url += '/';
+			}
+			address.url += 'api/ws';
 
 			return address;
 		},
