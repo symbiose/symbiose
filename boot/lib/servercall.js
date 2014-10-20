@@ -1106,13 +1106,11 @@ console.log('todo', reqData);
 
 			var address = {
 				protocol: serverData.protocol,
-				hostname: serverData.hostname,
-				port: serverData.port
+				hostname: serverData.hostname || window.location.hostname,
+				port: serverData.port,
+				pathname: serverData.pathname || window.location.pathname
 			};
 
-			if (!address.hostname) {
-				address.hostname = window.location.hostname;
-			}
 			if (!address.port && typeof address.port != 'string') {
 				address.port = window.location.port;
 			}
@@ -1124,7 +1122,7 @@ console.log('todo', reqData);
 			if (address.port) {
 				address.url += ':'+address.port;
 			}
-			address.url += '/api/ws';
+			address.url += address.pathname+'/api/ws';
 
 			return address;
 		},
