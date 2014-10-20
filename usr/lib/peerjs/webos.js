@@ -21,6 +21,7 @@
 			host: serverLocation.hostname,
 			port: serverLocation.port,
 			secure: (serverLocation.protocol == 'wss:'),
+			path: serverLocation.pathname,
 			debug: 3
 		});
 	};

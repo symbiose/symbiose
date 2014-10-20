@@ -1117,16 +1117,15 @@ console.log('todo', reqData);
 			if (!address.protocol) {
 				address.protocol = (window.location.protocol == 'https:' && address.port == window.location.port) ? 'wss:' : 'ws:';
 			}
+			if (address.pathname[address.pathname.length - 1] == '/') {
+				address.pathname = address.pathname.substr(0, address.pathname.length - 1);
+			}
 
 			address.url = address.protocol+'//'+address.hostname;
 			if (address.port) {
 				address.url += ':'+address.port;
 			}
-			address.url += address.pathname;
-			if (address.pathname[address.pathname.length - 1] != '/') {
-				address.url += '/';
-			}
-			address.url += 'api/ws';
+			address.url += address.pathname+'/api/ws';
 
 			return address;
 		},
