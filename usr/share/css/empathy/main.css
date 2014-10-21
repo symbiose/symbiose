@@ -200,7 +200,11 @@
 .friends-list .contact-actions .action-call {
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAYAAACZ3F9/AAAABmJLR0QAhgCJAIokbLR8AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gIaCCgluc4YMQAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAABB0lEQVQoz42SPUoEQRCFvyqHpnfZQBMxX1gQfzYVcwMTPYCBmHkbwcTMA3gEAwMPYOIPYmoiGAmDWzROjUmPjrJiv+xR/VFVr0ssJf5TjHGA+6HCyFVPzKxRSuR+JDBtYVy57wNoQbeJwEbnP2C1CFT3lR8elorA95SuFR47L3BfBAI00PTsTRE4CGFXYC0/fmpUbwGqXghSua87LLvqlZm1wxC2gb08Yt2onpuZf4ExxpG6HzcwBlhw34whzASmGZq56pmZvXWNqvxPB22GABwm8h1G7aqnZvbcX6HKsy+2c/Zr4a5VvTCz1981sZSIMQ7FfUdgy0GAlwou65Qe/gpNSm51nj4BN2Ff5I8WpFoAAAAASUVORK5CYII=);
 }
-.friends-list .contact-offline .contact-actions .action-call {
+.friends-list .contact-actions .action-screencast {
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAYAAACZ3F9/AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAL/wAAC/8Bk9f7AQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAACiSURBVCiR1dIxagJhEAbQN7pV2MRaBMFDpBLbJBfwPt7A42gvVsFDZIuk1sROmDQ/CzbuWvrBwBTzmCkmUOMD89Lfyh/22FZ4L9XgqwM+l9kMrHHMzFUHAhGxwmhQzjv3QSVn1IM7wFUeDF4wvMMMcalwwGtELPHbgWrM8FlhgzHeem5ssInMBBExxUsHOmVmAy0s+AkLTMoV8INv7DKzfZR/CI4oSitroJIAAAAASUVORK5CYII=);
+}
+.friends-list .contact-offline .contact-actions .action-call,
+.friends-list .contact-offline .contact-actions .action-screencast {
 	display: none;
 }
 .friends-list .contact-actions .action-url {

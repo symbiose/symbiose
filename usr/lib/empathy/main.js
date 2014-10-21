@@ -609,6 +609,36 @@ Webos.require([
 					return ($(this).data('conversation') === id);
 				});
 			};
+			var createFeatureItem = function (feat, multiple) {
+				if (feat == 'multiple') {
+					return null;
+				}
+				var multipleIndex = feat.indexOf('-multiple');
+				if (~multipleIndex) {
+					if (multiple) {
+						feat = feat.slice(0, multipleIndex);
+					} else {
+						return null;
+					}
+				} else {
+					if (multiple) {
+						return null;
+					}
+				}
+
+				var featuresTitles = {
+					message: 'Send a message',
+					call: 'Call',
+					screencast: 'Screencast',
+					fileSending: 'Envoyer un fichier',
+					url: 'Show profile'
+				};
+
+				return $('<li></li>', {
+					'class': 'action-'+feat+' cursor-pointer',
+					'title': featuresTitles[feat]
+				});
+			};
 			var createContact = function (connId, multiple) {
 				var $contact = $('<li></li>');
 
@@ -628,25 +658,10 @@ Webos.require([
 				for (var i = 0; i < connFeatures.length; i++) {
 					var feat = connFeatures[i];
 
-					if (feat == 'multiple') {
-						continue;
+					var $item = createFeatureItem(feat, multiple);
+					if ($item) {
+						$item.appendTo($contactActions);
 					}
-					var multipleIndex = feat.indexOf('-multiple');
-					if (~multipleIndex) {
-						if (multiple) {
-							feat = feat.slice(0, multipleIndex);
-						} else {
-							continue;
-						}
-					} else {
-						if (multiple) {
-							continue;
-						}
-					}
-
-					$('<li></li>', {
-						'class': 'action-'+feat+' cursor-pointer'
-					}).appendTo($contactActions);
 				}
 
 				$('<li></li>', {
@@ -1085,6 +1100,11 @@ Webos.require([
 					if ($(this).is('.action-call')) {
 						conn.call({
 							to: contact.username
+						});
+					} else if ($(this).is('.action-screencast')) {
+						conn.call({
+							to: contact.username,
+							mediaSource: 'screen'
 						});
 					} else if ($(this).is('.action-url')) {
 						if (contact.url) {
@@ -2770,7 +2790,12 @@ console.log(src);
 	Empathy.CallInterface = function (options) {
 		Empathy.Interface.call(this, options);
 
-		this._addFeature('call');
+		if (Empathy._supportsGetUserMedia()) {
+			this._addFeature('call');
+		}
+		if (Empathy._supportsScreenCapture()) {
+			this._addFeature('screencast');
+		}
 	};
 	/**
 	 * Empathy.CallInterface's prototype.
@@ -3852,21 +3877,6 @@ console.log(src);
 
 			return op;
 		},
-		_getUserMedia: function () {
-			var op = Webos.Operation.create();
-
-			// Compatibility shim
-			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
-			// Get audio/video stream
-			navigator.getUserMedia({ audio: true, video: true }, function (stream) {
-				op.setCompleted(stream);
-			}, function (err) {
-				op.setCompleted(false);
-			});
-
-			return op;
-		},
 		_createCallId: function () {
 			var callId;
 			do {
@@ -3994,7 +4004,7 @@ console.log(src);
 			var users = callMetadata.to.slice(0); //Clone this array
 			users.push(peer.id);
 
-			var doCall = function (to, stream) {
+			var subcall = function (to, stream) {
 				var call = peer.call(to, stream, {
 					metadata: {
 						id: callId,
@@ -4015,12 +4025,12 @@ console.log(src);
 				return call;
 			};
 
-			this._getUserMedia().then(function (stream) {
+			var call = function (stream) {
 				var subcalls = {};
 				for (var i = 0; i < callMetadata.to.length; i++) {
 					var dst = callMetadata.to[i];
 
-					subcalls[dst] = doCall(dst, stream);
+					subcalls[dst] = subcall(dst, stream);
 				}
 
 				that._calls[callId] = {
@@ -4034,8 +4044,19 @@ console.log(src);
 				for (var remote in subcalls) {
 					that._handleCall(subcalls[remote], true);
 				}
-			}, function () {
-				op.setCompleted(false);
+			};
+
+			var mediaOperation;
+			if (callMetadata.mediaSource == 'screen') {
+				mediaOperation = Empathy._captureScreen();
+			} else {
+				mediaOperation = Empathy._getUserMedia();
+			}
+
+			mediaOperation.then(function (stream) {
+				call(stream);
+			}, function (err) {
+				op.setCompleted(false, err);
 			});
 
 			return op;
@@ -4070,7 +4091,7 @@ console.log(src);
 
 			callData.accepted = true;
 
-			this._getUserMedia().then(function (stream) {
+			Empathy._getUserMedia().then(function (stream) {
 				for (var i = 0; i < callData.users.length; i++) {
 					var username = callData.users[i];
 
