@@ -46,6 +46,8 @@ Webos.Translation.load(function(t) {
 	var form = $.w.entryContainer()
 		.appendTo(registerWindowContents)
 		.submit(function() {
+			console.log('submit');
+			console.trace();
 			if (!checkFormFn()) {
 				return;
 			}
