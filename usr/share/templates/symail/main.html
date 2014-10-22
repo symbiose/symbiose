@@ -1,0 +1,78 @@
+<x-window-main width="700" height="500" icon="apps/email-client" stylesheet="/usr/share/css/symail/main.css">
+	<h1>E-mail</h1>
+
+	<header>
+		<div class="symail-header">
+			<div class="pull-right">
+				<x-button class="settings-btn" title="Settings"><x-icon src="actions/document-properties" size="24"></x-icon></x-button>
+			</div>
+
+			<div class="pull-left">
+				<x-button class="compose-btn" title="Compose"><x-icon src="actions/mail-message-new" size="24"></x-icon></x-button></x-buttonGroup>
+
+				<x-buttonGroup>
+					<x-button class="reply-sender-btn" title="Reply"><x-icon src="actions/mail-reply-sender" size="24"></x-icon></x-button>
+					<x-button class="reply-all-btn" title="Reply to all"><x-icon src="actions/mail-reply-all" size="24"></x-icon></x-button>
+					<x-button class="forward-btn" title="Forward"><x-icon src="actions/mail-forward" size="24"></x-icon></x-button>
+				</x-buttonGroup>
+
+				<x-buttonGroup><x-button class="mark-btn" title="Mark as..."><x-icon src="actions/dialog-apply" size="24"></x-icon></x-button></x-buttonGroup>
+
+				<x-buttonGroup><x-button class="tag-btn" title="Tag..."><x-icon src="actions/tag-new" size="24"></x-icon></x-button></x-buttonGroup>
+
+				<x-buttonGroup><x-button class="move-btn" title="Move..."><x-icon src="actions/mail-move" size="24"></x-icon></x-button></x-buttonGroup>
+
+				<x-buttonGroup><x-button class="archive-btn" title="Archive"><x-icon src="actions/mail-archive" size="24"></x-icon></x-button></x-buttonGroup>
+			</div>
+
+			<span class="clearfix"></span>
+		</div>
+	</header>
+
+	<!-- Whitespaces are causing divs to have a space between them -->
+	<div class="symail-main"><aside class="symail-boxes"><ul></ul></aside><div class="symail-list"><ul></ul></div><div class="symail-conversation"></div></div>
+</x-window-main>
+
+<x-window width="400" icon="apps/email-client" stylesheet="/usr/share/css/symail/main.css" resizable="0" dialog>
+	<h1>E-mail</h1>
+
+	<div class="welcome-message">
+		<x-icon src="apps/email-client" size="48" style="float:left;"></x-icon>
+
+		<p>
+			<strong>Welcome in E-mail.</strong><br>
+			Enter your account credentials to begin.
+		</p>
+	</div>
+	<span class="clearfix"></span>
+
+	<form class="welcome-form">
+		<label>Name: <input type="text" name="name"></label><br>
+		<label>E-mail: <input type="email" name="email"></label><br>
+		<label>Password: <input type="password" name="password"></label><br>
+		<label><input type="checkbox" name="savePassword" checked> Save password</label><br>
+
+		<x-buttonContainer>
+			<input type="button" class="cancel-btn" value="Cancel">
+			<input type="submit" class="submit-btn" value="Add">
+		</x-buttonContainer>
+	</form>
+</x-window>
+
+<x-window width="400" stylesheet="/usr/share/css/symail/main.css">
+	<h1>Compose a new message</h1>
+
+	<form class="compose-form">
+		<label>To: <input type="text" name="to"></label><br>
+		<label>Cc: <input type="text" name="cc"></label><br>
+		<label>Bcc: <input type="text" name="bcc"></label><br>
+		<label>Subject: <input type="text" name="subject"></label><br>
+
+		<textarea name="msg" class="compose-msg"></textarea>
+
+		<x-buttonContainer>
+			<input type="button" class="cancel-btn" value="Close">
+			<input type="submit" class="submit-btn" value="Send">
+		</x-buttonContainer>
+	</form>
+</x-window>

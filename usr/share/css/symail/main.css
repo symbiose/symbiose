@@ -1,0 +1,115 @@
+.symail-header {
+	padding: 3px;
+	color: #6F6F6F;
+}
+.symail-header x-buttonGroup {
+	overflow: visible;
+}
+.symail-header :not(x-buttonGroup) > x-button:not(:hover),
+.symail-header x-buttonGroup:not(:hover) > x-button {
+	border-color: transparent;
+	background: none;
+	box-shadow: none;
+}
+
+.pull-right {
+	float: right;
+}
+.pull-right > div {
+	display: inline-block;
+}
+.clearfix {
+	display: block;
+	clear: both;
+}
+
+.symail-main {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.symail-boxes,
+.symail-list,
+.symail-conversation {
+	display: inline-block;
+	height: 100%;
+	overflow: auto;
+	vertical-align: top;
+	white-space: normal;
+	border-right: 1px solid #a7a7a7;
+}
+.symail-boxes {
+	width: 15%;
+	background-color: #dedede;
+}
+.symail-list {
+	width: 25%;
+	background-color: white;
+}
+.symail-conversation {
+	width: 60%;
+	background-color: #cccccc;
+}
+
+.symail-boxes ul {
+	margin: 0;
+	padding: 3px;
+	list-style-type: none;
+}
+
+.symail-list ul {
+	margin: 0;
+	padding: 0;
+}
+.symail-list .msg {
+	padding: 10px;
+}
+.symail-list .msg.active {
+	background-color: #3d9bda;
+	color: white;
+}
+.symail-list .msg.msg-unread {
+	font-weight: bold;
+}
+.symail-list .msg .msg-star {
+	float: left;
+}
+.symail-list .msg .msg-date {
+	float: right;
+	color: #a4bacb;
+	font-size: 12px;
+}
+.symail-list .msg .msg-from {
+	font-size: 14px;
+}
+.symail-list .msg .msg-subject {
+	font-size: 13px;
+}
+
+.symail-conversation .msg {
+	margin: 15px;
+	padding: 15px;
+	color: black;
+	border: 1px solid #999999;
+	background-color: white;
+	box-shadow: 0 0 10px #999999;
+}
+.symail-conversation .msg .msg-header {
+	border-bottom: 1px solid #999999;
+	margin-bottom: 15px;
+}
+.symail-conversation .msg .msg-header dt {
+	display: block;
+	float: left;
+	width: 60px;
+	text-align: right;
+	color: #777777;
+	margin-right: 3px;
+}
+.symail-conversation .msg .msg-header dd a,
+.symail-conversation .msg .msg-header dd a:hover,
+.symail-conversation .msg .msg-header dd a:active {
+	color: inherit;
+	text-decoration: none;
+}
