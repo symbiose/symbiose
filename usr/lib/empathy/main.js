@@ -82,6 +82,10 @@ Webos.require([
 	 * @private
 	 */
 	Empathy._services = {
+		peerjs: {
+			type: 'peerjs',
+			title: 'PeerJS'
+		},
 		facebook: {
 			type: 'xmpp',
 			title: 'Facebook',
@@ -99,10 +103,6 @@ Webos.require([
 		xmpp: {
 			type: 'xmpp',
 			title: 'XMPP'
-		},
-		peerjs: {
-			type: 'peerjs',
-			title: 'PeerJS'
 		}
 	};
 	/**
@@ -550,6 +550,16 @@ Webos.require([
 					message: 'Loading libraries...',
 					lock: (that.countConnections() <= 1)
 				});
+
+				var connId = -1;
+				that.once('initialized', function (data) {
+					connId = data.id;
+				});
+				that.once('connecterror', function (data) {
+					if (!data || data.id == connId) {
+						$win.window('loading', false);
+					}
+				});
 			});
 
 			this.on('connecting', function (data) {
@@ -559,7 +569,7 @@ Webos.require([
 				});
 
 				var connId = data.id;
-				this.once('connected connecterror autherror', function (data) {
+				that.once('connected connecterror autherror', function (data) {
 					if (!data || data.id == connId) {
 						$win.window('loading', false);
 					}
@@ -573,7 +583,7 @@ Webos.require([
 				});
 
 				var connId = data.id;
-				this.once('disconnected', function (data) {
+				that.once('disconnected', function (data) {
 					if (data.id == connId) {
 						$win.window('loading', false);
 					}
@@ -1138,6 +1148,16 @@ Webos.require([
 				that._getContactPicture(contact.conn, contact.username);
 			});
 
+			$win.find('.conversation-actions .btn-call').click(function () {
+				var contact = that.currentDst();
+
+				if (contact) {
+					conn.call({
+						to: contact.username
+					});
+				}
+			});
+
 			$win.find('.conversation-compose .compose-msg').keydown(function (e) {
 				var dst = that.currentDst(),
 					msgContent = $(this).val();
@@ -1264,6 +1284,8 @@ Webos.require([
 
 				if (that.currentDst()) {
 					var dst = that.currentDst(), conn = that.connection(dst.conn);
+
+					$win.find('.conversation-actions').fadeIn('fast');
 					
 					var encrypted = false;
 					if (conn.hasFeature('otr')) {
@@ -1280,6 +1302,7 @@ Webos.require([
 					$win.find('.conversation').toggleClass('conversation-multiple', (dst.length > 1));
 				} else {
 					$win.find('.conversation-compose .compose-attach, .conversation-compose .compose-add-contact').button('option', 'disabled', true);
+					$win.find('.conversation-actions').fadeOut('fast');
 				}
 			});
 			this.on('otrake', function (status) {
@@ -1442,6 +1465,11 @@ Webos.require([
 				var connId = that._conns.length;
 				that._conns.push(conn);
 
+				that.trigger('initialized', {
+					connection: conn,
+					id: connId
+				});
+
 				conn.on('status', function (data) {
 					switch (data.type) {
 						case 'connecting':
@@ -1456,7 +1484,7 @@ Webos.require([
 								id: connId
 							});
 
-							Webos.Error.trigger('Failed to connect to server with username "'+options.username+'"', '', 400);
+							Webos.Error.trigger('Failed to connect to server', data.msg, data.status || 400);
 							break;
 						case 'connected':
 							that._connected(connId);
@@ -1487,7 +1515,7 @@ Webos.require([
 								id: connId
 							});
 
-							Webos.Error.trigger('Failed to authenticate with username "'+options.username+'"', '', 401);
+							Webos.Error.trigger('Failed to authenticate with username "'+options.username+'"', data.msg, data.status || 400);
 							break;
 						case 'error':
 							that.trigger('connerror', {
@@ -1495,7 +1523,7 @@ Webos.require([
 								id: connId
 							});
 
-							Webos.Error.trigger('An error occured with connection "'+options.username+'"', '', 400);
+							Webos.Error.trigger('An error occured with connection "'+options.username+'"', data.msg, data.status || 400);
 							break;
 					}
 				});
@@ -3461,7 +3489,18 @@ console.log(src);
 			options = $.extend({}, this.options(), options);
 			this._options = options;
 
-			var peer = Webos.Peer.connect();
+			var peer = null;
+			try {
+				peer = Webos.Peer.connect();
+			} catch (err) {
+				that.trigger('status', {
+					type: 'connfail',
+					msg: 'Error: '+err.message
+				});
+
+				op.setCompleted(false, err);
+				return op;
+			}
 
 			var unsubscribe;
 			peer.on('open', function (id) {
@@ -3514,7 +3553,9 @@ console.log(src);
 			return op;
 		},
 		disconnect: function () {
-			this._peer.destroy();
+			if (this._peer) {
+				this._peer.destroy();
+			}
 		},
 		_handleConnection: function (conn) {
 			var that = this, peer = this._peer;
@@ -4105,7 +4146,6 @@ console.log(src);
 					}
 
 					if (username !== peer.id && username < peer.id) {
-
 						var call = peer.call(username, stream, {
 							metadata: {
 								id: callId,
@@ -4244,6 +4284,14 @@ console.log(src);
 	 */
 	Empathy.Peerjs.create = function () {
 		return new Empathy.Peerjs();
+	};
+
+	/**
+	 * Check that the browser supports Peerjs connections and that the server is ready.
+	 * @return {Boolean} True if Peerjs is supported, false otherwise.
+	 */
+	Empathy.Peerjs.isAvailable = function () {
+		return Webos.Peer.isEnabled();
 	};
 
 	/**

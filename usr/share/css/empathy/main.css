@@ -16,12 +16,16 @@
 
 .friends-list-header {
 	width: 320px;
+	float: left;
 }
 .friends-select .selection-status {
 	display: inline-block;
 	margin: 5px;
 }
-.friends-select {
+.conversation-header {
+	margin-left: 320px;
+}
+.friends-select, .conversation-actions {
 	display: none;
 }
 

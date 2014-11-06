@@ -1094,13 +1094,22 @@ console.log('todo', reqData);
 
 			return op;
 		},
-		getServerLocation: function () {
+		isServerStarted: function () {
 			var serverData = this.options.server;
 
 			if (!serverData) {
-				return null;
+				return false;
 			}
 			if (!serverData.enabled || !serverData.started) {
+				return false;
+			}
+
+			return true;
+		},
+		getServerLocation: function () {
+			var serverData = this.options.server;
+
+			if (!this.isServerStarted()) {
 				return null;
 			}
 

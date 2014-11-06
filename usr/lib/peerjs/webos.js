@@ -10,12 +10,16 @@
 
 	// Peers
 
-	Webos.Peer.connect = function(peerId) {
-		var serverLocation = Webos.ServerCall.websocket.getServerLocation();
+	Webos.Peer.isEnabled = function () {
+		return Webos.ServerCall.websocket.isServerStarted();
+	};
 
-		if (!serverLocation) {
+	Webos.Peer.connect = function(peerId) {
+		if (!Webos.Peer.isEnabled()) {
 			throw new Webos.Error('Websocket server not started');
 		}
+
+		var serverLocation = Webos.ServerCall.websocket.getServerLocation();
 
 		return new Peer(peerId || '', {
 			host: serverLocation.hostname,
