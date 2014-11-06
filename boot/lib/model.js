@@ -295,6 +295,17 @@ Webos.Model.prototype = {
 		}
 	},
 	/**
+	 * Unmark changed data.
+	 * @param  {String[]} changedKeys Changed keys.
+	 */
+	_unstageChanges: function (changedKeys) {
+		for (var i = 0; i < changedKeys.length; i++) {
+			var key = changedKeys[i];
+
+			this._unsynced[key].state = 1;
+		}
+	},
+	/**
 	 * Fetch this model's data from the server.
 	 * @returns {Webos.ServerCall} The server call.
 	 */
@@ -321,12 +332,24 @@ Webos.Model.prototype = {
 	/**
 	 * Save modifications on this model.
 	 * @param {Webos.Callback} callback The callback.
-	 * @deprecated Use {@link Webos.Model#save} instead.
 	 */
-	sync: function(callback) {
+	sync: function (callback) {
 		callback = Webos.Callback.toCallback(callback);
 		
 		callback.error();
+	},
+	/**
+	 * Save locally modifications on this model (do not push changes to the server).
+	 * @param {Webos.Callback} callback The callback.
+	 */
+	localSync: function (callback) {
+		var op = Webos.Operation.createCompleted(true);
+		op.addCallbacks(callback);
+
+		var changed = this._stageChanges();
+		this._propagateChanges(changed);
+
+		return op;
 	}
 };
 Webos.inherit(Webos.Model, Webos.Observable);
