@@ -13,6 +13,8 @@ $.webos.widget('contextMenu', 'container', {
 	},
 	_name: 'contextmenu',
 	_create: function() {
+		var that = this;
+
 		this._super('_create');
 
 		if (typeof this.options.target != 'undefined') {
@@ -33,6 +35,8 @@ $.webos.widget('contextMenu', 'container', {
 			var clickFn = function() {
 				that.element.fadeOut('fast', function () {
 					$(this).detach();
+					// TODO: elements detached from the DOM will survive forever (no cleanup)
+					// It's a good idea to destroy widgets when the running process is stopped
 				});
 			};
 			
