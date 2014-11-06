@@ -1777,10 +1777,15 @@ Webos.require([
 							title = '<strong>'+title+' '+t.get('(by default)')+'</strong>';
 						}
 
-						var item = $.w.listItem([title]).bind('listitemselect', function() {
+						var item = $.w.listItem([title]).on('listitemselect', function() {
 							chosenCmd = app.get('command');
-						}).bind('listitemunselect', function() {
+						}).on('listitemunselect', function() {
 							chosenCmd = '';
+						}).dblclick(function (e) {
+							e.preventDefault();
+
+							chosenCmd = app.get('command');
+							content.submit();
 						});
 
 						if (prefered) {
