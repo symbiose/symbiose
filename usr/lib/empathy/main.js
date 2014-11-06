@@ -640,7 +640,7 @@ Webos.require([
 					message: 'Send a message',
 					call: 'Call',
 					screencast: 'Screencast',
-					fileSending: 'Envoyer un fichier',
+					fileSending: 'Send a file',
 					url: 'Show profile'
 				};
 
@@ -662,7 +662,7 @@ Webos.require([
 
 				$contactActions = $contact.find('.contact-actions');
 				
-				conn = that.connection(connId);
+				var conn = that.connection(connId);
 				var connFeatures = conn.features();
 
 				for (var i = 0; i < connFeatures.length; i++) {
@@ -1279,14 +1279,14 @@ Webos.require([
 			});
 			$win.find('.btn-encryption').hide();
 			
-			this.on('conversationswitch', function () {
+			this.on('conversationswitch', function (data) {
 				$win.find('.btn-encryption').button('option', 'disabled', true);
 
 				if (that.currentDst()) {
 					var dst = that.currentDst(), conn = that.connection(dst.conn);
 
 					$win.find('.conversation-actions').fadeIn('fast');
-					
+
 					var encrypted = false;
 					if (conn.hasFeature('otr')) {
 						var status = conn.otrStatus(dst.username);
@@ -1295,6 +1295,9 @@ Webos.require([
 						$win.find('.btn-encryption').button('option', 'disabled', false);
 					}
 					$win.find('.btn-encryption').button('option', 'activated', encrypted);
+
+					$win.find('.conversation-actions .btn-call').toggle(conn.hasFeature('call'));
+					$win.find('.conversation-actions .btn-screencast').toggle(conn.hasFeature('screencast'));
 
 					$win.find('.conversation-compose .compose-attach').button('option', 'disabled', conn.hasFeature('fileSending'));
 					$win.find('.conversation-compose .compose-add-contact').button('option', 'disabled', conn.hasFeature('multiple'));
@@ -2412,7 +2415,7 @@ console.log(src);
 		 * @return {Boolean} True if the connection has the specified feature, false otherwise.
 		 */
 		hasFeature: function (feat) {
-			return ~$.inArray(feat, this._features);
+			return ($.inArray(feat, this._features) >= 0);
 		},
 		/**
 		 * Add a feature for this connection.
