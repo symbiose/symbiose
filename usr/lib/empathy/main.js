@@ -11,9 +11,9 @@ Webos.require([
 			//boshHttpUrl: 'http://'+window.location.hostname+':5280/http-bind',
 			//boshHttpUrl: 'http://bosh.metajack.im:5280/xmpp-httpbind',
 			//boshHttpUrl: 'https://jwchat.org/http-bind/',
-			boshHttpUrl: 'http://emersion.fr:5280/http-bind/',
+			boshHttpUrl: 'http://master.emersion.fr:5280/http-bind/',
 			//boshWsUrl: 'ws://'+window.location.hostname+':5280'
-			boshWsUrl: 'ws://emersion.fr:5280/'
+			boshWsUrl: 'ws://master.emersion.fr:5280/'
 		},
 		initialize: function (config) {
 			config = $.extend({}, this.config, config);
