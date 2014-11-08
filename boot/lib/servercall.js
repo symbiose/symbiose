@@ -306,7 +306,8 @@
 			};
 
 			for (var i = 0; i < Webos.ServerCall.list.length; i++) {
-				if (handleCall(Webos.ServerCall.list[i])) {
+				var call = Webos.ServerCall.list[i];
+				if (call && handleCall(call)) {
 					return this;
 				}
 			}
@@ -330,7 +331,7 @@
 		 * Get this server call's stack trace.
 		 * @returns {String} The stack.
 		 */
-		stack: function $_WServerCall_stack() {
+		stack: function () {
 			var stack = '    at '+this._url+' calling action "'+this._data.action+'" in module "'+this._data.module+'"';
 			if (this._data.arguments && this._data.arguments != '{}') {
 				stack += "\n"+'    with arguments '+JSON.stringify(this._data.arguments);
@@ -1481,6 +1482,8 @@ console.log('todo', reqData);
 			Webos.ServerCall.notify('complete', { list: Webos.ServerCall.list });
 		}
 		Webos.ServerCall.notify('callcomplete', { call: call });
+
+		Webos.ServerCall.list[call.id()] = null;
 	};
 
 	/**
@@ -1534,8 +1537,9 @@ console.log('todo', reqData);
 	Webos.ServerCall.getList = function (status) {
 		var list = [];
 		for (var i = 0; i < Webos.ServerCall.list.length; i++) {
-			if (typeof status == 'undefined' || Webos.ServerCall.list[i]._status == status) {
-				list.push(Webos.ServerCall.list[i]);
+			var call = Webos.ServerCall.list[i];
+			if (call && (typeof status == 'undefined' || call._status == status)) {
+				list.push(call);
 			}
 		}
 		return list;
