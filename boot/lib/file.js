@@ -1460,11 +1460,11 @@ Webos.WebosFile.prototype = {
 			data.path = this.get('mountPoint').getWebosPath(data.webospath);
 
 			if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
-				if (Webos.standalone) {
-					data.realpath = window.location.pathname+'/'+data.path;
-				} else {
-					data.realpath = 'sbin/rawdatacall.php?type=file&path='+data.path;
+				var pathname = window.location.pathname, ext = pathname.split('.').pop();
+				if (ext == 'php' || ext == 'html') {
+					pathname = pathname.replace(/\/[^\/]*\/?$/, '');
 				}
+				data.realpath = pathname+'/'+data.path;
 			}
 		}
 

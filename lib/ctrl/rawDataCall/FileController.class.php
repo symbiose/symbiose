@@ -3,7 +3,6 @@ namespace lib\ctrl\rawDataCall;
 
 use \Exception;
 use \RuntimeException;
-use \ZipArchive;
 
 /**
  * Provides access to the system's files.
@@ -109,8 +108,8 @@ class FileController extends \lib\RawBackController {
 
 			$filesInDir = $fileManager->readDir($filePath, true); //Read recursively the directory
 			$tmpFilePath = $fileManager->tmpfile();
-			$zip = new ZipArchive();
-			$zip->open($fileManager->toInternalPath($tmpFilePath), ZipArchive::CREATE);
+			$zip = new \ZipArchive();
+			$zip->open($fileManager->toInternalPath($tmpFilePath), \ZipArchive::CREATE);
 
 			foreach($filesInDir as $filename => $filepath) {
 				if ($fileManager->isDir($filepath)) {
