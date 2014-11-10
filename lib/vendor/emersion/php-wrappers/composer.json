@@ -1,0 +1,17 @@
+{
+    "name": "emersion/php-wrappers",
+    "description": "High-performance wrappers for native FTP and SFTP functions.",
+    "license": "MIT",
+    "version": "1.0-beta",
+    "authors": [
+        {
+            "name": "emersion"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-0": {
+            "Wrappers\\": "src/"
+        }
+    }
+}

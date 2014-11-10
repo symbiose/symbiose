@@ -82,5 +82,6 @@
 	"executeSearch":[{
 		"argument":1,
 		"permission":"file.read"
-	}]
+	}],
+	"executeGetSupportedProtocols":[]
 }

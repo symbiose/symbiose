@@ -907,5 +907,39 @@
         ],
         "description": "Library for accessing git",
         "homepage": "http://gitonomy.com"
+    },
+    {
+        "name": "emersion/php-wrappers",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/emersion/php-wrappers.git",
+            "reference": "a77798cca8e4ac052debd18e2ab52d9da5c6cb35"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/emersion/php-wrappers/zipball/a77798cca8e4ac052debd18e2ab52d9da5c6cb35",
+            "reference": "a77798cca8e4ac052debd18e2ab52d9da5c6cb35",
+            "shasum": ""
+        },
+        "time": "2014-11-10 14:14:30",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-0": {
+                "Wrappers\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "emersion"
+            }
+        ],
+        "description": "High-performance wrappers for native FTP and SFTP functions."
     }
 ]

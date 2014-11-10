@@ -170,11 +170,6 @@ Webos.require([
 			});
 			
 			this._drivers = {
-				'FTPFile': {
-					'title': 'FTP',
-					'icon': 'places/folder-remote',
-					'lib': '/usr/lib/webos/ftp.js'
-				},
 				'DropboxFile': {
 					'title': 'Dropbox',
 					'icon': 'applications/dropbox',
@@ -184,6 +179,10 @@ Webos.require([
 					'title': 'Google Drive',
 					'icon': 'applications/google-drive',
 					'lib': '/usr/lib/google-api/webos.js'
+				},
+				'RemoteFile': {
+					'title': 'FTP/SSH',
+					'icon': 'places/folder-remote'
 				},
 				'WebosFile': {
 					'title': 'Webos',
@@ -199,10 +198,10 @@ Webos.require([
 				}, this._drivers[name]);
 			}
 			
-			this.showDrivers = function(driver) {
+			this.showDrivers = function (driver) {
 				var that = this;
 
-				var form = $.w.entryContainer().submit(function() {
+				var form = $.w.entryContainer().submit(function () {
 					if (that._drivers[selectedDriver].lib) {
 						that._window.window('loading', true, {
 							message: t.get('Loading of ${driver} library in progress...', { driver: that._drivers[selectedDriver].title })
@@ -232,15 +231,15 @@ Webos.require([
 							});
 						};
 						
-						Webos.File.mount(point, [function(point) {
+						var op = Webos.File.mount(point).then(function (point) {
 							if (permanent) {
 								that._window.window('loading', true, {
 									message: t.get('Adding persistant mounting...')
 								});
-								Webos.File.fstab.add(point, [function() {
+								Webos.File.fstab.add(point, [function () {
 									that._window.window('close');
 									displaySuccessFn();
-								}, function(resp) {
+								}, function (resp) {
 									that._window.window('loading', false);
 									resp.triggerError(t.get('Can\'t perform the persistant mounting'));
 								}]);
@@ -248,10 +247,13 @@ Webos.require([
 								that._window.window('close');
 								displaySuccessFn();
 							}
-						}, function(resp) {
+						}, function (resp) {
 							that._window.window('loading', false);
 							resp.triggerError(t.get('Can\'t mount the volume'));
-						}]);
+						});
+						op.on('abort', function () {
+							that._window.window('close');
+						});
 					};
 					
 					that._window.window('loading', true, {
@@ -300,7 +302,7 @@ Webos.require([
 					}
 					submitButton.button('option', 'disabled', false);
 					spoiler.show();
-					localEntry.nautilusFileEntry('value', '~/' + that._drivers[name].title);
+					localEntry.nautilusFileEntry('value', '~/' + that._drivers[name].title.replace('/', '_'));
 					selectedDriver = name;
 				};
 				

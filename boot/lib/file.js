@@ -1318,15 +1318,16 @@ Webos.inherit(Webos.File.MountPoint, Webos.Model);
  * @param {Webos.Callback} callback The callback.
  */
 Webos.File.mount = function(point, callback) {
-	callback = Webos.Callback.toCallback(callback);
+	var op = Webos.Operation.create();
+	op.addCallbacks(callback);
 
 	if (!Webos[point.get('driver')]) {
-		callback.error(Webos.Callback.Result.error('Driver "'+point.get('driver')+'" not loaded'));
+		op.setCompleted(Webos.Callback.Result.error('Driver "'+point.get('driver')+'" not loaded'));
 		return;
 	}
 	
 	if (Webos.File._mountedDevices[point.get('local')]) {
-		callback.error(Webos.Callback.Result.error('Location "'+point.get('local')+'" already matches another mount point'));
+		op.setCompleted(Webos.Callback.Result.error('Location "'+point.get('local')+'" already matches another mount point'));
 		return;
 	}
 	
@@ -1337,16 +1338,24 @@ Webos.File.mount = function(point, callback) {
 			Webos.File._mountedDevices[point.get('local')] = point;
 			Webos.File.notify('mount', { local: point.get('local'), remote: point.get('remote'), driver: point.get('driver'), point: point });
 
-			callback.success(point);
+			op.setCompleted(point);
 		};
 		
 		if (typeof Webos[point.get('driver')].mount == 'function') {
-			Webos[point.get('driver')].mount(point, [function(newPoint) {
+			var driverOp = Webos[point.get('driver')].mount(point, [function(newPoint) {
 				if (newPoint) {
 					point = newPoint;
 				}
 				mountFn();
-			}, callback.error]);
+			}, function (err) {
+				op.setCompleted(err);
+			}]);
+
+			if (driverOp) {
+				driverOp.on('abort', function () {
+					op.abort();
+				});
+			}
 		} else {
 			mountFn();
 		}
@@ -1362,10 +1371,14 @@ Webos.File.mount = function(point, callback) {
 	if (init && typeof Webos[point.get('driver')].init == 'function') {
 		Webos[point.get('driver')].init([function() {
 			mountFn();
-		}, callback.error]);
+		}, function (err) {
+			op.setCompleted(err);
+		}]);
 	} else {
 		mountFn();
 	}
+
+	return op;
 };
 
 /**
@@ -1460,11 +1473,15 @@ Webos.WebosFile.prototype = {
 			data.path = this.get('mountPoint').getWebosPath(data.webospath);
 
 			if (!data.realpath) { //On définit automatiquement le chemin réel si non présent
-				var pathname = window.location.pathname, ext = pathname.split('.').pop();
-				if (ext == 'php' || ext == 'html') {
-					pathname = pathname.replace(/\/[^\/]*\/?$/, '');
+				if (data.webospath == '~' || data.webospath.substr(0, 2) == '~/') {
+					data.realpath = 'sbin/rawdatacall.php?type=file&path='+data.path;
+				} else {
+					var pathname = window.location.pathname, ext = pathname.split('.').pop();
+					if (ext == 'php' || ext == 'html') {
+						pathname = pathname.replace(/\/[^\/]*\/?$/, '');
+					}
+					data.realpath = pathname+'/'+data.path;
 				}
-				data.realpath = pathname+'/'+data.path;
 			}
 		}
 
@@ -1949,6 +1966,152 @@ Webos.require({
 	}, '~');
 	Webos.File.mount(homePoint);
 });
+
+/**
+ * A remote file.
+ * @param {Object} data The file's data.
+ * @param {Webos.File.MountPoint} point The file's mount point.
+ * @augments {Webos.WebosFile}
+ * @constructor
+ * @since 1.0beta5
+ */
+Webos.RemoteFile = function (data, point) {
+	Webos.WebosFile.call(this, data, point);
+};
+Webos.RemoteFile.prototype = {
+	_createRequest: function (method, args) {
+		return Webos.RemoteFile._createRequest(method, args, this.get('mountPoint'));
+	},
+	hydrate: function(data) {
+		if (data.path) {
+			data.realpath = Webos.RemoteFile._pointPrefix(this.get('mountPoint')) + '/' + data.path;
+		}
+
+		return Webos.WebosFile.prototype.hydrate.call(this, data);
+	}
+};
+Webos.inherit(Webos.RemoteFile, Webos.WebosFile);
+
+Webos.RemoteFile._pointPrefix = function (point) {
+	var pointData = point.get('data') || {};
+
+	var prefix = pointData.protocol+'://';
+
+	if (pointData.username) {
+		prefix += encodeURIComponent(pointData.username);
+		if (pointData.password) {
+			prefix += ':'+encodeURIComponent(pointData.password);
+		}
+		prefix += '@';
+	}
+
+	prefix += pointData.host;
+
+	return prefix;
+};
+Webos.RemoteFile._createRequest = function (method, args, point) {
+	args = args || {};
+
+	var prefix = Webos.RemoteFile._pointPrefix(point);
+	for (var name in args) {
+		var value = args[name];
+		if (typeof value == 'string' && value[0] == '/') { // Path detected
+			args[name] = prefix+value;
+		}
+	}
+
+	return new Webos.ServerCall({
+		'class': 'FileController',
+		method: method,
+		arguments: args
+	});
+};
+Webos.RemoteFile.getSupportedProtocols = function () {
+	var op = Webos.Operation.create();
+
+	new Webos.ServerCall({
+		'class': 'FileController',
+		method: 'getSupportedProtocols'
+	}).load([function (res) {
+		var data = res.getData(), list = [];
+		for (var i in data) {
+			list.push(data[i]);
+		}
+		op.setCompleted(list);
+	}, function (res) {
+		op.setCompleted(res);
+	}]);
+
+	return op;
+};
+Webos.RemoteFile.mount = function(point, callback) {
+	var op = Webos.Operation.create();
+	op.addCallbacks(callback);
+
+	if (!point.get('data')) {
+		Webos.RemoteFile.getSupportedProtocols().then(function (protocols) {
+			var dialog = $.w.window.dialog({
+				title: 'Connecting to a remote filesystem',
+				icon: 'places/folder-remote'
+			});
+
+			var form = $.w.entryContainer().submit(function() {
+				point.set('data', {
+					protocol: protocol.selectButton('value'),
+					host: host.textEntry('value'),
+					username: username.textEntry('value'),
+					password: password.passwordEntry('value')
+				});
+
+				dialog.window('close');
+
+				op.setCompleted(point);
+			});
+
+			var protocolChoices = {
+				'ftp': 'FTP',
+				'ftps': 'FTPS',
+				'sftp': 'SFTP (SSH)'
+			};
+			for (var proto in protocolChoices) {
+				if (!~protocols.indexOf(proto)) {
+					delete protocolChoices[proto];
+				}
+			}
+
+			var protocol = $.w.selectButton('Protocol: ', protocolChoices).appendTo(form);
+			var host = $.w.textEntry('Host: ').appendTo(form);
+			var username = $.w.textEntry('Username: ').appendTo(form);
+			var password = $.w.passwordEntry('Password: ').appendTo(form);
+
+			var buttons = $.w.buttonContainer().appendTo(form);
+			$.w.button('Cancel').click(function() {
+				dialog.window('close');
+				op.abort();
+			}).appendTo(buttons);
+			$.w.button('OK', true).appendTo(buttons);
+
+			form.appendTo(dialog.window('content'));
+
+			dialog.window('open');
+		}, function (err) {
+			op.setCompleted(err);
+		});
+	} else {
+		op.setCompleted(point);
+	}
+
+	return op;
+};
+
+Webos.RemoteFile.get = Webos.WebosFile.get;
+Webos.RemoteFile.createFile = Webos.WebosFile.createFile;
+Webos.RemoteFile.createFolder = Webos.WebosFile.createFolder;
+Webos.RemoteFile.copy = Webos.WebosFile.copy;
+Webos.RemoteFile.move = Webos.WebosFile.move;
+
+// Register the driver
+Webos.File.registerDriver('RemoteFile', { title: 'Remote', icon: 'places/folder-remote' });
 
 /**
  * A virtual file.

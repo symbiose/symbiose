@@ -2,9 +2,17 @@
 namespace lib\ctrl\api;
 
 use ZipArchive;
+use Wrappers\FtpStream;
+use Wrappers\FtpsStream;
+use Wrappers\SftpStream;
 use lib\ApiBackController;
 use lib\entities\FileMetadata;
 use lib\entities\FileShare;
+
+// Register stream wrappers
+FtpStream::register();
+FtpsStream::register();
+SftpStream::register();
 
 /**
  * Manage files.
@@ -91,7 +99,11 @@ class FileController extends ApiBackController {
 
 			$list = array();
 			foreach($files as $filepath) {
-				$list[$filepath] = $this->executeGetMetadata($filepath);
+				try {
+					$list[$manager->removeHostFromPath($filepath)] = $this->executeGetMetadata($filepath);
+				} catch (\Exception $e) {
+					continue;
+				}
 			}
 
 			return $list;
@@ -166,55 +178,61 @@ class FileController extends ApiBackController {
 		$shareManager = $this->managers()->getManagerOf('fileShare');
 		$user = $this->app()->user();
 
-		if (!$manager->exists($path)) {
+		if (!$manager->isRemote($path) && !$manager->exists($path)) {
 			throw new \RuntimeException('"'.$path.'": no such file or directory', 404);
 		}
 
-		$baseData = $this->getPathData($path);
+		$baseData = $this->getPathData($manager->removeHostFromPath($path));
 
 		$data = array_merge($baseData, array(
-			'download_url' => $manager->toInternalPath($path) . '?dl=1',
-			'atime' => $manager->atime($path),
-			'mtime' => $manager->mtime($path),
-			'size' => $manager->size($path),
-			'is_dir' => $manager->isDir($path),
-			'mime_type' => $manager->mimetype($path)
+			'is_dir' => $manager->isDir($path)
 		));
 
-		if ($data['is_dir']) {
-			$data['available_space'] = $manager->availableSpace($path);
-			$data['size'] = count($manager->readDir($path));
-		} else {
+		if (!$data['is_dir']) {
 			$data['extension'] = $manager->extension($path);
 			$data['size'] = $manager->size($path);
 		}
 
-		$internalPath = $manager->toInternalPath($path);
-		if ($metadataManager->pathExists($internalPath)) {
-			$fileMetadata = $metadataManager->getByPath($internalPath);
-
-			$owner = $fileMetadata['owner'];
-			if ($owner === null) {
-				if ($path == '~' || substr($path, 0, 2) == '~/') {
-					$owner = $user->id();
-				}
-			}
-
-			$data = array_merge($data, array(
-				'id' => $fileMetadata['id'],
-				'tags' => $fileMetadata['tags'],
-				'parent' => $fileMetadata['parent'],
-				'owner' => $owner
+		if (!$manager->isRemote($path)) {
+			$data = array_merge($baseData, array(
+				'atime' => $manager->atime($path),
+				'mtime' => $manager->mtime($path),
+				'mime_type' => $manager->mimetype($path),
+				'download_url' => $manager->toInternalPath($path) . '?dl=1'
 			));
 
-			if ($shareManager->fileIdExists($fileMetadata['id'])) {
-				$shares = $shareManager->listByFileId($fileMetadata['id']);
+			if ($data['is_dir']) {
+				$data['available_space'] = $manager->availableSpace($path);
+				$data['size'] = count($manager->readDir($path));
+			}
 
-				$data['labels']['shared'] = true;
-				$data['shares'] = array();
+			$internalPath = $manager->toInternalPath($path);
+			if ($metadataManager->pathExists($internalPath)) {
+				$fileMetadata = $metadataManager->getByPath($internalPath);
 
-				foreach ($shares as $share) {
-					$data['shares'][] = $this->getFileShareData($path, $share);
+				$owner = $fileMetadata['owner'];
+				if ($owner === null) {
+					if ($path == '~' || substr($path, 0, 2) == '~/') {
+						$owner = $user->id();
+					}
+				}
+
+				$data = array_merge($data, array(
+					'id' => $fileMetadata['id'],
+					'tags' => $fileMetadata['tags'],
+					'parent' => $fileMetadata['parent'],
+					'owner' => $owner
+				));
+
+				if ($shareManager->fileIdExists($fileMetadata['id'])) {
+					$shares = $shareManager->listByFileId($fileMetadata['id']);
+
+					$data['labels']['shared'] = true;
+					$data['shares'] = array();
+
+					foreach ($shares as $share) {
+						$data['shares'][] = $this->getFileShareData($path, $share);
+					}
 				}
 			}
 		}
@@ -642,5 +660,11 @@ class FileController extends ApiBackController {
 		});
 
 		return $matchingItems;
+	}
+
+	public function executeGetSupportedProtocols() {
+		$allowedProtocols = $this->guardian()->allowedProtocols();
+
+		return array_intersect($allowedProtocols, stream_get_wrappers());
 	}
 }
