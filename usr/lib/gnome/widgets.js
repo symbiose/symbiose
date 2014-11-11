@@ -5,9 +5,31 @@
  * @since 1.0alpha2
  */
 
-//ContextMenu
-$.webos.widget('contextMenu', 'container', {
+/**
+ * A context menu.
+ * @param  {jQuery} target The context menu target.
+ * @param  {String} selector An additional selector.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.contextMenu = function(target, selector) {
+	return $('<ul></ul>').contextMenu({
+		target: target,
+		selector: selector
+	});
+};
+
+$.webos.btnContextMenu = function(target, selector) {
+	return $('<ul></ul>').contextMenu({
+		target: target,
+		selector: selector,
+		event: 'click'
+	});
+};
+
+$.webos.contextMenu.prototype = {
 	options: {
+		event: 'contextmenu',
 		target: undefined,
 		selector: undefined,
 		disabled: false
@@ -22,12 +44,15 @@ $.webos.widget('contextMenu', 'container', {
 			this._setTarget(this.options.target);
 		}
 	},
+	_eventName: function () {
+		return this.options.event+'.'+this.id()+'.contextmenu.gnome';
+	},
 	_setTarget: function (target) {
 		var that = this;
 		
 		this.element.hide();
 		//console.trace(); //TODO
-		target.on('contextmenu.'+this.id()+'.gnome.widget', this.options.selector, function (e) {
+		target.on(this._eventName(), this.options.selector, function (e) {
 			e.preventDefault();
 
 			if (that.options.disabled) {
@@ -133,19 +158,15 @@ $.webos.widget('contextMenu', 'container', {
 	},
 	destroy: function() {
 		if (typeof this.options.target != 'undefined') {
-			this.options.target.off('contextmenu.'+this.id()+'.gnome.widget');
+			this.options.target.off(this._eventName());
 		}
 		this.element.remove();
 	}
-});
-$.webos.contextMenu = function(target, selector) {
-	return $('<ul></ul>').contextMenu({
-		target: target,
-		selector: selector
-	});
 };
 
-//ContextMenuItem
+$.webos.widget('contextMenu', 'container');
+
+
 $.webos.contextMenuItem = function(label, separator) {
 	return $('<li></li>').menuItem({
 		label: label,
