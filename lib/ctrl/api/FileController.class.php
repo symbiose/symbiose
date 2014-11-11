@@ -194,7 +194,7 @@ class FileController extends ApiBackController {
 		}
 
 		if (!$manager->isRemote($path)) {
-			$data = array_merge($baseData, array(
+			$data = array_merge($data, array(
 				'atime' => $manager->atime($path),
 				'mtime' => $manager->mtime($path),
 				'mime_type' => $manager->mimetype($path),
