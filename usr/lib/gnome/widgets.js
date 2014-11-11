@@ -1,7 +1,7 @@
 /**
  * Widgets pour l'interface GNOME.
  * @author Simon Ser <contact@simonser.fr.nf>
- * @version 1.0
+ * @version 1.1
  * @since 1.0alpha2
  */
 
@@ -9,10 +9,11 @@
 $.webos.widget('contextMenu', 'container', {
 	options: {
 		target: undefined,
+		selector: undefined,
 		disabled: false
 	},
 	_name: 'contextmenu',
-	_create: function() {
+	_create: function () {
 		var that = this;
 
 		this._super('_create');
@@ -21,12 +22,12 @@ $.webos.widget('contextMenu', 'container', {
 			this._setTarget(this.options.target);
 		}
 	},
-	_setTarget: function(target) {
+	_setTarget: function (target) {
 		var that = this;
 		
 		this.element.hide();
-		
-		target.on('contextmenu', function(e) {
+		//console.trace(); //TODO
+		target.on('contextmenu.'+this.id()+'.gnome.widget', this.options.selector, function (e) {
 			if (that.options.disabled) {
 				return false;
 			}
@@ -41,7 +42,7 @@ $.webos.widget('contextMenu', 'container', {
 			};
 			
 			var childContextmenuOpened = false;
-			$('ul.webos-contextmenu').each(function() {
+			$('ul.webos-contextmenu').each(function () {
 				if ($(this).is(':visible')) {
 					var childTarget = $(this).contextMenu('option', 'target');
 					if (target.is(childTarget)) {
@@ -57,6 +58,15 @@ $.webos.widget('contextMenu', 'container', {
 			if (childContextmenuOpened) {
 				return false;
 			}
+
+			if (that._trigger('beforeopen', e) === false) {
+				return false;
+			}
+
+			// Now you're sure the contextmenu will be opened
+
+			e.preventDefault();
+			e.stopPropagation();
 
 			var y = e.pageY;
 			var x = e.pageX;
@@ -101,7 +111,7 @@ $.webos.widget('contextMenu', 'container', {
 				$(document).one('mousedown', clickFn);
 			}, 0);
 			
-			that._trigger('open');
+			that._trigger('open', e);
 		});
 		
 		// Disable text selection
@@ -125,11 +135,13 @@ $.webos.widget('contextMenu', 'container', {
 		if (typeof this.options.target != 'undefined') {
 			this.options.target.off('contextmenu');
 		}
+		this.element.remove();
 	}
 });
-$.webos.contextMenu = function(target) {
+$.webos.contextMenu = function(target, selector) {
 	return $('<ul></ul>').contextMenu({
-		target: target
+		target: target,
+		selector: selector
 	});
 };
 

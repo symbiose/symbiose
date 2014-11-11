@@ -116,6 +116,139 @@ Webos.require([
 			//Webos.User.bind('login logout', function() {
 			//	that.refresh();
 			//});
+			
+			// Context menus
+			var t = this.translations();
+			(function () {
+				var contextmenu = $.w.contextMenu(that.element, 'li');
+				var item;
+
+				// For files
+				var getItemsSelection = function () {
+					return (that.getSelection().length === 0) ? item : that.getSelection();
+				};
+				var getFilesSelection = function () {
+					var files = [];
+					getItemsSelection().each(function() {
+						files.push($(this).data('file')());
+					});
+					return files;
+				};
+
+				var menuItems = {
+					open: $.webos.menuItem(t.get('Open')).click(function() {
+						getItemsSelection().each(function() {
+							$(this).data('nautilus').open();
+						});
+					}),
+					openWith: $.webos.menuItem(t.get('Open with...')).click(function() {
+						getItemsSelection().each(function() {
+							$(this).data('nautilus').openWith();
+						});
+					}),
+					download: $.webos.menuItem(t.get('Download')).click(function() {
+						getItemsSelection().each(function() {
+							$(this).data('nautilus').download();
+						});
+					}),
+					rename: $.webos.menuItem(t.get('Rename...'), true).click(function() {
+						item.data('nautilus').rename();
+					}),
+					'delete': $.webos.menuItem(t.get('Delete')).click(function() {
+						getItemsSelection().each(function() {
+							$(this).data('nautilus').remove();
+						});
+					}),
+					copy: $.webos.menuItem(t.get('Copy'), true).click(function() {
+						Webos.Clipboard.copy(getFilesSelection());
+					}),
+					cut: $.webos.menuItem(t.get('Cut')).click(function() {
+						Webos.Clipboard.cut(getFilesSelection());
+					}),
+					paste: $('<span></span>'),
+					share: $.webos.menuItem(t.get('Share'), true).click(function() {
+						getItemsSelection().each(function() {
+							$(this).data('nautilus').share();
+						});
+					}),
+					properties: $.webos.menuItem(t.get('Properties')).click(function() {
+						getItemsSelection().each(function() {
+							$(this).data('nautilus').openProperties();
+						});
+					})
+				};
+				for (var i in menuItems) {
+					menuItems[i].appendTo(contextmenu);
+				}
+
+				contextmenu.on('contextmenuopen', function (e) {
+					item = $(e.originalEvent.currentTarget);
+					if (!item.is('.active')) {
+						that.getSelection().removeClass('active').trigger('unselect');
+						item.addClass('active');
+					}
+
+					var clipboardAvailable = !!Webos.Clipboard,
+						file = item.data('file')(),
+						isDir = file.get('is_dir');
+
+					menuItems.copy.toggle(clipboardAvailable);
+					menuItems.cut.toggle(clipboardAvailable);
+					if (clipboardAvailable) {
+						if (!isDir) {
+							menuItems.paste.hide();
+						} else {
+							menuItems.paste.replaceWith(that._getPasteMenuItem(file));
+						}
+					}
+				});
+			})();
+
+			// For current dir
+			(function () {
+				var contextmenu = $.w.contextMenu(that.element, 'ul');
+
+				var menuItems = {
+					newFolder: $.webos.menuItem(t.get('Create a new folder')).click(function() {
+						that.createFile(t.get('New folder'), true);
+					}),
+					newFile: $.webos.menuItem(t.get('Create a new file')).click(function() {
+						that.createFile(t.get('New file'));
+					}),
+					download: $.webos.menuItem(t.get('Download'), true).click(function() {
+						that._download(W.File.get(that.options.directory));
+					}),
+					upload: $.webos.menuItem(t.get('Upload a file')).click(function() {
+						that.openUploadWindow();
+					}),
+					paste: $('<span></span>'),
+					refresh: $.webos.menuItem(t.get('Refresh'), true).click(function() {
+						that.refresh();
+					}),
+					resetIconsPosition: $.webos.menuItem(t.get('Reset icons position')).click(function() {
+						that._resetIconsPosition();
+					}),
+					properties: $.webos.menuItem(t.get('Properties'), true).click(function() {
+						that._openProperties(W.File.get(that.options.directory));
+					})
+				};
+
+				for (var i in menuItems) {
+					menuItems[i].appendTo(contextmenu);
+				}
+
+				contextmenu.on('contextmenuopen', function (e) {
+					var clipboardAvailable = !!Webos.Clipboard;
+
+					if (clipboardAvailable) {
+						var pasteMenuItem = that._getPasteMenuItem(W.File.get(that.options.directory));
+						pasteMenuItem.menuItem('option', 'separator', true);
+						menuItems.paste.replaceWith(pasteMenuItem);
+					}
+
+					menuItems.resetIconsPosition.toggle(that.options.organizeIcons);
+				});
+			})();
 
 			this.readDir(this.options.directory);
 		},
@@ -152,7 +285,7 @@ Webos.require([
 							.css('position','absolute')
 							.appendTo(that.content());
 						
-						$(document).bind('mousemove.'+that.id()+'.nautilus.widget.webos', function(e) {
+						$(document).on('mousemove.'+that.id()+'.nautilus.widget.webos', function(e) {
 							var x1 = pos[0], y1 = pos[1], x2 = e.pageX - diff[0], y2 = e.pageY - diff[1], tmp;
 							if (x1 > x2) { tmp = x2; x2 = x1; x1 = tmp; }
 							if (y1 > y2) { tmp = y2; y2 = y1; y1 = tmp; }
@@ -213,11 +346,6 @@ Webos.require([
 			var that = this, t = this.translations();
 			var op = Webos.Operation.create();
 
-			if (typeof this.options._components.contextmenu != 'undefined') {
-				this.options._components.contextmenu.contextMenu('destroy');
-				delete this.options._components.contextmenu;
-			}
-
 			dir = W.File.cleanPath(dir);
 
 			userCallback = W.Callback.toCallback(userCallback, [function() {}, function(res) {
@@ -248,40 +376,6 @@ Webos.require([
 
 			W.File.listDir(dir, [function(files) {
 				that.options.directory = dir;
-				
-				var contextmenu;
-				that.options._components.contextmenu = contextmenu = $.w.contextMenu(that.element);
-				
-				$.webos.menuItem(t.get('Create a new folder')).click(function() {
-					that.createFile(t.get('New folder'), true);
-				}).appendTo(contextmenu);
-				$.webos.menuItem(t.get('Create a new file')).click(function() {
-					that.createFile(t.get('New file'));
-				}).appendTo(contextmenu);
-				$.webos.menuItem(t.get('Download'), true).click(function() {
-					that._download(W.File.get(dir));
-				}).appendTo(contextmenu);
-				$.webos.menuItem(t.get('Upload a file')).click(function() {
-					that.openUploadWindow();
-				}).appendTo(contextmenu);
-				if (Webos.Clipboard) {
-					var pasteMenuItem = that._getPasteMenuItem(dir);
-					pasteMenuItem.menuItem('option', 'separator', true);
-					pasteMenuItem.appendTo(contextmenu);
-				}
-				$.webos.menuItem(t.get('Refresh'), true).click(function() {
-					that.refresh();
-				}).appendTo(contextmenu);
-
-				if (that.options.organizeIcons) {
-					$.webos.menuItem(t.get('Reset icons position')).click(function() {
-						that._resetIconsPosition();
-					}).appendTo(contextmenu);
-				}
-
-				$.webos.menuItem(t.get('Properties'), true).click(function() {
-					that._openProperties(W.File.get(dir));
-				}).appendTo(contextmenu);
 				
 				var serverCall = new W.ServerCall({
 					'class': 'FileController',
@@ -436,11 +530,6 @@ Webos.require([
 			if (!query) {
 				userCallback.error(Webos.Callback.Result.error('Empty search query'));
 				return;
-			}
-
-			if (typeof this.options._components.contextmenu != 'undefined') {
-				this.options._components.contextmenu.contextMenu('destroy');
-				delete this.options._components.contextmenu;
 			}
 
 			this._trigger('searchstart', { type: 'searchstart' }, { location: that.location(), query: query });
@@ -683,72 +772,6 @@ Webos.require([
 			
 			item.dblclick(function() {
 				$(this).data('nautilus').open();
-			});
-			
-			var contextmenu = $.w.contextMenu(item);
-
-			var getItemsSelection = function () {
-				return (that.getSelection().length === 0) ? item : that.getSelection();
-			};
-			var getFilesSelection = function () {
-				var files = [];
-				getItemsSelection().each(function() {
-					files.push($(this).data('file')());
-				});
-				return files;
-			};
-			
-			$.webos.menuItem(t.get('Open')).click(function() {
-				getItemsSelection().each(function() {
-					$(this).data('nautilus').open();
-				});
-			}).appendTo(contextmenu);
-			$.webos.menuItem(t.get('Open with...')).click(function() {
-				getItemsSelection().each(function() {
-					$(this).data('nautilus').openWith();
-				});
-			}).appendTo(contextmenu);
-			$.webos.menuItem(t.get('Download')).click(function() {
-				getItemsSelection().each(function() {
-					$(this).data('nautilus').download();
-				});
-			}).appendTo(contextmenu);
-			$.webos.menuItem(t.get('Rename...'), true).click(function() {
-				item.data('nautilus').rename();
-			}).appendTo(contextmenu);
-			$.webos.menuItem(t.get('Delete')).click(function() {
-				getItemsSelection().each(function() {
-					$(this).data('nautilus').remove();
-				});
-			}).appendTo(contextmenu);
-			if (Webos.Clipboard) {
-				$.webos.menuItem(t.get('Copy'), true).click(function() {
-					Webos.Clipboard.copy(getFilesSelection());
-				}).appendTo(contextmenu);
-				$.webos.menuItem(t.get('Cut')).click(function() {
-					Webos.Clipboard.cut(getFilesSelection());
-				}).appendTo(contextmenu);
-
-				if (file.get('is_dir')) {
-					this._getPasteMenuItem(file).appendTo(contextmenu);
-				}
-			}
-			$.webos.menuItem(t.get('Share'), true).click(function() {
-				getItemsSelection().each(function() {
-					$(this).data('nautilus').share();
-				});
-			}).appendTo(contextmenu);
-			$.webos.menuItem(t.get('Properties')).click(function() {
-				getItemsSelection().each(function() {
-					$(this).data('nautilus').openProperties();
-				});
-			}).appendTo(contextmenu);
-
-			contextmenu.bind('contextmenuopen', function() {
-				if (!item.is('.active')) {
-					that.getSelection().removeClass('active').trigger('unselect');
-					item.addClass('active');
-				}
 			});
 
 			if (file.get('is_dir')) {
