@@ -2,13 +2,16 @@
   "name": "symbiose",
   "version": "1.0.0-beta.4",
   "description": "Symbiose, a free and flexible webos.",
-  "keywords":["webos","web desktop"],
+  "keywords": [
+    "webos",
+    "web desktop"
+  ],
   "bugs": {
     "url": "https://github.com/symbiose/symbiose/issues",
     "email": "symbiose@emersion.fr"
   },
   "license": "GPLv3",
-  "homepage":"http://symbiose.fr.cr",
+  "homepage": "http://symbiose.fr.cr",
   "author": {
     "name": "emersion",
     "homepage": "http://emersion.fr",
@@ -20,6 +23,7 @@
   },
   "devDependencies": {
     "grunt": "^0.4.2",
+    "grunt-cli": "^0.1.13",
     "grunt-composer": "^0.3.1",
     "grunt-contrib-clean": "^0.5.0",
     "grunt-contrib-concat": "^0.3.0",
@@ -32,7 +36,7 @@
     "grunt-transifex": "^0.1.1"
   },
   "scripts": {
-    "install": "grunt build",
-    "test": "grunt test"
+    "install": "node_modules/.bin/grunt build",
+    "test": "node_modules/.bin/grunt test"
   }
 }
