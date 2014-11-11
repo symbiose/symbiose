@@ -24,7 +24,7 @@ Key features
 * Customizable: themes, background and so on
 * Multiple interfaces: Elementary OS, GNOME Shell, GNOME Panel (GNOME 2), Windows 7-like, mobile, CLI
 * Easy configuration with a _System settings_ app and simple config files
-* FTP, Dropbox and Google Drive integration
+* Dropbox, Google Drive, FTP, FTPS, SFTP (SSH) integration
 * [LDAP authentication](https://github.com/symbiose/symbiose/wiki/LDAP-authentication) support
 * Firefox Marketplace apps integration
 * Native GTK3 apps can be displayed on the web desktop using [Broadway](https://github.com/symbiose/symbiose/wiki/Broadway)
