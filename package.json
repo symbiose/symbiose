@@ -37,6 +37,7 @@
   },
   "scripts": {
     "build": "node_modules/.bin/grunt build",
+    "standalone": "node_modules/.bin/grunt standalone",
     "test": "node_modules/.bin/grunt test"
   }
 }
