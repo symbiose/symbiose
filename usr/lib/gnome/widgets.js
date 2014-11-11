@@ -28,6 +28,8 @@ $.webos.widget('contextMenu', 'container', {
 		this.element.hide();
 		//console.trace(); //TODO
 		target.on('contextmenu.'+this.id()+'.gnome.widget', this.options.selector, function (e) {
+			e.preventDefault();
+
 			if (that.options.disabled) {
 				return false;
 			}
@@ -64,8 +66,6 @@ $.webos.widget('contextMenu', 'container', {
 			}
 
 			// Now you're sure the contextmenu will be opened
-
-			e.preventDefault();
 			e.stopPropagation();
 
 			var y = e.pageY;
@@ -77,13 +77,13 @@ $.webos.widget('contextMenu', 'container', {
 
 			var maxY = y + that.element.height();
 			var maxX = x + that.element.width();
-			
-			if(maxY > $(document).height()) { // Si le curseur est en bas de page, on remonte le menu contextuel
-				y = y - that.element.height();
+
+			if(maxY > $(window).height()) { // Si le curseur est en bas de page, on remonte le menu contextuel
+				y -= that.element.height();
 			}
 
-			if(maxX > $(document).width()) { // Si le curseur est trop a droite, on le decale a gauche
-				x = x - that.element.width();
+			if(maxX > $(window).width()) { // Si le curseur est trop a droite, on le decale a gauche
+				x -= that.element.width();
 			}
 			
 			// Afficher le menu
@@ -124,16 +124,16 @@ $.webos.widget('contextMenu', 'container', {
 				'user-select' : 'none'
 			});
 		});
-		
-		target.add('ul.webos-contextmenu').on('contextmenu', function(event) {
+
+		this.element.on('contextmenu', function(event) {
 			event.preventDefault();
 		});
-		
+
 		this.options.target = target;
 	},
 	destroy: function() {
 		if (typeof this.options.target != 'undefined') {
-			this.options.target.off('contextmenu');
+			this.options.target.off('contextmenu.'+this.id()+'.gnome.widget');
 		}
 		this.element.remove();
 	}
