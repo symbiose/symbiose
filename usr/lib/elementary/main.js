@@ -712,10 +712,14 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 			}).keyup(function (e) {
 				if (e.keyCode == 27) {
 					$(this).val('');
-					that.switchAppsView('grid');
-				} else if ($(this).val().length) {
+				}
+
+				var val = $(this).val();
+				if (val.length) {
 					that.switchAppsView('search');
-					that.renderAppsSearch($(this).val());
+					that.renderAppsSearch(val);
+				} else {
+					that.switchAppsView('grid');
 				}
 			});
 
