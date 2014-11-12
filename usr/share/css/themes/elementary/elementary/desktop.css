@@ -140,6 +140,7 @@ body {
 #elementary-apps li .app-title {
 	height: 38px;
 	overflow: hidden;
+	line-height: 19px;
 }
 #elementary-apps li .app-description {
 	display: none;
