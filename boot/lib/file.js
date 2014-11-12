@@ -1480,7 +1480,7 @@ Webos.WebosFile.prototype = {
 					if (ext == 'php' || ext == 'html') {
 						pathname = pathname.replace(/\/[^\/]*\/?$/, '');
 					}
-					data.realpath = pathname+'/'+data.path;
+					data.realpath = Webos.File.cleanPath(pathname+'/'+data.path);
 				}
 			}
 		}
