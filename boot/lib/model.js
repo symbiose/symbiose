@@ -245,7 +245,8 @@ Webos.Model.prototype = {
 				return false;
 			}
 
-			return (this._unsynced[key].state == 1);
+			var state = this._unsynced[key].state;
+			return (state == 1 || state == 2);
 		} else {
 			for (key in this._unsynced) {
 				return true;
@@ -348,6 +349,33 @@ Webos.Model.prototype = {
 
 		var changed = this._stageChanges();
 		this._propagateChanges(changed);
+
+		return op;
+	},
+	/**
+	 * Try to push changes on this model to the server, if the user can do it. If he hasn't the required permission, only save changes locally.
+	 * @param  {Webos.Callback} callback The callback.
+	 * @return {Webos.Operation}         The operation.
+	 */
+	syncIfAllowed: function (callback) {
+		var that = this;
+		var op = Webos.Operation.create();
+		op.addCallbacks(callback);
+
+		this.sync([function () {
+			op.setCompleted();
+		}, function (res) {
+			if (typeof res.getStatusCode == 'function' && res.getStatusCode() == 403) {
+				// Save changes locally
+				that.localSync([function () {
+					op.setCompleted();
+				}, function (res) {
+					op.setCompleted(false, res);
+				}]);
+			} else {
+				op.setCompleted(false, res);
+			}
+		}]);
 
 		return op;
 	}

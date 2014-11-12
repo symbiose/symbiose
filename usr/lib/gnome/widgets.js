@@ -86,7 +86,8 @@ $.webos.contextMenu.prototype = {
 				return false;
 			}
 
-			if (that._trigger('beforeopen', e) === false) {
+			var eventData = { target: e.currentTarget };
+			if (that._trigger('beforeopen', e, eventData) === false) {
 				return false;
 			}
 
@@ -136,7 +137,7 @@ $.webos.contextMenu.prototype = {
 				$(document).one('mousedown', clickFn);
 			}, 0);
 			
-			that._trigger('open', e);
+			that._trigger('open', e, eventData);
 		});
 		
 		// Disable text selection
