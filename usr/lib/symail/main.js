@@ -329,6 +329,7 @@ console.log(msg);
 			});
 		},
 		_showNewEmailForm: function (options) {
+			var that = this;
 			var $composeWin = that._$composeWin.clone();
 
 			$composeWin.window('options', 'parentWindow', this._$win).window('open');
