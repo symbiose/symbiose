@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "bd064fca5a2c8c1d1d332aaabb0838ec",
+    "hash": "428ff7cdec30f9f766748132f99a2606",
     "packages": [
         {
             "name": "cboden/ratchet",
@@ -54,6 +54,38 @@
                 "sockets"
             ],
             "time": "2014-06-08 15:19:45"
+        },
+        {
+            "name": "emersion/php-wrappers",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/emersion/php-wrappers.git",
+                "reference": "a77798cca8e4ac052debd18e2ab52d9da5c6cb35"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/emersion/php-wrappers/zipball/a77798cca8e4ac052debd18e2ab52d9da5c6cb35",
+                "reference": "a77798cca8e4ac052debd18e2ab52d9da5c6cb35",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Wrappers\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "emersion"
+                }
+            ],
+            "description": "High-performance wrappers for native FTP and SFTP functions.",
+            "time": "2014-11-10 14:14:30"
         },
         {
             "name": "evenement/evenement",
@@ -887,11 +919,14 @@
         "symbiose/websocket-client": 20,
         "nitra/php-min": 20,
         "ircmaxell/password-compat": 20,
-        "gitonomy/gitlib": 20
+        "gitonomy/gitlib": 20,
+        "emersion/php-wrappers": 20
     },
     "prefer-stable": false,
     "platform": {
-        "php": ">=5.3.0"
+        "php": ">=5.3.0",
+        "ext-json": "*",
+        "ext-memcache": "*"
     },
     "platform-dev": []
 }

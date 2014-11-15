@@ -126,39 +126,33 @@ Webos.Application.prototype = {
 	},
 	sync: function(callback) {
 		callback = Webos.Callback.toCallback(callback);
-		
 		var that = this;
-		
-		var data = {};
-		var nbrChanges = 0;
-		for (var key in this._unsynced) {
-			if (this._unsynced[key].state === 1) {
-				this._unsynced[key].state = 2;
-				data[key] = this._unsynced[key].value;
-				nbrChanges++;
-			}
-		}
-		
-		if (nbrChanges === 0) {
+
+		var changed = this._stageChanges();
+		if (!changed.length) {
 			callback.success(this);
 			return;
 		}
-		
-		if (typeof data.favorite != 'undefined') {
-			if (data.favorite) {
+
+		if (~changed.indexOf('favorite')) {
+			var favorite = this.getChanged('favorite');
+			var callbacks = [function () {
+				that._propagateChanges(['favorite']);
+				callback.success();
+			}, function (res) {
+				that._unstageChanges(['favorite']);
+				callback.error(res);
+			}];
+			console.log(favorite);
+			if (favorite) {
 				new Webos.ServerCall({
 					'class': 'ApplicationShortcutController',
 					method: 'setFavorite',
 					arguments: {
 						name: this.get('name'),
-						position: data.favorite
+						position: favorite
 					}
-				}).load(new Webos.Callback(function() {
-					that._data['favorite'] = that._unsynced['favorite'].value;
-					delete that._unsynced['favorite'];
-					that.notify('update', { key: 'favorite', value: that._data[key].value });
-					callback.success();
-				}, callback.error));
+				}).load(callbacks);
 			} else {
 				new Webos.ServerCall({
 					'class': 'ApplicationShortcutController',
@@ -166,25 +160,20 @@ Webos.Application.prototype = {
 					arguments: {
 						name: this.get('name')
 					}
-				}).load(new Webos.Callback(function() {
-					that._data['favorite'] = that._unsynced['favorite'].value;
-					delete that._unsynced['favorite'];
-					that.notify('update', { key: 'favorite', value: that._data['favorite'].value });
-					callback.success();
-				}, callback.error));
+				}).load(callbacks);
 			}
-		}
-
-		if (typeof data.prefered_open != 'undefined') {
-			Webos.ConfigFile.loadUserConfig('~/.config/prefered-openers.xml', null, [function(config) {
-				config.set(that.get('name'), data.prefered_open);
-				config.sync([function() {
-					that._data['prefered_open'] = that._unsynced['prefered_open'].value;
-					delete that._unsynced['prefered_open'];
-					that.notify('update', { key: 'prefered_open', value: that._data['prefered_open'].value });
+		} else {
+			var onerror = function (res) {
+				that._unstageChanges(changed);
+				callback.error(res);
+			};
+			Webos.ConfigFile.loadUserConfig('~/.config/prefered-openers.xml', null, [function (config) {
+				config.set(that.get('name'), that.getChanged('prefered_open'));
+				config.sync([function () {
+					that._propagateChanges(changed);
 					callback.success();
-				}, callback.error]);
-			}, callback.error]);
+				}, onerror]);
+			}, onerror]);
 		}
 	}
 };

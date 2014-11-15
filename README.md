@@ -14,7 +14,7 @@ Key features
  * Basic text editor ([gedit](https://en.wikipedia.org/wiki/Gedit))
  * File manager with copy-paste, drag'n'drop, file sharing, searching...
  * Google Docs to display and edit your documents
- * Chat app which supports XMPP (Google, Facebook, with multiple accounts and OTR encryption)
+ * [Chat app](https://github.com/symbiose/symbiose/wiki/Empathy) which supports XMPP (Google, Facebook, with multiple accounts and OTR encryption) as well as WebRTC (text messages, file sending, video calls, screencasts...)
  * Basic word processor
  * Basic multimedia player
  * Music player (based on [GNOME Music](https://wiki.gnome.org/Apps/Music))
@@ -24,7 +24,7 @@ Key features
 * Customizable: themes, background and so on
 * Multiple interfaces: Elementary OS, GNOME Shell, GNOME Panel (GNOME 2), Windows 7-like, mobile, CLI
 * Easy configuration with a _System settings_ app and simple config files
-* FTP, Dropbox and Google Drive integration
+* Dropbox, Google Drive, FTP, FTPS, SFTP (SSH) integration
 * [LDAP authentication](https://github.com/symbiose/symbiose/wiki/LDAP-authentication) support
 * Firefox Marketplace apps integration
 * Native GTK3 apps can be displayed on the web desktop using [Broadway](https://github.com/symbiose/symbiose/wiki/Broadway)
@@ -46,9 +46,12 @@ Have a bug ? Please create an issue here on GitHub : https://github.com/symbiose
 Installing
 ----------
 
-To install Symbiose you just need to unzip files on your web server and to set them read and write permissions for web server user. You can also build Symbiose to make it faster.
+Run the following command on *nix:
+```bash
+curl -sS https://symbiose.github.io/symbiose-installer/installer.sh | sh
+```
 
-For more information, please see the wiki : https://github.com/symbiose/symbiose/wiki/Installing.
+On Windows or if you prefer a manual installation, see https://github.com/symbiose/symbiose/wiki/Installing.
 
 Software requirements
 ---------------------

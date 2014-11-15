@@ -21,6 +21,13 @@ class Guardian extends ApplicationComponent {
 		'package.manage'
 	);
 
+	/**
+	 * Allowed protocol wrappers.
+	 * @var array
+	 * @see http://php.net/manual/en/wrappers.php
+	 */
+	protected $allowedProtocols = array('http', 'https', 'ftp', 'ftps', 'sftp');
+
 	protected function _authForArgument($arg, $requiredAuth) {
 		$finalAuth = $requiredAuth;
 
@@ -30,6 +37,10 @@ class Guardian extends ApplicationComponent {
 			'file.*' => function($path, $action) use($app) {
 				if ($path === null) {
 					return true;
+				}
+				if (($pos = strpos($path, '://')) !== false) {
+					$protocol = substr($path, 0, $pos);
+					return in_array($protocol, $this->allowedProtocols);
 				}
 
 				//Quelques nettoyages...
@@ -168,5 +179,13 @@ class Guardian extends ApplicationComponent {
 	public function controlArgAuth($requiredAuth, $arg, $providedAuths = null) {
 		$requiredAuth = $this->_authForArgument($arg, $requiredAuth);
 		$this->controlAuth($requiredAuth, $providedAuths);
+	}
+
+	/**
+	 * Get a list of allowed protocol wrappers.
+	 * @return string[] The list of wrapper.s
+	 */
+	public function allowedProtocols() {
+		return $this->allowedProtocols;
 	}
 }

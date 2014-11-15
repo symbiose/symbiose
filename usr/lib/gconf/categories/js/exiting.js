@@ -7,39 +7,39 @@ var entries = {};
 
 var $form = $.w.entryContainer().appendTo($content);
 
-entries.shutdownScreen = $.w.selectButton('&Eacute;teindre l\'&eacute;cran si inactif depuis :', {
-	0: 'Jamais',
+entries.shutdownScreen = $.w.selectButton('Shutdown screen if inactive for:', {
+	0: 'Never',
 	1: '1 minute',
 	2: '2 minutes',
 	3: '3 minutes',
 	5: '5 minutes',
 	10: '10 minutes',
 	30: '30 minutes',
-	60: '1 heure'
+	60: '1 hour'
 }).appendTo($form);
 
 $form.append('<br />');
-$.w.label('<strong>Verrouiller</strong>').appendTo($form);
+$.w.label('<strong>Lock</strong>').appendTo($form);
 
 entries.lockScreenEnabled = $.w.switchButton().appendTo($form);
 
-entries.lockScreenTime = $.w.selectButton('Verrouiller l\'&eacute;cran apr&egrave;s :', {
-	0: 'Extinction de l\'&eacute;cran',
-	0.5: '30 secondes',
+entries.lockScreenTime = $.w.selectButton('Lock screen after:', {
+	0: 'Screen shutdown',
+	0.5: '30 seconds',
 	1: '1 minute',
 	2: '2 minutes',
 	3: '3 minutes',
 	5: '5 minutes',
 	10: '10 minutes',
 	30: '30 minutes',
-	60: '1 heure'
+	60: '1 hour'
 }).appendTo($form);
 
 $form.append('<br />');
-$.w.label('<strong>Fermeture de session</strong>').appendTo($form);
+$.w.label('<strong>Session closing</strong>').appendTo($form);
 
-entries.askOnExit = $.w.switchButton('Demander une confirmation avant de quitter ').appendTo($form);
-entries.saveSessionOnExit = $.w.switchButton('Se souvenir des fen&ecirc;tres ouvertes lors de la d&eacute;connexion ').appendTo($form);
+entries.askOnExit = $.w.switchButton('Ask for a confirm before exiting ').appendTo($form);
+entries.saveSessionOnExit = $.w.switchButton('Remember opened windows when logging off ').appendTo($form);
 
 var forEachEntry = function(fn) {
 	for (var key in entries) {

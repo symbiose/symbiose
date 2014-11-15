@@ -1,30 +1,60 @@
 /**
  * Widgets pour l'interface GNOME.
  * @author Simon Ser <contact@simonser.fr.nf>
- * @version 1.0
+ * @version 1.1
  * @since 1.0alpha2
  */
 
-//ContextMenu
-$.webos.widget('contextMenu', 'container', {
+/**
+ * A context menu.
+ * @param  {jQuery} target The context menu target.
+ * @param  {String} selector An additional selector.
+ * @constructor
+ * @augments $.webos.container
+ */
+$.webos.contextMenu = function(target, selector) {
+	return $('<ul></ul>').contextMenu({
+		target: target,
+		selector: selector
+	});
+};
+
+$.webos.btnContextMenu = function(target, selector) {
+	return $('<ul></ul>').contextMenu({
+		target: target,
+		selector: selector,
+		event: 'click'
+	});
+};
+
+$.webos.contextMenu.prototype = {
 	options: {
+		event: 'contextmenu',
 		target: undefined,
+		selector: undefined,
 		disabled: false
 	},
 	_name: 'contextmenu',
-	_create: function() {
+	_create: function () {
+		var that = this;
+
 		this._super('_create');
 
 		if (typeof this.options.target != 'undefined') {
 			this._setTarget(this.options.target);
 		}
 	},
-	_setTarget: function(target) {
+	_eventName: function () {
+		return this.options.event+'.'+this.id()+'.contextmenu.gnome';
+	},
+	_setTarget: function (target) {
 		var that = this;
 		
 		this.element.hide();
-		
-		target.on('contextmenu', function(e) {
+		//console.trace(); //TODO
+		target.on(this._eventName(), this.options.selector, function (e) {
+			e.preventDefault();
+
 			if (that.options.disabled) {
 				return false;
 			}
@@ -33,11 +63,13 @@ $.webos.widget('contextMenu', 'container', {
 			var clickFn = function() {
 				that.element.fadeOut('fast', function () {
 					$(this).detach();
+					// TODO: elements detached from the DOM will survive forever (no cleanup)
+					// It's a good idea to destroy widgets when the running process is stopped
 				});
 			};
 			
 			var childContextmenuOpened = false;
-			$('ul.webos-contextmenu').each(function() {
+			$('ul.webos-contextmenu').each(function () {
 				if ($(this).is(':visible')) {
 					var childTarget = $(this).contextMenu('option', 'target');
 					if (target.is(childTarget)) {
@@ -54,6 +86,14 @@ $.webos.widget('contextMenu', 'container', {
 				return false;
 			}
 
+			var eventData = { target: e.currentTarget };
+			if (that._trigger('beforeopen', e, eventData) === false) {
+				return false;
+			}
+
+			// Now you're sure the contextmenu will be opened
+			e.stopPropagation();
+
 			var y = e.pageY;
 			var x = e.pageX;
 
@@ -63,13 +103,13 @@ $.webos.widget('contextMenu', 'container', {
 
 			var maxY = y + that.element.height();
 			var maxX = x + that.element.width();
-			
-			if(maxY > $(document).height()) { // Si le curseur est en bas de page, on remonte le menu contextuel
-				y = y - that.element.height();
+
+			if(maxY > $(window).height()) { // Si le curseur est en bas de page, on remonte le menu contextuel
+				y -= that.element.height();
 			}
 
-			if(maxX > $(document).width()) { // Si le curseur est trop a droite, on le decale a gauche
-				x = x - that.element.width();
+			if(maxX > $(window).width()) { // Si le curseur est trop a droite, on le decale a gauche
+				x -= that.element.width();
 			}
 			
 			// Afficher le menu
@@ -97,7 +137,7 @@ $.webos.widget('contextMenu', 'container', {
 				$(document).one('mousedown', clickFn);
 			}, 0);
 			
-			that._trigger('open');
+			that._trigger('open', e, eventData);
 		});
 		
 		// Disable text selection
@@ -110,26 +150,24 @@ $.webos.widget('contextMenu', 'container', {
 				'user-select' : 'none'
 			});
 		});
-		
-		target.add('ul.webos-contextmenu').on('contextmenu', function(event) {
+
+		this.element.on('contextmenu', function(event) {
 			event.preventDefault();
 		});
-		
+
 		this.options.target = target;
 	},
 	destroy: function() {
 		if (typeof this.options.target != 'undefined') {
-			this.options.target.off('contextmenu');
+			this.options.target.off(this._eventName());
 		}
+		this.element.remove();
 	}
-});
-$.webos.contextMenu = function(target) {
-	return $('<ul></ul>').contextMenu({
-		target: target
-	});
 };
 
-//ContextMenuItem
+$.webos.widget('contextMenu', 'container');
+
+
 $.webos.contextMenuItem = function(label, separator) {
 	return $('<li></li>').menuItem({
 		label: label,

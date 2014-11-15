@@ -16,12 +16,16 @@
 
 .friends-list-header {
 	width: 320px;
+	float: left;
 }
 .friends-select .selection-status {
 	display: inline-block;
 	margin: 5px;
 }
-.friends-select {
+.conversation-header {
+	margin-left: 320px;
+}
+.friends-select, .conversation-actions {
 	display: none;
 }
 
@@ -130,8 +134,8 @@
 .friends-list .item-active .contact-server {
 	color: #8cbee6;
 }
-.hide-contact-server .contact-server,
-.friends-list li:hover .contact-server {
+.hide-contact-server .contact-server/*,
+.friends-list li:hover .contact-server*/ {
 	display: none;
 }
 .friends-list .contact-status {
@@ -140,7 +144,7 @@
 	color: #808080;
 }
 .friends-list li:hover .contact-status {
-	display: none;
+	/*display: none;*/
 }
 .friends-list .contact-status .status-inner {
 	display: none; /* hide status text */
@@ -177,6 +181,7 @@
 	display: none;
 }
 
+/* TODO: remove contact actions */
 .friends-list .contact-actions {
 	display: none;
 	float: right;
@@ -185,7 +190,7 @@
 	list-style-type: none;
 }
 .friends-list li:hover .contact-actions {
-	display: inline-block;
+	/*display: inline-block;*/
 }
 .friends-list .contact-actions li {
 	display: inline-block;

@@ -12,6 +12,8 @@ Webos.require('/usr/lib/webos/config.js', function () {
 	 * @augments Webos.Model
 	 */
 	Webos.Theme = function (configFile) {
+		var that = this;
+
 		var data = configFile.data();
 		
 		var defaults = {
@@ -29,6 +31,20 @@ Webos.require('/usr/lib/webos/config.js', function () {
 		Webos.Model.call(this, data);
 		
 		this._configFile = configFile;
+
+		this.on('update', function (eventData) {
+			switch (eventData.key) {
+				case 'background':
+				case 'backgroundColor':
+				case 'backgroundRepeat':
+				case 'hideBackground':
+					that._loadBackground(true);
+					break;
+				case 'animations':
+					that._setAnimations();
+					break;
+			}
+		});
 	};
 	/**
 	 * The theme's prototype.
@@ -122,6 +138,10 @@ Webos.require('/usr/lib/webos/config.js', function () {
 
 			this.applyBackgroundOn(Webos.UserInterface.Booter.current().element());
 		},
+		_set: function () {
+			this._configFile._set.apply(this._configFile, arguments);
+			return Webos.Model.prototype._set.apply(this, arguments);
+		},
 		/**
 		 * Apply this theme's animations preferences.
 		 */
@@ -185,46 +205,19 @@ Webos.require('/usr/lib/webos/config.js', function () {
 			op.addCallbacks(callback);
 			
 			var that = this;
-			
-			var data = {}, nbrChanges = 0;
-			for (var key in this._unsynced) {
-				if (this._unsynced[key].state === 1) {
-					this._unsynced[key].state = 2;
-					data[key] = this._unsynced[key].value;
-					this._configFile.set(key, data[key]);
-					nbrChanges++;
-				}
-			}
-			
-			if (nbrChanges === 0) {
+
+			var changed = this._stageChanges();
+
+			if (!changed.length) {
 				op.setCompleted();
 				return op;
 			}
 			
 			this._configFile.sync([function() {
-				for (var key in that._unsynced) {
-					if (that._unsynced[key].state === 2) {
-						that._data[key] = that._unsynced[key].value;
-						delete that._unsynced[key];
-
-						switch (key) {
-							case 'background':
-							case 'backgroundColor':
-							case 'backgroundRepeat':
-							case 'hideBackground':
-								that._loadBackground(true);
-								break;
-							case 'animations':
-								that._setAnimations();
-								break;
-						}
-						
-						that.notify('update', { key: key, value: that._data[key].value });
-					}
-				}
-
+				that._propagateChanges(changed);
 				op.setCompleted();
 			}, function (resp) {
+				that._unstageChanges(changed);
 				op.setCompleted(resp);
 			}]);
 

@@ -25,8 +25,13 @@ var init = function (isLoggedIn) {
 		}
 
 		confWindow.window('loading', true);
+
 		theme.sync([function () {}, function (resp) {
-			resp.triggerError('Cannot change theme');
+			if (resp.getStatusCode() == 401) { // User not logged in, do not try to push config to the server
+				theme.localSync();
+			} else {
+				resp.triggerError('Cannot change theme');
+			}
 		}]).always(function (result) {
 			confWindow.window('loading', false);
 			op.setCompleted(result);

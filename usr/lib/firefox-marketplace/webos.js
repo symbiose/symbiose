@@ -119,7 +119,7 @@ Webos.require([
 			}
 		},
 		installable: function() {
-			return (this.get('app_type') == 'hosted');
+			return (this.get('app_type') == 'hosted' || this.get('app_type') == 'packaged');
 		},
 		runnable: function() {
 			return (this.get('app_type') == 'hosted');
@@ -364,15 +364,25 @@ Webos.require([
 	FirefoxMarketplace._runApp = function(appData, callback) {
 		callback = W.Callback.toCallback(callback);
 
-		var manifestLink = document.createElement("a");
-		manifestLink.href = appData.manifestURL;
+		var appType = appData.app.app_type, launchUrl = '';
+		if (appType == 'hosted') {
+			var manifestLink = document.createElement("a");
+			manifestLink.href = appData.manifestURL;
 
-		var launchUrl = manifestLink.host;
-		if (appData.manifest.launch_path) {
-			launchUrl += '/' + appData.manifest.launch_path;
+			launchUrl = manifestLink.host;
+			if (appData.manifest.launch_path) {
+				launchUrl += '/' + appData.manifest.launch_path;
+			}
+			launchUrl = launchUrl.replace(/\/{2,}/, '/');
+			launchUrl = manifestLink.protocol+'//'+launchUrl;
+		} else if (appType == 'packaged') {
+			var launchPath = appData.manifest.launch_path || '/index.html';
+			var launchFile = Webos.File.get('/usr/lib/firefox-marketplace/webapps/'+appData.app.slug+'/'+launchPath);
+			launchUrl = launchFile.get('realpath');
+		} else {
+			callback.error(Webos.Callback.Result.error('App type "'+appType+'" not supported'));
+			return;
 		}
-		launchUrl = launchUrl.replace(/\/{2,}/, '/');
-		launchUrl = manifestLink.protocol+'//'+launchUrl;
 
 		var windowSize = { width: 320, height: 480 };
 		var isMaximized = false, appIcon = null;
@@ -400,21 +410,7 @@ Webos.require([
 			maximized: isMaximized
 		});
 
-		appWindow.window('open').window('loading', true, {
-			message: 'Checking app compatibility...'
-		});
-
-		FirefoxMarketplace._checkLaunchPage(launchUrl, [function(launchData) {
-			if (!launchData.isLaunchable) {
-				appWindow.window('close');
-				callback.error(Webos.Callback.Result.error('This app is not supported'));
-				return;
-			}
-
-			appWindow.window('loading', true, {
-				lock: false
-			});
-
+		var launchApp = function () {
 			var iframe = $('<iframe></iframe>', {
 				src: launchUrl
 			}).css({
@@ -428,10 +424,34 @@ Webos.require([
 			});
 
 			appWindow.window('content').css('overflow', 'hidden');
-		}, function(res) {
-			appWindow.window('close');
-			callback.error(res);
-		}]);
+		};
+
+		appWindow.window('open');
+
+		if (appType == 'hosted') {
+			appWindow.window('loading', true, {
+				message: 'Checking app compatibility...'
+			});
+
+			FirefoxMarketplace._checkLaunchPage(launchUrl, [function(launchData) {
+				if (!launchData.isLaunchable) {
+					appWindow.window('close');
+					callback.error(Webos.Callback.Result.error('This app is not supported'));
+					return;
+				}
+
+				appWindow.window('loading', true, {
+					lock: false
+				});
+
+				launchApp();
+			}, function(res) {
+				appWindow.window('close');
+				callback.error(res);
+			}]);
+		} else if (appType == 'packaged') {
+			launchApp();
+		}
 	};
 
 	if (!Webos.Package.typeExists('firefoxMarketplace')) {

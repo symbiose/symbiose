@@ -58,11 +58,24 @@ Webos.GoogleApi.checkAuth = function(callback, forceImmediate) {
 	callback = Webos.Callback.toCallback(callback);
 
 	Webos.GoogleApi.loadAPIConfig([function(conf) {
+		var $notif = $();
+		if ($.w.notification) {
+			$notif = $.w.notification({
+				title: 'Logging in to Google',
+				message: 'A new window will appear to login to your Google account',
+				icon: 'applications/google-drive'
+			});
+		}
+
 		gapi.auth.authorize({
 			'client_id': conf.clientId,
 			'scope': 'https://www.googleapis.com/auth/drive',
 			'immediate': forceImmediate || Webos.GoogleApi._libLoaded
-		}, function(authResult) {
+		}, function (authResult) {
+			if ($notif.length && $.w.widget.is($notif, 'notification')) {
+				$notif.notification('dismiss');
+			}
+
 			if (authResult && !authResult.error) {
 				// Access token has been successfully retrieved, requests can be sent to the API.
 				window.setTimeout(function() {

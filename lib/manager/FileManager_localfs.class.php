@@ -137,6 +137,14 @@ class FileManager_localfs extends FileManager {
 		}
 	}
 
+	public function isRemote($path) {
+		return $this->dao()->isRemote($path);
+	}
+
+	public function removeHostFromPath($path) {
+		return $this->dao()->removeHostFromPath($path);
+	}
+
 	public function beautifyPath($path) {
 		return $this->dao()->beautifyPath($path);
 	}

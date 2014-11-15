@@ -26,7 +26,8 @@
 		"ircmaxell/password-compat": "dev-master",
 		"evenement/evenement": "1.0.*",
 		"fsi/acl": "0.9.*",
-		"gitonomy/gitlib": "dev-master"
+		"gitonomy/gitlib": "dev-master",
+		"emersion/php-wrappers": "dev-master"
 	},
 	"suggest": {
 		"ext-ftp": "To mount FTP volumes",
