@@ -77,12 +77,25 @@ class LocalFs {
 		return $this->currentDir;
 	}
 
+	public function isRemote($path) {
+		return (strpos($path, '://') !== false);
+	}
+
+	public function removeHostFromPath($path) {
+		return parse_url($path, PHP_URL_PATH);
+	}
+
 	/**
 	 * Beautify a path.
 	 * @param  string $path The path to beautify.
 	 * @return string       The beautified path.
 	 */
 	public function beautifyPath($path) {
+		//Protocol wrappers, like ftp://
+		if (strpos($path, '://') !== false) {
+			return $path;
+		}
+
 		$durtyDirs = explode('/', $path);
 		$cleanedDirs = array();
 		foreach ($durtyDirs as $i => $dir) {
@@ -114,6 +127,11 @@ class LocalFs {
 	 */
 	public function toInternalPath($externalPath) {
 		$internalPath = $externalPath;
+
+		//Protocol wrappers, like ftp://
+		if (strpos($internalPath, '://') !== false) {
+			return $internalPath;
+		}
 
 		if (preg_match('#^(\.)+/#', $internalPath)) { //Replace relative paths
 			$internalPath = $this->currentDir() . '/' . $internalPath;
@@ -150,6 +168,11 @@ class LocalFs {
 	 */
 	public function toExternalPath($internalPath) {
 		$externalPath = $internalPath;
+
+		//Protocol wrappers, like ftp://
+		if (strpos($externalPath, '://') !== false) {
+			return $externalPath;
+		}
 
 		//Remove the root path
 		if (substr($externalPath, 0, strlen($this->root())) == $this->root()) {
@@ -360,7 +383,7 @@ class LocalFs {
 		$chmodFile = false;
 
 		if (file_exists($internalPath)) {
-			if (!is_writable($internalPath)) {
+			if (!$this->isRemote($path) && !is_writable($internalPath)) {
 				throw $this->acessDeniedException($path);
 			}
 		} else {
@@ -420,7 +443,7 @@ class LocalFs {
 	 * @return string       The file's contents.
 	 */
 	public function read($path) {
-		if (!is_readable($this->toInternalPath($path))) {
+		if (!$this->isRemote($path) && !is_readable($this->toInternalPath($path))) {
 			throw $this->acessDeniedException($path, 'read');
 		}
 
@@ -440,7 +463,7 @@ class LocalFs {
 	 * @return array              A list of files contained in the given directory.
 	 */
 	public function readDir($path, $recursive = false) {
-		if (!is_readable($this->toInternalPath($path))) {
+		if (!$this->isRemote($path) && !is_readable($this->toInternalPath($path))) {
 			throw $this->acessDeniedException($path, 'read');
 		}
 
@@ -593,6 +616,10 @@ class LocalFs {
 	}
 
 	protected function acessDeniedException($path, $action = 'write') {
-		return new \RuntimeException('Cannot '.$action.' file "'.$path.'": permission denied (the web server user cannot '.$action.' files, chmod needed)');
+		$msg = 'Cannot '.$action.' file "'.$path.'": permission denied';
+		if (!$this->isRemote($path)) {
+			$msg += ' (the web server user cannot '.$action.' files, chmod needed)';
+		}
+		return new \RuntimeException($msg, 401);
 	}
 }

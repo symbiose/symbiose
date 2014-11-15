@@ -1415,7 +1415,7 @@ $.webos.widget('buttonGroup', 'container');
  * @augments $.webos.container
  */
 $.webos.button = function(label, submit) {
-	return $('<button></button>').button({
+	return $('<button></button>').attr('type', 'button').button({
 		label: label,
 		submit: submit
 	});

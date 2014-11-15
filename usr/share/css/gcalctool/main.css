@@ -41,11 +41,14 @@ textarea {
 	width: 33.333333332%;
 }
 
-.webos-button.violet, .webos-button.pink,
-.webos-button.blue, .webos-button.gray,
-.webos-button.enter {
+.btn-ctn .webos-button {
 	margin: 0;
 	width: 100%;
+	line-height: 24px;
+}
+
+.btn-ctn .webos-button:not(:active) {
+	box-shadow: none;
 }
 
 .webos-button.enter {

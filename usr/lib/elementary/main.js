@@ -157,9 +157,9 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 
 				var generateItemFn = function(data, $currentItem) {
 					$item = $('<li></li>').addClass('app').draggable({
-						data: (data.app) ? data.app : null,
+						data: data.app || null,
 						dragImage: $('<img />', { src: data.icon.realpath(48) }).css({ height: '48px', width: '48px' })
-					});
+					}).data('app', data.app || null);
 					if ($currentItem) {
 						$currentItem.replaceWith($item);
 					}
@@ -290,7 +290,7 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 
 					//Context menu
 					if (data.app) {
-						var contextmenu = $.w.contextMenu($item);
+						/*var contextmenu = $.w.contextMenu($item);
 						$.webos.menuItem(t.get('New window')).click(function() {
 							W.Cmd.execute(data.app.get('command'));
 						}).appendTo(contextmenu);
@@ -302,7 +302,7 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 							$.webos.menuItem(t.get('Add to favorites'), true).click(function() {
 								that.addFavorite(data.app);
 							}).appendTo(contextmenu);
-						}
+						}*/
 					}
 
 					return $item;
@@ -422,12 +422,12 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 		addFavorite: function (app) {
 			var that = this, t = this.translations();
 			
-			Webos.Application.listFavorites(function(favorites) {
+			Webos.Application.listFavorites(function (favorites) {
 				app.set('favorite', favorites.length + 1);
-				app.sync([function() {
+				app.syncIfAllowed([function () {
 					that.renderLauncher();
-				}, function(response) {
-					response.triggerError(t.get('Cannot add "${app}" to favorites', { 'app': app.get('title') }));
+				}, function (res) {
+					res.triggerError(t.get('Cannot add "${app}" to favorites', { 'app': app.get('title') }));
 				}]);
 			});
 		},
@@ -435,12 +435,45 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 			var that = this, t = this.translations();
 			
 			app.set('favorite', 0);
-			app.sync([function() {
+			app.syncIfAllowed([function () {
 				that.renderLauncher();
-			}, function(response) {
-				response.triggerError(t.get('Cannot remove "${app}" from favorites', { 'app': app.get('title') }));
+			}, function (res) {
+				res.triggerError(t.get('Cannot remove "${app}" to favorites', { 'app': app.get('title') }));
 			}]);
 		},
+		initLauncher: function () {
+			var that = this, t = this.translations();
+
+			// Add context menu
+			var contextmenu = $.w.contextMenu(that._$launcherApps, 'li');
+			
+			var app = null;
+			var menuItems = {
+				open: $.webos.menuItem(t.get('New window')).click(function () {
+					W.Cmd.execute(app.get('command'));
+				}).appendTo(contextmenu),
+				addFavorite: $.webos.menuItem(t.get('Add to favorites'), true).click(function () {
+					that.addFavorite(app);
+				}).appendTo(contextmenu),
+				removeFavorite: $.webos.menuItem(t.get('Remove from favorites'), true).click(function () {
+					that.removeFavorite(app);
+				}).appendTo(contextmenu)
+			};
+			contextmenu.on('contextmenubeforeopen', function (e, data) {
+				var $item = $(data.target);
+				app = $item.data('app');
+
+				if (!app) {
+					return false;
+				}
+
+				menuItems.addFavorite.toggle(app.get('favorite') === false);
+				menuItems.removeFavorite.toggle(app.get('favorite') !== false);
+			});
+
+			this.renderLauncher();
+		},
+
 		_displayApps: function (list) {
 			var that = this, t = this.translations();
 
@@ -456,10 +489,10 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 					return;
 				}
 
-				var item = $('<li></li>', { title: app.get('description') }).draggable({
+				var item = $('<li></li>', { title: app.get('description'), 'class': 'app' }).draggable({
 					data: app,
 					dragImage: $('<img />', { src: new W.Icon(app.get('icon'), 48) }).css({ height: '48px', width: '48px' })
-				});
+				}).data('app', app);
 
 				item.click(function() {
 					that.closeApps();
@@ -476,17 +509,6 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 				$('<div></div>', { 'class': 'app-description' })
 					.html(app.get('description'))
 					.appendTo(item);
-
-				var contextmenu = $.w.contextMenu(item);
-				if (app.get('favorite') !== false) {
-					$.webos.menuItem(t.get('Remove from favorites'), true).click(function() {
-						that.removeFavorite(app);
-					}).appendTo(contextmenu);
-				} else {
-					$.webos.menuItem(t.get('Add to favorites'), true).click(function() {
-						that.addFavorite(app);
-					}).appendTo(contextmenu);
-				}
 
 				if (app.get('category')) {
 					if (categoryName === null) {
@@ -667,7 +689,7 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 			}
 		},
 		initApps: function () {
-			var that = this;
+			var that = this, t = this.translations();
 			var $appsBtn = this._$appsBtn;
 
 			$appsBtn.click(function (e) {
@@ -690,11 +712,38 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 			}).keyup(function (e) {
 				if (e.keyCode == 27) {
 					$(this).val('');
-					that.switchAppsView('grid');
-				} else if ($(this).val().length) {
-					that.switchAppsView('search');
-					that.renderAppsSearch($(this).val());
 				}
+
+				var val = $(this).val();
+				if (val.length) {
+					that.switchAppsView('search');
+					that.renderAppsSearch(val);
+				} else {
+					that.switchAppsView('grid');
+				}
+			});
+
+			// Add context menu
+			var contextmenu = $.w.contextMenu(this._$apps, 'li.app');
+
+			var app = null;
+			var menuItems = {
+				open: $.webos.menuItem(t.get('New window')).click(function () {
+					W.Cmd.execute(app.get('command'));
+				}).appendTo(contextmenu),
+				addFavorite: $.webos.menuItem(t.get('Add to favorites'), true).click(function () {
+					that.addFavorite(app);
+				}).appendTo(contextmenu),
+				removeFavorite: $.webos.menuItem(t.get('Remove from favorites'), true).click(function () {
+					that.removeFavorite(app);
+				}).appendTo(contextmenu)
+			};
+			contextmenu.on('contextmenubeforeopen', function (e, data) {
+				var $item = $(data.target);
+				app = $item.data('app');
+
+				menuItems.addFavorite.toggle(app.get('favorite') === false);
+				menuItems.removeFavorite.toggle(app.get('favorite') !== false);
 			});
 
 			this.renderApps();
@@ -865,7 +914,7 @@ Webos.require(['/usr/lib/webos/applications.js'], function() {
 				that._translations = t;
 
 				that.initApps();
-				that.renderLauncher();
+				that.initLauncher();
 
 				Webos.Theme.on('load.elementary', function() {
 					that.renderLauncher();

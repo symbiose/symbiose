@@ -1373,17 +1373,19 @@ $.webos.window.states = [
  * @constructor
  * @augments $.w.window
  */
-$.webos.subwidget('window', 'main', function(args, $mainWindow) {
+$.webos.subwidget('window', 'main', function (args, $mainWindow) {
 	var options = args[0];
 	$mainWindow.window('option', options);
 
-	$mainWindow.one('windowafterclose', function() {
+	$mainWindow.one('windowafterclose', function () {
 		if (typeof $(this).window('pid') == 'number') {
 			var process = Webos.Process.get($(this).window('pid'));
 			if (process) {
 				process.stop();
 			}
 		}
+
+		$(this).window('destroy');
 	});
 
 	if (typeof $mainWindow.window('pid') == 'number') {
@@ -1424,7 +1426,7 @@ $.webos.subwidget('window', 'main', function(args, $mainWindow) {
 				$mainWindow.window('option', options);
 			}
 
-			$mainWindow.bind('windowbeforeclose', function() {
+			$mainWindow.on('windowbeforeclose', function () {
 				$.webos.window.main._cache[process.cmd] = $.webos.window.main._getWindowDisplay($mainWindow);
 			});
 		}

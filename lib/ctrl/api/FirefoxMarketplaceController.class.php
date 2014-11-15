@@ -77,11 +77,35 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 		$fileManager = $this->managers()->getManagerOf('file');
 		$launcherManager = $this->managers()->getManagerOf('launcher');
 
-		if ($appData['app_type'] != 'hosted') {
-			throw new \RuntimeException('Packaged apps installation is not currently supported', 405);
+		if ($appData['app_type'] != 'hosted' && $appData['app_type'] != 'packaged') {
+			throw new \RuntimeException('App type "'.$appData['app_type'].'" not supported', 405);
 		}
 
 		$webappDir = '/usr/lib/firefox-marketplace/webapps/'.$appData['slug'];
+
+		//Download ZIP if packaged app
+		if ($appData['app_type'] == 'packaged') {
+			$pkgUrl = $appData['package_path'];
+			$tmpPkgPath = $fileManager->tmpfile();
+			if (copy($pkgUrl, $fileManager->toInternalPath($tmpPkgPath)) === false) {
+				throw new \RuntimeException('Error while copying app package from "'.$pkgUrl.'" to "'.$tmpPkgPath.'"');
+			}
+
+			if (!class_exists('\ZipArchive')) {
+				throw new \RuntimeException('Installing packaged apps is not available on this system', 501);
+			}
+
+			$zip = new \ZipArchive();
+			if ($zip->open($fileManager->toInternalPath($tmpPkgPath)) === false) {
+				throw new \RuntimeException('Could not open ZIP package "'.$tmpPkgPath.'"');
+			}
+			if ($zip->extractTo($fileManager->toInternalPath($webappDir)) === false) {
+				throw new \RuntimeException('Could not extract ZIP package "'.$tmpPkgPath.'"');
+			}
+			$zip->close();
+
+			$fileManager->delete($tmpPkgPath);
+		}
 
 		//Download icons
 		$isIconDownloaded = false;
@@ -92,6 +116,9 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 		foreach($appData['icons'] as $iconSize => $iconUrl) {
 			$iconUrlPath = parse_url($iconUrl, PHP_URL_PATH);
 			if ($fileManager->extension($iconUrlPath) != 'png') {
+				continue;
+			}
+			if ((int) $iconSize > 512) { //Do not download extra large icons
 				continue;
 			}
 
@@ -108,7 +135,7 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 				$output = file_get_contents($iconUrl);
 			}
 
-			if ($output === false) {
+			if ($output === false) { //Something went wrong
 				continue;
 			}
 
@@ -160,7 +187,7 @@ class FirefoxMarketplaceController extends \lib\ApiBackController {
 			'title' => $appData['title'],
 			'version' => $appData['current_version'],
 			'description' => $appData['description'],
-			'url' => (!empty($appData['support_url'])) ? $appData['support_url'] : '',
+			'url' => (!empty($appData['support_url'])) ? reset($appData['support_url']) : '',
 			'maintainer' => $appData['author'],
 			'updateDate' => strtotime($appData['created']),
 			'categories' => $appData['categories'],

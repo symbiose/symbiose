@@ -6,6 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname(dirname($vendorDir));
 
 return array(
+    'Wrappers\\' => array($vendorDir . '/emersion/php-wrappers/src'),
     'WebSocketClient' => array($vendorDir . '/symbiose/websocket-client/src'),
     'Symfony\\Component\\Routing\\' => array($vendorDir . '/symfony/routing'),
     'Symfony\\Component\\Process\\' => array($vendorDir . '/symfony/process'),
