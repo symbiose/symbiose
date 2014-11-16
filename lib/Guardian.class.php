@@ -32,15 +32,16 @@ class Guardian extends ApplicationComponent {
 		$finalAuth = $requiredAuth;
 
 		$app = $this->app();
+		$allowedProtocols = $this->allowedProtocols;
 
 		$authsHandlers = array(
-			'file.*' => function($path, $action) use($app) {
+			'file.*' => function($path, $action) use($app, $allowedProtocols) {
 				if ($path === null) {
 					return true;
 				}
 				if (($pos = strpos($path, '://')) !== false) {
 					$protocol = substr($path, 0, $pos);
-					return in_array($protocol, $this->allowedProtocols);
+					return in_array($protocol, $allowedProtocols);
 				}
 
 				//Quelques nettoyages...
