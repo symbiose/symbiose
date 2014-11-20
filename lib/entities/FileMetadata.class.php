@@ -26,7 +26,7 @@ class FileMetadata extends Entity {
 	}
 
 	public function setTags($tags) {
-		if (!is_string($tags)) {
+		if (!is_string($tags) && $tags !== null) {
 			throw new InvalidArgumentException('Invalid file tags "'.$tags.'"');
 		}
 

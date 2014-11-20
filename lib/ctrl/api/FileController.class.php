@@ -284,7 +284,7 @@ class FileController extends ApiBackController {
 			$metadataManager->update($fileMetadata);
 		}
 
-		if ($user->isLogged()) {
+		/*if ($user->isLogged()) {
 			$internalPath = $manager->toInternalPath($path);
 			$share = $shareManager->getByPath($user->id(), $internalPath);
 
@@ -292,7 +292,7 @@ class FileController extends ApiBackController {
 				$share->setPath($manager->toInternalPath($newFilePath));
 				$shareManager->update($share);
 			}
-		}
+		}*/
 
 		//Return new data
 		return $this->executeGetMetadata($newFilePath);
@@ -333,7 +333,7 @@ class FileController extends ApiBackController {
 			$metadataManager->update($fileMetadata);
 		}
 
-		if ($user->isLogged()) {
+		/*if ($user->isLogged()) {
 			$sourceInternalPath = $manager->toInternalPath($source);
 			$share = $shareManager->getByPath($user->id(), $sourceInternalPath);
 
@@ -341,7 +341,7 @@ class FileController extends ApiBackController {
 				$share->setPath($manager->toInternalPath($movedPath));
 				$shareManager->update($share);
 			}
-		}
+		}*/
 
 		return $this->executeGetMetadata($movedPath);
 	}
@@ -362,17 +362,25 @@ class FileController extends ApiBackController {
 		if ($metadataManager->pathExists($internalPath)) {
 			$fileMetadata = $metadataManager->getByPath($internalPath);
 
+			if ($shareManager->fileIdExists($fileMetadata['id'])) {
+				$shares = $shareManager->listByFileId($fileMetadata['id']);
+
+				foreach ($shares as $share) {
+					$shareManager->delete($share['id']);
+				}
+			}
+
 			$metadataManager->delete($fileMetadata['id']);
 		}
 
-		if ($user->isLogged()) {
+		/*if ($user->isLogged()) {
 			$internalPath = $manager->toInternalPath($path);
 			$share = $shareManager->getByPath($user->id(), $internalPath);
 
 			if (!empty($share) && $internalPath == $share['path']) {
 				$shareManager->delete($share['id']);
 			}
-		}
+		}*/
 	}
 
 	/**

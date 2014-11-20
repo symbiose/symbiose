@@ -40,7 +40,7 @@ class FileShare extends Entity {
 	}
 
 	public function setTtl($ttl) {
-		if (!is_int($date) && !empty($ttl)) {
+		if (!is_int($ttl) && !empty($ttl)) {
 			throw new InvalidArgumentException('Invalid shared file ttl "'.$ttl.'"');
 		}
 

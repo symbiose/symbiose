@@ -774,7 +774,7 @@ Webos.File.listDir = function(path, callback) {
 	var file = Webos.File.get(path, { is_dir: true });
 
 	if (!file) {
-		op.setCompleted(false);
+		op.setCompleted(false, Webos.Callback.Result.error('Invalid file path "'+path+'"'));
 		return op;
 	}
 

@@ -14,7 +14,10 @@ class EntityManager_jsondb extends EntityManager {
 		$dataList = $dbFile->read();
 
 		if (!empty($fields)) {
-			$dataList = $dataList->filter($fields);
+			// TODO: add "options" param to $dataList->filter with "and" and "or" support
+			foreach ($fields as $fieldName => $fieldValue) {
+				$dataList = $dataList->filter(array($fieldName => $fieldValue));
+			}
 		}
 		if (isset($opts['orderBy'])) {
 			$orderBy = $opts['orderBy'];
