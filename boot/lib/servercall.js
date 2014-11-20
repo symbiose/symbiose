@@ -1127,6 +1127,9 @@ console.log('todo', reqData);
 			if (!address.protocol) {
 				address.protocol = (window.location.protocol == 'https:' && address.port == window.location.port) ? 'wss:' : 'ws:';
 			}
+			if (address.protocol.substr(-1) != ':') {
+				address.protocol += ':';
+			}
 			if (address.pathname[address.pathname.length - 1] == '/') {
 				address.pathname = address.pathname.substr(0, address.pathname.length - 1);
 			}
