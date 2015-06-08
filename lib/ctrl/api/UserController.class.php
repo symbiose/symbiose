@@ -582,22 +582,22 @@ class UserController extends \lib\ApiBackController {
 		$config = $this->_getRegisterConfig()->read();
 		$emailConfig = $this->_getEmailConfig()->read();
 
-		//Check captcha
+		// Check captcha
 		$captcha = $captchaManager->get($captchaData['id']);
 		if ($captcha['result'] != $captchaData['value']) {
 			throw new \RuntimeException('Invalid captcha', 400);
 		}
 
-		//Check if registering is enabled
+		// Check if registering is enabled
 		$registerStatus = $this->executeCanRegister();
 		if (!$registerStatus['register']) {
 			throw new \RuntimeException('Registration is currently disabled', 403);
 		}
 
-		//Default authorizations for new users
+		// Default authorizations for new users
 		$authorizations = $config['authorizations'];
 
-		//Create the new user
+		// Create the new user
 		$user = $this->executeCreate(array(
 			'username' => $data['username'],
 			'realname' => $data['realname'],
@@ -606,31 +606,35 @@ class UserController extends \lib\ApiBackController {
 			'disabled' => (isset($config['autoEnable']) && $config['autoEnable']) ? false : true
 		), $authorizations);
 
-		//Send an email after creation if possible
+		//S end an email after creation if possible
 		if ($emailConfig['enabled']) {
+			// Get translations
+			$dict = $translationManager->load('webos');
+
 			if (isset($config['requireVerifiedEmail']) && $config['requireVerifiedEmail']) {
-				//Create a new user token
+				// Create a new user token
 				$tokenData = array(
 					'userId' => $user['id'],
-					'key' => $tokenManager->generateToken(), //Generate token key
+					'key' => $tokenManager->generateToken(), // Generate token key
 					'timestamp' => time(),
 					'ip' => $this->app()->httpRequest()->remoteAddress()
 				);
 				$userToken = new UserToken($tokenData);
 				$tokenManager->insert($userToken);
 
-				//Send an e-mail with token key
-				$dict = $translationManager->load('webos');
-
-				//TODO: activation link
+				// Send an e-mail with token key
+				// TODO: activation link
 				$subject = $dict->get('Confirm your account on ${webos}!', array('webos' => 'Symbiose'));
 				$message = '<html><head><title>'.$subject.'</title></head><body>'.
 					'<p>'.$dict->get('Hi ${realname},', array('realname' => $user['realname'])).'</p>'.
 					'<p>'.$dict->get('You just registered to ${webos}!', array('webos' => 'Symbiose')).'<br />'.
 					$dict->get('You must follow this link to activate your account: ${link}', array('link' => '')).'</p>'.
+					'<p>'.$dict->get('Alternatively, you can enter this confirmation code: ${code}', array('code' => $tokenData['key'])).'</p>'.
 					'<p>'.$dict->get('Thanks,').'<br />'.
 					$dict->get('The ${webos} team', array('webos' => 'Symbiose')).'</p></body></html>';
 			} else {
+				// No verified e-mail required, just send a confirmation message
+				// TODO: add login link
 				$subject = $dict->get('Welcome to ${webos}!', array('webos' => 'Symbiose'));
 				$message = '<html><head><title>'.$subject.'</title></head><body>'.
 					'<p>'.$dict->get('Hi ${realname},', array('realname' => $user['realname'])).'</p>'.
@@ -656,7 +660,7 @@ class UserController extends \lib\ApiBackController {
 
 			try {
 				$emailManager->send($email);
-			} catch (\Exception $e) { //Mail not sent
+			} catch (\Exception $e) { // Mail not sent
 				if (isset($userToken)) {
 					$tokenManager->delete($userToken['id']);
 				}
