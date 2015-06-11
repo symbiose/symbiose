@@ -579,6 +579,7 @@ class UserController extends \lib\ApiBackController {
 		$manager = $this->managers()->getManagerOf('user');
 		$captchaManager = $this->managers()->getManagerOf('captcha');
 		$tokenManager = $this->managers()->getManagerOf('userToken');
+		$translationManager = $this->managers()->getManagerOf('translation');
 		$config = $this->_getRegisterConfig()->read();
 		$emailConfig = $this->_getEmailConfig()->read();
 
