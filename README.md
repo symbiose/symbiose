@@ -66,19 +66,6 @@ Software requirements
 
 > **NB**: Symbiose can also run in standalone mode, which doesn't require PHP.
 
-Authors
--------
-
-**Emersion**
-+ http://emersion.fr/
-+ http://github.com/emersion
-
-**Codel**
-+ https://github.com/Codel
-
-**Doppelganger**
-+ https://github.com/Doppelganger-Symbiose
-
 Copyright
 ---------
 
