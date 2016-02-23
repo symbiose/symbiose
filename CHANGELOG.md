@@ -1,4 +1,4 @@
-2014-06-02 Simon Ser contact@emersion.fr
+2014-06-02 emersion contact@emersion.fr
 
 * Adds standalone mode
 * Updates nautilus design
