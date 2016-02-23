@@ -3,7 +3,7 @@ namespace lib;
 
 /**
  * A response's content.
- * @author Simon Ser
+ * @author emersion
  * @since 1.0beta3
  */
 interface ResponseContent {
