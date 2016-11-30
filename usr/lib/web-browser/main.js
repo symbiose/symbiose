@@ -18,7 +18,7 @@
 		_config: {
 			homepage: 'https://www.duckduckgo.com/?kd=-1&kn=-1',
 			enableProxy: true,
-			proxyUrl: 'http://symbiose-proxy.herokuapp.com/',
+			proxyUrl: 'symbiose-proxy.herokuapp.com/',
 			proxyFlags: {
 				'include_form'    : false,
 				'remove_scripts'  : false,
@@ -197,8 +197,11 @@
 			}
 
 			this._$iframe.remove();
-			this._$iframe = $('<iframe></iframe>', { src: url });
-
+			
+		        this._$proxyiframe = $('<iframe></iframe>', { src: url });
+		        
+		        this._$iframe = $('<iframe></iframe>', { src: "http://" + url });
+		        
 			this._$iframe.appendTo(this._$win.find('.browser-ctn'));
 
 			this._$win.window('loading', true, {
