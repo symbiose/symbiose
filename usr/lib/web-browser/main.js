@@ -260,7 +260,12 @@
 			});
 		},
 		previous: function (diff) {
+	                if (url = this._config.homepage) {
+			this._$iframe[0].contentWindow.history.go(0);
+			} else {
 			this._$iframe[0].contentWindow.history.go(-1);
+			}
+
 		},
 		next: function (diff) {
 			this._$iframe[0].contentWindow.history.go(1);
