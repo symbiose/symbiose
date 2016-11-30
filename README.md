@@ -1,7 +1,7 @@
 [Symbiose 1.0 beta 5](http://symbiose.fr.cr/)
 ==============================================
 
-[![Build Status](https://travis-ci.org/symbiose/symbiose.svg?branch=master)](https://travis-ci.org/symbiose/symbiose)
+[![Build Status](https://travis-ci.org/Tiger66639/symbiose.svg)](https://travis-ci.org/Tiger66639/symbiose)
 
 This version (beta) is unstable. 
 
